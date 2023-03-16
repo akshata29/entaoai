@@ -1,0 +1,14 @@
+{
+    "azureFunctions.deploySubpath": "Python",
+    "azureFunctions.scmDoBuildDuringDeployment": true,
+    "azureFunctions.pythonVenv": ".venv",
+    "azureFunctions.projectLanguage": "Python",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/e2171f6d-2650-45e6-af7e-6d6e44ca92b1/resourceGroups/dataai/providers/Microsoft.Web/sites/dataaipdfchat",
+    "appService.deploySubpath": "."
+}
