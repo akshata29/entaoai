@@ -8,12 +8,11 @@ export default defineConfig({
         outDir: "backend/static",
         emptyOutDir: true,
         sourcemap: true
+    },
+    server: {
+        proxy: {
+            "/ask": "http://localhost:5000",
+            "/chat": "http://localhost:5000"
+        }
     }
-    // server: {
-        // port: 3001,
-        // proxy: {
-        //     "/ask": "http://localhost:5000",
-        //     "/chat": "http://localhost:5000"
-        // }
-    // }
 });
