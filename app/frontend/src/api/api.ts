@@ -1,7 +1,9 @@
 import { AskRequest, AskResponse, ChatRequest, ChatResponse } from "./models";
+export const qaUrl = `${import.meta.env.VITE_QA_URL}`
+export const chatUrl = `${import.meta.env.VITE_CHAT_URL}`
 
 export async function askApi(options: AskRequest, indexNs: string, indexType: string, chainType : string): Promise<AskResponse> {
-    const url = "https://dataaichatpdf.azurewebsites.net/api/QuestionAnswering?code=7zKWO-_xyfagBe0ECZiISfHUunVbjkGnRhxGu9IV-wLmAzFu6kESCQ==&chainType=" + chainType
+    const url = qaUrl + "&chainType=" + chainType
     + "&question=" + options.question + "&indexType=" + indexType + "&indexNs=" + indexNs;
     // const url = "http://localhost:7071/api/QuestionAnswering?chainType=" + chainType
     // + "&question=" + options.question + "&indexType=" + indexType + "&indexNs=" + indexNs;
@@ -44,8 +46,8 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
 
 }
 
-export async function chatApi(options: ChatRequest, indexNs: string): Promise<AskResponse> {
-    const response = await fetch("https://dataaichatpdf.azurewebsites.net/api/ChatGpt?code=43dE2E_qmmSPXf2Z6Cbqp5N_1JMHjjmVhuEHFUND9UhSAzFuXhaaKg==&indexNs=" + indexNs , {
+export async function chatApi(options: ChatRequest, indexNs: string, indexType:string): Promise<AskResponse> {
+    const response = await fetch(chatUrl + "&indexNs=" + indexNs + "&indexType=" + indexType , {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

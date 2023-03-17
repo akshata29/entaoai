@@ -2,10 +2,9 @@
 // THIS IS SAMPLE CODE ONLY - NOT MEANT FOR PRODUCTION USE
 import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
 
-const containerName = `chatpdf`
-const sasToken = "?sv=2021-06-08&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-02-19T11:47:00Z&st=2023-02-19T03:47:00Z&spr=https&sig=E1i1FU3ftreB557sf2vPpH%2B732%2F3TQLVIdmotexEVUY%3D"
-const storageAccountName = "dataaiopenaistor"
-
+const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
+const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
+const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
 // <snippet_get_client>
 const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
 

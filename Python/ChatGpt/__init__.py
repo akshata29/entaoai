@@ -16,6 +16,7 @@ import pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.chains import VectorDBQAWithSourcesChain
 from langchain.llms.openai import OpenAI, AzureOpenAI
+from langchain.vectorstores.redis import Redis
 
 
 OpenAiKey = os.environ['OpenAiKey']
@@ -36,6 +37,12 @@ OpenAiChatDocContainer =  os.environ['OpenAiChatDocContainer']
 OpenAiChat = os.environ['OpenAiChat']
 OpenAiChatBlobKey = os.environ['OpenAiChatBlobKey']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
+RedisAddress = os.environ['RedisAddress']
+RedisPassword = os.environ['RedisPassword']
+OpenAiEmbedding = os.environ['OpenAiEmbedding']
+RedisPort = os.environ['RedisPort']
+
+redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 
 ChatBlobClient = BlobServiceClient(
     account_url=f"https://{OpenAiChatDocStorName}.blob.core.windows.net",
@@ -54,6 +61,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
     try:
         indexNs = req.params.get('indexNs')
+        indexType = req.params.get('indexType')
         body = json.dumps(req.get_json())
     except ValueError:
         return func.HttpResponse(
@@ -66,7 +74,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             api_key=PineconeKey,  # find at app.pinecone.io
             environment=PineconeEnv  # next to api key in console
         )
-        result = ComposeResponse(body, indexNs)
+        result = ComposeResponse(body, indexNs, indexType)
         return func.HttpResponse(result, mimetype="application/json")
     else:
         return func.HttpResponse(
@@ -74,7 +82,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
              status_code=400
         )
 
-def ComposeResponse(jsonData, indexNs):
+def ComposeResponse(jsonData, indexNs, indexType):
     values = json.loads(jsonData)['values']
 
     logging.info("Calling Compose Response")
@@ -83,7 +91,7 @@ def ComposeResponse(jsonData, indexNs):
     results["values"] = []
 
     for value in values:
-        outputRecord = TransformValue(value, indexNs)
+        outputRecord = TransformValue(value, indexNs, indexType)
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
@@ -96,7 +104,7 @@ def getChatHistory(history, includeLastTurn=True, maxTokens=1000) -> str:
             break
     return historyText
 
-def GetRrrAnswer(history, indexNs):
+def GetRrrAnswer(history, indexNs, indexType):
     promptPrefix = """<|im_start|>system
     Be brief in your answers.
     Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
@@ -152,11 +160,22 @@ def GetRrrAnswer(history, indexNs):
 
     # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
     embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
-    vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings)
-    logging.info("Pinecone Setup done to search against - " + indexNs)
+    if indexType == 'pinecone':
+        vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings)
+        logging.info("Pinecone Setup done to search against - " + indexNs)
+        docs = vectorDb.similarity_search(q, k=5, namespace=indexNs)
+        logging.info("Executed Index and found ")
+    elif indexType == "redis":
+        try:
+            vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
+            logging.info("Redis Setup done")
+            docs = vectorDb.similarity_search(q, k=5, index_name=indexNs)
+        except:
+            return {"data_points": "", "answer": "Working on fixing Redis Implementation", "thoughts": ""}
+        
+    elif indexType == 'milvus':
+        docs = []
 
-    docs = vectorDb.similarity_search(q, k=5, namespace=indexNs)
-    logging.info("Executed Index and found ")
     rawDocs = []
     for doc in docs:
       rawDocs.append(doc.page_content)
@@ -194,12 +213,12 @@ def GetRrrAnswer(history, indexNs):
 
     # return {"answer": answer, "thoughts": f"Searched for:<br>{q}<br><br>Prompt:<br>" + followupPrompt.replace('\n', '<br>')}
 
-def GetAnswer(history, approach, overrides, indexNs):
+def GetAnswer(history, approach, overrides, indexNs, indexType):
     logging.info("Getting Answer")
     try:
       logging.info("Loading OpenAI")
       if (approach == 'rrr'):
-        r = GetRrrAnswer(history, indexNs)
+        r = GetRrrAnswer(history, indexNs, indexType)
       else:
           return json.dumps({"error": "unknown approach"})
       return r
@@ -210,7 +229,7 @@ def GetAnswer(history, approach, overrides, indexNs):
             status_code=500
       )
 
-def TransformValue(record, indexNs):
+def TransformValue(record, indexNs, indexType):
     logging.info("Calling Transform Value")
     try:
         recordId = record['recordId']
@@ -248,7 +267,7 @@ def TransformValue(record, indexNs):
         approach = data['approach']
         overrides = data['approach']
 
-        summaryResponse = GetAnswer(history, approach, overrides, indexNs)
+        summaryResponse = GetAnswer(history, approach, overrides, indexNs, indexType)
         return ({
             "recordId": recordId,
             "data": summaryResponse

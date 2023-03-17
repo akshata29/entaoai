@@ -9,10 +9,11 @@ import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { Label } from '@fluentui/react/lib/Label';
 
-const containerName = `chatpdf`
-const sasToken = "?sv=2021-12-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-03-16T05:34:46Z&st=2023-03-15T21:34:46Z&spr=https&sig=tyHUI9FoEo2PaQR6Ox%2FdQYfR3jFzVzvB2J7VbD5TXDQ%3D"
-const storageAccountName = "dataaiopenaistor"
+const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
+const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
+const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
 const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
 
 const OneShot = () => {
@@ -41,6 +42,11 @@ const OneShot = () => {
     const [activeCitation, setActiveCitation] = useState<string>();
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
 
+    //const [selectedIndex, setSelectedIndex] = useState<IDropdownOption>();
+    const [selectedIndex, setSelectedIndex] = useState<string>();
+    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; }[]>();
+      
+
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
 
@@ -63,7 +69,7 @@ const OneShot = () => {
                     semanticCaptions: useSemanticCaptions
                 }
             };
-            const result = await askApi(request, String(selectedItem?.key), 'pinecone', 'stuff');
+            const result = await askApi(request, String(selectedItem?.key), String(selectedIndex), 'stuff');
             setAnswer(result);
             // const mapReduceResult = await askApi(request, selectedItem?.key, 'pinecone', 'map-reduce');
             // setMapReduceAnswer(mapReduceResult);
@@ -146,6 +152,7 @@ const OneShot = () => {
         }
     
         const files = []
+        const indexType = []
     
         const blobs = containerClient.listBlobsFlat(listOptions)
         for await (const blob of blobs) {
@@ -155,14 +162,34 @@ const OneShot = () => {
                 text: blob.name,
                 key: blob.metadata?.namespace
             })
+            indexType.push({
+                    key:blob.metadata?.namespace,
+                    iType:blob.metadata?.indexType
+            })
           }
         }
         setOptions(files)
         setSelectedItem(files[0])
+
+        const defaultKey = files[0].key
+       
+        for (const item of indexType) {
+            if (item.key == defaultKey) {
+                setSelectedIndex(item.iType)
+            }
+        }
+        setIndexMapping(indexType)
     }
 
     const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         setSelectedItem(item);
+        const defaultKey = item?.key
+       
+        indexMapping?.findIndex((item) => {
+            if (item.key == defaultKey) {
+                setSelectedIndex(item.iType)
+            }
+        })
     };
 
     useEffect(() => {
@@ -187,17 +214,19 @@ const OneShot = () => {
     return (
         <div className={styles.root}>
             <div>
-            <div className={styles.commandsContainer}>
-                <DefaultButton onClick={refreshBlob}>Refresh PDF & Index</DefaultButton>
-                <Dropdown
-                    selectedKey={selectedItem ? selectedItem.key : undefined}
-                    // eslint-disable-next-line react/jsx-no-bind
-                    onChange={onChange}
-                    placeholder="Select an PDF"
-                    options={options}
-                    styles={dropdownStyles}
-                />
-            </div>
+                <div className={styles.commandsContainer}>
+                    <DefaultButton onClick={refreshBlob}>Refresh PDF & Index</DefaultButton>
+                    <Dropdown
+                        selectedKey={selectedItem ? selectedItem.key : undefined}
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onChange={onChange}
+                        placeholder="Select an PDF"
+                        options={options}
+                        styles={dropdownStyles}
+                    />
+                    &nbsp;
+                    <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                </div>
             </div>
             <div className={styles.oneshotContainer}>
                 <div className={styles.oneshotTopSection}>
@@ -333,3 +362,4 @@ const OneShot = () => {
 };
 
 export default OneShot;
+

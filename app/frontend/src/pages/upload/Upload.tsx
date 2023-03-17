@@ -7,15 +7,17 @@ import {
 
 import { BarcodeScanner24Filled } from "@fluentui/react-icons";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
+import { Label } from '@fluentui/react/lib/Label';
 
 import styles from "./Upload.module.css";
 
 import { useDropzone } from 'react-dropzone'
 
-const containerName = `chatpdf`
-const sasToken = "?sv=2021-12-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-03-16T05:34:46Z&st=2023-03-15T21:34:46Z&spr=https&sig=tyHUI9FoEo2PaQR6Ox%2FdQYfR3jFzVzvB2J7VbD5TXDQ%3D"
-const storageAccountName = "dataaiopenaistor"
-
+const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
+const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
+const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
+const docGeneratorUrl = `${import.meta.env.VITE_DOCGENERATOR_URL}`
 const delay = (ms:number) => new Promise(res => setTimeout(res, ms))
 
 // <snippet_get_client>
@@ -24,6 +26,20 @@ const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasTok
 const Upload = () => {
     const [files, setFiles] = useState<any>([])
     const [loading, setLoading] = useState(false)
+
+    const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
+    const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
+
+    const options = [
+      {
+        key: 'pinecone',
+        text: 'Pinecone'
+      },
+      {
+        key: 'redis',
+        text: 'Redis Stack'
+      }
+    ]
 
     const { getRootProps, getInputProps } = useDropzone({
         multiple: false,
@@ -57,7 +73,7 @@ const Upload = () => {
         <div>
           <div className='file-details'>
             <div className='file-preview'>{renderFilePreview(file)}</div>
-            <div>
+            <div key={file.name}>
               {file.name}
               &nbsp;
                 {Math.round(file.size / 100) / 10 > 1000
@@ -84,7 +100,7 @@ const Upload = () => {
     
         await blockBlobClient.uploadData(file, options)
 
-        const url = "https://dataaichatpdf.azurewebsites.net/api/DocGenerator?code=1DYM43OuqC9r5x42mBwXmdM_94GcTnwui5hwtjFraOiTAzFukmrJ_g==" + '&indexType=pinecone'
+        const url =  docGeneratorUrl + '&indexType=' + selectedItem?.key
 
         const requestOptions = {
             method: 'POST',
@@ -124,8 +140,27 @@ const Upload = () => {
         })
     }
 
+    const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedItem(item);
+    };
+
+   
     return (
         <div className={styles.chatAnalysisPanel}>
+            <div className={styles.commandsContainer}>
+                <Label className={styles.commandsContainer}>Index Type</Label>
+                &nbsp;
+                <Dropdown
+                    selectedKey={selectedItem ? selectedItem.key : undefined}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onChange={onChange}
+                    defaultSelectedKey="pinecone"
+                    placeholder="Select an Index Type"
+                    options={options}
+                    disabled={true}
+                    styles={dropdownStyles}
+                />
+            </div>
             <div>
                 <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF</h2>
                 <h2 {...getRootProps({ className: 'dropzone' })}>

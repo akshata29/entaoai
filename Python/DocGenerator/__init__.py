@@ -17,6 +17,7 @@ from pymilvus import connections
 from pymilvus import CollectionSchema, FieldSchema, DataType, Collection
 from pymilvus import utility
 import time
+from langchain.vectorstores.redis import Redis
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -31,6 +32,13 @@ OpenAiDocContainer = os.environ['OpenAiDocContainer']
 PineconeEnv = os.environ['PineconeEnv']
 PineconeKey = os.environ['PineconeKey']
 VsIndexName = os.environ['VsIndexName']
+VsIndexName = os.environ['VsIndexName']
+RedisAddress = os.environ['RedisAddress']
+RedisPassword = os.environ['RedisPassword']
+OpenAiEmbedding = os.environ['OpenAiEmbedding']
+RedisPort = os.environ['RedisPort']
+
+redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 
 def GetAllFiles():
     # Get all files in the container from Azure Blob Storage
@@ -131,7 +139,6 @@ def upsertMetadata(fileName, metadata):
     # Add metadata to the blob
     blobClient.set_blob_metadata(metadata= blob_metadata)
 
-
 def ComposeResponse(indexType, jsonData):
     values = json.loads(jsonData)['values']
 
@@ -145,6 +152,22 @@ def ComposeResponse(indexType, jsonData):
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
+
+def createRedisIndex(redisConn, indexName, prefix = "embedding"):
+    text = TextField(name="text")
+    filename = TextField(name="filename")
+    embeddings = VectorField("embeddings",
+                "HNSW", {
+                    "TYPE": "FLOAT32",
+                    "DIM": 1536,
+                    "DISTANCE_METRIC": "COSINE",
+                    "INITIAL_CAP": 3155,
+                })
+    # Create index
+    redisConn.ft(indexName).create_index(
+        fields = [text, embeddings, filename],
+        definition = IndexDefinition(prefix=[prefix], index_type=IndexType.HASH)
+    )
 
 def Embed(indexType, value):
     logging.info("Embedding text")
@@ -190,6 +213,11 @@ def Embed(indexType, value):
                                             openai_api_key=OpenAiKey)
               if indexType == 'pinecone':
                 Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResult.hex)
+              elif indexType == "redis":
+                redisConnection = Redis(redis_url=redisUrl, index_name=uResult.hex, embedding_function=embeddings)
+                # if not (redisConnection.ft(uResult.hex).info()):
+                #     createRedisIndex(redisConnection, uResult.hex)
+                Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResult.hex)
               elif indexType == 'milvus':
                 milvus = Milvus(connection_args={"host": "127.0.0.1", "port": "19530"},
                                 collection_name=VsIndexName, text_field="text", embedding_function=embeddings)
@@ -225,6 +253,9 @@ def Embed(indexType, value):
                                             openai_api_key=OpenAiKey)
               if indexType == 'pinecone':
                 pineconeDb = Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResult.hex)
+              elif indexType == "redis":
+                redisConnection = Redis(redis_url=redisUrl, index_name=uResult.hex, embedding_function=embeddings)
+                Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResult.hex)
               elif indexType == 'milvus':
                 milvusDb = Milvus.from_documents(docs,embeddings)
           logging.info("Upsert metadata")

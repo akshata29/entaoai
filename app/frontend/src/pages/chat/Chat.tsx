@@ -5,6 +5,7 @@ import { SparkleFilled, BarcodeScanner24Filled } from "@fluentui/react-icons";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
 import styles from "./Chat.module.css";
+import { Label } from '@fluentui/react/lib/Label';
 
 import { chatApi, Approaches, AskResponse, ChatRequest, ChatTurn } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
@@ -15,9 +16,10 @@ import { ClearChatButton } from "../../components/ClearChatButton";
 
 import { BlobServiceClient } from "@azure/storage-blob";
 
-const containerName = `chatpdf`
-const sasToken = "?sv=2021-12-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-03-16T05:34:46Z&st=2023-03-15T21:34:46Z&spr=https&sig=tyHUI9FoEo2PaQR6Ox%2FdQYfR3jFzVzvB2J7VbD5TXDQ%3D"
-const storageAccountName = "dataaiopenaistor"
+
+const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
+const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
+const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
 const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
 
 const Chat = () => {
@@ -45,6 +47,9 @@ const Chat = () => {
     const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
     const [answers, setAnswers] = useState<[user: string, response: AskResponse][]>([]);
 
+    const [selectedIndex, setSelectedIndex] = useState<string>();
+    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; }[]>();
+
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
 
@@ -67,7 +72,7 @@ const Chat = () => {
                     suggestFollowupQuestions: useSuggestFollowupQuestions
                 }
             };
-            const result = await chatApi(request, String(selectedItem?.key));
+            const result = await chatApi(request, String(selectedItem?.key), String(selectedIndex));
             setAnswers([...answers, [question, result]]);
         } catch (e) {
             setError(e);
@@ -101,7 +106,8 @@ const Chat = () => {
         }
     
         const files = []
-    
+        const indexType = []
+
         const blobs = containerClient.listBlobsFlat(listOptions)
         for await (const blob of blobs) {
           if (blob.metadata?.embedded == "true")
@@ -110,15 +116,36 @@ const Chat = () => {
                 text: blob.name,
                 key: blob.metadata?.namespace
             })
+            indexType.push({
+                    key:blob.metadata?.namespace,
+                    iType:blob.metadata?.indexType
+            })
           }
         }
         setOptions(files)
         setSelectedItem(files[0])
+
+        const defaultKey = files[0].key
+       
+        for (const item of indexType) {
+            if (item.key == defaultKey) {
+                setSelectedIndex(item.iType)
+            }
+        }
+        setIndexMapping(indexType)
     }
 
     const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         setSelectedItem(item);
         clearChat();
+
+        const defaultKey = item?.key
+       
+        indexMapping?.findIndex((item) => {
+            if (item.key == defaultKey) {
+                setSelectedIndex(item.iType)
+            }
+        })
     };
 
     useEffect(() => {
@@ -186,6 +213,8 @@ const Chat = () => {
                         options={options}
                         styles={dropdownStyles}
                     />
+                    &nbsp;
+                    <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
                 </div>
             </div>
             <div className={styles.container}>

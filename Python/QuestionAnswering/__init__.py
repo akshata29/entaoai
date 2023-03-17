@@ -11,6 +11,8 @@ from langchain.chains import VectorDBQAWithSourcesChain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import RegexParser
+from langchain.vectorstores.redis import Redis
+#from redis import Redis
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -26,6 +28,13 @@ OpenAiDocContainer = os.environ['OpenAiDocContainer']
 PineconeEnv = os.environ['PineconeEnv']
 PineconeKey = os.environ['PineconeKey']
 VsIndexName = os.environ['VsIndexName']
+RedisAddress = os.environ['RedisAddress']
+RedisPassword = os.environ['RedisPassword']
+OpenAiEmbedding = os.environ['OpenAiEmbedding']
+RedisPort = os.environ['RedisPort']
+
+redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+#redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
 
 def FindAnswer(chainType, question, indexType, value, indexNs):
     logging.info("Calling FindAnswer Open AI")
@@ -50,8 +59,6 @@ def FindAnswer(chainType, question, indexType, value, indexNs):
       logging.info("LLM Setup done")
       #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
       embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
-      vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
-      logging.info("Pinecone Setup done")
 
       if (chainType == "stuff"):
         template = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
@@ -154,8 +161,23 @@ def FindAnswer(chainType, question, indexType, value, indexNs):
           chain_type=chainType, question_prompt=qaPrompt, refine_prompt=refinePrompt)
 
       #chain = VectorDBQAWithSourcesChain.from_chain_type(llm, chain_type=chainType, vectorstore=vectorDb)
-      chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, 
+      if indexType == 'pinecone':
+        vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
+        logging.info("Pinecone Setup done")
+        chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, 
                                          search_kwargs={"namespace": indexNs})
+      elif indexType == "redis":
+        try:
+            vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
+            logging.info(vectorDb)
+            logging.info("Redis Setup done")
+            chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb)
+        except:
+            return {"data_points": "", "answer": "Working on fixing Redis Implementation", "thoughts": ""}
+
+      elif indexType == 'milvus':
+          answer = "{'answer': 'TBD', 'sources': ''}"
+
       answer = chain({"question": question}, return_only_outputs=True)
       logging.info(answer)
     except Exception as e:
