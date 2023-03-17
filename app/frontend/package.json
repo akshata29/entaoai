@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build --mode prod",
     "watch": "tsc && vite build --watch"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "@fluentui/react": "^8.105.3",
     "@fluentui/react-components": "^9.18.1",
     "@fluentui/react-icons": "^2.0.195",
+    "@pity/vite-plugin-react-markdown": "^0.1.1",
     "@react-spring/web": "^9.7.1",
     "dompurify": "^3.0.1",
     "react": "^18.2.0",

@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@pity/vite-plugin-react-markdown": "^0.1.1"
+  }
+}

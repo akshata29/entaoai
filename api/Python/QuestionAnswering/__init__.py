@@ -11,8 +11,15 @@ from langchain.chains import VectorDBQAWithSourcesChain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import RegexParser
-from langchain.vectorstores.redis import Redis
-#from redis import Redis
+#from langchain.vectorstores.redis import Redis
+from redis import Redis
+from redis.commands.search.query import Query
+from redis.commands.search.indexDefinition import IndexDefinition, IndexType
+from redis.commands.search.field import VectorField, TagField, TextField
+import numpy as np
+from langchain.docstore.document import Document
+import tiktoken
+from typing import Mapping
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -30,11 +37,54 @@ PineconeKey = os.environ['PineconeKey']
 VsIndexName = os.environ['VsIndexName']
 RedisAddress = os.environ['RedisAddress']
 RedisPassword = os.environ['RedisPassword']
-OpenAiEmbedding = os.environ['OpenAiEmbedding']
 RedisPort = os.environ['RedisPort']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
-#redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
+redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
+
+def getEmbedding(text: str, engine="text-embedding-ada-002") -> list[float]:
+    try:
+        text = text.replace("\n", " ")
+        EMBEDDING_ENCODING = 'cl100k_base' if engine == 'text-embedding-ada-002' else 'gpt2'
+        encoding = tiktoken.get_encoding(EMBEDDING_ENCODING)
+        return openai.Embedding.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
+    except Exception as e:
+        logging.info(e)
+
+
+def performRedisSearch(question, indexName, k):
+    #embeddingQuery= Redis.embedding_function(question)
+    question = question.replace("\n", " ")
+    embeddingQuery = getEmbedding(question, engine=OpenAiEmbedding)
+    arrayEmbedding = np.array(embeddingQuery)
+    returnField = ["metadata", "content", "vector_score"]
+    vectorField = "content_vector"
+    hybridField = "*"
+    baseQuery = (
+        f"{hybridField}=>[KNN {k} @{vectorField} $vector AS vector_score]"
+    )
+    redisQuery = (
+        Query(baseQuery)
+        .return_fields(*returnField)
+        .sort_by("vector_score")
+        .paging(0, 5)
+        .dialect(2)
+    )
+    params_dict: Mapping[str, str] = {
+            "vector": np.array(arrayEmbedding)  # type: ignore
+            .astype(dtype=np.float32)
+            .tobytes()
+    }
+
+    # perform vector search
+    results = redisConnection.ft(indexName).search(redisQuery, params_dict)
+
+    documents = [
+        Document(page_content=result.content, metadata=json.loads(result.metadata))
+        for result in results.docs
+    ]
+
+    return documents
 
 def FindAnswer(chainType, question, indexType, value, indexNs):
     logging.info("Calling FindAnswer Open AI")
@@ -168,12 +218,14 @@ def FindAnswer(chainType, question, indexType, value, indexNs):
                                          search_kwargs={"namespace": indexNs})
       elif indexType == "redis":
         try:
-            vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
-            logging.info(vectorDb)
-            logging.info("Redis Setup done")
-            chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb)
-        except:
-            return {"data_points": "", "answer": "Working on fixing Redis Implementation", "thoughts": ""}
+            # vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
+            # logging.info("Redis Setup done")
+            # chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb)
+             docs = performRedisSearch(question, indexNs, 5)
+             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+             return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
+        except Exception as e:
+            return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}
 
       elif indexType == 'milvus':
           answer = "{'answer': 'TBD', 'sources': ''}"

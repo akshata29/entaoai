@@ -4,11 +4,15 @@ import {
     Card,
     CardFooter,
   } from "@fluentui/react-components";
+  import { Checkbox, ICheckboxProps } from '@fluentui/react/lib/Checkbox';
 
 import { BarcodeScanner24Filled } from "@fluentui/react-icons";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import { Label } from '@fluentui/react/lib/Label';
+import { Stack, IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
+import { DefaultPalette } from '@fluentui/react/lib/Styling';
+import { TextField } from '@fluentui/react/lib/TextField';
 
 import styles from "./Upload.module.css";
 
@@ -29,6 +33,32 @@ const Upload = () => {
 
     const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
+    const [multipleDocs, setMultipleDocs] = useState(false);
+    const [indexName, setIndexName] = useState('');
+    const [uploadText, setUploadText] = useState('');
+
+    const stackStyles: IStackStyles = {
+      root: {
+        background: DefaultPalette.white,
+        height: 250,
+      },
+    };
+    const stackItemStyles: IStackItemStyles = {
+      root: {
+        alignItems: 'left',
+        background: DefaultPalette.white,
+        color: DefaultPalette.white,
+        display: 'flex',
+        justifyContent: 'left',
+      },
+    };
+
+    // Tokens definition
+    const outerStackTokens: IStackTokens = { childrenGap: 5 };
+    const innerStackTokens: IStackTokens = {
+      childrenGap: 5,
+      padding: 10,
+    };
 
     const options = [
       {
@@ -91,6 +121,7 @@ const Upload = () => {
         //Upload the PDF file to blob storage
     
         setLoading(true)
+        setUploadText('Uploading and Indexing your document...')
         const blobServiceClient = new BlobServiceClient(uploadUrl)
         const containerClient = blobServiceClient.getContainerClient(containerName)
         const blockBlobClient = containerClient.getBlockBlobClient(file.name)
@@ -98,8 +129,6 @@ const Upload = () => {
         // set mimetype as determined from browser with file upload control
         const options = { blobHTTPHeaders: { blobContentType: file.type } }
     
-        await blockBlobClient.uploadData(file, options)
-
         const url =  docGeneratorUrl + '&indexType=' + selectedItem?.key
 
         const requestOptions = {
@@ -117,49 +146,83 @@ const Upload = () => {
               })
         };
         // Wait 5 seconds for the file to be uploaded
-        await delay(5000)
+        //await delay(5000)
     
         //Trigger the function to Mine the PDF
-        fetch(url, requestOptions)
-          .then((pdfResponse) => {
-            delay(2000)
+        await blockBlobClient.uploadData(file, options)
+        .then(() => {
+          setUploadText("File uploaded successfully.  Now indexing the document.")
+          fetch(url, requestOptions)
+          .then((response) => {
+            if (response.ok) {
+              setUploadText("Completed Successfully.  You can now search for your document.")
+            }
+            else {
+              setUploadText("Failure to upload the document.")
+            }
+            setFiles([])
+            setLoading(false)
           })
           .catch((error : string) => {
+            setUploadText(error)
+            setFiles([])
+            setLoading(false)
           })
-        // Wait 5 seconds for the file to be uploaded
-        await delay(5000)
-        setFiles([])
-
-        setLoading(false)
+        })
 
     }
 
     const handleUploadFiles = async () => {
-        files.forEach(async (element: File) => {
-          await uploadFileToBlob(element)
-        })
+      // if (multipleDocs && index)
+      // {
+        
+      // }
+      files.forEach(async (element: File) => {
+        await uploadFileToBlob(element)
+      })
     }
+
+    const onMultipleDocs = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
+        setMultipleDocs(!!checked);
+    };
 
     const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
       setSelectedItem(item);
     };
 
+    const onChangeFirstTextFieldValue = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
+        setIndexName(newValue || '');
+    };
    
+    useEffect(() => {
+      setSelectedItem(options[0])
+    }, [])
+
     return (
         <div className={styles.chatAnalysisPanel}>
+            <Stack enableScopedSelectors tokens={outerStackTokens}>
+              <Stack enableScopedSelectors styles={stackStyles} tokens={innerStackTokens}>
+                <Stack.Item grow={2} styles={stackItemStyles}>
+                  <Label>Index Type</Label>
+                  &nbsp;
+                  <Dropdown
+                      selectedKey={selectedItem ? selectedItem.key : undefined}
+                      onChange={onChange}
+                      defaultSelectedKey="pinecone"
+                      placeholder="Select an Index Type"
+                      options={options}
+                      styles={dropdownStyles}
+                  />
+                </Stack.Item>
+                <Stack.Item grow={2} styles={stackItemStyles}>
+                  <Checkbox label="Multiple Documents" checked={multipleDocs} onChange={onMultipleDocs} />
+                </Stack.Item>
+                <Stack.Item grow={2} styles={stackItemStyles}>
+                  <TextField disabled={!multipleDocs} errorMessage="" label="Index Name (for single file will default to filename)" />
+                </Stack.Item>
+              </Stack>
+            </Stack>
             <div className={styles.commandsContainer}>
-                <Label className={styles.commandsContainer}>Index Type</Label>
-                &nbsp;
-                <Dropdown
-                    selectedKey={selectedItem ? selectedItem.key : undefined}
-                    // eslint-disable-next-line react/jsx-no-bind
-                    onChange={onChange}
-                    defaultSelectedKey="pinecone"
-                    placeholder="Select an Index Type"
-                    options={options}
-                    disabled={true}
-                    styles={dropdownStyles}
-                />
             </div>
             <div>
                 <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF</h2>
@@ -182,6 +245,9 @@ const Upload = () => {
                 <br/>
                 {loading ? <div><span>Please wait, Uploading and Processing your file</span><Spinner/></div> : null}
                 <hr />
+                <h2 className={styles.chatEmptyStateSubtitle}>
+                  <TextField disabled={true} label={uploadText} />
+                </h2>
             </div>
         </div>
     );

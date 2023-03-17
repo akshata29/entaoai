@@ -29,6 +29,11 @@ const Layout = () => {
                                     Ask a question
                                 </NavLink>
                             </li>
+                            {/* <li className={styles.headerNavLeftMargin}>
+                                <NavLink to="/help" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    Help
+                                </NavLink>
+                            </li> */}
                         </ul>
                     </nav>
                     <h4 className={styles.headerRightText}>Azure OpenAI</h4>

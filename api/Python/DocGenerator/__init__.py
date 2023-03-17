@@ -153,21 +153,21 @@ def ComposeResponse(indexType, jsonData):
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
 
-def createRedisIndex(redisConn, indexName, prefix = "embedding"):
-    text = TextField(name="text")
-    filename = TextField(name="filename")
-    embeddings = VectorField("embeddings",
-                "HNSW", {
-                    "TYPE": "FLOAT32",
-                    "DIM": 1536,
-                    "DISTANCE_METRIC": "COSINE",
-                    "INITIAL_CAP": 3155,
-                })
-    # Create index
-    redisConn.ft(indexName).create_index(
-        fields = [text, embeddings, filename],
-        definition = IndexDefinition(prefix=[prefix], index_type=IndexType.HASH)
-    )
+# def createRedisIndex(redisConn, indexName, prefix = "embedding"):
+#     text = TextField(name="text")
+#     filename = TextField(name="filename")
+#     embeddings = VectorField("embeddings",
+#                 "HNSW", {
+#                     "TYPE": "FLOAT32",
+#                     "DIM": 1536,
+#                     "DISTANCE_METRIC": "COSINE",
+#                     "INITIAL_CAP": 3155,
+#                 })
+#     # Create index
+#     redisConn.ft(indexName).create_index(
+#         fields = [text, embeddings, filename],
+#         definition = IndexDefinition(prefix=[prefix], index_type=IndexType.HASH)
+#     )
 
 def Embed(indexType, value):
     logging.info("Embedding text")
@@ -262,6 +262,7 @@ def Embed(indexType, value):
           upsertMetadata(fileName, {'embedded': 'true', 'namespace': uResult.hex, 'indexType': indexType})
           logging.info("Sleeping")
           time.sleep(15)
+          return "Success"
     except Exception as e:
       logging.error(e)
       return func.HttpResponse(

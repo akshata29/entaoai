@@ -16,8 +16,15 @@ import pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.chains import VectorDBQAWithSourcesChain
 from langchain.llms.openai import OpenAI, AzureOpenAI
-from langchain.vectorstores.redis import Redis
-
+#from langchain.vectorstores.redis import Redis
+from redis import Redis
+from redis.commands.search.query import Query
+from redis.commands.search.indexDefinition import IndexDefinition, IndexType
+from redis.commands.search.field import VectorField, TagField, TextField
+import numpy as np
+from langchain.docstore.document import Document
+import tiktoken
+from typing import Mapping
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -43,11 +50,55 @@ OpenAiEmbedding = os.environ['OpenAiEmbedding']
 RedisPort = os.environ['RedisPort']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
 
 ChatBlobClient = BlobServiceClient(
     account_url=f"https://{OpenAiChatDocStorName}.blob.core.windows.net",
     credential=OpenAiChatBlobKey)
 ChatBlobContainer = ChatBlobClient.get_container_client(OpenAiChatDocContainer)
+
+def getEmbedding(text: str, engine="text-embedding-ada-002") -> list[float]:
+    try:
+        text = text.replace("\n", " ")
+        EMBEDDING_ENCODING = 'cl100k_base' if engine == 'text-embedding-ada-002' else 'gpt2'
+        encoding = tiktoken.get_encoding(EMBEDDING_ENCODING)
+        return openai.Embedding.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
+    except Exception as e:
+        logging.info(e)
+
+def performRedisSearch(question, indexName, k):
+    #embeddingQuery= Redis.embedding_function(question)
+    question = question.replace("\n", " ")
+    embeddingQuery = getEmbedding(question, engine=OpenAiEmbedding)
+    arrayEmbedding = np.array(embeddingQuery)
+    returnField = ["metadata", "content", "vector_score"]
+    vectorField = "content_vector"
+    hybridField = "*"
+    baseQuery = (
+        f"{hybridField}=>[KNN {k} @{vectorField} $vector AS vector_score]"
+    )
+    redisQuery = (
+        Query(baseQuery)
+        .return_fields(*returnField)
+        .sort_by("vector_score")
+        .paging(0, 5)
+        .dialect(2)
+    )
+    params_dict: Mapping[str, str] = {
+            "vector": np.array(arrayEmbedding)  # type: ignore
+            .astype(dtype=np.float32)
+            .tobytes()
+    }
+
+    # perform vector search
+    results = redisConnection.ft(indexName).search(redisQuery, params_dict)
+
+    documents = [
+        Document(page_content=result.content, metadata=json.loads(result.metadata))
+        for result in results.docs
+    ]
+
+    return documents
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -156,7 +207,7 @@ def GetRrrAnswer(history, indexNs, indexType):
         stop=["\n"])
     q = completion.choices[0].text
 
-    #logging.info("Question " + completion.choices[0].text)
+    logging.info("Question " + completion.choices[0].text)
 
     # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
     embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
@@ -167,9 +218,10 @@ def GetRrrAnswer(history, indexNs, indexType):
         logging.info("Executed Index and found ")
     elif indexType == "redis":
         try:
-            vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
-            logging.info("Redis Setup done")
-            docs = vectorDb.similarity_search(q, k=5, index_name=indexNs)
+            #vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
+            #logging.info("Redis Setup done")
+            #docs = vectorDb.similarity_search(q, k=5, index_name=indexNs)
+            docs = performRedisSearch(q, indexNs, 5)
         except:
             return {"data_points": "", "answer": "Working on fixing Redis Implementation", "thoughts": ""}
         
@@ -187,14 +239,18 @@ def GetRrrAnswer(history, indexNs, indexType):
                                       follow_up_questions_prompt=followupQaPromptTemplate)
     logging.info("Final Prompt created")
     # STEP 3: Generate a contextual and content specific answer using the search results and chat history
-    completion = openai.Completion.create(
-        engine=OpenAiChat,
-        prompt=finalPrompt,
-        temperature=0.7,
-        max_tokens=1024,
-        n=1,
-        stop=["<|im_end|>", "<|im_start|>"])
-
+    try:
+        completion = openai.Completion.create(
+            engine=OpenAiChat,
+            prompt=finalPrompt,
+            temperature=0.7,
+            max_tokens=1024,
+            n=1,
+            stop=["<|im_end|>", "<|im_start|>"])
+    except Exception as e:
+        logging.error(e)
+        return {"data_points": rawDocs, "answer": "Working on fixing OpenAI Implementation - Error " + str(e) , "thoughts": ""}
+    
     return {"data_points": rawDocs, "answer": completion.choices[0].text, "thoughts": f"Searched for:<br>{q}<br><br>Prompt:<br>" + finalPrompt.replace('\n', '<br>')}
 
     # llm = OpenAIChat(deployment_name=OpenAiChat,

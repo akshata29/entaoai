@@ -10,6 +10,7 @@ import NoPage from "./pages/NoPage";
 import Chat from "./pages/chat/Chat";
 import OneShot from "./pages/oneshot/OneShot";
 import Upload from "./pages/upload/Upload";
+import Help from "./pages/help/Help";
 
 initializeIcons();
 
@@ -18,9 +19,10 @@ export default function App() {
         <HashRouter>
             <Routes>
                 <Route path="/" element={<Layout />}>
-                <Route path="upload" element={<Upload />} />
-                <Route path="qa" element={<OneShot />} />
+                    <Route path="upload" element={<Upload />} />
+                    <Route path="qa" element={<OneShot />} />
                     <Route index element={<Chat />} />
+                    <Route path="help" index element={<Help />} />
                     <Route path="*" element={<NoPage />} />
                 </Route>
             </Routes>
