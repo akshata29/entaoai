@@ -159,7 +159,7 @@ const OneShot = () => {
           if (blob.metadata?.embedded == "true")
           {
             files.push({
-                text: blob.name,
+                text: blob.metadata.indexName,
                 key: blob.metadata?.namespace
             })
             indexType.push({
@@ -168,17 +168,20 @@ const OneShot = () => {
             })
           }
         }
-        setOptions(files)
-        setSelectedItem(files[0])
+        var uniqFiles = files.filter((v,i,a)=>a.findIndex(v2=>(v2.key===v.key))===i)
+        setOptions(uniqFiles)
+        setSelectedItem(uniqFiles[0])
 
-        const defaultKey = files[0].key
+        const defaultKey = uniqFiles[0].key
        
-        for (const item of indexType) {
+        var uniqIndexType = indexType.filter((v,i,a)=>a.findIndex(v2=>(v2.key===v.key))===i)
+
+        for (const item of uniqIndexType) {
             if (item.key == defaultKey) {
                 setSelectedIndex(item.iType)
             }
         }
-        setIndexMapping(indexType)
+        setIndexMapping(uniqIndexType)
     }
 
     const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {

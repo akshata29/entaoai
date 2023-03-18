@@ -40,7 +40,7 @@ RedisPort = os.environ['RedisPort']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 
-def GetAllFiles():
+def GetAllFiles(filesToProcess):
     # Get all files in the container from Azure Blob Storage
     # Create the BlobServiceClient object
     blobServiceClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr)
@@ -50,17 +50,26 @@ def GetAllFiles():
     sas = generate_container_sas(OpenAiDocStorName, OpenAiDocContainer,account_key=OpenAiDocStorKey,  permission="r", expiry=datetime.utcnow() + timedelta(hours=3))
     files = []
     convertedFiles = {}
-    for blob in blobList:
-        if not blob.name.startswith('converted/'):
-            files.append({
-                "filename" : blob.name,
-                "converted": blob.metadata.get('converted', 'false') == 'true' if blob.metadata else False,
-                "embedded": blob.metadata.get('embedded', 'false') == 'true' if blob.metadata else False,
-                "fullpath": f"https://{OpenAiDocStorName}.blob.core.windows.net/{OpenAiDocContainer}/{blob.name}?{sas}",
-                "converted_path": ""
-                })
-        else:
-            convertedFiles[blob.name] = f"https://{OpenAiDocStorName}.blob.core.windows.net/{OpenAiDocContainer}/{blob.name}?{sas}"
+    for file in filesToProcess:
+        files.append({
+            "filename" : file['path'],
+            "converted": False,
+            "embedded": False,
+            "fullpath": f"https://{OpenAiDocStorName}.blob.core.windows.net/{OpenAiDocContainer}/{file['path']}?{sas}",
+            "converted_path": ""
+            })
+    # for blob in blobList:
+    #     logging.info(blob.name)
+    #     if not blob.name.startswith('converted/'):
+    #         files.append({
+    #             "filename" : blob.name,
+    #             "converted": blob.metadata.get('converted', 'false') == 'true' if blob.metadata else False,
+    #             "embedded": blob.metadata.get('embedded', 'false') == 'true' if blob.metadata else False,
+    #             "fullpath": f"https://{OpenAiDocStorName}.blob.core.windows.net/{OpenAiDocContainer}/{blob.name}?{sas}",
+    #             "converted_path": ""
+    #             })
+    #     else:
+    #         convertedFiles[blob.name] = f"https://{OpenAiDocStorName}.blob.core.windows.net/{OpenAiDocContainer}/{blob.name}?{sas}"
 
     logging.info(f"Found {len(files)} files in the container")
     for file in files:
@@ -69,7 +78,9 @@ def GetAllFiles():
             file['converted'] = True
             file['converted_path'] = convertedFiles[convertedFileName]
 
+    logging.info(files)
     return files
+    #return []
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -83,6 +94,9 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
     try:
         indexType = req.params.get('indexType')
+        loadType = req.params.get('loadType')
+        multiple = req.params.get('multiple')
+        indexName = req.params.get('indexName')
         body = json.dumps(req.get_json())
     except ValueError:
         return func.HttpResponse(
@@ -123,7 +137,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         #   collection.create_index(field_name="embed", index_params=indexParam)
         #   collection.load()
 
-        result = ComposeResponse(indexType, body)
+        result = ComposeResponse(indexType, loadType, multiple, indexName, body)
         return func.HttpResponse(result, mimetype="application/json")
     else:
         return func.HttpResponse(
@@ -139,7 +153,7 @@ def upsertMetadata(fileName, metadata):
     # Add metadata to the blob
     blobClient.set_blob_metadata(metadata= blob_metadata)
 
-def ComposeResponse(indexType, jsonData):
+def ComposeResponse(indexType, loadType,  multiple, indexName, jsonData):
     values = json.loads(jsonData)['values']
 
     logging.info("Calling Compose Response")
@@ -148,7 +162,7 @@ def ComposeResponse(indexType, jsonData):
     results["values"] = []
 
     for value in values:
-        outputRecord = TransformValue(indexType, value)
+        outputRecord = TransformValue(indexType, loadType,  multiple, indexName, value)
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
@@ -169,7 +183,7 @@ def ComposeResponse(indexType, jsonData):
 #         definition = IndexDefinition(prefix=[prefix], index_type=IndexType.HASH)
 #     )
 
-def Embed(indexType, value):
+def Embed(indexType, loadType, multiple, indexName,  value):
     logging.info("Embedding text")
     try:
       logging.info("Loading OpenAI")
@@ -177,92 +191,101 @@ def Embed(indexType, value):
       openai.api_key = OpenAiKey
       openai.api_version = OpenAiVersion
       openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-      filesData = GetAllFiles()
-      filesData = list(filter(lambda x : not x['embedded'], filesData))
-      filesData = list(map(lambda x: {'filename': x['filename']}, filesData))
 
-      logging.info(f"Found {len(filesData)} files to embed")
-      for file in filesData:
-          logging.info(f"Adding {file['filename']} to Process")
-          fileName = file['filename']
-          # Check the file extension
-          if fileName.endswith('.txt'):
-              logging.info("Embedding text file")
-              # Read the file from Blob Storage
-              blobClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr).get_blob_client(container=OpenAiDocContainer, blob=fileName)
-              fileContent = blobClient.download_blob().readall().decode('utf-8')
+      if (loadType == "files"):
+        filesData = GetAllFiles(value)
+        filesData = list(filter(lambda x : not x['embedded'], filesData))
+        filesData = list(map(lambda x: {'filename': x['filename']}, filesData))
 
-              uResult = uuid.uuid4()
-              downloadPath = os.path.join(tempfile.gettempdir(), uResult.hex + ".txt")
-              os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
-              try:
-                  with open(downloadPath, "wb") as file:
-                    file.write(bytes(fileContent, 'utf-8'))
-              except Exception as e:
-                  logging.error(e)
+        logging.info(f"Found {len(filesData)} files to embed")
+        uResultNs = uuid.uuid4()
+        for file in filesData:
+            logging.info(f"Adding {file['filename']} to Process")
+            fileName = file['filename']
+            # Check the file extension
+            if fileName.endswith('.txt'):
+                logging.info("Embedding text file")
+                # Read the file from Blob Storage
+                blobClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr).get_blob_client(container=OpenAiDocContainer, blob=fileName)
+                fileContent = blobClient.download_blob().readall().decode('utf-8')
 
-              logging.info("File created")
-              textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
-              loader = UnstructuredFileLoader(downloadPath)
-              rawDocs = loader.load()
-              docs = textSplitter.split_documents(rawDocs)
-              logging.info("Docs " + str(len(docs)))
-              #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
-              embeddings = OpenAIEmbeddings(document_model_name="text-embedding-ada-002",
-                                            chunk_size=1,
-                                            openai_api_key=OpenAiKey)
-              if indexType == 'pinecone':
-                Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResult.hex)
-              elif indexType == "redis":
-                redisConnection = Redis(redis_url=redisUrl, index_name=uResult.hex, embedding_function=embeddings)
-                # if not (redisConnection.ft(uResult.hex).info()):
-                #     createRedisIndex(redisConnection, uResult.hex)
-                Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResult.hex)
-              elif indexType == 'milvus':
-                milvus = Milvus(connection_args={"host": "127.0.0.1", "port": "19530"},
-                                collection_name=VsIndexName, text_field="text", embedding_function=embeddings)
-                Milvus.from_documents(docs,embeddings)
+                uResult = uuid.uuid4()
+                downloadPath = os.path.join(tempfile.gettempdir(), uResult.hex + ".txt")
+                os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+                try:
+                    with open(downloadPath, "wb") as file:
+                        file.write(bytes(fileContent, 'utf-8'))
+                except Exception as e:
+                    logging.error(e)
 
-              # Embed the file
-              #data = chunk_and_embed(fileContent, fileName)
-              # Set the document in Redis
-              #set_document(data)
-          else:
-              logging.info("Embedding Non-text file")
-              blobServiceClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr)
-              blobClient = blobServiceClient.get_blob_client(container=OpenAiDocContainer, blob=fileName)
-              readBytes = blobClient.download_blob().readall()
-              uResult = uuid.uuid4()
-              downloadPath = os.path.join(tempfile.gettempdir(), fileName)
-              os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
-              try:
-                  with open(downloadPath, "wb") as file:
-                    file.write(readBytes)
-              except Exception as e:
-                  logging.error(e)
+                logging.info("File created")
+                textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
+                loader = UnstructuredFileLoader(downloadPath)
+                rawDocs = loader.load()
+                docs = textSplitter.split_documents(rawDocs)
+                logging.info("Docs " + str(len(docs)))
+                #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
+                embeddings = OpenAIEmbeddings(document_model_name="text-embedding-ada-002",
+                                                chunk_size=1,
+                                                openai_api_key=OpenAiKey)
+                if indexType == 'pinecone':
+                    Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResultNs.hex)
+                elif indexType == "redis":
+                    redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
+                    # if not (redisConnection.ft(uResult.hex).info()):
+                    #     createRedisIndex(redisConnection, uResult.hex)
+                    Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
+                elif indexType == 'milvus':
+                    milvus = Milvus(connection_args={"host": "127.0.0.1", "port": "19530"},
+                                    collection_name=VsIndexName, text_field="text", embedding_function=embeddings)
+                    Milvus.from_documents(docs,embeddings)
 
-              logging.info("File created")
-              textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
-              docs = []
-              loader = PDFMinerLoader(downloadPath)
-              rawDocs = loader.load()
-              docs = textSplitter.split_documents(rawDocs)
-              #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
-              embeddings = OpenAIEmbeddings(document_model_name="text-embedding-ada-002",
-                                            chunk_size=1,
-                                            openai_api_key=OpenAiKey)
-              if indexType == 'pinecone':
-                pineconeDb = Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResult.hex)
-              elif indexType == "redis":
-                redisConnection = Redis(redis_url=redisUrl, index_name=uResult.hex, embedding_function=embeddings)
-                Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResult.hex)
-              elif indexType == 'milvus':
-                milvusDb = Milvus.from_documents(docs,embeddings)
-          logging.info("Upsert metadata")
-          upsertMetadata(fileName, {'embedded': 'true', 'namespace': uResult.hex, 'indexType': indexType})
-          logging.info("Sleeping")
-          time.sleep(15)
-          return "Success"
+                # Embed the file
+                #data = chunk_and_embed(fileContent, fileName)
+                # Set the document in Redis
+                #set_document(data)
+            else:
+                logging.info("Embedding Non-text file")
+                blobServiceClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr)
+                blobClient = blobServiceClient.get_blob_client(container=OpenAiDocContainer, blob=fileName)
+                readBytes = blobClient.download_blob().readall()
+                uResult = uuid.uuid4()
+                downloadPath = os.path.join(tempfile.gettempdir(), fileName)
+                os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+                try:
+                    with open(downloadPath, "wb") as file:
+                        file.write(readBytes)
+                except Exception as e:
+                    logging.error(e)
+
+                logging.info("File created")
+                textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
+                docs = []
+                loader = PDFMinerLoader(downloadPath)
+                rawDocs = loader.load()
+                docs = textSplitter.split_documents(rawDocs)
+                #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
+                embeddings = OpenAIEmbeddings(document_model_name="text-embedding-ada-002",
+                                                chunk_size=1,
+                                                openai_api_key=OpenAiKey)
+                if indexType == 'pinecone':
+                    pineconeDb = Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResultNs.hex)
+                elif indexType == "redis":
+                    redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
+                    Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
+                elif indexType == 'milvus':
+                    milvusDb = Milvus.from_documents(docs,embeddings)
+            logging.info("Upsert metadata")
+            upsertMetadata(fileName, {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+            logging.info("Sleeping")
+            time.sleep(15)
+        return "Success"
+      elif (loadType == "webpages"):
+        logging.info("Embedding Webpages")
+        return "Success"
+      elif (loadType == "iFixIt"):
+        logging.info("Embedding iFixIt")
+        return "Success"
     except Exception as e:
       logging.error(e)
       return func.HttpResponse(
@@ -270,7 +293,7 @@ def Embed(indexType, value):
             status_code=500
       )
 
-def TransformValue(indexType, record):
+def TransformValue(indexType, loadType,  multiple, indexName, record):
     logging.info("Calling Transform Value")
     try:
         recordId = record['recordId']
@@ -306,7 +329,7 @@ def TransformValue(indexType, record):
         # Getting the items from the values/data/text
         value = data['text']
 
-        summaryResponse = Embed(indexType, value)
+        summaryResponse = Embed(indexType, loadType,  multiple, indexName, value)
         return ({
             "recordId": recordId,
             "data": {

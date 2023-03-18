@@ -4,7 +4,8 @@ import {
     Card,
     CardFooter,
   } from "@fluentui/react-components";
-  import { Checkbox, ICheckboxProps } from '@fluentui/react/lib/Checkbox';
+import { Checkbox, ICheckboxProps } from '@fluentui/react/lib/Checkbox';
+import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@fluentui/react';
 
 import { BarcodeScanner24Filled } from "@fluentui/react-icons";
 import { BlobServiceClient } from "@azure/storage-blob";
@@ -36,7 +37,13 @@ const Upload = () => {
     const [multipleDocs, setMultipleDocs] = useState(false);
     const [indexName, setIndexName] = useState('');
     const [uploadText, setUploadText] = useState('');
+    const [lastHeader, setLastHeader] = useState<{ props: IPivotItemProps } | undefined>(undefined);
+    const [missingIndexName, setMissingIndexName] = useState(false)
 
+    const labelStyles: Partial<IStyleSet<ILabelStyles>> = {
+      root: { marginTop: 10 },
+    };
+    
     const stackStyles: IStackStyles = {
       root: {
         background: DefaultPalette.white,
@@ -72,7 +79,7 @@ const Upload = () => {
     ]
 
     const { getRootProps, getInputProps } = useDropzone({
-        multiple: false,
+        multiple: true,
         maxSize: 100000000,
         accept: {
           'application/pdf': ['.pdf']
@@ -129,7 +136,7 @@ const Upload = () => {
         // set mimetype as determined from browser with file upload control
         const options = { blobHTTPHeaders: { blobContentType: file.type } }
     
-        const url =  docGeneratorUrl + '&indexType=' + selectedItem?.key
+        const url =  docGeneratorUrl + '&indexType=' + selectedItem?.key + "&loadType=files"
 
         const requestOptions = {
             method: 'POST',
@@ -145,8 +152,6 @@ const Upload = () => {
                 ]
               })
         };
-        // Wait 5 seconds for the file to be uploaded
-        //await delay(5000)
     
         //Trigger the function to Mine the PDF
         await blockBlobClient.uploadData(file, options)
@@ -173,13 +178,78 @@ const Upload = () => {
     }
 
     const handleUploadFiles = async () => {
-      // if (multipleDocs && index)
-      // {
-        
-      // }
+      if (files.length > 1) {
+        setMultipleDocs(true)
+        if (indexName == '') {
+          setMissingIndexName(true)
+          return
+        }
+      }
+      setLoading(true)
+      setUploadText('Uploading your document...')
+      let count = 0
+      await new Promise( (resolve) => {
       files.forEach(async (element: File) => {
-        await uploadFileToBlob(element)
+        //await uploadFileToBlob(element)
+        try {
+          const blobServiceClient = new BlobServiceClient(uploadUrl)
+          const containerClient = blobServiceClient.getContainerClient(containerName)
+          const blockBlobClient = containerClient.getBlockBlobClient(element.name)
+      
+          // set mimetype as determined from browser with file upload control
+          const options = { blobHTTPHeaders: { blobContentType: element.type } }
+          await blockBlobClient.uploadData(element, options)
+        }
+        finally
+        {
+          count += 1
+          if (count == files.length) {
+            resolve(element)
+          }
+        }
       })
+      })
+      //then(() => {
+        setUploadText("File uploaded successfully.  Now indexing the document.")
+        const url =  docGeneratorUrl + '&indexType=' + selectedItem?.key + "&loadType=files" + "&multiple=" + (files.length > 1 ? "true" : "false") + "&indexName=" + (files.length > 1 ? indexName : files[0].name)
+
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                values: [
+                  {
+                    recordId: 0,
+                    data: {
+                      text: files
+                    }
+                  }
+                ]
+              })
+        };
+        fetch(url, requestOptions)
+        .then((response) => {
+          if (response.ok) {
+            setUploadText("Completed Successfully.  You can now search for your document.")
+          }
+          else {
+            setUploadText("Failure to upload the document.")
+          }
+          setFiles([])
+          setLoading(false)
+          setMissingIndexName(false)
+          setMultipleDocs(false)
+          setIndexName('')
+        })
+        .catch((error : string) => {
+          setUploadText(error)
+          setFiles([])
+          setLoading(false)
+          setMissingIndexName(false)
+          setMultipleDocs(false)
+          setIndexName('')
+        })
+     // })
     }
 
     const onMultipleDocs = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
@@ -190,7 +260,7 @@ const Upload = () => {
       setSelectedItem(item);
     };
 
-    const onChangeFirstTextFieldValue = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
+    const onChangeIndexName = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
         setIndexName(newValue || '');
     };
    
@@ -201,8 +271,8 @@ const Upload = () => {
     return (
         <div className={styles.chatAnalysisPanel}>
             <Stack enableScopedSelectors tokens={outerStackTokens}>
-              <Stack enableScopedSelectors styles={stackStyles} tokens={innerStackTokens}>
-                <Stack.Item grow={2} styles={stackItemStyles}>
+              <Stack enableScopedSelectors  tokens={innerStackTokens}>
+                <Stack.Item grow styles={stackItemStyles}>
                   <Label>Index Type</Label>
                   &nbsp;
                   <Dropdown
@@ -214,41 +284,62 @@ const Upload = () => {
                       styles={dropdownStyles}
                   />
                 </Stack.Item>
-                <Stack.Item grow={2} styles={stackItemStyles}>
-                  <Checkbox label="Multiple Documents" checked={multipleDocs} onChange={onMultipleDocs} />
-                </Stack.Item>
-                <Stack.Item grow={2} styles={stackItemStyles}>
-                  <TextField disabled={!multipleDocs} errorMessage="" label="Index Name (for single file will default to filename)" />
-                </Stack.Item>
               </Stack>
             </Stack>
-            <div className={styles.commandsContainer}>
-            </div>
-            <div>
-                <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF</h2>
-                <h2 {...getRootProps({ className: 'dropzone' })}>
-                    <input {...getInputProps()} />
-                        Drop PDF file here or click to upload. (Max file size 100 MB)
-                </h2>
-                {files.length ? (
-                    <Card>
-                        {fileList}
-                        <br/>
-                        <CardFooter>
-                            <DefaultButton onClick={handleRemoveAllFiles} disabled={loading ? true : false}>Remove All</DefaultButton>
-                            <DefaultButton onClick={handleUploadFiles} disabled={loading ? true : false}>
-                                <span>Upload Pdf</span>
-                            </DefaultButton>
-                        </CardFooter>
-                    </Card>
-                ) : null}
-                <br/>
-                {loading ? <div><span>Please wait, Uploading and Processing your file</span><Spinner/></div> : null}
-                <hr />
-                <h2 className={styles.chatEmptyStateSubtitle}>
-                  <TextField disabled={true} label={uploadText} />
-                </h2>
-            </div>
+            <Pivot aria-label="Document Upload" onLinkClick={setLastHeader}>
+              <PivotItem
+                headerText="Files"
+                headerButtonProps={{
+                  'data-order': 1,
+                }}
+              >
+                <Stack enableScopedSelectors tokens={outerStackTokens}>
+                  <Stack enableScopedSelectors styles={stackStyles} tokens={innerStackTokens}>
+                    <Stack.Item grow={2} styles={stackItemStyles}>
+                      <Checkbox label="Multiple Documents" checked={multipleDocs} onChange={onMultipleDocs} />
+                    </Stack.Item>
+                    <Stack.Item grow={2} styles={stackItemStyles}>
+                      <TextField onChange={onChangeIndexName} disabled={!multipleDocs} 
+                          errorMessage={!missingIndexName ? '' : "Index name is required"}
+                          label="Index Name (for single file will default to filename)" />
+                    </Stack.Item>
+                  </Stack>
+                </Stack>
+                <div className={styles.commandsContainer}>
+                </div>
+                <div>
+                    <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF</h2>
+                    <h2 {...getRootProps({ className: 'dropzone' })}>
+                        <input {...getInputProps()} />
+                            Drop PDF file here or click to upload. (Max file size 100 MB)
+                    </h2>
+                    {files.length ? (
+                        <Card>
+                            {fileList}
+                            <br/>
+                            <CardFooter>
+                                <DefaultButton onClick={handleRemoveAllFiles} disabled={loading ? true : false}>Remove All</DefaultButton>
+                                <DefaultButton onClick={handleUploadFiles} disabled={loading ? true : false}>
+                                    <span>Upload Pdf</span>
+                                </DefaultButton>
+                            </CardFooter>
+                        </Card>
+                    ) : null}
+                    <br/>
+                    {loading ? <div><span>Please wait, Uploading and Processing your file</span><Spinner/></div> : null}
+                    <hr />
+                    <h2 className={styles.chatEmptyStateSubtitle}>
+                      <TextField disabled={true} label={uploadText} />
+                    </h2>
+                </div>
+              </PivotItem>
+              <PivotItem headerText="Web Page">
+                <Label styles={labelStyles}>Pivot #2</Label>
+              </PivotItem>
+              <PivotItem headerText="iFixIt Manuals">
+                <Label styles={labelStyles}>Pivot #3</Label>
+              </PivotItem>
+            </Pivot>
         </div>
     );
 };
