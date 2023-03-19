@@ -10,6 +10,7 @@ import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { Label } from '@fluentui/react/lib/Label';
+import { ExampleList, ExampleModel } from "../../components/Example";
 
 const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
 const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
@@ -44,8 +45,11 @@ const OneShot = () => {
 
     //const [selectedIndex, setSelectedIndex] = useState<IDropdownOption>();
     const [selectedIndex, setSelectedIndex] = useState<string>();
-    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; }[]>();
-      
+    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string;  summary:string; qa:string;}[]>();
+    const [exampleList, setExampleList] = useState<ExampleModel[]>([{text:'', value: ''}]);
+    const [summary, setSummary] = useState<string>();
+    const [qa, setQa] = useState<string>('');
+    const [exampleLoading, setExampleLoading] = useState(false)     
 
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
@@ -164,7 +168,9 @@ const OneShot = () => {
             })
             indexType.push({
                     key:blob.metadata?.namespace,
-                    iType:blob.metadata?.indexType
+                    iType:blob.metadata?.indexType,
+                    summary:blob.metadata?.summary,
+                    qa:blob.metadata?.qa
             })
           }
         }
@@ -179,6 +185,23 @@ const OneShot = () => {
         for (const item of uniqIndexType) {
             if (item.key == defaultKey) {
                 setSelectedIndex(item.iType)
+                setSummary(item.summary)
+                setQa(item.qa)
+
+                const sampleQuestion = []
+                const  questionList = item.qa.split("\\n")
+                for (const item of questionList) {
+                    if ((item != '')) {
+                        sampleQuestion.push({
+                            text: item,
+                            value: item
+                        })
+                    } 
+                }
+                console.log(sampleQuestion)
+                const generatedExamples: ExampleModel[] = sampleQuestion
+                setExampleList(generatedExamples)
+                setExampleLoading(false)
             }
         }
         setIndexMapping(uniqIndexType)
@@ -186,11 +209,29 @@ const OneShot = () => {
 
     const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         setSelectedItem(item);
+        setAnswer(undefined)
         const defaultKey = item?.key
        
         indexMapping?.findIndex((item) => {
             if (item.key == defaultKey) {
                 setSelectedIndex(item.iType)
+                setSummary(item.summary)
+                setQa(item.qa)
+
+                const sampleQuestion = []
+
+                const  questionList = item.qa.split("\\n")
+                for (const item of questionList) {
+                    if ((item != '')) {
+                        sampleQuestion.push({
+                            text: item,
+                            value: item
+                        })
+                    } 
+                }
+                const generatedExamples: ExampleModel[] = sampleQuestion
+                setExampleList(generatedExamples)
+                setExampleLoading(false)
             }
         })
     };
@@ -234,6 +275,15 @@ const OneShot = () => {
             <div className={styles.oneshotContainer}>
                 <div className={styles.oneshotTopSection}>
                     <h1 className={styles.oneshotTitle}>Ask your data</h1>
+                    <div className={styles.example}>
+                        <p className={styles.exampleText}><b>Document Summary</b> : {summary}</p>
+                    </div>
+                    <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
+                    {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                    <ExampleList onExampleClicked={onExampleClicked}
+                    EXAMPLES={
+                        exampleList
+                    } />
                     <div className={styles.oneshotQuestionInput}>
                         <QuestionInput
                             placeholder="Ask me anything"

@@ -1,11 +1,12 @@
 import { useRef, useState, useEffect } from "react";
-import { Checkbox, Panel, DefaultButton, TextField, SpinButton, List } from "@fluentui/react";
+import { Checkbox, Panel, DefaultButton, TextField, SpinButton, Spinner, List } from "@fluentui/react";
 import { SparkleFilled, BarcodeScanner24Filled } from "@fluentui/react-icons";
 
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
 import styles from "./Chat.module.css";
 import { Label } from '@fluentui/react/lib/Label';
+import { ExampleList, ExampleModel } from "../../components/Example";
 
 import { chatApi, Approaches, AskResponse, ChatRequest, ChatTurn } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
@@ -16,11 +17,11 @@ import { ClearChatButton } from "../../components/ClearChatButton";
 
 import { BlobServiceClient } from "@azure/storage-blob";
 
-
 const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
 const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
 const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
 const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
+const exampleQuestionUrl = `${import.meta.env.VITE_EXAMPLEQUESTION_URL}`
 
 const Chat = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -46,9 +47,13 @@ const Chat = () => {
 
     const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
     const [answers, setAnswers] = useState<[user: string, response: AskResponse][]>([]);
+    const [exampleLoading, setExampleLoading] = useState(false)
 
     const [selectedIndex, setSelectedIndex] = useState<string>();
-    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; }[]>();
+    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; summary:string; qa:string;  }[]>();
+    const [exampleList, setExampleList] = useState<ExampleModel[]>([{text:'', value: ''}]);
+    const [summary, setSummary] = useState<string>();
+    const [qa, setQa] = useState<string>('');
 
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
@@ -89,6 +94,9 @@ const Chat = () => {
         setAnswers([]);
     };
 
+    const onExampleClicked = (example: string) => {
+        makeApiRequest(example);
+    };
     const refreshBlob = async () => {
         const blobServiceClient = new BlobServiceClient(uploadUrl)
         const containerClient = blobServiceClient.getContainerClient(containerName)
@@ -118,7 +126,9 @@ const Chat = () => {
             })
             indexType.push({
                     key:blob.metadata?.namespace,
-                    iType:blob.metadata?.indexType
+                    iType:blob.metadata?.indexType,
+                    summary:blob.metadata?.summary,
+                    qa:blob.metadata?.qa
             })
           }
         }
@@ -134,6 +144,22 @@ const Chat = () => {
         for (const item of uniqIndexType) {
             if (item.key == defaultKey) {
                 setSelectedIndex(item.iType)
+                setSummary(item.summary)
+                setQa(item.qa)
+
+                const sampleQuestion = []
+                const  questionList = item.qa.split("\\n")
+                for (const item of questionList) {
+                    if ((item != '')) {
+                        sampleQuestion.push({
+                            text: item.replace(/[0-9]./g, ''),
+                            value: item.replace(/[0-9]./g, '')
+                        })
+                    } 
+                }
+                const generatedExamples: ExampleModel[] = sampleQuestion
+                setExampleList(generatedExamples)
+                setExampleLoading(false)
             }
         }
         setIndexMapping(uniqIndexType)
@@ -144,12 +170,76 @@ const Chat = () => {
         clearChat();
 
         const defaultKey = item?.key
-       
+        let indexType = 'pinecone'
+
         indexMapping?.findIndex((item) => {
             if (item.key == defaultKey) {
+                indexType = item.iType
                 setSelectedIndex(item.iType)
+                setSummary(item.summary)
+                setQa(item.qa)
+
+                const sampleQuestion = []
+
+                const  questionList = item.qa.split("\\n")
+                for (const item of questionList) {
+                    if ((item != '')) {
+                        sampleQuestion.push({
+                            text: item.replace(/[0-9]./g, ''),
+                            value: item.replace(/[0-9]./g, '')
+                        })
+                    } 
+                }
+                const generatedExamples: ExampleModel[] = sampleQuestion
+                setExampleList(generatedExamples)
+                setExampleLoading(false)
             }
         })
+
+        // setExampleLoading(true)
+        // setExampleList([])
+        // const url =  exampleQuestionUrl + '&question=""&indexType=' + indexType + "&indexNs=" + defaultKey 
+
+        // const requestOptions = {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({
+        //         values: [
+        //           {
+        //             recordId: 0,
+        //             data: {
+        //               text: ''
+        //             }
+        //           }
+        //         ]
+        //       })
+        // };
+        // fetch(url, requestOptions)
+        // .then(async (response) => {
+        //   if (response.ok) {
+        //     const jsonResp =  await response.json();
+        //     const sampleQuestions = jsonResp.values[0].data.answer
+
+        //     const sampleQuestion = []
+        //     const  questionList = sampleQuestions?.split("\n")
+        //     for (const item of questionList) {
+        //         if (item != '') {
+        //             sampleQuestion.push({
+        //                 text: item,
+        //                 value: item
+        //             })
+        //         } 
+        //     }
+        //     const generatedExamples: ExampleModel[] = sampleQuestion
+        //     setExampleList(generatedExamples)
+        //     setExampleLoading(false)
+        //     //setUploadText("Completed Successfully.  You can now search for your document.")
+        //   }
+        // })
+        // .catch((error : string) => {
+        //     console.log(error)
+        //     setExampleLoading(false)
+        // })
     };
 
     useEffect(() => {
@@ -229,9 +319,17 @@ const Chat = () => {
                     <div className={styles.chatContainer}>
                         {!lastQuestionRef.current ? (
                             <div className={styles.chatEmptyState}>
-                                <SparkleFilled fontSize={"120px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
-                                <h1 className={styles.chatEmptyStateTitle}>Chat with your data</h1>
-                                <h2 className={styles.chatEmptyStateSubtitle}>Ask anything</h2>
+                                <SparkleFilled fontSize={"40px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
+                                <h3 className={styles.chatEmptyStateTitle}>Chat with your data</h3>
+                                <div className={styles.example}>
+                                    <p className={styles.exampleText}><b>Document Summary</b> : {summary}</p>
+                                </div>
+                                <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
+                                {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                                <ExampleList onExampleClicked={onExampleClicked}
+                                EXAMPLES={
+                                    exampleList
+                                } />
                             </div>
                         ) : (
                             <div className={styles.chatMessageStream}>

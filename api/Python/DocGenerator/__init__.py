@@ -1,6 +1,7 @@
 import logging, json, os
 import azure.functions as func
 import openai
+from langchain.llms.openai import OpenAI, AzureOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import tempfile
@@ -18,6 +19,11 @@ from pymilvus import CollectionSchema, FieldSchema, DataType, Collection
 from pymilvus import utility
 import time
 from langchain.vectorstores.redis import Redis
+from langchain.document_loaders import WebBaseLoader
+from langchain.chains.summarize import load_summarize_chain
+from langchain.prompts import PromptTemplate
+from langchain.chains.question_answering import load_qa_chain
+from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -182,6 +188,34 @@ def ComposeResponse(indexType, loadType,  multiple, indexName, jsonData):
 #         fields = [text, embeddings, filename],
 #         definition = IndexDefinition(prefix=[prefix], index_type=IndexType.HASH)
 #     )
+def summarizeGenerateQa(docs):
+    llm = AzureOpenAI(deployment_name=OpenAiDavinci,
+                temperature=os.environ['Temperature'] or 0.3,
+                openai_api_key=OpenAiKey,
+                max_tokens=1024,
+                batch_size=10)
+    try:
+        summaryChain = load_summarize_chain(llm, chain_type="map_reduce")
+        summary = summaryChain.run(docs)
+        logging.info("Document Summary completed")
+    except Exception as e:
+        summary = ''
+
+    template = """Given the following extracted parts of a long document, recommend between 1-5 sample questions.
+
+            =========
+            {summaries}
+            =========
+            """
+    try:
+        qaPrompt = PromptTemplate(template=template, input_variables=["summaries"])
+        qaChain = load_qa_with_sources_chain(llm, chain_type='stuff', prompt=qaPrompt)
+        answer = qaChain({"input_documents": docs[:5], "question": ''}, return_only_outputs=True)
+        qa = answer['output_text'].replace('\nSample Questions: \n', '').replace('\nSample Questions:\n', '').replace('\n', '\\n')
+    except Exception as e:
+        qa = 'No Sample QA generated'
+    #qa = qa.decode('utf8')
+    return qa, summary
 
 def Embed(indexType, loadType, multiple, indexName,  value):
     logging.info("Embedding text")
@@ -191,6 +225,8 @@ def Embed(indexType, loadType, multiple, indexName,  value):
       openai.api_key = OpenAiKey
       openai.api_version = OpenAiVersion
       openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+      uResultNs = uuid.uuid4()
+      logging.info("Index will be created as " + uResultNs.hex)
 
       if (loadType == "files"):
         filesData = GetAllFiles(value)
@@ -198,7 +234,6 @@ def Embed(indexType, loadType, multiple, indexName,  value):
         filesData = list(map(lambda x: {'filename': x['filename']}, filesData))
 
         logging.info(f"Found {len(filesData)} files to embed")
-        uResultNs = uuid.uuid4()
         for file in filesData:
             logging.info(f"Adding {file['filename']} to Process")
             fileName = file['filename']
@@ -258,7 +293,7 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                 except Exception as e:
                     logging.error(e)
 
-                logging.info("File created")
+                logging.info("File created " + downloadPath)
                 textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                 docs = []
                 loader = PDFMinerLoader(downloadPath)
@@ -275,17 +310,43 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
                 elif indexType == 'milvus':
                     milvusDb = Milvus.from_documents(docs,embeddings)
+            logging.info("Perform Summarization and QA")
+            qa, summary = summarizeGenerateQa(docs)
             logging.info("Upsert metadata")
-            upsertMetadata(fileName, {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+            metadata = {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName, 'summary': summary, 'qa': qa}
+            upsertMetadata(fileName, metadata)
             logging.info("Sleeping")
-            time.sleep(15)
+            time.sleep(5)
         return "Success"
       elif (loadType == "webpages"):
-        logging.info("Embedding Webpages")
+        allDocs = []
+        for webPage in value:
+            logging.info("Processing Webpage at " + webPage)
+            textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
+            docs = []
+            loader = WebBaseLoader(webPage)
+            rawDocs = loader.load()
+            docs = textSplitter.split_documents(rawDocs)
+            embeddings = OpenAIEmbeddings(document_model_name="text-embedding-ada-002",
+                                            chunk_size=1,
+                                            openai_api_key=OpenAiKey)
+            allDocs = allDocs + docs
+            if indexType == 'pinecone':
+                pineconeDb = Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResultNs.hex)
+            elif indexType == "redis":
+                redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
+                Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
+            elif indexType == 'milvus':
+                milvusDb = Milvus.from_documents(docs,embeddings)
+        logging.info("Perform Summarization and QA")
+        qa, summary = summarizeGenerateQa(allDocs)
+        logging.info("Upsert metadata")
+        upsertMetadata(indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName,'summary': summary, 'qa': qa})
         return "Success"
       elif (loadType == "iFixIt"):
         logging.info("Embedding iFixIt")
         return "Success"
+    
     except Exception as e:
       logging.error(e)
       return func.HttpResponse(

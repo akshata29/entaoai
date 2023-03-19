@@ -1,11 +1,12 @@
 import { useRef, useState, useEffect } from "react";
-import { DefaultButton, Spinner } from "@fluentui/react";
+import { DefaultButton, Spinner, PrimaryButton } from "@fluentui/react";
 import {
     Card,
     CardFooter,
   } from "@fluentui/react-components";
 import { Checkbox, ICheckboxProps } from '@fluentui/react/lib/Checkbox';
 import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@fluentui/react';
+import { makeStyles, Button, ButtonProps } from "@fluentui/react-components";
 
 import { BarcodeScanner24Filled } from "@fluentui/react-icons";
 import { BlobServiceClient } from "@azure/storage-blob";
@@ -28,6 +29,19 @@ const delay = (ms:number) => new Promise(res => setTimeout(res, ms))
 // <snippet_get_client>
 const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
 
+const buttonStyles = makeStyles({
+  innerWrapper: {
+    columnGap: "15px",
+    display: "flex",
+  },
+  outerWrapper: {
+    display: "flex",
+    flexDirection: "column",
+    rowGap: "15px",
+  },
+});
+
+
 const Upload = () => {
     const [files, setFiles] = useState<any>([])
     const [loading, setLoading] = useState(false)
@@ -39,6 +53,8 @@ const Upload = () => {
     const [uploadText, setUploadText] = useState('');
     const [lastHeader, setLastHeader] = useState<{ props: IPivotItemProps } | undefined>(undefined);
     const [missingIndexName, setMissingIndexName] = useState(false)
+    const [parsedWebUrls, setParsedWebUrls] = useState<String[]>([''])
+    const [webPages, setWebPages] = useState('')
 
     const labelStyles: Partial<IStyleSet<ILabelStyles>> = {
       root: { marginTop: 10 },
@@ -59,6 +75,8 @@ const Upload = () => {
         justifyContent: 'left',
       },
     };
+
+    const bStyles = buttonStyles();
 
     // Tokens definition
     const outerStackTokens: IStackTokens = { childrenGap: 5 };
@@ -252,6 +270,74 @@ const Upload = () => {
      // })
     }
 
+    const onProcessWebPages = async () => {
+      const processPage = parsedWebUrls.filter(function(e){return e})
+      if (processPage?.length == 0) {
+        setUploadText('Provide the list of URL to Process...')
+        return
+      } 
+      else 
+      {
+        if (indexName == '') {
+          setMissingIndexName(true)
+          return
+        }
+        setLoading(true)
+        setUploadText('Uploading your document...')
+        let count = 0
+        const blobServiceClient = new BlobServiceClient(uploadUrl)
+        const containerClient = blobServiceClient.getContainerClient(containerName)
+        const blockBlobClient = containerClient.getBlockBlobClient(indexName + ".txt")
+    
+        // set mimetype as determined from browser with file upload control
+        const options = { blobHTTPHeaders: { blobContentType: "text/plain" } }
+        const fileContentsAsString = "Will Process the Webpage and index it with IndexName as " + indexName + " and the URLs are " + processPage
+        await blockBlobClient.upload(fileContentsAsString, fileContentsAsString.length, options)
+        .then(() => {
+          setUploadText("File uploaded successfully.  Now indexing the document.")
+          const url =  docGeneratorUrl + '&indexType=' + selectedItem?.key + "&loadType=webpages" + "&multiple=false&indexName=" + indexName
+  
+          const requestOptions = {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  values: [
+                    {
+                      recordId: 0,
+                      data: {
+                        text: processPage
+                      }
+                    }
+                  ]
+                })
+          };
+          fetch(url, requestOptions)
+          .then((response) => {
+            if (response.ok) {
+              setUploadText("Completed Successfully.  You can now search for your document.")
+            }
+            else {
+              setUploadText("Failure to upload the document.")
+            }
+            setWebPages('')
+            setParsedWebUrls([''])
+            setLoading(false)
+            setMissingIndexName(false)
+            setIndexName('')
+            setUploadText('')
+          })
+          .catch((error : string) => {
+            setUploadText(error)
+            setWebPages('')
+            setParsedWebUrls([''])
+            setLoading(false)
+            setMissingIndexName(false)
+            setIndexName('')
+          })
+        })
+      }
+    }
+
     const onMultipleDocs = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
         setMultipleDocs(!!checked);
     };
@@ -264,6 +350,12 @@ const Upload = () => {
         setIndexName(newValue || '');
     };
    
+    const onWebPageChange = (ev: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
+      let webPage = newValue?.split("\n")
+      webPage = webPage == undefined ? [''] : webPage.filter(function(e){return e}); 
+      setParsedWebUrls(webPage);
+    };
+
     useEffect(() => {
       setSelectedItem(options[0])
     }, [])
@@ -281,6 +373,7 @@ const Upload = () => {
                       defaultSelectedKey="pinecone"
                       placeholder="Select an Index Type"
                       options={options}
+                      disabled={true}
                       styles={dropdownStyles}
                   />
                 </Stack.Item>
@@ -333,12 +426,33 @@ const Upload = () => {
                     </h2>
                 </div>
               </PivotItem>
-              <PivotItem headerText="Web Page">
-                <Label styles={labelStyles}>Pivot #2</Label>
+              <PivotItem headerText="Web Pages">
+                <Stack enableScopedSelectors tokens={outerStackTokens}>
+                  <Stack enableScopedSelectors styles={stackStyles} tokens={innerStackTokens}>
+                    <Stack.Item grow={2} styles={stackItemStyles}>
+                      <TextField onChange={onWebPageChange} multiline autoAdjustHeight styles={{root: {width: '700px'}}}
+                          label="List of Urls (followed by newline)"
+                          defaultValue=""
+                          />
+                    </Stack.Item>
+                    <Stack.Item grow>
+                    <TextField onChange={onChangeIndexName} 
+                          styles={{root: {width: '400px'}}}
+                          errorMessage={!missingIndexName ? '' : "Index name is required"}
+                          value = {indexName}
+                          label="Index Name" />
+                    </Stack.Item>
+                    <Stack.Item grow>
+                        <PrimaryButton text="Process Pages" onClick={onProcessWebPages}  />
+                        <h2 className={styles.chatEmptyStateSubtitle}>
+                          <TextField disabled={true} label={uploadText} />
+                        </h2>
+                    </Stack.Item>
+                  </Stack>
+                </Stack>
               </PivotItem>
-              <PivotItem headerText="iFixIt Manuals">
-                <Label styles={labelStyles}>Pivot #3</Label>
-              </PivotItem>
+              {/* <PivotItem headerText="iFixIt Manuals">
+              </PivotItem> */}
             </Pivot>
         </div>
     );

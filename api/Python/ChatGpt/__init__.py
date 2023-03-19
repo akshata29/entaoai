@@ -69,6 +69,7 @@ def getEmbedding(text: str, engine="text-embedding-ada-002") -> list[float]:
 def performRedisSearch(question, indexName, k):
     #embeddingQuery= Redis.embedding_function(question)
     question = question.replace("\n", " ")
+    logging.info("Get Embedding")
     embeddingQuery = getEmbedding(question, engine=OpenAiEmbedding)
     arrayEmbedding = np.array(embeddingQuery)
     returnField = ["metadata", "content", "vector_score"]
@@ -77,6 +78,7 @@ def performRedisSearch(question, indexName, k):
     baseQuery = (
         f"{hybridField}=>[KNN {k} @{vectorField} $vector AS vector_score]"
     )
+    logging.info("Perform Query Search")
     redisQuery = (
         Query(baseQuery)
         .return_fields(*returnField)
@@ -91,12 +93,15 @@ def performRedisSearch(question, indexName, k):
     }
 
     # perform vector search
-    results = redisConnection.ft(indexName).search(redisQuery, params_dict)
-
-    documents = [
+    logging.info("Index name is " + indexName)
+    try:
+        results = redisConnection.ft(index_name=indexName).search(redisQuery, params_dict)
+        documents = [
         Document(page_content=result.content, metadata=json.loads(result.metadata))
         for result in results.docs
-    ]
+        ]
+    except Exception as e:
+        logging.info(e)
 
     return documents
 
@@ -176,7 +181,6 @@ def GetRrrAnswer(history, indexNs, indexType):
     Generate a search query based on the conversation and the new question.
     Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
     Do not include any text inside [] or <<>> in the search query terms.
-    If the question is not in English, translate the question to English before generating the search query.
 
     Chat History:
     {chat_history}
@@ -196,26 +200,34 @@ def GetRrrAnswer(history, indexNs, indexType):
     optimizedPrompt = qaPromptTemplate.format(chat_history=getChatHistory(history, includeLastTurn=False),
                                               question=history[-1]["user"])
 
-    #logging.info("Optimized Prompt" + optimizedPrompt)
+    #.info("Optimized Prompt" + optimizedPrompt)
 
-    completion = openai.Completion.create(
-        engine=OpenAiDavinci,
-        prompt=optimizedPrompt,
-        temperature=0.0,
-        max_tokens=32,
-        n=1,
-        stop=["\n"])
-    q = completion.choices[0].text
+    try:
+        completion = openai.Completion.create(
+            engine=OpenAiDavinci,
+            prompt=optimizedPrompt,
+            temperature=0.0,
+            max_tokens=32,
+            n=1,
+            stop=["\n"])
+        q = completion.choices[0].text
+        logging.info("Question " + completion.choices[0].text)
+        if (q == ''):
+            q = history[-1]["user"]
+    except Exception as e:
+        q = history[-1]["user"]
+        logging.info(e)
 
-    logging.info("Question " + completion.choices[0].text)
 
+    logging.info("Execute step 2")
     # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
     embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
     if indexType == 'pinecone':
         vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings)
-        logging.info("Pinecone Setup done to search against - " + indexNs)
+        logging.info(history)
+        logging.info("Pinecone Setup done to search against - " + indexNs + " for question " + q)
         docs = vectorDb.similarity_search(q, k=5, namespace=indexNs)
-        logging.info("Executed Index and found ")
+        logging.info("Executed Index and found " + str(len(docs)))
     elif indexType == "redis":
         try:
             #vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
