@@ -12,9 +12,14 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
-const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
-const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
-const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
+// const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
+// const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
+// const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
+// const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
+
+const containerName =`${process.env.VITE_CONTAINER_NAME}`
+const sasToken = `${process.env.VITE_SAS_TOKEN}`
+const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
 const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
 
 const OneShot = () => {
@@ -193,12 +198,11 @@ const OneShot = () => {
                 for (const item of questionList) {
                     if ((item != '')) {
                         sampleQuestion.push({
-                            text: item,
-                            value: item
+                            text: item.replace(/[0-9]./g, ''),
+                            value: item.replace(/[0-9]./g, ''),
                         })
                     } 
                 }
-                console.log(sampleQuestion)
                 const generatedExamples: ExampleModel[] = sampleQuestion
                 setExampleList(generatedExamples)
                 setExampleLoading(false)
@@ -211,7 +215,6 @@ const OneShot = () => {
         setSelectedItem(item);
         setAnswer(undefined)
         const defaultKey = item?.key
-       
         indexMapping?.findIndex((item) => {
             if (item.key == defaultKey) {
                 setSelectedIndex(item.iType)
@@ -224,8 +227,8 @@ const OneShot = () => {
                 for (const item of questionList) {
                     if ((item != '')) {
                         sampleQuestion.push({
-                            text: item,
-                            value: item
+                            text: item.replace(/[0-9]./g, ''),
+                            value: item.replace(/[0-9]./g, ''),
                         })
                     } 
                 }

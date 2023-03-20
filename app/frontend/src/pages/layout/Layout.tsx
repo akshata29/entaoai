@@ -16,9 +16,14 @@ const Layout = () => {
                         <ul className={styles.headerNavList}>
                             <li className={styles.headerNavLeftMargin}>
                                 <NavLink to="/upload" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                Upload PDF&nbsp;&nbsp;&nbsp;
+                                Upload &nbsp;&nbsp;&nbsp;
                                 </NavLink>
                             </li>
+                            {/* <li>
+                                <NavLink to="/chat" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}> 
+                                    Chat Stream&nbsp;&nbsp;
+                                </NavLink>
+                            </li> */}
                             <li>
                                 <NavLink to="/" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Chat

@@ -1,10 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import Markdown from '@pity/vite-plugin-react-markdown'
+import EnvironmentPlugin from 'vite-plugin-environment'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [react(), Markdown({
+    plugins: [react(), 
+        EnvironmentPlugin('all'),
+        Markdown({
         wrapperComponentName: 'ReactMarkdown',
        // wrapperComponentPath: './src/pages/help/help',
       })],

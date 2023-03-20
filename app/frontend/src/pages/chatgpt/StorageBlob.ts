@@ -2,11 +2,16 @@
 // THIS IS SAMPLE CODE ONLY - NOT MEANT FOR PRODUCTION USE
 import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
 
-const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
-const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
-const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
-// <snippet_get_client>
+// const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
+// const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
+// const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
+// const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
+
+const containerName =`${process.env.VITE_CONTAINER_NAME}`
+const sasToken = `${process.env.VITE_SAS_TOKEN}`
+const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
 const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
+
 
 // get BlobService = notice `?` is pulled out of sasToken - if created in Azure portal
 const blobService = new BlobServiceClient(uploadUrl);

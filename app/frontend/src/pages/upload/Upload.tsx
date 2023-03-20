@@ -20,10 +20,16 @@ import styles from "./Upload.module.css";
 
 import { useDropzone } from 'react-dropzone'
 
-const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
-const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
-const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
-const docGeneratorUrl = `${import.meta.env.VITE_DOCGENERATOR_URL}`
+// const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
+// const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
+// const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
+// const docGeneratorUrl = `${import.meta.env.VITE_DOCGENERATOR_URL}`
+
+const containerName =`${process.env.VITE_CONTAINER_NAME}`
+const sasToken = `${process.env.VITE_SAS_TOKEN}`
+const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
+const docGeneratorUrl = `${process.env.VITE_DOCGENERATOR_URL}`
+
 const delay = (ms:number) => new Promise(res => setTimeout(res, ms))
 
 // <snippet_get_client>

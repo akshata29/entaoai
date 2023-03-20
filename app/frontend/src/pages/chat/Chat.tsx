@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { Checkbox, Panel, DefaultButton, TextField, SpinButton, Spinner, List } from "@fluentui/react";
 import { SparkleFilled, BarcodeScanner24Filled } from "@fluentui/react-icons";
 
@@ -8,20 +8,29 @@ import styles from "./Chat.module.css";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
-import { chatApi, Approaches, AskResponse, ChatRequest, ChatTurn } from "../../api";
+import { chatJsApi, Approaches, AskResponse, ChatRequest, ChatTurn } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { UserChatMessage } from "../../components/UserChatMessage";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
 import { ClearChatButton } from "../../components/ClearChatButton";
+import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
 
 import { BlobServiceClient } from "@azure/storage-blob";
+// import { OpenAI } from "langchain";
 
-const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
-const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
-const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
+
+// const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
+// const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
+// const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
+// const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
+// const exampleQuestionUrl = `${import.meta.env.VITE_SUMMARYQA_URL}`
+
+const containerName =`${process.env.VITE_CONTAINER_NAME}`
+const sasToken = `${process.env.VITE_SAS_TOKEN}`
+const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
 const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
-const exampleQuestionUrl = `${import.meta.env.VITE_EXAMPLEQUESTION_URL}`
+const exampleQuestionUrl = `${process.env.VITE_SUMMARYQA_URL}`
 
 const Chat = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -55,35 +64,78 @@ const Chat = () => {
     const [summary, setSummary] = useState<string>();
     const [qa, setQa] = useState<string>('');
 
+    const [messageState, setMessageState] = useState({
+        messages: [
+          {
+            message: 'Hi there! What do you want to know about ' + selectedIndex + '?',
+            type: 'AI'
+          }
+        ],
+        pending: '',
+        history: []
+    })
+
+    const { messages, pending, history } = messageState
+
+    useEffect(() => {
+        setMessageState(state => ({
+          messages: [
+            {
+              message: 'Hi there! What do you want to know about ' + selectedIndex + '?',
+              type: 'AI'
+            }
+          ],
+          pending: '',
+          history: []
+        }))
+    }, [selectedIndex])
+
+    const chatMessages = useMemo(() => {
+        return [...messages, ...(pending ? [{ type: 'AI', message: pending }] : [])]
+      }, [messages, pending])
+
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
+
+        setMessageState((state) => ({
+            ...state,
+            messages: [
+              ...state.messages,
+              {
+                type: "Human",
+                message: question,
+              },
+            ],
+            pending: '',
+            history: []
+        }));          
 
         error && setError(undefined);
         setIsLoading(true);
         setActiveCitation(undefined);
         setActiveAnalysisPanelTab(undefined);
+        setMessageState(state => ({ ...state, pending: '' }))
 
-        try {
-            const history: ChatTurn[] = answers.map(a => ({ user: a[0], bot: a[1].answer }));
-            const request: ChatRequest = {
-                history: [...history, { user: question, bot: undefined }],
-                approach: Approaches.ReadRetrieveRead,
-                overrides: {
-                    promptTemplate: promptTemplate.length === 0 ? undefined : promptTemplate,
-                    excludeCategory: excludeCategory.length === 0 ? undefined : excludeCategory,
-                    top: retrieveCount,
-                    semanticRanker: useSemanticRanker,
-                    semanticCaptions: useSemanticCaptions,
-                    suggestFollowupQuestions: useSuggestFollowupQuestions
-                }
-            };
-            const result = await chatApi(request, String(selectedItem?.key), String(selectedIndex));
-            setAnswers([...answers, [question, result]]);
-        } catch (e) {
-            setError(e);
-        } finally {
-            setIsLoading(false);
-        }
+        const result = await chatJsApi(question, history, String(selectedItem?.key), String(selectedIndex));
+        console.log(result)
+        // const data = JSON.parse(result)
+        // setMessageState(state => ({
+        //   ...state,
+        //   pending: (state.pending ?? '') + data.data
+        // }))
+
+        // setMessageState(state => ({
+        //     history: [...state.history, [question, state.pending ?? '']],
+        //     messages: [
+        //       ...state.messages,
+        //       {
+        //         type: 'AI',
+        //         message: state.pending ?? ''
+        //       }
+        //     ],
+        //     pending: ''
+        // }))
+        setIsLoading(false);
     };
 
     const clearChat = () => {
@@ -170,11 +222,9 @@ const Chat = () => {
         clearChat();
 
         const defaultKey = item?.key
-        let indexType = 'pinecone'
 
         indexMapping?.findIndex((item) => {
             if (item.key == defaultKey) {
-                indexType = item.iType
                 setSelectedIndex(item.iType)
                 setSummary(item.summary)
                 setQa(item.qa)
@@ -333,20 +383,23 @@ const Chat = () => {
                             </div>
                         ) : (
                             <div className={styles.chatMessageStream}>
-                                {answers.map((answer, index) => (
+                                {chatMessages.map((message, index) => (
                                     <div key={index}>
-                                        <UserChatMessage message={answer[0]} />
+                                        <UserChatMessage message={message.message} />
                                         <div className={styles.chatMessageGpt}>
-                                            <Answer
+                                            <div className={styles.markdownanswer}>
+                                                {message.message}
+                                            </div>
+                                            {/* <Answer
                                                 key={index}
-                                                answer={answer[1]}
+                                                answer={message.message}
                                                 isSelected={selectedAnswer === index && activeAnalysisPanelTab !== undefined}
                                                 onCitationClicked={c => onShowCitation(c, index)}
                                                 onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
                                                 onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
                                                 onFollowupQuestionClicked={q => makeApiRequest(q)}
                                                 showFollowupQuestions={useSuggestFollowupQuestions && answers.length - 1 === index}
-                                            />
+                                            /> */}
                                         </div>
                                     </div>
                                 ))}

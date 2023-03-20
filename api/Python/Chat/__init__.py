@@ -3,8 +3,6 @@ import azure.functions as func
 import openai
 from langchain.embeddings.openai import OpenAIEmbeddings
 import os
-from langchain.llms import OpenAIChat
-from datetime import datetime, timedelta
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, generate_container_sas
 from langchain.vectorstores import Pinecone
 import pinecone
@@ -14,8 +12,7 @@ from langchain.prompts import PromptTemplate
 from langchain.embeddings.openai import OpenAIEmbeddings
 import pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.chains import VectorDBQAWithSourcesChain
-from langchain.llms.openai import OpenAI, AzureOpenAI
+from langchain.llms.openai import AzureOpenAI
 #from langchain.vectorstores.redis import Redis
 from redis import Redis
 from redis.commands.search.query import Query
@@ -25,6 +22,22 @@ import numpy as np
 from langchain.docstore.document import Document
 import tiktoken
 from typing import Mapping
+from langchain import LLMChain, PromptTemplate
+from langchain.chains import ChatVectorDBChain
+from langchain.chains.question_answering import load_qa_chain
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    AIMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+from langchain.schema import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage
+)
+from langchain.chains import VectorDBQAWithSourcesChain
+
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -118,6 +131,8 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     try:
         indexNs = req.params.get('indexNs')
         indexType = req.params.get('indexType')
+        question = req.params.get('question')
+        indexName = req.params.get('indexName')
         body = json.dumps(req.get_json())
     except ValueError:
         return func.HttpResponse(
@@ -130,7 +145,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             api_key=PineconeKey,  # find at app.pinecone.io
             environment=PineconeEnv  # next to api key in console
         )
-        result = ComposeResponse(body, indexNs, indexType)
+        result = ComposeResponse(body, indexNs, indexType, question, indexName)
         return func.HttpResponse(result, mimetype="application/json")
     else:
         return func.HttpResponse(
@@ -138,7 +153,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
              status_code=400
         )
 
-def ComposeResponse(jsonData, indexNs, indexType):
+def ComposeResponse(jsonData, indexNs, indexType, question, indexName):
     values = json.loads(jsonData)['values']
 
     logging.info("Calling Compose Response")
@@ -147,145 +162,146 @@ def ComposeResponse(jsonData, indexNs, indexType):
     results["values"] = []
 
     for value in values:
-        outputRecord = TransformValue(value, indexNs, indexType)
+        outputRecord = TransformValue(value, indexNs, indexType, question, indexName)
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
 
 def getChatHistory(history, includeLastTurn=True, maxTokens=1000) -> str:
-    historyText = ""
+    historyText = []
+    
     for h in reversed(history if includeLastTurn else history[:-1]):
-        historyText = """<|im_start|>user""" +"\n" + h["user"] + "\n" + """<|im_end|>""" + "\n" + """<|im_start|>assistant""" + "\n" + (h.get("bot") + """<|im_end|>""" if h.get("bot") else "") + "\n" + historyText
+        user = h['user']
+        bot = (h.get("bot") if h.get("bot") else "")
+        historyText.append((user, bot))
         if len(historyText) > maxTokens*4:
             break
     return historyText
 
-def GetRrrAnswer(history, indexNs, indexType):
-    promptPrefix = """<|im_start|>system
-    Be brief in your answers.
-    Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
-    Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. Use square brackets to reference the source, e.g. [info1.txt]. Don't combine sources, list each source separately, e.g. [info1.txt][info2.pdf].
-    {follow_up_questions_prompt}
-    Sources:
-    {sources}
-    <|im_end|>
-    {chat_history}
+def GetRrrAnswer(history, indexNs, indexType, question, indexName):
+
+    qaTemplate = """You are an AI assistant for the all questions on document.
+    I am still improving my Knowledge base. The documentation is located from document. You have a deep understanding of the document.
+    You are given the following extracted parts of a long document and a question. Provide an answer with a hyperlink to the PDF or with a code block directly from the PDF. You should only use hyperlinks that are explicitly listed as a source in the context. Do NOT make up a hyperlink that is not listed. If you don't know the answer, just say 'Hmm, I'm not sure.' Don't try to make up an answer. If the question is not about
+    the information in document, politely inform them that you are tuned to only answer questions about information in the document.
+    
+    ========= 
+    {context} 
+    Question: {question} 
+    ========= 
     """
 
-    followupQaPromptTemplate = """Generate three very brief follow-up questions that the user would likely ask next.
-    Use double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.
-    Try not to repeat questions that have already been asked.
-    Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'"""
+    qaTemplate1 = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
+        If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+        QUESTION: {question}
+        =========
+        {summaries}
+        =========
+    """
 
-    qaPromptTemplate = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
-    Generate a search query based on the conversation and the new question.
-    Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
-    Do not include any text inside [] or <<>> in the search query terms.
-
+    condenseTemplate = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
+    
     Chat History:
     {chat_history}
-
-    Question:
-    {question}
-
-    Search query:
+    Follow Up Input: {question}
+    Standalone question:
     """
+
+    systemTemplate="""Use the following pieces of context to answer the users question. 
+    If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    ----------------
+    {context}"""
+    
+    messages = [
+        SystemMessagePromptTemplate.from_template(systemTemplate),
+        HumanMessagePromptTemplate.from_template("{question}")
+    ]
+    qaPrompt2 = ChatPromptTemplate.from_messages(messages)
+
+    combinePromptTemplate = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
+          If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+          ALWAYS return a "SOURCES" part in your answer.
+
+          QUESTION: {question}
+          =========
+          {summaries}
+          =========
+          """
+    
+    combinePrompt = PromptTemplate(
+        template=combinePromptTemplate, input_variables=["summaries", "question"]
+    )
 
     openai.api_type = "azure"
     openai.api_key = OpenAiKey
     openai.api_version = OpenAiVersion
     openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-    # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
-    optimizedPrompt = qaPromptTemplate.format(chat_history=getChatHistory(history, includeLastTurn=False),
-                                              question=history[-1]["user"])
+    qaPrompt = PromptTemplate(
+              template=qaTemplate, input_variables=["question", "context"]
+          )
+    qaPrompt1 = PromptTemplate(
+              template=qaTemplate1, input_variables=["question", "summaries"]
+          )
 
-    #.info("Optimized Prompt" + optimizedPrompt)
+    condensePrompt = PromptTemplate(
+              template=condenseTemplate, input_variables=["question", "chat_history"]
+          )
 
     try:
-        completion = openai.Completion.create(
-            engine=OpenAiDavinci,
-            prompt=optimizedPrompt,
-            temperature=0.0,
-            max_tokens=32,
-            n=1,
-            stop=["\n"])
-        q = completion.choices[0].text
-        logging.info("Question " + completion.choices[0].text)
-        if (q == ''):
-            q = history[-1]["user"]
+        llm = AzureOpenAI(deployment_name=OpenAiDavinci,
+                temperature=os.environ['Temperature'] or 0.3,
+                openai_api_key=OpenAiKey,
+                max_tokens=os.environ['MaxTokens'] or 500,
+                batch_size=10)
+        embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+        
+        if indexType == 'pinecone':
+            vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
+            logging.info("Pinecone Setup done for indexName : " + indexNs)
+            # chain = ChatVectorDBChain.from_llm(llm, vectorstore=vectorDb,qa_prompt=qaPrompt, 
+            #     condense_question_prompt=condensePrompt, chain_type="stuff", search_kwargs={"namespace": indexNs})
+            
+            #questionGenerator = LLMChain(llm=llm, prompt=condensePrompt)
+            #docChain = load_qa_chain(llm, chain_type="stuff")
+            qaChain = load_qa_with_sources_chain(llm,
+            chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
+            chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, 
+                                         search_kwargs={"namespace": indexNs})
+            # chain = ChatVectorDBChain(vectorstore=vectorDb, combine_docs_chain=docChain, 
+            #                            question_generator=questionGenerator,
+            #                            search_kwargs={"namespace": indexNs})
+
+        elif indexType == "redis":
+            try:
+                #docs = performRedisSearch(question, indexNs, 5)
+                #answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+                #return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
+                return {"data_points": [], "answer": '', "thoughts": '', "error": ""}
+            except Exception as e:
+                return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}
+        elif indexType == 'milvus':
+            answer = "{'answer': 'TBD', 'sources': ''}"
+
+        historyText = getChatHistory(history, includeLastTurn=False)
+        #logging.info("History Text is " + str(historyText))
+        #logging.info("question " + question)
+
+        answer = chain({"question": question, "chat_history": historyText}, return_only_outputs=True)
+        logging.info(answer)
+        return {"data_points": "", "answer": answer['answer'].replace("Answer: ", ''), "thoughts": ""}
+
     except Exception as e:
-        q = history[-1]["user"]
         logging.info(e)
 
+    return {"data_points": "", "answer": "", "thoughts": ""}
 
-    logging.info("Execute step 2")
-    # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
-    embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
-    if indexType == 'pinecone':
-        vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings)
-        logging.info("Pinecone Setup done to search against - " + indexNs + " for question " + q)
-        docs = vectorDb.similarity_search(q, k=5, namespace=indexNs)
-        logging.info("Executed Index and found " + str(len(docs)))
-    elif indexType == "redis":
-        try:
-            #vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
-            #logging.info("Redis Setup done")
-            #docs = vectorDb.similarity_search(q, k=5, index_name=indexNs)
-            docs = performRedisSearch(q, indexNs, 5)
-        except:
-            return {"data_points": "", "answer": "Working on fixing Redis Implementation", "thoughts": ""}
-        
-    elif indexType == 'milvus':
-        docs = []
-
-    rawDocs = []
-    for doc in docs:
-      rawDocs.append(doc.page_content)
-    #content = "\n".join(docs)
-
-    # Allow client to replace the entire prompt, or to inject into the exiting prompt using >>>
-    finalPrompt = promptPrefix.format(injected_prompt="", sources=rawDocs,
-                                      chat_history=getChatHistory(history),
-                                      follow_up_questions_prompt=followupQaPromptTemplate)
-    logging.info("Final Prompt created")
-    # STEP 3: Generate a contextual and content specific answer using the search results and chat history
-    try:
-        completion = openai.Completion.create(
-            engine=OpenAiChat,
-            prompt=finalPrompt,
-            temperature=0.7,
-            max_tokens=1024,
-            n=1,
-            stop=["<|im_end|>", "<|im_start|>"])
-    except Exception as e:
-        logging.error(e)
-        return {"data_points": rawDocs, "answer": "Working on fixing OpenAI Implementation - Error " + str(e) , "thoughts": ""}
-    
-    return {"data_points": rawDocs, "answer": completion.choices[0].text, "thoughts": f"Searched for:<br>{q}<br><br>Prompt:<br>" + finalPrompt.replace('\n', '<br>')}
-
-    # llm = OpenAIChat(deployment_name=OpenAiChat,
-    #           temperature=0.7,
-    #           openai_api_key=OpenAiApiKey,
-    #           max_tokens=1024,
-    #           batch_size=10)
-    # logging.info("LLM Setup done")
-    # chainType = 'stuff'
-    # followupPrompt = PromptTemplate(template=promptPrefix, input_variables=['sources', 'chat_history', 'follow_up_questions_prompt'])
-    # qaChain = load_qa_with_sources_chain(llm, chain_type=chainType, prompt=followupPrompt)
-
-    # # STEP 3: Generate a contextual and content specific answer using the search results and chat history
-    # chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb)
-    # answer = chain({"question": q}, return_only_outputs=False)
-
-    # return {"answer": answer, "thoughts": f"Searched for:<br>{q}<br><br>Prompt:<br>" + followupPrompt.replace('\n', '<br>')}
-
-def GetAnswer(history, approach, overrides, indexNs, indexType):
+def GetAnswer(history, approach, overrides, indexNs, indexType, question, indexName):
     logging.info("Getting Answer")
     try:
       logging.info("Loading OpenAI")
       if (approach == 'rrr'):
-        r = GetRrrAnswer(history, indexNs, indexType)
+        r = GetRrrAnswer(history, indexNs, indexType, question, indexName)
       else:
           return json.dumps({"error": "unknown approach"})
       return r
@@ -296,7 +312,7 @@ def GetAnswer(history, approach, overrides, indexNs, indexType):
             status_code=500
       )
 
-def TransformValue(record, indexNs, indexType):
+def TransformValue(record, indexNs, indexType, question, indexName):
     logging.info("Calling Transform Value")
     try:
         recordId = record['recordId']
@@ -334,7 +350,7 @@ def TransformValue(record, indexNs, indexType):
         approach = data['approach']
         overrides = data['approach']
 
-        summaryResponse = GetAnswer(history, approach, overrides, indexNs, indexType)
+        summaryResponse = GetAnswer(history, approach, overrides, indexNs, indexType, question, indexName)
         return ({
             "recordId": recordId,
             "data": summaryResponse
