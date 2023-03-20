@@ -12,39 +12,44 @@ export const chatUrl = `${process.env.VITE_CHAT_URL}`
 export const chat3Url = `${process.env.VITE_CHAT3_URL}`
 
 export async function askApi(options: AskRequest, indexNs: string, indexType: string, chainType : string): Promise<AskResponse> {
-    const url = qaUrl + "&chainType=" + chainType
-    + "&question=" + options.question + "&indexType=" + indexType + "&indexNs=" + indexNs;
+    // const url = qaUrl + "&chainType=" + chainType
+    // + "&question=" + options.question + "&indexType=" + indexType + "&indexNs=" + indexNs;
     // const url = "http://localhost:7071/api/QuestionAnswering?chainType=" + chainType
     // + "&question=" + options.question + "&indexType=" + indexType + "&indexNs=" + indexNs;
-    const response = await fetch(url, {
+    // const url = '/ask' + "?chainType=" + chainType
+    // + "&question=" + options.question + "&indexType=" + indexType + "&indexNs=" + indexNs;
+
+    const response = await fetch('/ask', {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify( {
-            values: [
-              {
-                recordId: 0,
-                data: {
-                  text: ''
+        // body: JSON.stringify( {
+        //     values: [
+        //       {
+        //         recordId: 0,
+        //         data: {
+        //           text: ''
+        //         }
+        //       }
+        //     ]
+        //   })
+        body: JSON.stringify({
+            question: options.question,
+            chainType: chainType,
+            indexType:indexType,
+            indexNs: indexNs,
+            postBody: {
+              values: [
+                {
+                  recordId: 0,
+                  data: {
+                    text: ''
+                  }
                 }
-              }
-            ]
-          })
-        // body: JSON.stringify({
-        //     question: options.question,
-        //     approach: options.approach,
-        //     overrides: {
-        //         semantic_ranker: options.overrides?.semanticRanker,
-        //         semantic_captions: options.overrides?.semanticCaptions,
-        //         top: options.overrides?.top,
-        //         temperature: options.overrides?.temperature,
-        //         prompt_template: options.overrides?.promptTemplate,
-        //         prompt_template_prefix: options.overrides?.promptTemplatePrefix,
-        //         prompt_template_suffix: options.overrides?.promptTemplateSuffix,
-        //         exclude_category: options.overrides?.excludeCategory
-        //     }
-        // })
+              ]
+            }
+        })
     });
 
     const parsedResponse: ChatResponse = await response.json();
@@ -56,28 +61,50 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
 }
 
 export async function chatGptApi(options: ChatRequest, indexNs: string, indexType:string): Promise<AskResponse> {
-    const response = await fetch(chatUrl + "&indexNs=" + indexNs + "&indexType=" + indexType , {
+    //const url = chatUrl + "&indexNs=" + indexNs + "&indexType=" + indexType
+    const response = await fetch('/chat' , {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          values: [
-            {
-              recordId: 0,
-              data: {
-                history: options.history,
-                approach: 'rrr',
-                overrides: {
-                  semantic_ranker: true,
-                  semantic_captions: false,
-                  top: 3,
-                  suggest_followup_questions: false
+          indexType:indexType,
+          indexNs: indexNs,
+          postBody: {
+            values: [
+              {
+                recordId: 0,
+                data: {
+                  history: options.history,
+                  approach: 'rrr',
+                  overrides: {
+                    semantic_ranker: true,
+                    semantic_captions: false,
+                    top: 3,
+                    suggest_followup_questions: false
+                  }
                 }
               }
-            }
-          ]
+            ]
+          }
         })
+        // body: JSON.stringify({
+        //   values: [
+        //     {
+        //       recordId: 0,
+        //       data: {
+        //         history: options.history,
+        //         approach: 'rrr',
+        //         overrides: {
+        //           semantic_ranker: true,
+        //           semantic_captions: false,
+        //           top: 3,
+        //           suggest_followup_questions: false
+        //         }
+        //       }
+        //     }
+        //   ]
+        // })
         // body: JSON.stringify({
         //     history: options.history,
         //     approach: options.approach,
@@ -101,29 +128,34 @@ export async function chatGptApi(options: ChatRequest, indexNs: string, indexTyp
     }
     return parsedResponse.values[0].data;
 }
-
 export async function chatGpt3Api(question: string, options: ChatRequest, indexNs: string, indexType:string): Promise<AskResponse> {
-  const response = await fetch(chat3Url + "&indexNs=" + indexNs + "&question=" + question + "&indexType=" + indexType , {
+  //const url = chat3Url + "&indexNs=" + indexNs + "&question=" + question + "&indexType=" + indexType 
+  const response = await fetch('/chat3', {
       method: "POST",
       headers: {
           "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        values: [
-          {
-            recordId: 0,
-            data: {
-              history: options.history,
-              approach: 'rrr',
-              overrides: {
-                semantic_ranker: true,
-                semantic_captions: false,
-                top: 3,
-                suggest_followup_questions: false
+        indexType:indexType,
+        indexNs: indexNs,
+        question:question,
+        postBody: {
+          values: [
+            {
+              recordId: 0,
+              data: {
+                history: options.history,
+                approach: 'rrr',
+                overrides: {
+                  semantic_ranker: true,
+                  semantic_captions: false,
+                  top: 3,
+                  suggest_followup_questions: false
+                }
               }
             }
-          }
-        ]
+          ]
+        }
       })
   });
 

@@ -138,7 +138,7 @@ def summarizeGenerateQa(indexType, value, indexNs):
 
         try:
             summaryChain = load_summarize_chain(llm, chain_type="map_reduce")
-            rawDocs = vectorDb.similarity_search('*', k=500, namespace=indexNs)
+            rawDocs = vectorDb.similarity_search('*', k=1000, namespace=indexNs)
             summary = summaryChain.run(rawDocs)
             #logging.info(summary)
         except Exception as e:
