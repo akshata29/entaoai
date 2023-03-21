@@ -8,7 +8,7 @@ import styles from "./Chat.module.css";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
-import { chatJsApi, Approaches, AskResponse, ChatRequest, ChatTurn } from "../../api";
+import { chatJsApi, refreshIndex, AskResponse, ChatRequest, ChatTurn } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { UserChatMessage } from "../../components/UserChatMessage";
@@ -117,7 +117,6 @@ const Chat = () => {
         setMessageState(state => ({ ...state, pending: '' }))
 
         const result = await chatJsApi(question, history, String(selectedItem?.key), String(selectedIndex));
-        console.log(result)
         // const data = JSON.parse(result)
         // setMessageState(state => ({
         //   ...state,
@@ -168,7 +167,8 @@ const Chat = () => {
         const files = []
         const indexType = []
 
-        const blobs = containerClient.listBlobsFlat(listOptions)
+        const blobs = await refreshIndex();
+        //const blobs = containerClient.listBlobsFlat(listOptions)
         for await (const blob of blobs) {
           if (blob.metadata?.embedded == "true")
           {
@@ -245,51 +245,6 @@ const Chat = () => {
                 setExampleLoading(false)
             }
         })
-
-        // setExampleLoading(true)
-        // setExampleList([])
-        // const url =  exampleQuestionUrl + '&question=""&indexType=' + indexType + "&indexNs=" + defaultKey 
-
-        // const requestOptions = {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({
-        //         values: [
-        //           {
-        //             recordId: 0,
-        //             data: {
-        //               text: ''
-        //             }
-        //           }
-        //         ]
-        //       })
-        // };
-        // fetch(url, requestOptions)
-        // .then(async (response) => {
-        //   if (response.ok) {
-        //     const jsonResp =  await response.json();
-        //     const sampleQuestions = jsonResp.values[0].data.answer
-
-        //     const sampleQuestion = []
-        //     const  questionList = sampleQuestions?.split("\n")
-        //     for (const item of questionList) {
-        //         if (item != '') {
-        //             sampleQuestion.push({
-        //                 text: item,
-        //                 value: item
-        //             })
-        //         } 
-        //     }
-        //     const generatedExamples: ExampleModel[] = sampleQuestion
-        //     setExampleList(generatedExamples)
-        //     setExampleLoading(false)
-        //     //setUploadText("Completed Successfully.  You can now search for your document.")
-        //   }
-        // })
-        // .catch((error : string) => {
-        //     console.log(error)
-        //     setExampleLoading(false)
-        // })
     };
 
     useEffect(() => {

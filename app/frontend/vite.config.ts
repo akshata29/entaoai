@@ -20,7 +20,11 @@ export default defineConfig({
         proxy: {
             "/ask": "http://127.0.0.1:5000",
             "/chat": "http://127.0.0.1:5000",
-            "/chat3": "http://127.0.0.1:5000"
+            "/chat3": "http://127.0.0.1:5000",
+            "/processDoc": "http://127.0.0.1:5000",
+            "/refreshIndex": "http://127.0.0.1:5000",
+            "/uploadFile": "http://127.0.0.1:5000",
+            "/uploadBinaryFile": "http://127.0.0.1:5000"
         }
         // proxy: {
         //     "/ask": {

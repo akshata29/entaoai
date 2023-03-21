@@ -9,7 +9,7 @@ import styles from "./ChatGpt.module.css";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
-import { chatGptApi, chatGpt3Api, Approaches, AskResponse, ChatRequest, ChatTurn } from "../../api";
+import { chatGptApi, chatGpt3Api, Approaches, AskResponse, ChatRequest, ChatTurn, refreshIndex } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { UserChatMessage } from "../../components/UserChatMessage";
@@ -17,20 +17,12 @@ import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel
 import { ClearChatButton } from "../../components/ClearChatButton";
 
 import { BlobServiceClient } from "@azure/storage-blob";
-// import { OpenAI } from "langchain";
 
-
-// const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
-// const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
-// const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
+// const containerName =`${process.env.VITE_CONTAINER_NAME}`
+// const sasToken = `${process.env.VITE_SAS_TOKEN}`
+// const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
 // const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
-// const exampleQuestionUrl = `${import.meta.env.VITE_SUMMARYQA_URL}`
-
-const containerName =`${process.env.VITE_CONTAINER_NAME}`
-const sasToken = `${process.env.VITE_SAS_TOKEN}`
-const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
-const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
-const exampleQuestionUrl = `${process.env.VITE_SUMMARYQA_URL}`
+// const exampleQuestionUrl = `${process.env.VITE_SUMMARYQA_URL}`
 
 const ChatGpt = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -153,37 +145,23 @@ const ChatGpt = () => {
     };
 
     const refreshBlob = async () => {
-        const blobServiceClient = new BlobServiceClient(uploadUrl)
-        const containerClient = blobServiceClient.getContainerClient(containerName)
-    
-        const listOptions = {
-          includeDeleted: false, // include deleted blobs
-          includeDeletedWithVersions: false, // include deleted blobs with versions
-          includeLegalHost: false, // include legal host id
-          includeMetadata: true, // include custom metadata
-          includeSnapshots: false, // include snapshots
-          includeTags: true, // include indexable tags
-          includeUncommittedBlobs: false, // include uncommitted blobs
-          includeVersions: false, // include all blob version
-          prefix: '' // filter by blob name prefix
-        }
-    
         const files = []
         const indexType = []
 
-        const blobs = containerClient.listBlobsFlat(listOptions)
-        for await (const blob of blobs) {
-          if (blob.metadata?.embedded == "true")
+        //const blobs = containerClient.listBlobsFlat(listOptions)
+        const blobs = await refreshIndex()       
+        for (const blob of blobs.values) {
+          if (blob.embedded == "true")
           {
             files.push({
-                text: blob.metadata?.indexName,
-                key: blob.metadata?.namespace
+                text: blob.indexName,
+                key: blob.namespace
             })
             indexType.push({
-                    key:blob.metadata?.namespace,
-                    iType:blob.metadata?.indexType,
-                    summary:blob.metadata?.summary,
-                    qa:blob.metadata?.qa
+                    key:blob.namespace,
+                    iType:blob.indexType,
+                    summary:blob.summary,
+                    qa:blob.qa
             })
           }
         }

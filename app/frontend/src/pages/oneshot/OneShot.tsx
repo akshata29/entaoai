@@ -4,7 +4,7 @@ import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinne
 import styles from "./OneShot.module.css";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
-import { askApi, Approaches, AskResponse, AskRequest } from "../../api";
+import { askApi, Approaches, AskResponse, AskRequest, refreshIndex } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
@@ -16,11 +16,6 @@ import { ExampleList, ExampleModel } from "../../components/Example";
 // const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
 // const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
 // const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
-
-const containerName =`${process.env.VITE_CONTAINER_NAME}`
-const sasToken = `${process.env.VITE_SAS_TOKEN}`
-const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
-const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
 
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -145,37 +140,23 @@ const OneShot = () => {
     };
 
     const refreshBlob = async () => {
-        const blobServiceClient = new BlobServiceClient(uploadUrl)
-        const containerClient = blobServiceClient.getContainerClient(containerName)
-    
-        const listOptions = {
-          includeDeleted: false, // include deleted blobs
-          includeDeletedWithVersions: false, // include deleted blobs with versions
-          includeLegalHost: false, // include legal host id
-          includeMetadata: true, // include custom metadata
-          includeSnapshots: false, // include snapshots
-          includeTags: true, // include indexable tags
-          includeUncommittedBlobs: false, // include uncommitted blobs
-          includeVersions: false, // include all blob version
-          prefix: '' // filter by blob name prefix
-        }
-    
         const files = []
         const indexType = []
     
-        const blobs = containerClient.listBlobsFlat(listOptions)
-        for await (const blob of blobs) {
-          if (blob.metadata?.embedded == "true")
+        //const blobs = containerClient.listBlobsFlat(listOptions)
+        const blobs = await refreshIndex()       
+        for (const blob of blobs.values) {
+          if (blob.embedded == "true")
           {
             files.push({
-                text: blob.metadata.indexName,
-                key: blob.metadata?.namespace
+                text: blob.indexName,
+                key: blob.namespace
             })
             indexType.push({
-                    key:blob.metadata?.namespace,
-                    iType:blob.metadata?.indexType,
-                    summary:blob.metadata?.summary,
-                    qa:blob.metadata?.qa
+                    key:blob.namespace,
+                    iType:blob.indexType,
+                    summary:blob.summary,
+                    qa:blob.qa
             })
           }
         }

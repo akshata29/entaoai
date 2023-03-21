@@ -9,16 +9,20 @@ import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@flu
 import { makeStyles, Button, ButtonProps } from "@fluentui/react-components";
 
 import { BarcodeScanner24Filled } from "@fluentui/react-icons";
-import { BlobServiceClient } from "@azure/storage-blob";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import { Label } from '@fluentui/react/lib/Label';
 import { Stack, IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
 import { DefaultPalette } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
+import { processDoc, uploadFile, uploadBinaryFile } from "../../api";
 
 import styles from "./Upload.module.css";
 
 import { useDropzone } from 'react-dropzone'
+
+import { 
+  BlobServiceClient, StorageSharedKeyCredential
+}  from '@azure/storage-blob'
 
 // const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
 // const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
@@ -29,6 +33,7 @@ const containerName =`${process.env.VITE_CONTAINER_NAME}`
 const sasToken = `${process.env.VITE_SAS_TOKEN}`
 const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
 const docGeneratorUrl = `${process.env.VITE_DOCGENERATOR_URL}`
+const storageAccountKey = `${process.env.VITE_STORAGE_KEY}`
 
 const delay = (ms:number) => new Promise(res => setTimeout(res, ms))
 
@@ -201,6 +206,21 @@ const Upload = () => {
 
     }
 
+    async function fileToByteArray(file: File): Promise<Uint8Array> {
+      return new Promise<Uint8Array>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event: ProgressEvent<FileReader>) => {
+          const result = event.target?.result as ArrayBuffer;
+          const byteArray = new Uint8Array(result);
+          resolve(byteArray);
+        };
+        reader.onerror = () => {
+          reject(new Error(`Failed to read file ${file.name}`));
+        };
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
     const handleUploadFiles = async () => {
       if (files.length > 1) {
         setMultipleDocs(true)
@@ -216,13 +236,10 @@ const Upload = () => {
       files.forEach(async (element: File) => {
         //await uploadFileToBlob(element)
         try {
-          const blobServiceClient = new BlobServiceClient(uploadUrl)
-          const containerClient = blobServiceClient.getContainerClient(containerName)
-          const blockBlobClient = containerClient.getBlockBlobClient(element.name)
-      
-          // set mimetype as determined from browser with file upload control
-          const options = { blobHTTPHeaders: { blobContentType: element.type } }
-          await blockBlobClient.uploadData(element, options)
+          const formData = new FormData();
+          formData.append('file', element);
+
+          await uploadBinaryFile(formData)
         }
         finally
         {
@@ -233,47 +250,30 @@ const Upload = () => {
         }
       })
       })
-      //then(() => {
-        setUploadText("File uploaded successfully.  Now indexing the document.")
-        const url =  docGeneratorUrl + '&indexType=' + selectedItem?.key + "&loadType=files" + "&multiple=" + (files.length > 1 ? "true" : "false") + "&indexName=" + (files.length > 1 ? indexName : files[0].name)
+      setUploadText("File uploaded successfully.  Now indexing the document.")
 
-        const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                values: [
-                  {
-                    recordId: 0,
-                    data: {
-                      text: files
-                    }
-                  }
-                ]
-              })
-        };
-        fetch(url, requestOptions)
-        .then((response) => {
-          if (response.ok) {
-            setUploadText("Completed Successfully.  You can now search for your document.")
-          }
-          else {
-            setUploadText("Failure to upload the document.")
-          }
-          setFiles([])
-          setLoading(false)
-          setMissingIndexName(false)
-          setMultipleDocs(false)
-          setIndexName('')
-        })
-        .catch((error : string) => {
-          setUploadText(error)
-          setFiles([])
-          setLoading(false)
-          setMissingIndexName(false)
-          setMultipleDocs(false)
-          setIndexName('')
-        })
-     // })
+      await processDoc(String(selectedItem?.key), "files", (files.length > 1 ? "true" : "false"), (files.length > 1 ? indexName : files[0].name), files)
+      .then((response:string) => {
+        if (response = "Success") {
+          setUploadText("Completed Successfully.  You can now search for your document.")
+        }
+        else {
+          setUploadText("Failure to upload the document.")
+        }
+        setFiles([])
+        setLoading(false)
+        setMissingIndexName(false)
+        setMultipleDocs(false)
+        setIndexName('')
+      })
+      .catch((error : string) => {
+        setUploadText(error)
+        setFiles([])
+        setLoading(false)
+        setMissingIndexName(false)
+        setMultipleDocs(false)
+        setIndexName('')
+      })
     }
 
     const onProcessWebPages = async () => {
@@ -291,35 +291,14 @@ const Upload = () => {
         setLoading(true)
         setUploadText('Uploading your document...')
         let count = 0
-        const blobServiceClient = new BlobServiceClient(uploadUrl)
-        const containerClient = blobServiceClient.getContainerClient(containerName)
-        const blockBlobClient = containerClient.getBlockBlobClient(indexName + ".txt")
-    
-        // set mimetype as determined from browser with file upload control
-        const options = { blobHTTPHeaders: { blobContentType: "text/plain" } }
+
         const fileContentsAsString = "Will Process the Webpage and index it with IndexName as " + indexName + " and the URLs are " + processPage
-        await blockBlobClient.upload(fileContentsAsString, fileContentsAsString.length, options)
-        .then(() => {
+        await uploadFile(indexName + ".txt", fileContentsAsString, "text/plain")
+        .then(async () => {
           setUploadText("File uploaded successfully.  Now indexing the document.")
-          const url =  docGeneratorUrl + '&indexType=' + selectedItem?.key + "&loadType=webpages" + "&multiple=false&indexName=" + indexName
-  
-          const requestOptions = {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                  values: [
-                    {
-                      recordId: 0,
-                      data: {
-                        text: processPage
-                      }
-                    }
-                  ]
-                })
-          };
-          fetch(url, requestOptions)
+          await processDoc(String(selectedItem?.key), "webpages", "false", indexName, processPage)
           .then((response) => {
-            if (response.ok) {
+            if (response == "Success") {
               setUploadText("Completed Successfully.  You can now search for your document.")
             }
             else {
@@ -330,7 +309,6 @@ const Upload = () => {
             setLoading(false)
             setMissingIndexName(false)
             setIndexName('')
-            setUploadText('')
           })
           .catch((error : string) => {
             setUploadText(error)

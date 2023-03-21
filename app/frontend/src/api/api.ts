@@ -166,6 +166,88 @@ export async function chatGpt3Api(question: string, options: ChatRequest, indexN
   return parsedResponse.values[0].data;
 }
 
+export async function refreshIndex() : Promise<any> {
+  
+  const response = await fetch('/refreshIndex', {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json"
+    },
+  });
+
+  const result = await response.json();
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return result;
+}
+
+export async function uploadFile(fileName:string, fileContent:any, contentType:string) : Promise<string> {
+  
+  const response = await fetch('/uploadFile', {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      fileName:fileName,
+      fileContent: fileContent,
+      contentType:contentType
+    })
+  });
+
+  const result = await response.json();
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return "Success";
+}
+
+export async function uploadBinaryFile(formData:any) : Promise<string> {
+  
+  const response = await fetch('/uploadBinaryFile', {
+    method: "POST",
+    body: formData
+  });
+
+  const result = await response.json();
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return "Success";
+}
+
+export async function processDoc(indexType: string, loadType : string, multiple: string, indexName : string, files: any) : Promise<string> {
+  
+  const response = await fetch('/processDoc', {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      indexType:indexType,
+      multiple: multiple,
+      loadType:loadType,
+      indexName:indexName,
+      postBody: {
+        values: [
+          {
+            recordId: 0,
+            data: {
+              text: files
+            }
+          }
+        ]
+      }
+    })
+  });
+
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return "Success";
+}
+
 export async function chatJsApi(question: string, history: never[], indexNs: string, indexType:string): Promise<AskResponse> {
   
   console.log(question)
