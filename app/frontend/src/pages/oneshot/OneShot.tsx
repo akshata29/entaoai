@@ -12,11 +12,6 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
-// const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
-// const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
-// const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
-// const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
-
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [approach, setApproach] = useState<Approaches>(Approaches.RetrieveThenRead);

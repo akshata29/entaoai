@@ -123,15 +123,18 @@ def refreshIndex():
         blobJson = []
         for blob in blobList:
             #print(blob)
-            blobJson.append({
-                 "embedded": blob.metadata["embedded"],
-                 "indexName": blob.metadata["indexName"],
-                 "namespace":blob.metadata["namespace"],
-                 "qa":blob.metadata["qa"],
-                 "summary":blob.metadata["summary"],
-                 "name":blob.name,
-                 "indexType":blob.metadata["indexType"],
-            })
+            try:
+                blobJson.append({
+                    "embedded": blob.metadata["embedded"],
+                    "indexName": blob.metadata["indexName"],
+                    "namespace":blob.metadata["namespace"],
+                    "qa":blob.metadata["qa"],
+                    "summary":blob.metadata["summary"],
+                    "name":blob.name,
+                    "indexType":blob.metadata["indexType"],
+                })
+            except Exception as e:
+                pass
 
         #jsonDict = json.dumps(blobJson)
         return jsonify({"values" : blobJson})

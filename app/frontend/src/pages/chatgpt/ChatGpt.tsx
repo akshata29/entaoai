@@ -18,12 +18,6 @@ import { ClearChatButton } from "../../components/ClearChatButton";
 
 import { BlobServiceClient } from "@azure/storage-blob";
 
-// const containerName =`${process.env.VITE_CONTAINER_NAME}`
-// const sasToken = `${process.env.VITE_SAS_TOKEN}`
-// const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
-// const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
-// const exampleQuestionUrl = `${process.env.VITE_SUMMARYQA_URL}`
-
 const ChatGpt = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [promptTemplate, setPromptTemplate] = useState<string>("");

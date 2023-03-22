@@ -4,9 +4,9 @@ import {
     Card,
     CardFooter,
   } from "@fluentui/react-components";
-import { Checkbox, ICheckboxProps } from '@fluentui/react/lib/Checkbox';
+import { Checkbox } from '@fluentui/react/lib/Checkbox';
 import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@fluentui/react';
-import { makeStyles, Button, ButtonProps } from "@fluentui/react-components";
+import { makeStyles } from "@fluentui/react-components";
 
 import { BarcodeScanner24Filled } from "@fluentui/react-icons";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
@@ -19,26 +19,6 @@ import { processDoc, uploadFile, uploadBinaryFile } from "../../api";
 import styles from "./Upload.module.css";
 
 import { useDropzone } from 'react-dropzone'
-
-import { 
-  BlobServiceClient, StorageSharedKeyCredential
-}  from '@azure/storage-blob'
-
-// const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
-// const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
-// const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
-// const docGeneratorUrl = `${import.meta.env.VITE_DOCGENERATOR_URL}`
-
-const containerName =`${process.env.VITE_CONTAINER_NAME}`
-const sasToken = `${process.env.VITE_SAS_TOKEN}`
-const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
-const docGeneratorUrl = `${process.env.VITE_DOCGENERATOR_URL}`
-const storageAccountKey = `${process.env.VITE_STORAGE_KEY}`
-
-const delay = (ms:number) => new Promise(res => setTimeout(res, ms))
-
-// <snippet_get_client>
-const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
 
 const buttonStyles = makeStyles({
   innerWrapper: {
@@ -105,6 +85,11 @@ const Upload = () => {
         key: 'redis',
         text: 'Redis Stack'
       }
+      // ,
+      // {
+      //   key: 'weaviate',
+      //   text: 'Weaviate'
+      // }
     ]
 
     const { getRootProps, getInputProps } = useDropzone({
@@ -150,77 +135,7 @@ const Upload = () => {
           <DefaultButton onClick={() => handleRemoveFile(file)} disabled={loading ? true : false}>Remove File</DefaultButton>
         </div>
     ))
-
-    const uploadFileToBlob = async (file: File) => {
-        if (!file) return
     
-        //Upload the PDF file to blob storage
-    
-        setLoading(true)
-        setUploadText('Uploading and Indexing your document...')
-        const blobServiceClient = new BlobServiceClient(uploadUrl)
-        const containerClient = blobServiceClient.getContainerClient(containerName)
-        const blockBlobClient = containerClient.getBlockBlobClient(file.name)
-    
-        // set mimetype as determined from browser with file upload control
-        const options = { blobHTTPHeaders: { blobContentType: file.type } }
-    
-        const url =  docGeneratorUrl + '&indexType=' + selectedItem?.key + "&loadType=files"
-
-        const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                values: [
-                  {
-                    recordId: 0,
-                    data: {
-                      text: ''
-                    }
-                  }
-                ]
-              })
-        };
-    
-        //Trigger the function to Mine the PDF
-        await blockBlobClient.uploadData(file, options)
-        .then(() => {
-          setUploadText("File uploaded successfully.  Now indexing the document.")
-          fetch(url, requestOptions)
-          .then((response) => {
-            if (response.ok) {
-              setUploadText("Completed Successfully.  You can now search for your document.")
-            }
-            else {
-              setUploadText("Failure to upload the document.")
-            }
-            setFiles([])
-            setLoading(false)
-          })
-          .catch((error : string) => {
-            setUploadText(error)
-            setFiles([])
-            setLoading(false)
-          })
-        })
-
-    }
-
-    async function fileToByteArray(file: File): Promise<Uint8Array> {
-      return new Promise<Uint8Array>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (event: ProgressEvent<FileReader>) => {
-          const result = event.target?.result as ArrayBuffer;
-          const byteArray = new Uint8Array(result);
-          resolve(byteArray);
-        };
-        reader.onerror = () => {
-          reject(new Error(`Failed to read file ${file.name}`));
-        };
-        reader.readAsArrayBuffer(file);
-      });
-    }
-
     const handleUploadFiles = async () => {
       if (files.length > 1) {
         setMultipleDocs(true)

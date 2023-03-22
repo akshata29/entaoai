@@ -20,18 +20,6 @@ import { BlobServiceClient } from "@azure/storage-blob";
 // import { OpenAI } from "langchain";
 
 
-// const containerName =`${import.meta.env.VITE_CONTAINER_NAME}`
-// const sasToken = `${import.meta.env.VITE_SAS_TOKEN}`
-// const storageAccountName = `${import.meta.env.VITE_STORAGE_NAME}`
-// const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
-// const exampleQuestionUrl = `${import.meta.env.VITE_SUMMARYQA_URL}`
-
-const containerName =`${process.env.VITE_CONTAINER_NAME}`
-const sasToken = `${process.env.VITE_SAS_TOKEN}`
-const storageAccountName = `${process.env.VITE_STORAGE_NAME}`
-const uploadUrl = `https://${storageAccountName}.blob.core.windows.net/?${sasToken}`;
-const exampleQuestionUrl = `${process.env.VITE_SUMMARYQA_URL}`
-
 const Chat = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [promptTemplate, setPromptTemplate] = useState<string>("");
@@ -149,21 +137,6 @@ const Chat = () => {
         makeApiRequest(example);
     };
     const refreshBlob = async () => {
-        const blobServiceClient = new BlobServiceClient(uploadUrl)
-        const containerClient = blobServiceClient.getContainerClient(containerName)
-    
-        const listOptions = {
-          includeDeleted: false, // include deleted blobs
-          includeDeletedWithVersions: false, // include deleted blobs with versions
-          includeLegalHost: false, // include legal host id
-          includeMetadata: true, // include custom metadata
-          includeSnapshots: false, // include snapshots
-          includeTags: true, // include indexable tags
-          includeUncommittedBlobs: false, // include uncommitted blobs
-          includeVersions: false, // include all blob version
-          prefix: '' // filter by blob name prefix
-        }
-    
         const files = []
         const indexType = []
 
