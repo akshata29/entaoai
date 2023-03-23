@@ -16,8 +16,6 @@ import pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.chains import VectorDBQAWithSourcesChain
 from langchain.llms.openai import OpenAI, AzureOpenAI
-#from langchain.vectorstores.redis import Redis
-from redis import Redis
 from redis.commands.search.query import Query
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 from redis.commands.search.field import VectorField, TagField, TextField
@@ -25,6 +23,11 @@ import numpy as np
 from langchain.docstore.document import Document
 import tiktoken
 from typing import Mapping
+#from langchain.vectorstores.redis import Redis
+from redis import Redis
+from azure.search.documents import SearchClient
+from azure.search.documents.models import QueryType
+from azure.core.credentials import AzureKeyCredential
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -48,6 +51,8 @@ RedisAddress = os.environ['RedisAddress']
 RedisPassword = os.environ['RedisPassword']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
 RedisPort = os.environ['RedisPort']
+SearchService = os.environ['SearchService']
+SearchKey = os.environ['SearchKey']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
@@ -65,6 +70,38 @@ def getEmbedding(text: str, engine="text-embedding-ada-002") -> list[float]:
         return openai.Embedding.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
     except Exception as e:
         logging.info(e)
+
+def noNewLines(s: str) -> str:
+    return s.replace('\n', ' ').replace('\r', ' ')
+
+def performCogSearch(question, indexName, k):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    try:
+        r = searchClient.search(question, filter=None, top=k)
+        # r = searchClient.search(question, 
+        #             filter=None,
+        #             query_type=QueryType.SEMANTIC, 
+        #             query_language="en-us", 
+        #             query_speller="lexicon", 
+        #             semantic_configuration_name="default", 
+        #             top=5, 
+        #             query_caption="extractive|highlight-false")
+        # results = [doc['id'] + ": " + noNewLines(" . ".join([c.text for c in doc['@search.captions']])) for doc in r]
+        #content = "\n".join(results)
+        documents = [
+        Document(page_content=doc['content'], metadata={"id": doc['id'], "sources": doc['sourcefile']})
+        for doc in r
+        ]
+        #logging.info(documents)
+        return documents
+    except Exception as e:
+        logging.info(e)
+
+    return [Document(page_content="No results found")]
+
+
 
 def performRedisSearch(question, indexName, k):
     #embeddingQuery= Redis.embedding_function(question)
@@ -229,13 +266,15 @@ def GetRrrAnswer(history, indexNs, indexType):
         logging.info("Executed Index and found " + str(len(docs)))
     elif indexType == "redis":
         try:
-            #vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
+            #vectorDb =  Redis.from_existing_index(embeddings, index_name=indexNs, kwargs={'redis_url': redisUrl}),
             #logging.info("Redis Setup done")
-            #docs = vectorDb.similarity_search(q, k=5, index_name=indexNs)
+            #docs = vectorDb.similarity_search(q, k=5)
             docs = performRedisSearch(q, indexNs, 5)
-        except:
-            return {"data_points": "", "answer": "Working on fixing Redis Implementation", "thoughts": ""}
-        
+        except Exception as e:
+            return {"data_points": "", "answer": "Working on fixing Redis Implementation " + str(e), "thoughts": ""}
+    elif indexType == "cogsearch":
+        docs = performCogSearch(q, indexNs, 5)
+
     elif indexType == 'milvus':
         docs = []
 

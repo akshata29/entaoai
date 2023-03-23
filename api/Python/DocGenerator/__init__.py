@@ -6,7 +6,12 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import tempfile
 import uuid
-from langchain.document_loaders import UnstructuredFileLoader
+from langchain.document_loaders import (
+    PDFMinerLoader,
+    PyMuPDFLoader,
+    UnstructuredFileLoader,
+    UnstructuredPDFLoader,
+)
 import os
 from datetime import datetime, timedelta
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, generate_container_sas
@@ -37,7 +42,11 @@ from tenacity import (
     wait_exponential,
 )
 from langchain.vectorstores import Weaviate
-
+from azure.search.documents.indexes import SearchIndexClient
+from azure.search.documents.indexes.models import *
+from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential
+from langchain.docstore.document import Document
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -58,6 +67,8 @@ RedisPassword = os.environ['RedisPassword']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
 WeaviateUrl = os.environ['WeaviateUrl']
 RedisPort = os.environ['RedisPort']
+SearchService = os.environ['SearchService']
+SearchKey = os.environ['SearchKey']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 
@@ -188,6 +199,73 @@ def ComposeResponse(indexType, loadType,  multiple, indexName, jsonData):
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
 
+def createSearchIndex(indexName):
+    indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            credential=AzureKeyCredential(SearchKey))
+    if indexName not in indexClient.list_index_names():
+        index = SearchIndex(
+            name=indexName,
+            fields=[
+                SimpleField(name="id", type="Edm.String", key=True),
+                SearchableField(name="content", type="Edm.String", analyzer_name="en.microsoft"),
+                #SimpleField(name="sourcepage", type="Edm.String", filterable=True, facetable=True),
+                SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
+                #SimpleField(name="totalpages", type="Edm.String", filterable=True, facetable=True),
+                #SimpleField(name="title", type="Edm.String", filterable=True, facetable=True)
+            ],
+            semantic_settings=SemanticSettings(
+                configurations=[SemanticConfiguration(
+                    name='default',
+                    prioritized_fields=PrioritizedFields(
+                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+        )
+        logging.info(f"Creating {indexName} search index")
+        indexClient.create_index(index)
+    else:
+        logging.info(f"Search index {indexName} already exists")
+
+def createSections(fileName, docs):
+    counter = 1
+    for i in docs:
+        # yield {
+        #     "id": f"{fileName}-{counter}".replace(".", "_").replace(" ", "_"),
+        #     "content": i.page_content,
+        #     "sourcepage": str(i.metadata["page_number"]),
+        #     "totalpages": str(i.metadata["total_pages"]),
+        #     "sourcefile": fileName,
+        #     "title":i.metadata["title"]
+        # }
+        yield {
+            "id": f"{fileName}-{counter}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_"),
+            "content": i.page_content,
+            "sourcefile": fileName
+        }
+        counter += 1
+
+def indexSections(fileName, indexName, docs):
+
+    sections = createSections(fileName, docs)
+    logging.info(f"Indexing sections from '{fileName}' into search index '{indexName}'")
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
+                                    index_name=indexName,
+                                    credential=AzureKeyCredential(SearchKey))
+    i = 0
+    batch = []
+    for s in sections:
+        batch.append(s)
+        i += 1
+        if i % 1000 == 0:
+            results = searchClient.index_documents(batch=batch)
+            succeeded = sum([1 for r in results if r.succeeded])
+            logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+            batch = []
+
+    if len(batch) > 0:
+        results = searchClient.upload_documents(documents=batch)
+        succeeded = sum([1 for r in results if r.succeeded])
+        logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+
+
 # def createRedisIndex(redisConn, indexName, prefix = "embedding"):
 #     text = TextField(name="text")
 #     filename = TextField(name="filename")
@@ -214,7 +292,9 @@ def summarizeGenerateQa(docs):
         summary = summaryChain.run(docs)
         logging.info("Document Summary completed")
     except Exception as e:
-        summary = ''
+        logging.info(e)
+        summary = 'No summary generated'
+        pass
 
     template = """Given the following extracted parts of a long document, recommend between 1-5 sample questions.
 
@@ -228,6 +308,7 @@ def summarizeGenerateQa(docs):
         answer = qaChain({"input_documents": docs[:5], "question": ''}, return_only_outputs=True)
         qa = answer['output_text'].replace('\nSample Questions: \n', '').replace('\nSample Questions:\n', '').replace('\n', '\\n')
     except Exception as e:
+        logging.info(e)
         qa = 'No Sample QA generated'
     #qa = qa.decode('utf8')
     return qa, summary
@@ -407,8 +488,7 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     blobClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr).get_blob_client(container=OpenAiDocContainer, blob=fileName)
                     fileContent = blobClient.download_blob().readall().decode('utf-8')
 
-                    uResult = uuid.uuid4()
-                    downloadPath = os.path.join(tempfile.gettempdir(), uResult.hex + ".txt")
+                    downloadPath = os.path.join(tempfile.gettempdir(), fileName)
                     os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
                     try:
                         with open(downloadPath, "wb") as file:
@@ -431,11 +511,13 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     elif indexType == "redis":
                         redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
                         Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
+                    elif indexType == "cogsearch":
+                        createSearchIndex(uResultNs.hex)
+                        indexSections(fileName, uResultNs.hex, docs)
                     elif indexType == 'milvus':
                         milvus = Milvus(connection_args={"host": "127.0.0.1", "port": "19530"},
                                         collection_name=VsIndexName, text_field="text", embedding_function=embeddings)
                         Milvus.from_documents(docs,embeddings)
-
                     # Embed the file
                     #data = chunk_and_embed(fileContent, fileName)
                     # Set the document in Redis
@@ -445,7 +527,6 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     blobServiceClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr)
                     blobClient = blobServiceClient.get_blob_client(container=OpenAiDocContainer, blob=fileName)
                     readBytes = blobClient.download_blob().readall()
-                    uResult = uuid.uuid4()
                     downloadPath = os.path.join(tempfile.gettempdir(), fileName)
                     os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
                     try:
@@ -458,6 +539,7 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                     docs = []
                     loader = PDFMinerLoader(downloadPath)
+                    #loader = PyMuPDFLoader(downloadPath)
                     rawDocs = loader.load()
                     docs = textSplitter.split_documents(rawDocs)
                     #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
@@ -469,12 +551,17 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     elif indexType == "redis":
                         redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
                         Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
+                    elif indexType == "cogsearch":
+                        createSearchIndex(uResultNs.hex)
+                        indexSections(fileName, uResultNs.hex, docs)
                     elif indexType == 'milvus':
                         milvusDb = Milvus.from_documents(docs,embeddings)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(docs)
                 logging.info("Upsert metadata")
-                metadata = {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName, 'summary': summary, 'qa': qa}
+                metadata = {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName}
+                upsertMetadata(fileName, metadata)
+                metadata = {'summary': summary, 'qa': qa}
                 upsertMetadata(fileName, metadata)
                 logging.info("Sleeping")
                 time.sleep(5)
@@ -508,6 +595,9 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     #redisPipeline(redisClient, uResultNs.hex, embeddings, texts, metadatas)
 
                     Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
+                elif indexType == "cogsearch":
+                    createSearchIndex(uResultNs.hex)
+                    indexSections(webPage, uResultNs.hex, docs)
                 elif indexType == "weaviate":
                     try:
                         import weaviate
@@ -525,7 +615,8 @@ def Embed(indexType, loadType, multiple, indexName,  value):
             logging.info("Perform Summarization and QA")
             qa, summary = summarizeGenerateQa(allDocs)
             logging.info("Upsert metadata")
-            upsertMetadata(indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName,'summary': summary, 'qa': qa})
+            upsertMetadata(indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+            upsertMetadata(indexName + ".txt", {'summary': summary, 'qa': qa})
             return "Success"
         except Exception as e:
             logging.info(e)

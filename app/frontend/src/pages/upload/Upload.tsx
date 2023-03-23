@@ -85,6 +85,10 @@ const Upload = () => {
         key: 'redis',
         text: 'Redis Stack'
       }
+      ,{
+        key: 'cogsearch',
+        text: 'Cognitive Search'
+      }
       // ,
       // {
       //   key: 'weaviate',
@@ -96,7 +100,8 @@ const Upload = () => {
         multiple: true,
         maxSize: 100000000,
         accept: {
-          'application/pdf': ['.pdf']
+          'application/pdf': ['.pdf'],
+          'text/plain': ['.txt']
         },
         onDrop: acceptedFiles => {
           setFiles(acceptedFiles.map(file => Object.assign(file)))
@@ -272,7 +277,7 @@ const Upload = () => {
                       defaultSelectedKey="pinecone"
                       placeholder="Select an Index Type"
                       options={options}
-                      disabled={true}
+                      disabled={false}
                       styles={dropdownStyles}
                   />
                 </Stack.Item>
@@ -300,10 +305,10 @@ const Upload = () => {
                 <div className={styles.commandsContainer}>
                 </div>
                 <div>
-                    <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF</h2>
+                    <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF/text file</h2>
                     <h2 {...getRootProps({ className: 'dropzone' })}>
                         <input {...getInputProps()} />
-                            Drop PDF file here or click to upload. (Max file size 100 MB)
+                            Drop PDF/text file here or click to upload. (Max file size 100 MB)
                     </h2>
                     {files.length ? (
                         <Card>
@@ -312,7 +317,7 @@ const Upload = () => {
                             <CardFooter>
                                 <DefaultButton onClick={handleRemoveAllFiles} disabled={loading ? true : false}>Remove All</DefaultButton>
                                 <DefaultButton onClick={handleUploadFiles} disabled={loading ? true : false}>
-                                    <span>Upload Pdf</span>
+                                    <span>Upload File</span>
                                 </DefaultButton>
                             </CardFooter>
                         </Card>

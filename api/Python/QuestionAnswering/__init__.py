@@ -21,6 +21,9 @@ from langchain.docstore.document import Document
 import tiktoken
 from typing import Mapping
 from langchain.vectorstores import Weaviate
+from azure.search.documents import SearchClient
+from azure.search.documents.models import QueryType
+from azure.core.credentials import AzureKeyCredential
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -40,6 +43,8 @@ RedisAddress = os.environ['RedisAddress']
 RedisPassword = os.environ['RedisPassword']
 RedisPort = os.environ['RedisPort']
 WeaviateUrl = os.environ['WeaviateUrl']
+SearchService = os.environ['SearchService']
+SearchKey = os.environ['SearchKey']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
@@ -52,7 +57,6 @@ def getEmbedding(text: str, engine="text-embedding-ada-002") -> list[float]:
         return openai.Embedding.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
     except Exception as e:
         logging.info(e)
-
 
 def performRedisSearch(question, indexName, k):
     #embeddingQuery= Redis.embedding_function(question)
@@ -85,9 +89,24 @@ def performRedisSearch(question, indexName, k):
         Document(page_content=result.content, metadata=json.loads(result.metadata))
         for result in results.docs
     ]
-
-    logging.info(documents)
     return documents
+
+def performCogSearch(question, indexName, k):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    try:
+        r = searchClient.search(question, filter=None, top=k)
+        documents = [
+        Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
+        for doc in r
+        ]
+        #logging.info(documents)
+        return documents
+    except Exception as e:
+        logging.info(e)
+
+    return [Document(page_content="No results found")]
 
 def FindAnswer(chainType, question, indexType, value, indexNs):
     logging.info("Calling FindAnswer Open AI")
@@ -219,6 +238,8 @@ def FindAnswer(chainType, question, indexType, value, indexNs):
         logging.info("Pinecone Setup done")
         chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, 
                                          search_kwargs={"namespace": indexNs})
+        answer = chain({"question": question}, return_only_outputs=True)
+        return {"data_points": [], "answer": answer['answer'].replace("Answer: ", ''), "thoughts": answer['sources'], "error": ""}
       elif indexType == "redis":
         try:
             # vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
@@ -226,9 +247,16 @@ def FindAnswer(chainType, question, indexType, value, indexNs):
             # chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb)
              docs = performRedisSearch(question, indexNs, 5)
              answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-             return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
+             return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
         except Exception as e:
             return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}
+      elif indexType == "cogsearch":
+        try:
+            docs = performCogSearch(question, indexNs, 5)
+            answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+            return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
+        except Exception as e:
+            return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}    
       elif indexType == "weaviate":
             try:
                 import weaviate
@@ -238,19 +266,17 @@ def FindAnswer(chainType, question, indexType, value, indexNs):
                 docs = weaviate.similarity_search(question, 5)
                 logging.info(docs)
                 answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
+                return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
             except Exception as e:
                 logging.info("Exception occurred in weaviate " + str(e))
                 return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
       elif indexType == 'milvus':
           answer = "{'answer': 'TBD', 'sources': ''}"
+          return answer
 
-      answer = chain({"question": question}, return_only_outputs=True)
-      logging.info(answer)
     except Exception as e:
       logging.info("Error in FindAnswer Open AI : " + str(e))
 
-    return {"data_points": [], "answer": answer['answer'], "thoughts": answer['sources'], "error": ""}
     #return answer
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:

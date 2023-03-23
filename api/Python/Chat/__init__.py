@@ -36,6 +36,9 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage
 )
+from azure.search.documents import SearchClient
+from azure.search.documents.models import QueryType
+from azure.core.credentials import AzureKeyCredential
 from langchain.chains import VectorDBQAWithSourcesChain
 
 
@@ -61,6 +64,8 @@ RedisAddress = os.environ['RedisAddress']
 RedisPassword = os.environ['RedisPassword']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
 RedisPort = os.environ['RedisPort']
+SearchService = os.environ['SearchService']
+SearchKey = os.environ['SearchKey']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
@@ -78,6 +83,33 @@ def getEmbedding(text: str, engine="text-embedding-ada-002") -> list[float]:
         return openai.Embedding.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
     except Exception as e:
         logging.info(e)
+
+def performCogSearch(question, indexName, k):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    try:
+        r = searchClient.search(question, filter=None, top=k)
+        # r = searchClient.search(question, 
+        #             filter=None,
+        #             query_type=QueryType.SEMANTIC, 
+        #             query_language="en-us", 
+        #             query_speller="lexicon", 
+        #             semantic_configuration_name="default", 
+        #             top=5, 
+        #             query_caption="extractive|highlight-false")
+        # results = [doc['id'] + ": " + noNewLines(" . ".join([c.text for c in doc['@search.captions']])) for doc in r]
+        #content = "\n".join(results)
+        documents = [
+        Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
+        for doc in r
+        ]
+        #logging.info(documents)
+        return documents
+    except Exception as e:
+        logging.info(e)
+
+    return [Document(page_content="No results found")]
 
 def performRedisSearch(question, indexName, k):
     #embeddingQuery= Redis.embedding_function(question)
@@ -271,26 +303,31 @@ def GetRrrAnswer(history, indexNs, indexType, question, indexName):
             # chain = ChatVectorDBChain(vectorstore=vectorDb, combine_docs_chain=docChain, 
             #                            question_generator=questionGenerator,
             #                            search_kwargs={"namespace": indexNs})
+            historyText = getChatHistory(history, includeLastTurn=False)
+            answer = chain({"question": question, "chat_history": historyText}, return_only_outputs=True)
+            logging.info(answer)
+            return {"data_points": "", "answer": answer['answer'].replace("Answer: ", ''), "thoughts": ""}
 
         elif indexType == "redis":
             try:
-                #docs = performRedisSearch(question, indexNs, 5)
-                #answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                #return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
-                return {"data_points": [], "answer": '', "thoughts": '', "error": ""}
+                docs = performRedisSearch(question, indexNs, 5)
+                qaChain = load_qa_with_sources_chain(llm,
+                    chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
+                answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+                return {"data_points": [], "answer": answer['output_text'].replace('Answer: ', ''), "thoughts": '', "error": ""}
             except Exception as e:
                 return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}
+        elif indexType == "cogsearch":
+            docs = performCogSearch(question, indexNs, 5)
+            qaChain = load_qa_with_sources_chain(llm,
+                    chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
+            answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+            logging.info(answer)
+            return {"data_points": [], "answer": answer['output_text'].replace('Answer: ', ''), "thoughts": '', "error": ""}
         elif indexType == 'milvus':
             answer = "{'answer': 'TBD', 'sources': ''}"
-
-        historyText = getChatHistory(history, includeLastTurn=False)
-        #logging.info("History Text is " + str(historyText))
-        #logging.info("question " + question)
-
-        answer = chain({"question": question, "chat_history": historyText}, return_only_outputs=True)
-        logging.info(answer)
-        return {"data_points": "", "answer": answer['answer'].replace("Answer: ", ''), "thoughts": ""}
-
+            return answer
+        
     except Exception as e:
         logging.info(e)
 
