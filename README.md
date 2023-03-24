@@ -2,56 +2,74 @@
 
 This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data. It uses Azure OpenAI Service to access the ChatGPT model (gpt-35-turbo and gpt3), and vector store (Pinecone, Redis and others) or Azure cognitive search for data indexing and retrieval.
 
-The repo provides a way to upload your own data so it's ready to try end to end. 
+The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Features
 
-* Upload (PDF Documents as well as Webpages), Chat and Q&A interfaces
+* Upload (PDF/Text Documents as well as Webpages)
+![Upload](/assets/Upload.png)
+* Chat
+![Chat](/assets/Chat.png)
+* Q&A interfaces
+![Ask](/assets/Ask.png)
 * Explores various options to help users evaluate the trustworthiness of responses with citations, tracking of source content, etc.
-* Shows possible approaches for data preparation, prompt construction, and orchestration of interaction between model (ChatGPT) and retriever (Cognitive Search)
-* Settings directly in the UX to tweak the behavior and experiment with options (Coming soon)
+* Shows possible approaches for data preparation, prompt construction, and orchestration of interaction between model (ChatGPT) and retriever
+* Integration with Cognitive Search and Vector stores (Redis, Pinecone)
 
 ## Architecture
-![RAG Architecture](/Chatbot.png)
+
+![Architecture](/assets/Chatbot.png)
 
 ## Getting Started
 
-** NOTE ** In order to deploy and run this example, you'll need an Azure subscription with access enabled for the Azure OpenAI service. You can request access [here](https://aka.ms/oaiapply).
+**NOTE** In order to deploy and run this example, you'll need an Azure subscription with access enabled for the Azure OpenAI service. You can request access [here](https://aka.ms/oaiapply).
 
 ### Prerequisites
 
-- Coming soon
-- 
+#### To Run Locally
+
+* [Azure Developer CLI](https://aka.ms/azure-dev/install)
+* [Python 3+](https://www.python.org/downloads/)
+* [Node.js](https://nodejs.org/en/download/)
+* [Git](https://git-scm.com/downloads)
+* [Azure Functions Extension for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions)
+* [Azure Functions Core tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools)
+* [Powershell 7+ (pwsh)](https://github.com/powershell/powershell) - For Windows users only. **Important**: Ensure you can run `pwsh.exe` from a PowerShell command. If this fails, you likely need to upgrade PowerShell.
+
 ### Installation
 
-Starting from scratch:
-1. Git clone the repo
-2. Deploy all the resources (Script - Coming soon)
-   1. Deploy Azure Open AI Service
-      1. Create Davinci, Embedding and GPT3.5 Turbo deployment (https://learn.microsoft.com/en-us/azure/cognitive-services/openai/chatgpt-quickstart?tabs=command-line&pivots=programming-language-studio)
-   2. Create Azure Storage Account (to host your documents)
-   3. Create a free pinecone vectorstore database (https://www.pinecone.io/ and signup for free database)
-3. Open VSCode and deploy api/Python to Azure Functions (Guide available at https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python?tabs=asgi%2Capplication-level&pivots=python-mode-decorators)
-   1. Update the Azure functions configuration settings with the resource information you deployed earlier.  Sample Settings are available at sample.settings.json
-   2. If running locally, ensure you run pip install -r requirements.txt to install all packages
-4. Go to app/frontend and run "npm run install"
-   1. copy env.example to .env (for localhost running) and .env.prod for production deployment.
-   2. Provide the information on the Azure Function URL
-5. Validate running locally using "npm run dev"
-6. Go to app/frontend and run "npm run build" 
-   1. It will create the static files in app/backend/static folder
-7. Deploy the app/backend to Azure Web App
-   1. If running locally ensure you run pip install -r requirements.txt followed by py(python) app.py
+1. Deploy the required Azure Services - Using [Automated Deployment](http://Comingsoon) or Manually following minimum required resources
+   1. [OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal)
+   2. [Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal) and a container
+   3. One of the Document Store
+      1. [Pinecone Starter](https://www.pinecone.io/pricing/)
+      2. [Cognitive Search](https://learn.microsoft.com/en-us/azure/search/search-create-service-portal)
+      3. Redis
+2. Git clone the repo
+3. Open the cloned repo folder in VSCode
+4. Open new terminal and go to /app/frontend directory
+5. Run `npm install` to install all the packages
+6. Go to /api/Python directory
+7. Run `pip install -r requirements.txt` to install all required python packages
+8. Copy sample.settings.json to local.settings.json
+9. Update the configuration (Minimally you need OpenAi, one of the document store, storage account)
+10. Start the Python API by running `func host start`
+11. Open new terminal and go to /api/backend directory
+12. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
+13. Run py(or python) app.py to start the server.
+14. Open new terminal and go to /api/frontend directory
+15. Run npm run dev to start the local server
+
+Once in the web app:
+
+* Try different topics in chat or Q&A context. For chat, try follow up questions, clarifications, ask to simplify or elaborate on answer, etc.
+* Explore citations and sources
+* Click on "settings" to try different options, tweak prompts, etc.
 
 ### Quickstart
 
 * In Azure: navigate to the Azure WebApp deployed by azd. The URL is printed out when azd completes (as "Endpoint"), or you can find it in the Azure portal.
 * Running locally: navigate to 127.0.0.1:5000
-
-Once in the web app:
-* Try different topics in chat or Q&A context. For chat, try follow up questions, clarifications, ask to simplify or elaborate on answer, etc.
-* Explore citations and sources
-* Click on "settings" to try different options, tweak prompts, etc.
 
 ## Resources
 
@@ -60,4 +78,5 @@ Once in the web app:
 * [Azure OpenAI Service](https://learn.microsoft.com/azure/cognitive-services/openai/overview)
 
 ### Note
->Adapted from the Azure OpenAI Search repo at https://github.com/Azure-Samples/azure-search-openai-demo/
+
+>Adapted from the Azure OpenAI Search repo at [OpenAI-CogSearch](https://github.com/Azure-Samples/azure-search-openai-demo/)

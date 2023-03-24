@@ -281,7 +281,7 @@ const ChatGpt = () => {
         <div className={styles.root}>
             <div>
                 <div className={styles.commandsContainer}>
-                    <DefaultButton onClick={refreshBlob}>Refresh PDF & Index</DefaultButton>
+                    <DefaultButton onClick={refreshBlob}>Refresh Doc & Index</DefaultButton>
                     <Dropdown
                         selectedKey={selectedItem ? selectedItem.key : undefined}
                         // eslint-disable-next-line react/jsx-no-bind
