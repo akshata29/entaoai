@@ -1,25 +1,28 @@
 targetScope = 'subscription'
 
 @minLength(1)
-@maxLength(64)
-@description('Name of the the environment which is used to generate a short unique hash used in all resources.')
-param environmentName string
-
-@minLength(1)
 @description('Primary location for all resources')
 param location string
 
-param appServicePlanName string = ''
-param backendServiceName string = ''
-param resourceGroupName string = ''
+@minLength(6)
+@description('Prefix used for all resources')
+param prefix string
 
-param searchServiceName string = ''
+@minLength(6)
+@description('Resource Group name')
+param resourceGroupName string
+
+param appServicePlanName string = '${prefix}asp'
+param backendServiceName string = '${prefix}backend'
+param functionAppName string = '${prefix}func'
+
+param searchServiceName string = '${prefix}azs'
 param searchServiceSkuName string = 'standard'
 
-param storageAccountName string = ''
+param storageAccountName string = '${prefix}stor'
 param containerName string = 'chatpdf'
 
-param openAiServiceName string = ''
+param openAiServiceName string = '${prefix}oai'
 
 param openAiSkuName string = 'S0'
 
@@ -27,17 +30,19 @@ param gptDeploymentName string = 'davinci'
 param gptModelName string = 'text-davinci-003'
 param chatGptDeploymentName string = 'chat'
 param chatGptModelName string = 'gpt-35-turbo'
+param textEmbeddingDeploymentName string = 'text-embedding-ada-002'
+param textEmbeddingModelName string = 'text-embedding-ada-002'
 
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
 var abbrs = loadJsonContent('abbreviations.json')
-var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
-var tags = { 'azd-env-name': environmentName }
+var resourceToken = toLower(uniqueString(subscription().id, location))
+var tags = {}
 
 // Organize resources in a resource group
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${environmentName}'
+  name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${location}'
   location: location
   tags: tags
 }
@@ -58,6 +63,45 @@ module appServicePlan 'core/host/appserviceplan.bicep' = {
   }
 }
 
+module function 'core/host/appservice.bicep' = {
+  name: 'function'
+  scope: resourceGroup
+  params: {
+    name: !empty(functionAppName) ? functionAppName : '${abbrs.webSitesAppService}func-${resourceToken}'
+    location: location
+    tags: union(tags, { 'azd-service-name': 'backend' })
+    appServicePlanId: appServicePlan.outputs.id
+    runtimeName: 'python'
+    runtimeVersion: '3.10'
+    scmDoBuildDuringDeployment: true
+    managedIdentity: true
+    appSettings: {
+      OpenAiApiKey: storage.outputs.name
+      OpenAiService:openAi.outputs.name
+      OpenAiEndPoint:openAi.outputs.endpoint
+      OpenAiVersion:'2022-12-01'
+      OpenAiDavinci:gptDeploymentName
+      OpenAiEmbedding:textEmbeddingDeploymentName
+      MaxTokens:500
+      Temperature:'0.3'
+      OpenAiChatDocStorName:storage.outputs.name
+      OpenAiChatDocContainer:containerName
+      OpenAiChat:chatGptDeploymentName
+      PineconeKey:''
+      PineconeEnv:''
+      VsIndexName:''
+      RedisPassword:''
+      RedisAddress:''
+      RedisPort:''
+      OpenAiDocStorName:storage.outputs.name
+      //OpenAiDocStorKey:listKeys(resourceId(subscription().subscriptionId, resourceGroup.name, storage.type, storage.name), storage.apiVersion).keys[0].value
+      OpenAiDocContainer:containerName
+      //SearchService:searchServiceName.outputs.name
+      //SearchKey:
+    }
+  }
+}
+
 // The application frontend
 module backend 'core/host/appservice.bicep' = {
   name: 'web'
@@ -72,12 +116,13 @@ module backend 'core/host/appservice.bicep' = {
     scmDoBuildDuringDeployment: true
     managedIdentity: true
     appSettings: {
-      AZURE_STORAGE_ACCOUNT: storage.outputs.name
-      AZURE_STORAGE_CONTAINER: containerName
-      AZURE_OPENAI_SERVICE: openAi.outputs.name
-      AZURE_SEARCH_SERVICE: searchService.outputs.name
-      AZURE_OPENAI_GPT_DEPLOYMENT: gptDeploymentName
-      AZURE_OPENAI_CHATGPT_DEPLOYMENT: chatGptDeploymentName
+      QA_URL: storage.outputs.name
+      CHAT_URL: containerName
+      CHAT3_URL: openAi.outputs.name
+      DOCGENERATOR_URL: searchService.outputs.name
+      SUMMARYQA_URL: gptDeploymentName
+      //BLOB_CONNECTION_STRING: 'DefaultEndpointsProtocol=https;AccountName=${storage.outputs.name};AccountKey=${listKeys(storage.outputs.id, storage.outputs.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
+      BLOB_CONTAINER_NAME:containerName
     }
   }
 }
@@ -110,6 +155,17 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
           format: 'OpenAI'
           name: chatGptModelName
           version: '0301'
+        }
+        scaleSettings: {
+          scaleType: 'Standard'
+        }
+      }
+      {
+        name: textEmbeddingDeploymentName
+        model: {
+          format: 'OpenAI'
+          name: textEmbeddingModelName
+          version: '1'
         }
         scaleSettings: {
           scaleType: 'Standard'
@@ -159,98 +215,6 @@ module storage 'core/storage/storage-account.bicep' = {
         publicAccess: 'None'
       }
     ]
-  }
-}
-
-// USER ROLES
-module openAiRoleUser 'core/security/role.bicep' = {
-  scope: resourceGroup
-  name: 'openai-role-user'
-  params: {
-    principalId: principalId
-    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-    principalType: 'User'
-  }
-}
-
-module formRecognizerRoleUser 'core/security/role.bicep' = {
-  scope: resourceGroup
-  name: 'formrecognizer-role-user'
-  params: {
-    principalId: principalId
-    roleDefinitionId: 'a97b65f3-24c7-4388-baec-2e87135dc908'
-    principalType: 'User'
-  }
-}
-
-module storageRoleUser 'core/security/role.bicep' = {
-  scope: resourceGroup
-  name: 'storage-role-user'
-  params: {
-    principalId: principalId
-    roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
-    principalType: 'User'
-  }
-}
-
-module storageContribRoleUser 'core/security/role.bicep' = {
-  scope: resourceGroup
-  name: 'storage-contribrole-user'
-  params: {
-    principalId: principalId
-    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-    principalType: 'User'
-  }
-}
-
-module searchRoleUser 'core/security/role.bicep' = {
-  scope: resourceGroup
-  name: 'search-role-user'
-  params: {
-    principalId: principalId
-    roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
-    principalType: 'User'
-  }
-}
-
-module searchContribRoleUser 'core/security/role.bicep' = {
-  scope: resourceGroup
-  name: 'search-contrib-role-user'
-  params: {
-    principalId: principalId
-    roleDefinitionId: '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
-    principalType: 'User'
-  }
-}
-
-// SYSTEM IDENTITIES
-module openAiRoleBackend 'core/security/role.bicep' = {
-  scope: resourceGroup
-  name: 'openai-role-backend'
-  params: {
-    principalId: backend.outputs.identityPrincipalId
-    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module storageRoleBackend 'core/security/role.bicep' = {
-  scope: resourceGroup
-  name: 'storage-role-backend'
-  params: {
-    principalId: backend.outputs.identityPrincipalId
-    roleDefinitionId: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
-    principalType: 'ServicePrincipal'
-  }
-}
-
-module searchRoleBackend 'core/security/role.bicep' = {
-  scope: resourceGroup
-  name: 'search-role-backend'
-  params: {
-    principalId: backend.outputs.identityPrincipalId
-    roleDefinitionId: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
-    principalType: 'ServicePrincipal'
   }
 }
 

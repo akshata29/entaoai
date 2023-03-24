@@ -38,38 +38,35 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ### Installation
 
-1. Deploy the required Azure Services - Using [Automated Deployment](http://Comingsoon) or Manually following minimum required resources
-   1. [OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal)
-   2. [Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal) and a container
-   3. One of the Document Store
+1. Deploy the required Azure Services - Using [Automated Deployment](http://Comingsoon) or Manually following minimum required resources 
+   1. az deployment sub create --location eastus  --template-file main.bicep --parameters prefix=astoai resourceGroupName=astoai location=eastus
+   2. [OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal).   Please be aware of the model & region availability documented [here]
+(https://learn.microsoft.com/en-us/azure/cognitive-services/openai/concepts/models#model-summary-table-and-region-availability)
+   1. [Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal) and a container
+   2. One of the Document Store
       1. [Pinecone Starter](https://www.pinecone.io/pricing/)
       2. [Cognitive Search](https://learn.microsoft.com/en-us/azure/search/search-create-service-portal)
       3. Redis
-2. Git clone the repo
-3. Open the cloned repo folder in VSCode
-4. Open new terminal and go to /app/frontend directory
-5. Run `npm install` to install all the packages
-6. Go to /api/Python directory
-7. Run `pip install -r requirements.txt` to install all required python packages
-8. Copy sample.settings.json to local.settings.json
-9. Update the configuration (Minimally you need OpenAi, one of the document store, storage account)
-10. Start the Python API by running `func host start`
-11. Open new terminal and go to /api/backend directory
-12. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
-13. Run py(or python) app.py to start the server.
-14. Open new terminal and go to /api/frontend directory
-15. Run npm run dev to start the local server
+1. Git clone the repo
+2. Open the cloned repo folder in VSCode
+3. Open new terminal and go to /app/frontend directory
+4. Run `npm install` to install all the packages
+5. Go to /api/Python directory
+6. Run `pip install -r requirements.txt` to install all required python packages
+7. Copy sample.settings.json to local.settings.json
+8. Update the configuration (Minimally you need OpenAi, one of the document store, storage account)
+9.  Start the Python API by running `func host start`
+10. Open new terminal and go to /api/backend directory
+11. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
+12. Run py(or python) app.py to start the server.
+13. Open new terminal and go to /api/frontend directory
+14. Run npm run dev to start the local server
 
 Once in the web app:
 
 * Try different topics in chat or Q&A context. For chat, try follow up questions, clarifications, ask to simplify or elaborate on answer, etc.
 * Explore citations and sources
 * Click on "settings" to try different options, tweak prompts, etc.
-
-### Quickstart
-
-* In Azure: navigate to the Azure WebApp deployed by azd. The URL is printed out when azd completes (as "Endpoint"), or you can find it in the Azure portal.
-* Running locally: navigate to 127.0.0.1:5000
 
 ## Resources
 

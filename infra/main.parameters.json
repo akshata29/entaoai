@@ -2,29 +2,17 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "environmentName": {
-      "value": "${AZURE_ENV_NAME}"
-    },
     "location": {
       "value": "${AZURE_LOCATION}"
     },
-    "principalId": {
-      "value": "${AZURE_PRINCIPAL_ID}"
-    },
-    "openAiServiceName": {
-      "value": "${AZURE_OPENAI_SERVICE}"
+    "prefix": {
+      "value": "${AZURE_PREFIX}"
     },
     "openAiSkuName": {
       "value": "S0"
     },
-    "searchServiceName": {
-      "value": "${AZURE_SEARCH_SERVICE}"
-    },
     "searchServiceSkuName": {
       "value": "standard"
-    },
-    "storageAccountName": {
-      "value": "${AZURE_STORAGE_ACCOUNT}"
     },
     "resourceGroupName": {
       "value": "${AZURE_RESOURCE_GROUP}"
