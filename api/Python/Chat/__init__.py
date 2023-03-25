@@ -3,10 +3,8 @@ import azure.functions as func
 import openai
 from langchain.embeddings.openai import OpenAIEmbeddings
 import os
-from azure.storage.blob import BlobServiceClient, generate_blob_sas, generate_container_sas
 from langchain.vectorstores import Pinecone
 import pinecone
-from azure.storage.blob import BlobServiceClient
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -15,12 +13,8 @@ from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.llms.openai import AzureOpenAI
 #from langchain.vectorstores.redis import Redis
 from redis import Redis
-from redis.commands.search.query import Query
-from redis.commands.search.indexDefinition import IndexDefinition, IndexType
-from redis.commands.search.field import VectorField, TagField, TextField
 import numpy as np
 from langchain.docstore.document import Document
-import tiktoken
 from typing import Mapping
 from langchain import LLMChain, PromptTemplate
 from langchain.chains import ChatVectorDBChain
@@ -36,11 +30,9 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage
 )
-from azure.search.documents import SearchClient
-from azure.search.documents.models import QueryType
-from azure.core.credentials import AzureKeyCredential
 from langchain.chains import VectorDBQAWithSourcesChain
-
+from Utilities.redisIndex import performRedisSearch
+from Utilities.cogSearch import performCogSearch
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -69,86 +61,6 @@ SearchKey = os.environ['SearchKey']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
-
-ChatBlobClient = BlobServiceClient(
-    account_url=f"https://{OpenAiChatDocStorName}.blob.core.windows.net",
-    credential=OpenAiChatBlobKey)
-ChatBlobContainer = ChatBlobClient.get_container_client(OpenAiChatDocContainer)
-
-def getEmbedding(text: str, engine="text-embedding-ada-002") -> list[float]:
-    try:
-        text = text.replace("\n", " ")
-        EMBEDDING_ENCODING = 'cl100k_base' if engine == 'text-embedding-ada-002' else 'gpt2'
-        encoding = tiktoken.get_encoding(EMBEDDING_ENCODING)
-        return openai.Embedding.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
-    except Exception as e:
-        logging.info(e)
-
-def performCogSearch(question, indexName, k):
-    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
-        index_name=indexName,
-        credential=AzureKeyCredential(SearchKey))
-    try:
-        r = searchClient.search(question, filter=None, top=k)
-        # r = searchClient.search(question, 
-        #             filter=None,
-        #             query_type=QueryType.SEMANTIC, 
-        #             query_language="en-us", 
-        #             query_speller="lexicon", 
-        #             semantic_configuration_name="default", 
-        #             top=5, 
-        #             query_caption="extractive|highlight-false")
-        # results = [doc['id'] + ": " + noNewLines(" . ".join([c.text for c in doc['@search.captions']])) for doc in r]
-        #content = "\n".join(results)
-        documents = [
-        Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
-        for doc in r
-        ]
-        #logging.info(documents)
-        return documents
-    except Exception as e:
-        logging.info(e)
-
-    return [Document(page_content="No results found")]
-
-def performRedisSearch(question, indexName, k):
-    #embeddingQuery= Redis.embedding_function(question)
-    question = question.replace("\n", " ")
-    logging.info("Get Embedding")
-    embeddingQuery = getEmbedding(question, engine=OpenAiEmbedding)
-    arrayEmbedding = np.array(embeddingQuery)
-    returnField = ["metadata", "content", "vector_score"]
-    vectorField = "content_vector"
-    hybridField = "*"
-    baseQuery = (
-        f"{hybridField}=>[KNN {k} @{vectorField} $vector AS vector_score]"
-    )
-    logging.info("Perform Query Search")
-    redisQuery = (
-        Query(baseQuery)
-        .return_fields(*returnField)
-        .sort_by("vector_score")
-        .paging(0, 5)
-        .dialect(2)
-    )
-    params_dict: Mapping[str, str] = {
-            "vector": np.array(arrayEmbedding)  # type: ignore
-            .astype(dtype=np.float32)
-            .tobytes()
-    }
-
-    # perform vector search
-    logging.info("Index name is " + indexName)
-    try:
-        results = redisConnection.ft(index_name=indexName).search(redisQuery, params_dict)
-        documents = [
-        Document(page_content=result.content, metadata=json.loads(result.metadata))
-        for result in results.docs
-        ]
-    except Exception as e:
-        logging.info(e)
-
-    return documents
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -310,7 +222,13 @@ def GetRrrAnswer(history, indexNs, indexType, question, indexName):
 
         elif indexType == "redis":
             try:
-                docs = performRedisSearch(question, indexNs, 5)
+                returnField = ["metadata", "content", "vector_score"]
+                vectorField = "content_vector"
+                results = performRedisSearch(question, indexNs, 5, returnField, vectorField)
+                docs = [
+                        Document(page_content=result.content, metadata=json.loads(result.metadata))
+                        for result in results.docs
+                ]
                 qaChain = load_qa_with_sources_chain(llm,
                     chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
                 answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
@@ -318,7 +236,14 @@ def GetRrrAnswer(history, indexNs, indexType, question, indexName):
             except Exception as e:
                 return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}
         elif indexType == "cogsearch":
-            docs = performCogSearch(question, indexNs, 5)
+            r = performCogSearch(question, indexNs, 5)
+            if r == None:
+                    docs = [Document(page_content="No results found")]
+            else :
+                docs = [
+                    Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
+                    for doc in r
+                    ]
             qaChain = load_qa_with_sources_chain(llm,
                     chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)

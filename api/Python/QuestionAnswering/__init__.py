@@ -13,17 +13,11 @@ from langchain.prompts import PromptTemplate
 from langchain.output_parsers import RegexParser
 #from langchain.vectorstores.redis import Redis
 from redis import Redis
-from redis.commands.search.query import Query
-from redis.commands.search.indexDefinition import IndexDefinition, IndexType
-from redis.commands.search.field import VectorField, TagField, TextField
 import numpy as np
 from langchain.docstore.document import Document
-import tiktoken
-from typing import Mapping
 from langchain.vectorstores import Weaviate
-from azure.search.documents import SearchClient
-from azure.search.documents.models import QueryType
-from azure.core.credentials import AzureKeyCredential
+from Utilities.redisIndex import performRedisSearch
+from Utilities.cogSearch import performCogSearch
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -48,65 +42,6 @@ SearchKey = os.environ['SearchKey']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
-
-def getEmbedding(text: str, engine="text-embedding-ada-002") -> list[float]:
-    try:
-        text = text.replace("\n", " ")
-        EMBEDDING_ENCODING = 'cl100k_base' if engine == 'text-embedding-ada-002' else 'gpt2'
-        encoding = tiktoken.get_encoding(EMBEDDING_ENCODING)
-        return openai.Embedding.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
-    except Exception as e:
-        logging.info(e)
-
-def performRedisSearch(question, indexName, k):
-    #embeddingQuery= Redis.embedding_function(question)
-    question = question.replace("\n", " ")
-    embeddingQuery = getEmbedding(question, engine=OpenAiEmbedding)
-    arrayEmbedding = np.array(embeddingQuery)
-    returnField = ["metadata", "content", "vector_score"]
-    vectorField = "content_vector"
-    hybridField = "*"
-    baseQuery = (
-        f"{hybridField}=>[KNN {k} @{vectorField} $vector AS vector_score]"
-    )
-    redisQuery = (
-        Query(baseQuery)
-        .return_fields(*returnField)
-        .sort_by("vector_score")
-        .paging(0, 5)
-        .dialect(2)
-    )
-    params_dict: Mapping[str, str] = {
-            "vector": np.array(arrayEmbedding)  # type: ignore
-            .astype(dtype=np.float32)
-            .tobytes()
-    }
-
-    # perform vector search
-    results = redisConnection.ft(indexName).search(redisQuery, params_dict)
-
-    documents = [
-        Document(page_content=result.content, metadata=json.loads(result.metadata))
-        for result in results.docs
-    ]
-    return documents
-
-def performCogSearch(question, indexName, k):
-    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
-        index_name=indexName,
-        credential=AzureKeyCredential(SearchKey))
-    try:
-        r = searchClient.search(question, filter=None, top=k)
-        documents = [
-        Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
-        for doc in r
-        ]
-        #logging.info(documents)
-        return documents
-    except Exception as e:
-        logging.info(e)
-
-    return [Document(page_content="No results found")]
 
 def FindAnswer(chainType, question, indexType, value, indexNs):
     logging.info("Calling FindAnswer Open AI")
@@ -242,17 +177,27 @@ def FindAnswer(chainType, question, indexType, value, indexNs):
         return {"data_points": [], "answer": answer['answer'].replace("Answer: ", ''), "thoughts": answer['sources'], "error": ""}
       elif indexType == "redis":
         try:
-            # vectorDb = Redis(redis_url=redisUrl, index_name=indexNs, embedding_function=embeddings)
-            # logging.info("Redis Setup done")
-            # chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb)
-             docs = performRedisSearch(question, indexNs, 5)
-             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-             return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
+            returnField = ["metadata", "content", "vector_score"]
+            vectorField = "content_vector"
+            results = performRedisSearch(question, indexNs, 5, returnField, vectorField)
+            docs = [
+                    Document(page_content=result.content, metadata=json.loads(result.metadata))
+                    for result in results.docs
+            ]
+            answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+            return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
         except Exception as e:
             return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}
       elif indexType == "cogsearch":
         try:
-            docs = performCogSearch(question, indexNs, 5)
+            r = performCogSearch(question, indexNs, 5)
+            if r == None:
+                docs = [Document(page_content="No results found")]
+            else :
+                docs = [
+                    Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
+                    for doc in r
+                    ]
             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
             return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
         except Exception as e:

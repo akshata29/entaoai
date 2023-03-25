@@ -13,8 +13,6 @@ from langchain.document_loaders import (
     UnstructuredPDFLoader,
 )
 import os
-from datetime import datetime, timedelta
-from azure.storage.blob import BlobServiceClient, generate_blob_sas, generate_container_sas
 from langchain.vectorstores import Pinecone
 from langchain.vectorstores import Milvus
 import pinecone
@@ -29,24 +27,15 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain.prompts import PromptTemplate
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-import redis
 from redis.commands.search.field import VectorField, TagField, TextField
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 import numpy as np
 from typing import Any, Callable, Dict, List, Optional
-from tenacity import (
-    before_sleep_log,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 from langchain.vectorstores import Weaviate
-from azure.search.documents.indexes import SearchIndexClient
-from azure.search.documents.indexes.models import *
-from azure.search.documents import SearchClient
-from azure.core.credentials import AzureKeyCredential
 from langchain.docstore.document import Document
+from Utilities.redisIndex import performRedisSearch
+from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs
+from Utilities.cogSearch import createSearchIndex, createSections, indexSections
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiApiKey = os.environ['OpenAiApiKey']
@@ -61,25 +50,15 @@ OpenAiDocContainer = os.environ['OpenAiDocContainer']
 PineconeEnv = os.environ['PineconeEnv']
 PineconeKey = os.environ['PineconeKey']
 VsIndexName = os.environ['VsIndexName']
-VsIndexName = os.environ['VsIndexName']
 RedisAddress = os.environ['RedisAddress']
 RedisPassword = os.environ['RedisPassword']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
 WeaviateUrl = os.environ['WeaviateUrl']
 RedisPort = os.environ['RedisPort']
-SearchService = os.environ['SearchService']
-SearchKey = os.environ['SearchKey']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 
 def GetAllFiles(filesToProcess):
-    # Get all files in the container from Azure Blob Storage
-    # Create the BlobServiceClient object
-    blobServiceClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr)
-    # Get files in the container
-    containerClient = blobServiceClient.get_container_client(OpenAiDocContainer)
-    blobList = containerClient.list_blobs(include='metadata')
-    sas = generate_container_sas(OpenAiDocStorName, OpenAiDocContainer,account_key=OpenAiDocStorKey,  permission="r", expiry=datetime.utcnow() + timedelta(hours=3))
     files = []
     convertedFiles = {}
     for file in filesToProcess:
@@ -87,22 +66,8 @@ def GetAllFiles(filesToProcess):
             "filename" : file['path'],
             "converted": False,
             "embedded": False,
-            "fullpath": f"https://{OpenAiDocStorName}.blob.core.windows.net/{OpenAiDocContainer}/{file['path']}?{sas}",
             "converted_path": ""
             })
-    # for blob in blobList:
-    #     logging.info(blob.name)
-    #     if not blob.name.startswith('converted/'):
-    #         files.append({
-    #             "filename" : blob.name,
-    #             "converted": blob.metadata.get('converted', 'false') == 'true' if blob.metadata else False,
-    #             "embedded": blob.metadata.get('embedded', 'false') == 'true' if blob.metadata else False,
-    #             "fullpath": f"https://{OpenAiDocStorName}.blob.core.windows.net/{OpenAiDocContainer}/{blob.name}?{sas}",
-    #             "converted_path": ""
-    #             })
-    #     else:
-    #         convertedFiles[blob.name] = f"https://{OpenAiDocStorName}.blob.core.windows.net/{OpenAiDocContainer}/{blob.name}?{sas}"
-
     logging.info(f"Found {len(files)} files in the container")
     for file in files:
         convertedFileName = f"converted/{file['filename']}.zip"
@@ -177,14 +142,6 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
              status_code=400
         )
 
-def upsertMetadata(fileName, metadata):
-    blobClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr).get_blob_client(container=OpenAiDocContainer, blob=fileName)
-    # Read metadata from the blob
-    blob_metadata = blobClient.get_blob_properties().metadata
-    blob_metadata.update(metadata)
-    # Add metadata to the blob
-    blobClient.set_blob_metadata(metadata= blob_metadata)
-
 def ComposeResponse(indexType, loadType,  multiple, indexName, jsonData):
     values = json.loads(jsonData)['values']
 
@@ -199,88 +156,6 @@ def ComposeResponse(indexType, loadType,  multiple, indexName, jsonData):
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
 
-def createSearchIndex(indexName):
-    indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
-            credential=AzureKeyCredential(SearchKey))
-    if indexName not in indexClient.list_index_names():
-        index = SearchIndex(
-            name=indexName,
-            fields=[
-                SimpleField(name="id", type="Edm.String", key=True),
-                SearchableField(name="content", type="Edm.String", analyzer_name="en.microsoft"),
-                #SimpleField(name="sourcepage", type="Edm.String", filterable=True, facetable=True),
-                SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
-                #SimpleField(name="totalpages", type="Edm.String", filterable=True, facetable=True),
-                #SimpleField(name="title", type="Edm.String", filterable=True, facetable=True)
-            ],
-            semantic_settings=SemanticSettings(
-                configurations=[SemanticConfiguration(
-                    name='default',
-                    prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
-        )
-        logging.info(f"Creating {indexName} search index")
-        indexClient.create_index(index)
-    else:
-        logging.info(f"Search index {indexName} already exists")
-
-def createSections(fileName, docs):
-    counter = 1
-    for i in docs:
-        # yield {
-        #     "id": f"{fileName}-{counter}".replace(".", "_").replace(" ", "_"),
-        #     "content": i.page_content,
-        #     "sourcepage": str(i.metadata["page_number"]),
-        #     "totalpages": str(i.metadata["total_pages"]),
-        #     "sourcefile": fileName,
-        #     "title":i.metadata["title"]
-        # }
-        yield {
-            "id": f"{fileName}-{counter}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_"),
-            "content": i.page_content,
-            "sourcefile": fileName
-        }
-        counter += 1
-
-def indexSections(fileName, indexName, docs):
-
-    sections = createSections(fileName, docs)
-    logging.info(f"Indexing sections from '{fileName}' into search index '{indexName}'")
-    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
-                                    index_name=indexName,
-                                    credential=AzureKeyCredential(SearchKey))
-    i = 0
-    batch = []
-    for s in sections:
-        batch.append(s)
-        i += 1
-        if i % 1000 == 0:
-            results = searchClient.index_documents(batch=batch)
-            succeeded = sum([1 for r in results if r.succeeded])
-            logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
-            batch = []
-
-    if len(batch) > 0:
-        results = searchClient.upload_documents(documents=batch)
-        succeeded = sum([1 for r in results if r.succeeded])
-        logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
-
-
-# def createRedisIndex(redisConn, indexName, prefix = "embedding"):
-#     text = TextField(name="text")
-#     filename = TextField(name="filename")
-#     embeddings = VectorField("embeddings",
-#                 "HNSW", {
-#                     "TYPE": "FLOAT32",
-#                     "DIM": 1536,
-#                     "DISTANCE_METRIC": "COSINE",
-#                     "INITIAL_CAP": 3155,
-#                 })
-#     # Create index
-#     redisConn.ft(indexName).create_index(
-#         fields = [text, embeddings, filename],
-#         definition = IndexDefinition(prefix=[prefix], index_type=IndexType.HASH)
-#     )
 def summarizeGenerateQa(docs):
     llm = AzureOpenAI(deployment_name=OpenAiDavinci,
                 temperature=os.environ['Temperature'] or 0.3,
@@ -312,154 +187,7 @@ def summarizeGenerateQa(docs):
         qa = 'No Sample QA generated'
     #qa = qa.decode('utf8')
     return qa, summary
-
-def createRedisIndex(indexName, redisUrl):
-    distanceMetrics = ("COSINE")
-    content = TextField(name="content")
-    metadata = TextField(name="metadata")
-    contentEmbedding = VectorField(
-        "content_vector",
-        "FLAT",
-        {
-            "TYPE": "FLOAT32",
-            "DIM": 1536,
-            "DISTANCE_METRIC": distanceMetrics,
-            "INITIAL_CAP": 3155,
-        },
-    )
-    fields = [content, metadata, contentEmbedding]
-    redisClient = redis.from_url(url=redisUrl)
-    try:
-        redisClient.ft(indexName).info()
-    except:  # noqa
-        # Create Redis Index
-        redisClient.ft(indexName).create_index(
-            fields=fields,
-            definition=IndexDefinition(prefix=[indexName], index_type=IndexType.HASH),
-        )
-    return redisClient
-
-def createRetryDecorator(embeddings: OpenAIEmbeddings) -> Callable[[Any], Any]:
-    import openai
-
-    min_seconds = 4
-    max_seconds = 10
-    # Wait 2^x * 1 second between each retry starting with
-    # 4 seconds, then up to 10 seconds, then 10 seconds afterwards
-    return retry(
-        reraise=True,
-        stop=stop_after_attempt(embeddings.max_retries),
-        wait=wait_exponential(multiplier=1, min=min_seconds, max=max_seconds),
-        retry=(
-            retry_if_exception_type(openai.error.Timeout)
-            | retry_if_exception_type(openai.error.APIError)
-            | retry_if_exception_type(openai.error.APIConnectionError)
-            | retry_if_exception_type(openai.error.RateLimitError)
-            | retry_if_exception_type(openai.error.ServiceUnavailableError)
-        ),
-        before_sleep=before_sleep_log( logging.getLogger("docgenerator"), logging.WARNING),
-    )
-
-def embedWithRetry(embeddings: OpenAIEmbeddings, **kwargs: Any) -> Any:
-    """Use tenacity to retry the completion call."""
-    retry_decorator = createRetryDecorator(embeddings)
-
-    @retry_decorator
-    def completionWithRetry(**kwargs: Any) -> Any:
-        return embeddings.client.create(**kwargs)
-
-    return completionWithRetry(**kwargs)
-
-def getLenSafeEmbedding(
-    texts: List[str], *, embedding, engine: str, chunk_size: Optional[int] = None
-    ) -> List[List[float]]:
-        embeddings: List[List[float]] = [[] for i in range(len(texts))]
-        try:
-            import tiktoken
-
-            document_model_name = "text-embedding-ada-002" 
-            tokens = []
-            indices = []
-            encoding = tiktoken.model.encoding_for_model(document_model_name)
-            for i, text in enumerate(texts):
-                # replace newlines, which can negatively affect performance.
-                text = text.replace("\n", " ")
-                token = encoding.encode(text)
-                for j in range(0, len(token), -1):
-                    tokens += [token[j : j + -1]]
-                    indices += [i]
-
-            batched_embeddings = []
-            _chunk_size = 1500
-            for i in range(0, len(tokens), _chunk_size):
-                response = embedWithRetry(
-                    embedding,
-                    input=tokens[i : i + _chunk_size],
-                    engine=document_model_name,
-                )
-                batched_embeddings += [r["embedding"] for r in response["data"]]
-
-            results: List[List[List[float]]] = [[] for i in range(len(texts))]
-            lens: List[List[int]] = [[] for i in range(len(texts))]
-            for i in range(len(indices)):
-                results[indices[i]].append(batched_embeddings[i])
-                lens[indices[i]].append(len(batched_embeddings[i]))
-
-            for i in range(len(texts)):
-                average = np.average(results[i], axis=0, weights=lens[i])
-                embeddings[i] = (average / np.linalg.norm(average)).tolist()
-
-            return embeddings
-
-        except ImportError:
-            raise ValueError(
-                "Could not import tiktoken python package. "
-                "This is needed in order to for OpenAIEmbeddings. "
-                "Please it install it with `pip install tiktoken`."
-            )
-
-def embedDocuments(texts: List[str], embedding, chunk_size: Optional[int] = 0) -> List[List[float]]:
-        """Call out to OpenAI's embedding endpoint for embedding search docs.
-        Args:
-            texts: The list of texts to embed.
-            chunk_size: The chunk size of embeddings. If None, will use the chunk size
-                specified by the class.
-        Returns:
-            List of embeddings, one for each text.
-        """
-        # handle large batches of texts
-        if -1 > 0:
-            return getLenSafeEmbedding(texts, embedding, engine="text-embedding-ada-002")
-        else:
-            results = []
-            _chunk_size = 1500
-            for i in range(0, len(texts), _chunk_size):
-                response = embedWithRetry(
-                    embedding,
-                    input=texts[i : i + _chunk_size],
-                    engine="text-embedding-ada-002",
-                )
-                results += [r["embedding"] for r in response["data"]]
-            return results
         
-def redisPipeline(redisClient, indexName, embedding, texts, metadatas):
-        pipeline = redisClient.pipeline()
-        embeddings = embedDocuments(texts, embedding)
-        for i, text in enumerate(texts):
-            key = f"{indexName}:{str(uuid.uuid4().hex)}"
-            metadata = metadatas[i] if metadatas else {}
-            pipeline.hset(
-                key,
-                mapping={
-                    "content": text,
-                    "content_vector": np.array(
-                        embeddings[i], dtype=np.float32
-                    ).tobytes(),
-                    "metadata": json.dumps(metadata),
-                },
-            )
-        pipeline.execute()
-
 def Embed(indexType, loadType, multiple, indexName,  value):
     logging.info("Embedding text")
     try:
@@ -484,10 +212,8 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                 # Check the file extension
                 if fileName.endswith('.txt'):
                     logging.info("Embedding text file")
-                    # Read the file from Blob Storage
-                    blobClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr).get_blob_client(container=OpenAiDocContainer, blob=fileName)
-                    fileContent = blobClient.download_blob().readall().decode('utf-8')
-
+                    readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                    fileContent = readBytes.decode('utf-8')
                     downloadPath = os.path.join(tempfile.gettempdir(), fileName)
                     os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
                     try:
@@ -503,7 +229,7 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     docs = textSplitter.split_documents(rawDocs)
                     logging.info("Docs " + str(len(docs)))
                     #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
-                    embeddings = OpenAIEmbeddings(document_model_name="text-embedding-ada-002",
+                    embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
                                                     chunk_size=1,
                                                     openai_api_key=OpenAiKey)
                     if indexType == 'pinecone':
@@ -524,9 +250,7 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     #set_document(data)
                 else:
                     logging.info("Embedding Non-text file")
-                    blobServiceClient = BlobServiceClient.from_connection_string(OpenAiDocConnStr)
-                    blobClient = blobServiceClient.get_blob_client(container=OpenAiDocContainer, blob=fileName)
-                    readBytes = blobClient.download_blob().readall()
+                    readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
                     downloadPath = os.path.join(tempfile.gettempdir(), fileName)
                     os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
                     try:
@@ -543,10 +267,10 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     rawDocs = loader.load()
                     docs = textSplitter.split_documents(rawDocs)
                     #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
-                    embeddings = OpenAIEmbeddings(document_model_name="text-embedding-ada-002",
+                    embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
                                                     chunk_size=1,
                                                     openai_api_key=OpenAiKey)
-                    if indexType == 'pinecone':
+                    if indexType == 'pinecone': 
                         pineconeDb = Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResultNs.hex)
                     elif indexType == "redis":
                         redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
@@ -560,14 +284,14 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                 qa, summary = summarizeGenerateQa(docs)
                 logging.info("Upsert metadata")
                 metadata = {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName}
-                upsertMetadata(fileName, metadata)
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
                 metadata = {'summary': summary, 'qa': qa}
-                upsertMetadata(fileName, metadata)
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
                 logging.info("Sleeping")
                 time.sleep(5)
             return "Success"
         except Exception as e:
-            upsertMetadata(indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
+            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
             return "Error"
       elif (loadType == "webpages"):
         try:
@@ -579,25 +303,17 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                 loader = WebBaseLoader(webPage)
                 rawDocs = loader.load()
                 docs = textSplitter.split_documents(rawDocs)
-                embeddings = OpenAIEmbeddings(document_model_name="text-embedding-ada-002",
+                embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
                                                 chunk_size=1,
                                                 openai_api_key=OpenAiKey)
                 allDocs = allDocs + docs
                 if indexType == 'pinecone':
                     pineconeDb = Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResultNs.hex)
                 elif indexType == "redis":
-                    redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
-                    # Current implementation of langchain is defaulting "Prefix" to "Doc" and hence even with different index name
-                    # all documents are falling into same "Doc" prefix.  For now let's create redis index here first
-                    #redisClient = createRedisIndex(uResultNs.hex, redisUrl)
-                    #texts = [d.page_content for d in docs]
-                    #metadatas = [d.metadata for d in docs]
-                    #redisPipeline(redisClient, uResultNs.hex, embeddings, texts, metadatas)
-
                     Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
                 elif indexType == "cogsearch":
                     createSearchIndex(uResultNs.hex)
-                    indexSections(webPage, uResultNs.hex, docs)
+                    indexSections(fileName, uResultNs.hex, docs)
                 elif indexType == "weaviate":
                     try:
                         import weaviate
@@ -615,12 +331,12 @@ def Embed(indexType, loadType, multiple, indexName,  value):
             logging.info("Perform Summarization and QA")
             qa, summary = summarizeGenerateQa(allDocs)
             logging.info("Upsert metadata")
-            upsertMetadata(indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
-            upsertMetadata(indexName + ".txt", {'summary': summary, 'qa': qa})
+            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
             return "Success"
         except Exception as e:
             logging.info(e)
-            upsertMetadata(indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
+            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
             return "Error"
       elif (loadType == "iFixIt"):
         logging.info("Embedding iFixIt")
