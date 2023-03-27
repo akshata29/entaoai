@@ -31,10 +31,16 @@ def GetAllFiles():
     blobList = getAllBlobs(OpenAiDocConnStr, SecDocContainer)
     files = []
     for file in blobList:
-        files.append({
+        if (file.metadata == None):
+            files.append({
             "filename" : file.name,
-            "embedded": file.metadata["embedded"] if "embedded" in file.metadata else "false",
+            "embedded": "false",
             })
+        else:
+            files.append({
+                "filename" : file.name,
+                "embedded": file.metadata["embedded"] if "embedded" in file.metadata else "false",
+                })
     logging.info(f"Found {len(files)} files in the container")
     return files
 
@@ -80,6 +86,7 @@ def PersistSecDocs(indexType, indexName,  value):
             htm_filing_link = TextField(name="htm_filing_link")
             complete_text_filing_link = TextField(name="complete_text_filing_link")
             filename = TextField(name="filename")
+            metadata = TextField(name="metadata")
             # For now we will combine Item 1, 1A, 7, 7A into a single field "content"
             # item_1 = TextField(name="item_1")
             # item_1A = TextField(name="item_1A")
@@ -116,7 +123,7 @@ def PersistSecDocs(indexType, indexName,  value):
             contentEmbedding = VectorField("content_vector", "HNSW", { "TYPE": "FLOAT32", "DIM": 1536, "DISTANCE_METRIC": distanceMetrics, "INITIAL_CAP": 3155})
             fields = [cik, company, filing_type, filing_date, period_of_report, sic, state_of_inc, state_location, 
                     fiscal_year_end, filing_html_index, htm_filing_link, complete_text_filing_link, filename,
-                    content, contentEmbedding]
+                    content, contentEmbedding, metadata]
             logging.info("Create index")
             redisClient = createRedisIndex(fields, indexName)
             logging.info("Index created")

@@ -11,6 +11,7 @@ import hashlib
 import numpy as np
 from redis.commands.search.query import Query
 from typing import Mapping
+import json
 
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
 OpenAiKey = os.environ['OpenAiKey']
@@ -42,7 +43,7 @@ def createRedisIndex(fields, indexName):
 def getEmbedding(text: str, engine=OpenAiEmbedding) -> list[float]:
     text = text.replace("\n", " ")
     encoding = tiktoken.get_encoding("cl100k_base")
-    logging.info("Perform Embedding")
+    #logging.info("Perform Embedding")
     return openai.Embedding.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
 
 def batched(iterable, n):
@@ -71,7 +72,7 @@ def setDocuments(redisClient, indexName, secData):
     logging.info("Set Document")
     pipeline = redisClient.pipeline()
     for i, text in enumerate(secData):
-        key = f"doc:{indexName}:{text['cik']}_{text['filing_date']}_{i}"
+        key = f"doc:{indexName}:{text['cik']}_{text['sic']}_{text['filing_date']}_{i}"
         pipeline.hset(
             key,
              mapping = {
@@ -89,6 +90,7 @@ def setDocuments(redisClient, indexName, secData):
                 "complete_text_filing_link": text['complete_text_filing_link'],
                 "filename": text['filename'],
                 "content": text['content'],
+                "metadata": text['metadata'],
                 "content_vector": np.array(text['content_vector']).astype(dtype=np.float32).tobytes()
             },
         )
@@ -132,7 +134,8 @@ def chunkAndEmbed(redisClient, indexName, secDoc, engine="text-embedding-ada-002
                 "complete_text_filing_link": secDoc['complete_text_filing_link'],
                 "filename": secDoc['filename'],
                 "content": chunk,
-                "content_vector": None
+                "content_vector": None,
+                "metadata" : json.dumps({"cik": secDoc['cik'], "source": secDoc['filename'], "filingType": secDoc['filing_type'], "reportDate": secDoc['period_of_report']})
             }
             secCommonData['content_vector'] = getEmbedding(chunk, engine)
             fullData.append(secCommonData)
@@ -154,7 +157,8 @@ def chunkAndEmbed(redisClient, indexName, secDoc, engine="text-embedding-ada-002
             "complete_text_filing_link": secDoc['complete_text_filing_link'],
             "filename": secDoc['filename'],
             "content": text,
-            "content_vector": None
+            "content_vector": None,
+            "metadata" : json.dumps({"cik": secDoc['cik'], "source": secDoc['filename'], "filingType": secDoc['filing_type'], "reportDate": secDoc['period_of_report']})
         }
       secCommonData['content_vector'] = getEmbedding(text, engine)
       fullData.append(secCommonData)
@@ -167,14 +171,16 @@ def performRedisSearch(question, indexName, k, returnField, vectorField):
     embeddingQuery = getEmbedding(question, engine=OpenAiEmbedding)
     arrayEmbedding = np.array(embeddingQuery)
     hybridField = "*"
+    #hybridField = "(@cik:{{4962|2179|7323}})"
+    searchType = 'KNN'
     baseQuery = (
-        f"{hybridField}=>[KNN {k} @{vectorField} $vector AS vector_score]"
+        f"{hybridField}=>[{searchType} {k} @{vectorField} $vector AS vector_score]"
     )
     redisQuery = (
         Query(baseQuery)
         .return_fields(*returnField)
         .sort_by("vector_score")
-        .paging(0, 5)
+        .paging(0, k)
         .dialect(2)
     )
     paramDict: Mapping[str, str] = {

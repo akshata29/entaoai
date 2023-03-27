@@ -84,8 +84,6 @@ module function 'core/host/appservice.bicep' = {
       OpenAiEmbedding:textEmbeddingDeploymentName
       MaxTokens:500
       Temperature:'0.3'
-      OpenAiChatDocStorName:storage.outputs.name
-      OpenAiChatDocContainer:containerName
       OpenAiChat:chatGptDeploymentName
       PineconeKey:''
       PineconeEnv:''

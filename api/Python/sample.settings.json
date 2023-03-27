@@ -13,10 +13,7 @@
       "OpenAiEmbedding": "", // Deployment name of Ada-003
       "MaxTokens": 500, 
       "Temperature": 0.3,
-      "OpenAiChatDocStorName": "", // Storage name to for PDF docs
-      "OpenAiChatDocContainer": "", // Storage Container
       "OpenAiChat": "", // GPT 3.5 deployment name
-      "OpenAiChatBlobKey": "", // Storage key
       "PineconeKey": "", // Pinecone key
       "PineconeEnv": "", // Pinecone Env
       "VsIndexName": "", // Index name
@@ -25,7 +22,11 @@
       "RedisPort": "6379",
       "OpenAiDocStorName": "", // Storage name
       "OpenAiDocStorKey": "", // Storage doc
-      "OpenAiDocContainer": "" // Storage Container
+      "OpenAiDocContainer": "", // Storage Container
+      "WeaviateUrl": "", // Weavite URL
+      "SearchService":"", // Search Service 
+      "SearchKey":"", // Search Key
+      "SecDocContainer": "" // Storage Container for storing SEC documents
     },
     "Host": {
       "LocalHttpPort": 7071,

@@ -226,6 +226,37 @@ export async function chatJsApi(question: string, history: never[], indexNs: str
   // return followUpRes["text"]
 }
 
+export async function secSearch(indexType: string,  indexName: string, question:string, top: string): Promise<any> {
+  const response = await fetch('/secsearch' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        indexType:indexType,
+        indexName: indexName,
+        question:question,
+        top:top,
+        postBody: {
+          values: [
+            {
+              recordId: 0,
+              data: {
+                text: ''
+              }
+            }
+          ]
+        }
+      })
+  });
+
+  const result = await response.json();
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return result;
+}
+
 export function getCitationFilePath(citation: string): string {
     return `/content/${citation}`;
 }

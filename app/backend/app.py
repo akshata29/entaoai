@@ -185,6 +185,28 @@ def uploadBinaryFile():
     except Exception as e:
         logging.exception("Exception in /uploadBinaryFile")
         return jsonify({"error": str(e)}), 500
-    
+
+@app.route("/secsearch", methods=["POST"])
+def secsearch():
+    indexType=request.json["indexType"]
+    indexName=request.json["indexName"]
+    question=request.json["question"]
+    top=request.json["top"]
+    postBody=request.json["postBody"]
+  
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("SECSEARCH_URL")
+
+        data = postBody
+        params = {'indexType': indexType, "indexName": indexName, "question": question, "top": top }
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /secsearch")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run()

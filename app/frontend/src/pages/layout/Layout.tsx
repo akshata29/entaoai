@@ -34,6 +34,11 @@ const Layout = () => {
                                     Ask a question
                                 </NavLink>
                             </li>
+                            <li className={styles.headerNavLeftMargin}>
+                                <NavLink to="/edgar" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    Edgar Analysis
+                                </NavLink>
+                            </li>
                             {/* <li className={styles.headerNavLeftMargin}>
                                 <NavLink to="/help" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Help
