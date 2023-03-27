@@ -33,9 +33,6 @@ param chatGptModelName string = 'gpt-35-turbo'
 param textEmbeddingDeploymentName string = 'text-embedding-ada-002'
 param textEmbeddingModelName string = 'text-embedding-ada-002'
 
-@description('Id of the user or app to assign application roles')
-param principalId string = ''
-
 var abbrs = loadJsonContent('abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, location))
 var tags = {}
@@ -63,20 +60,48 @@ module appServicePlan 'core/host/appserviceplan.bicep' = {
   }
 }
 
-module function 'core/host/appservice.bicep' = {
+
+module storage 'core/storage/storage-account.bicep' = {
+  name: 'storage'
+  scope: resourceGroup
+  params: {
+    name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
+    location: location
+    tags: tags
+    publicNetworkAccess: 'Enabled'
+    sku: {
+      name: 'Standard_ZRS'
+    }
+    deleteRetentionPolicy: {
+      enabled: true
+      days: 2
+    }
+    containers: [
+      {
+        name: containerName
+        publicAccess: 'None'
+      }
+    ]
+  }
+}
+
+module function 'core/host/functionapp.bicep' = {
   name: 'function'
   scope: resourceGroup
+  dependsOn: [
+    appServicePlan
+    searchService
+  ]
   params: {
     name: !empty(functionAppName) ? functionAppName : '${abbrs.webSitesAppService}func-${resourceToken}'
     location: location
-    tags: union(tags, { 'azd-service-name': 'backend' })
     appServicePlanId: appServicePlan.outputs.id
     runtimeName: 'python'
-    runtimeVersion: '3.10'
+    runtimeVersion: '3.9'
     scmDoBuildDuringDeployment: true
     managedIdentity: true
     appSettings: {
-      OpenAiApiKey: storage.outputs.name
+      OpenAiApiKey: ''
       OpenAiService:openAi.outputs.name
       OpenAiEndPoint:openAi.outputs.endpoint
       OpenAiVersion:'2022-12-01'
@@ -94,8 +119,8 @@ module function 'core/host/appservice.bicep' = {
       OpenAiDocStorName:storage.outputs.name
       //OpenAiDocStorKey:listKeys(resourceId(subscription().subscriptionId, resourceGroup.name, storage.type, storage.name), storage.apiVersion).keys[0].value
       OpenAiDocContainer:containerName
-      //SearchService:searchServiceName.outputs.name
-      //SearchKey:
+      SearchService:searchService.outputs.name
+      SearchKey:''
     }
   }
 }
@@ -104,23 +129,28 @@ module function 'core/host/appservice.bicep' = {
 module backend 'core/host/appservice.bicep' = {
   name: 'web'
   scope: resourceGroup
+  dependsOn: [
+    appServicePlan
+    storage
+    function
+  ]
   params: {
     name: !empty(backendServiceName) ? backendServiceName : '${abbrs.webSitesAppService}backend-${resourceToken}'
     location: location
+    storageAccountName: storage.outputs.name
     tags: union(tags, { 'azd-service-name': 'backend' })
     appServicePlanId: appServicePlan.outputs.id
     runtimeName: 'python'
-    runtimeVersion: '3.10'
+    runtimeVersion: '3.9'
     scmDoBuildDuringDeployment: true
     managedIdentity: true
     appSettings: {
-      QA_URL: storage.outputs.name
-      CHAT_URL: containerName
-      CHAT3_URL: openAi.outputs.name
-      DOCGENERATOR_URL: searchService.outputs.name
-      SUMMARYQA_URL: gptDeploymentName
-      //BLOB_CONNECTION_STRING: 'DefaultEndpointsProtocol=https;AccountName=${storage.outputs.name};AccountKey=${listKeys(storage.outputs.id, storage.outputs.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
-      BLOB_CONTAINER_NAME:containerName
+      QA_URL: ''
+      CHAT_URL: ''
+      CHAT3_URL: ''
+      DOCGENERATOR_URL: ''
+      SUMMARYQA_URL: ''
+      BLOB_CONTAINER_NAME: containerName
     }
   }
 }
@@ -189,30 +219,6 @@ module searchService 'core/search/search-services.bicep' = {
       name: searchServiceSkuName
     }
     semanticSearch: 'free'
-  }
-}
-
-module storage 'core/storage/storage-account.bicep' = {
-  name: 'storage'
-  scope: resourceGroup
-  params: {
-    name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
-    location: location
-    tags: tags
-    publicNetworkAccess: 'Enabled'
-    sku: {
-      name: 'Standard_ZRS'
-    }
-    deleteRetentionPolicy: {
-      enabled: true
-      days: 2
-    }
-    containers: [
-      {
-        name: 'content'
-        publicAccess: 'None'
-      }
-    ]
   }
 }
 

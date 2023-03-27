@@ -1,7 +1,7 @@
 {
     "IsEncrypted": false,
     "Values": {
-      "FUNCTIONS_WORKER_RUNTIME": "",
+      "FUNCTIONS_WORKER_RUNTIME": "python",
       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
       "AzureWebJobs.HttpTrigger1.Disabled": "false",
       "OpenAiKey": "", // Open AI Key

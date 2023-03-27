@@ -12,13 +12,12 @@ param managedIdentity bool = !empty(keyVaultName)
 @allowed([
   'dotnet', 'dotnetcore', 'dotnet-isolated', 'node', 'python', 'java', 'powershell', 'custom'
 ])
-param runtimeName string
+param runtimeName string = 'python'
 param runtimeNameAndVersion string = '${runtimeName}|${runtimeVersion}'
 param runtimeVersion string
-param storageAccountName string
 
 // Microsoft.Web/sites Properties
-param kind string = 'app,linux'
+param kind string = 'functionapp'
 
 // Microsoft.Web/sites/config
 param allowedOrigins array = []
@@ -36,9 +35,15 @@ param use32BitWorkerProcess bool = false
 param ftpsState string = 'FtpsOnly'
 param healthCheckPath string = ''
 
-// Get a reference to the existing storage
-resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' existing = {
+var storageAccountName = '${name}sa'
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
   name: storageAccountName
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'Storage'
 }
 
 resource appService 'Microsoft.Web/sites@2022-03-01' = {
@@ -72,11 +77,18 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
     name: 'appsettings'
     properties: union(appSettings,
       {
-        SCM_DO_BUILD_DURING_DEPLOYMENT: string(scmDoBuildDuringDeployment)
+        SCM_DO_BUILD_DURING_DEPLOYMENT: true
         ENABLE_ORYX_BUILD: string(enableOryxBuild)
-        BLOB_CONNECTION_STRING: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
+        FUNCTIONS_EXTENSION_VERSION: '~4'
+        WEBSITE_NODE_DEFAULT_VERSION: '~14'
+        FUNCTIONS_WORKER_RUNTIME: runtimeName
+        AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
+        WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
+        WEBSITE_CONTENTSHARE: toLower(name)
+
       },
       !empty(applicationInsightsName) ? { APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString } : {},
+      !empty(applicationInsightsName) ? { APPINSIGHTS_INSTRUMENTATIONKEY: applicationInsights.properties.InstrumentationKey } : {},
       !empty(keyVaultName) ? { AZURE_KEY_VAULT_ENDPOINT: keyVault.properties.vaultUri } : {})
   }
 
