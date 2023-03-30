@@ -21,7 +21,6 @@ from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
 
 OpenAiKey = os.environ['OpenAiKey']
-OpenAiApiKey = os.environ['OpenAiApiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
 OpenAiVersion = os.environ['OpenAiVersion']
 OpenAiDavinci = os.environ['OpenAiDavinci']
@@ -35,15 +34,14 @@ PineconeKey = os.environ['PineconeKey']
 VsIndexName = os.environ['VsIndexName']
 OpenAiChat = os.environ['OpenAiChat']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
-RedisAddress = os.environ['RedisAddress']
-RedisPassword = os.environ['RedisPassword']
+#RedisAddress = os.environ['RedisAddress']
+#RedisPassword = os.environ['RedisPassword']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
-RedisPort = os.environ['RedisPort']
+#RedisPort = os.environ['RedisPort']
 SearchService = os.environ['SearchService']
 SearchKey = os.environ['SearchKey']
 
-redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
-redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
+#redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')

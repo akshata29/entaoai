@@ -31,7 +31,6 @@ from html.parser import HTMLParser
 from Utilities.azureBlob import upsertMetadata, uploadBlob
 
 OpenAiKey = os.environ['OpenAiKey']
-OpenAiApiKey = os.environ['OpenAiApiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
 OpenAiVersion = os.environ['OpenAiVersion']
 OpenAiDavinci = os.environ['OpenAiDavinci']
@@ -47,7 +46,7 @@ VsIndexName = os.environ['VsIndexName']
 RedisAddress = os.environ['RedisAddress']
 RedisPassword = os.environ['RedisPassword']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
-WeaviateUrl = os.environ['WeaviateUrl']
+#WeaviateUrl = os.environ['WeaviateUrl']
 RedisPort = os.environ['RedisPort']
 SearchService = os.environ['SearchService']
 SearchKey = os.environ['SearchKey']

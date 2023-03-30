@@ -5,7 +5,6 @@
       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
       "AzureWebJobs.HttpTrigger1.Disabled": "false",
       "OpenAiKey": "", // Open AI Key
-      "OpenAiApiKey": "", // Open AI Key (from openai.com - optional)
       "OpenAiService": "", // Name of Open AI Service
       "OpenAiEndPoint": "", // FQDN of Open AI Service
       "OpenAiVersion": "2022-12-01",
@@ -17,13 +16,13 @@
       "PineconeKey": "", // Pinecone key
       "PineconeEnv": "", // Pinecone Env
       "VsIndexName": "", // Index name
-      "RedisPassword": "", // Redis Password
-      "RedisAddress": "", // Redis URL
+      "RedisPassword": "Password", // Redis Password
+      "RedisAddress": "http://localhost", // Redis URL
       "RedisPort": "6379",
       "OpenAiDocStorName": "", // Storage name
       "OpenAiDocStorKey": "", // Storage doc
       "OpenAiDocContainer": "", // Storage Container
-      "WeaviateUrl": "", // Weavite URL
+      //"WeaviateUrl": "", // Weavite URL
       "SearchService":"", // Search Service 
       "SearchKey":"", // Search Key
       "SecDocContainer": "" // Storage Container for storing SEC documents

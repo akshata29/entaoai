@@ -25,12 +25,10 @@ param alwaysOn bool = true
 param appCommandLine string = ''
 param appSettings object = {}
 param clientAffinityEnabled bool = false
-param enableOryxBuild bool = contains(kind, 'linux')
 param functionAppScaleLimit int = -1
 param linuxFxVersion string = runtimeNameAndVersion
 param minimumElasticInstanceCount int = -1
 param numberOfWorkers int = -1
-param scmDoBuildDuringDeployment bool = false
 param use32BitWorkerProcess bool = false
 param ftpsState string = 'FtpsOnly'
 param healthCheckPath string = ''
@@ -77,8 +75,8 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
     name: 'appsettings'
     properties: union(appSettings,
       {
-        SCM_DO_BUILD_DURING_DEPLOYMENT: true
-        ENABLE_ORYX_BUILD: string(enableOryxBuild)
+        SCM_DO_BUILD_DURING_DEPLOYMENT: 1
+        ENABLE_ORYX_BUILD: true
         FUNCTIONS_EXTENSION_VERSION: '~4'
         WEBSITE_NODE_DEFAULT_VERSION: '~14'
         FUNCTIONS_WORKER_RUNTIME: runtimeName
@@ -116,4 +114,5 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing
 
 output identityPrincipalId string = managedIdentity ? appService.identity.principalId : ''
 output name string = appService.name
-output uri string = 'https://${appService.properties.defaultHostName}'
+//output uri string = 'https://${appService.properties.defaultHostName}'
+output uri string = 'https://${appService.name}.azurewebsites.net/api/'

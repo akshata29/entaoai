@@ -20,7 +20,6 @@ from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
 
 OpenAiKey = os.environ['OpenAiKey']
-OpenAiApiKey = os.environ['OpenAiApiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
 OpenAiVersion = os.environ['OpenAiVersion']
 OpenAiDavinci = os.environ['OpenAiDavinci']
@@ -33,15 +32,15 @@ OpenAiDocContainer = os.environ['OpenAiDocContainer']
 PineconeEnv = os.environ['PineconeEnv']
 PineconeKey = os.environ['PineconeKey']
 VsIndexName = os.environ['VsIndexName']
-RedisAddress = os.environ['RedisAddress']
-RedisPassword = os.environ['RedisPassword']
-RedisPort = os.environ['RedisPort']
-WeaviateUrl = os.environ['WeaviateUrl']
+#RedisAddress = os.environ['RedisAddress']
+#RedisPassword = os.environ['RedisPassword']
+#RedisPort = os.environ['RedisPort']
+#WeaviateUrl = os.environ['WeaviateUrl']
 SearchService = os.environ['SearchService']
 SearchKey = os.environ['SearchKey']
 
-redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
-redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
+#redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+#redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
 
 def FindAnswer(chainType, question, indexType, value, indexNs):
     logging.info("Calling FindAnswer Open AI")
@@ -61,10 +60,8 @@ def FindAnswer(chainType, question, indexType, value, indexNs):
                 max_tokens=os.environ['MaxTokens'] or 500,
                 batch_size=10)
       #llm = AzureOpenAI(deployment_name=OpenAiDavinci, model_name="text-davinci-003",  openai_api_key=OpenAiKey)
-      #llm = OpenAI(openai_api_key=OpenAiApiKey)
 
       logging.info("LLM Setup done")
-      #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
       embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
 
       if (chainType == "stuff"):
@@ -202,19 +199,19 @@ def FindAnswer(chainType, question, indexType, value, indexNs):
             return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
         except Exception as e:
             return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}    
-      elif indexType == "weaviate":
-            try:
-                import weaviate
-                client = weaviate.Client(url=WeaviateUrl)
-                logging.info("Client initialized")
-                weaviate = Weaviate(client, index_name=indexNs, text_key="content")
-                docs = weaviate.similarity_search(question, 5)
-                logging.info(docs)
-                answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
-            except Exception as e:
-                logging.info("Exception occurred in weaviate " + str(e))
-                return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
+    #   elif indexType == "weaviate":
+    #         try:
+    #             import weaviate
+    #             client = weaviate.Client(url=WeaviateUrl)
+    #             logging.info("Client initialized")
+    #             weaviate = Weaviate(client, index_name=indexNs, text_key="content")
+    #             docs = weaviate.similarity_search(question, 5)
+    #             logging.info(docs)
+    #             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+    #             return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
+    #         except Exception as e:
+    #             logging.info("Exception occurred in weaviate " + str(e))
+    #             return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
       elif indexType == 'milvus':
           answer = "{'answer': 'TBD', 'sources': ''}"
           return answer

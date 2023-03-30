@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: chatask
+metadata:
+  template: chatask@0.0.2-beta
+services:
+  backend:
+    project: ./app/backend
+    language: py
+    host: appservice
+  functionapp:
+    project: ./api/Python
+    language: py
+    host: function
+hooks:
+    predeploy:
+      windows:
+        shell: pwsh
+        run:  cd ./app/frontend;npm install;npm run build
+        interactive: true
+        continueOnError: false
+      posix:
+        shell: sh
+        run:  cd ./app/frontend;npm install;npm run build
+        interactive: true
+        continueOnError: false

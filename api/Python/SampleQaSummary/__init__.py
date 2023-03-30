@@ -24,7 +24,6 @@ from langchain.chains.question_answering import load_qa_chain
 
 
 OpenAiKey = os.environ['OpenAiKey']
-OpenAiApiKey = os.environ['OpenAiApiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
 OpenAiVersion = os.environ['OpenAiVersion']
 OpenAiDavinci = os.environ['OpenAiDavinci']

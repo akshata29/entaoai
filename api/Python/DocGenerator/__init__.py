@@ -38,7 +38,6 @@ from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs
 from Utilities.cogSearch import createSearchIndex, createSections, indexSections
 
 OpenAiKey = os.environ['OpenAiKey']
-OpenAiApiKey = os.environ['OpenAiApiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
 OpenAiVersion = os.environ['OpenAiVersion']
 OpenAiDavinci = os.environ['OpenAiDavinci']
@@ -53,7 +52,7 @@ VsIndexName = os.environ['VsIndexName']
 RedisAddress = os.environ['RedisAddress']
 RedisPassword = os.environ['RedisPassword']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
-WeaviateUrl = os.environ['WeaviateUrl']
+#WeaviateUrl = os.environ['WeaviateUrl']
 RedisPort = os.environ['RedisPort']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
@@ -228,14 +227,12 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     rawDocs = loader.load()
                     docs = textSplitter.split_documents(rawDocs)
                     logging.info("Docs " + str(len(docs)))
-                    #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
                     embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
                                                     chunk_size=1,
                                                     openai_api_key=OpenAiKey)
                     if indexType == 'pinecone':
                         Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResultNs.hex)
                     elif indexType == "redis":
-                        redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
                         Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
                     elif indexType == "cogsearch":
                         createSearchIndex(uResultNs.hex)
@@ -266,14 +263,13 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                     #loader = PyMuPDFLoader(downloadPath)
                     rawDocs = loader.load()
                     docs = textSplitter.split_documents(rawDocs)
-                    #embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
                     embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
                                                     chunk_size=1,
                                                     openai_api_key=OpenAiKey)
                     if indexType == 'pinecone': 
                         pineconeDb = Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResultNs.hex)
                     elif indexType == "redis":
-                        redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
+                        #redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
                         Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
                     elif indexType == "cogsearch":
                         createSearchIndex(uResultNs.hex)
@@ -314,17 +310,17 @@ def Embed(indexType, loadType, multiple, indexName,  value):
                 elif indexType == "cogsearch":
                     createSearchIndex(uResultNs.hex)
                     indexSections(fileName, uResultNs.hex, docs)
-                elif indexType == "weaviate":
-                    try:
-                        import weaviate
-                        client = weaviate.Client(url=WeaviateUrl)
-                        weaviate = Weaviate(client, index_name=uResultNs.hex, text_key="content")
-                        texts = [d.page_content for d in docs]
-                        metadatas = [d.metadata for d in docs]
-                        weaviate.add_texts(texts, metadatas)
-                        #weaviate.from_documents(docs, embeddings)
-                    except Exception as e:
-                        logging.info(e)
+                # elif indexType == "weaviate":
+                #     try:
+                #         import weaviate
+                #         client = weaviate.Client(url=WeaviateUrl)
+                #         weaviate = Weaviate(client, index_name=uResultNs.hex, text_key="content")
+                #         texts = [d.page_content for d in docs]
+                #         metadatas = [d.metadata for d in docs]
+                #         weaviate.add_texts(texts, metadatas)
+                #         #weaviate.from_documents(docs, embeddings)
+                #     except Exception as e:
+                #         logging.info(e)
 
                 elif indexType == 'milvus':
                     milvusDb = Milvus.from_documents(docs,embeddings)
