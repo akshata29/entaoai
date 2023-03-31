@@ -102,9 +102,20 @@ module storage 'core/storage/storage-account.bicep' = {
   }
 }
 
-resource existingStorage 'Microsoft.Storage/storageAccounts@2021-09-01' existing = {
+module emptyfunction 'core/host/function.bicep' = {
+  name: 'emptyfunction'
   scope: resourceGroup
-  name: storageAccountName
+  params: {
+    name: !empty(functionAppName) ? functionAppName : '${abbrs.webSitesAppService}func-${resourceToken}'
+    emptyFunction:true
+    location: location
+    appServicePlanId: appServicePlan.outputs.id
+    tags: union(tags, { 'azd-service-name': 'functionapp' })
+    runtimeName: 'python'
+    runtimeVersion: '3.9'
+    managedIdentity: true
+    appSettings: {}
+  }
 }
 
 module openAi 'core/ai/cognitiveservices.bicep' = {
@@ -174,17 +185,8 @@ module searchService 'core/search/search-services.bicep' = {
   }
 }
 
-resource existingOpenAi 'Microsoft.CognitiveServices/accounts@2022-12-01' existing = {
-  scope: resourceGroup
-  name: openAiServiceName
-}
 
-resource existingSearchService 'Microsoft.Search/searchServices@2021-04-01-preview' existing = {
-  scope: resourceGroup
-  name: searchServiceName
-}
-
-module function 'core/host/functionapp.bicep' = {
+module function 'core/host/function.bicep' = {
   name: 'function'
   scope: resourceGroup
   dependsOn: [
@@ -197,6 +199,7 @@ module function 'core/host/functionapp.bicep' = {
   params: {
     name: !empty(functionAppName) ? functionAppName : '${abbrs.webSitesAppService}func-${resourceToken}'
     location: location
+    emptyFunction:false
     appServicePlanId: appServicePlan.outputs.id
     tags: union(tags, { 'azd-service-name': 'functionapp' })
     runtimeName: 'python'
@@ -210,7 +213,7 @@ module function 'core/host/functionapp.bicep' = {
       OpenAiVersion:'2022-12-01'
       OpenAiDavinci:gptDeploymentName
       OpenAiEmbedding:textEmbeddingDeploymentName
-      OpenAiKey:listKeys(resourceId(subscription().subscriptionId, resourceGroup.name, existingOpenAi.type, existingOpenAi.name), existingOpenAi.apiVersion).key1
+      OpenAiKey:openAi.outputs.key
       MaxTokens:500
       Temperature:'0.3'
       OpenAiChat:chatGptDeploymentName
@@ -221,10 +224,10 @@ module function 'core/host/functionapp.bicep' = {
       RedisAddress:'http://localhost'
       RedisPort:'6379'
       OpenAiDocStorName:storage.outputs.name
-      OpenAiDocStorKey:listKeys(resourceId(subscription().subscriptionId, resourceGroup.name, existingStorage.type, existingStorage.name), existingStorage.apiVersion).keys[0].value
+      OpenAiDocStorKey:storage.outputs.key
       OpenAiDocContainer:containerName
       SearchService:searchService.outputs.name
-      SearchKey:listAdminKeys(resourceId(subscription().subscriptionId, resourceGroup.name, existingSearchService.type, existingSearchService.name), existingSearchService.apiVersion).primaryKey
+      SearchKey:searchService.outputs.key
       SecDocContainer:'secdoc'
     }
   }
@@ -232,7 +235,7 @@ module function 'core/host/functionapp.bicep' = {
 
 // The application frontend
 module backend 'core/host/appservice.bicep' = {
-  name: 'web'
+  name: 'backend'
   scope: resourceGroup
   dependsOn: [
     appServicePlan
@@ -250,13 +253,13 @@ module backend 'core/host/appservice.bicep' = {
     scmDoBuildDuringDeployment: true
     managedIdentity: true
     appSettings: {
-      QA_URL: '${function.outputs.uri}/QuestionAnswering?code=${listKeys(resourceId(subscription().subscriptionId, resourceGroup.name, 'Microsoft.Web/sites/host', functionAppName, 'default'), '2022-03-01').masterKey}'
-      CHAT_URL: '${function.outputs.uri}/ChatGpt?code=${listKeys(resourceId(subscription().subscriptionId, resourceGroup.name, 'Microsoft.Web/sites/host', functionAppName, 'default'), '2022-03-01').masterKey}'
-      CHAT3_URL: '${function.outputs.uri}/Chat?code=${listKeys(resourceId(subscription().subscriptionId, resourceGroup.name, 'Microsoft.Web/sites/host', functionAppName, 'default'), '2022-03-01').masterKey}'
-      DOCGENERATOR_URL: '${function.outputs.uri}/DocGenerator?code=${listKeys(resourceId(subscription().subscriptionId, resourceGroup.name, 'Microsoft.Web/sites/host', functionAppName, 'default'), '2022-03-01').masterKey}'
-      SUMMARYQA_URL: '${function.outputs.uri}/SampleQaSummary?code=${listKeys(resourceId(subscription().subscriptionId, resourceGroup.name, 'Microsoft.Web/sites/host', functionAppName, 'default'), '2022-03-01').masterKey}'
+      QA_URL: '${function.outputs.uri}/QuestionAnswering?code=${function.outputs.key}'
+      CHAT_URL: '${function.outputs.uri}/ChatGpt?code=${function.outputs.key}'
+      CHAT3_URL: '${function.outputs.uri}/Chat?code=${function.outputs.key}'
+      DOCGENERATOR_URL: '${function.outputs.uri}/DocGenerator?code=${function.outputs.key}'
+      SUMMARYQA_URL: '${function.outputs.uri}/SampleQaSummary?code=${function.outputs.key}'
       BLOB_CONTAINER_NAME: containerName
-      BLOB_CONNECTION_STRING: 'DefaultEndpointsProtocol=https;AccountName=${storage.outputs.name};AccountKey=${listKeys(resourceId(subscription().subscriptionId, resourceGroup.name, existingStorage.type, existingStorage.name), existingStorage.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
+      BLOB_CONNECTION_STRING: storage.outputs.connectionString
     }
   }
 }

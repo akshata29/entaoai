@@ -56,6 +56,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
          5. Storage Account (to store all your files) & Function storage account
          6. Azure Open AI Service
          7. Azure Application Insight
+   
    **Note** External vector store are not deployed and you will need to manually deploy them (Pinecone or Redis)
 2. Alternatively deploy the following services manually
    1. [OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal).   Please be aware of the model & region availability documented [here]

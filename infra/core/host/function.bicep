@@ -1,6 +1,7 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
+param emptyFunction bool = true
 
 // Reference Properties
 param applicationInsightsName string = ''
@@ -47,6 +48,9 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
 resource appService 'Microsoft.Web/sites@2022-03-01' = {
   name: name
   location: location
+  dependsOn: [
+    storageAccount
+  ]
   tags: tags
   kind: kind
   properties: {
@@ -116,3 +120,5 @@ output identityPrincipalId string = managedIdentity ? appService.identity.princi
 output name string = appService.name
 //output uri string = 'https://${appService.properties.defaultHostName}'
 output uri string = 'https://${appService.name}.azurewebsites.net/api/'
+#disable-next-line outputs-should-not-contain-secrets
+output key string = emptyFunction ? '' : listKeys(resourceId(subscription().subscriptionId, resourceGroup().name, 'Microsoft.Web/sites/host', appService.name, 'default'), '2022-03-01').masterKey

@@ -58,3 +58,7 @@ output name string = storage.name
 output primaryEndpoints object = storage.properties.primaryEndpoints
 output apiVersion string = storage.apiVersion
 output id string = storage.id
+#disable-next-line outputs-should-not-contain-secrets
+output key string = listKeys(resourceId(subscription().subscriptionId, resourceGroup().name, storage.type, storage.name), storage.apiVersion).keys[0].value
+#disable-next-line outputs-should-not-contain-secrets
+output connectionString string = 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${listKeys(resourceId(subscription().subscriptionId, resourceGroup().name, storage.type, storage.name), storage.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'

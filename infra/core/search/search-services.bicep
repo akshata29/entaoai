@@ -39,4 +39,5 @@ resource search 'Microsoft.Search/searchServices@2021-04-01-preview' = {
 output id string = search.id
 output endpoint string = 'https://${name}.search.windows.net/'
 output name string = search.name
-
+#disable-next-line outputs-should-not-contain-secrets
+output key string = listAdminKeys(resourceId(subscription().subscriptionId, resourceGroup().name, search.type, search.name), search.apiVersion).primaryKey
