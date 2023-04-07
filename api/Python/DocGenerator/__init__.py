@@ -1,7 +1,7 @@
 import logging, json, os
 import azure.functions as func
 import openai
-from langchain.llms.openai import OpenAI, AzureOpenAI
+from langchain.llms.openai import AzureOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import tempfile
@@ -17,25 +17,23 @@ from langchain.vectorstores import Pinecone
 from langchain.vectorstores import Milvus
 import pinecone
 from langchain.document_loaders import PDFMinerLoader
-from pymilvus import connections
-from pymilvus import CollectionSchema, FieldSchema, DataType, Collection
-from pymilvus import utility
+# from pymilvus import connections
+# from pymilvus import CollectionSchema, FieldSchema, DataType, Collection
+# from pymilvus import utility
 import time
 from langchain.vectorstores.redis import Redis
 from langchain.document_loaders import WebBaseLoader
 from langchain.chains.summarize import load_summarize_chain
 from langchain.prompts import PromptTemplate
-from langchain.chains.question_answering import load_qa_chain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from redis.commands.search.field import VectorField, TagField, TextField
-from redis.commands.search.indexDefinition import IndexDefinition, IndexType
-import numpy as np
-from typing import Any, Callable, Dict, List, Optional
-from langchain.vectorstores import Weaviate
-from langchain.docstore.document import Document
-from Utilities.redisIndex import performRedisSearch
+#from langchain.vectorstores import Weaviate
 from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs
 from Utilities.cogSearch import createSearchIndex, createSections, indexSections
+from langchain.document_loaders import AzureBlobStorageFileLoader
+from langchain.document_loaders import AzureBlobStorageContainerLoader
+from azure.storage.blob import BlobClient
+from azure.storage.blob import ContainerClient
+import boto3
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
@@ -186,164 +184,271 @@ def summarizeGenerateQa(docs):
         qa = 'No Sample QA generated'
     #qa = qa.decode('utf8')
     return qa, summary
-        
-def Embed(indexType, loadType, multiple, indexName,  value):
+
+def blobLoad(blobConnectionString, blobContainer, blobName):
+    readBytes  = getBlob(blobConnectionString, blobContainer, blobName)
+    downloadPath = os.path.join(tempfile.gettempdir(), blobName)
+    os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+    try:
+        with open(downloadPath, "wb") as file:
+            file.write(readBytes)
+    except Exception as e:
+        logging.error(e)
+
+    logging.info("File created " + downloadPath)
+    loader = PDFMinerLoader(downloadPath)
+    rawDocs = loader.load()
+    return rawDocs
+
+def s3Load(bucket, key, s3Client):
+    downloadPath = os.path.join(tempfile.gettempdir(), key)
+    os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+    s3Client.download_file(bucket, key, downloadPath)
+    # try:
+    #     with open(downloadPath, "wb") as file:
+    #         file.write(readBytes)
+    # except Exception as e:
+    #     logging.error(e)
+
+    logging.info("File created " + downloadPath)
+    loader = PDFMinerLoader(downloadPath)
+    rawDocs = loader.load()
+    return rawDocs
+
+def storeIndex(indexType, docs, fileName, nameSpace):
+    embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
+                                    chunk_size=1,
+                                    openai_api_key=OpenAiKey)
+    logging.info("Store the index in " + indexType + " and name : " + nameSpace)
+    if indexType == 'pinecone':
+        Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=nameSpace)
+    elif indexType == "redis":
+        Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=nameSpace)
+    elif indexType == "cogsearch":
+        createSearchIndex(nameSpace)
+        indexSections(fileName, nameSpace, docs)
+    elif indexType == 'milvus':
+        milvus = Milvus(connection_args={"host": "127.0.0.1", "port": "19530"},
+                        collection_name=VsIndexName, text_field="text", embedding_function=embeddings)
+        Milvus.from_documents(docs,embeddings)
+    # elif indexType == "weaviate":
+    #     try:
+    #         import weaviate
+    #         client = weaviate.Client(url=WeaviateUrl)
+    #         weaviate = Weaviate(client, index_name=uResultNs.hex, text_key="content")
+    #         texts = [d.page_content for d in docs]
+    #         metadatas = [d.metadata for d in docs]
+    #         weaviate.add_texts(texts, metadatas)
+    #         #weaviate.from_documents(docs, embeddings)
+    #     except Exception as e:
+    #         logging.info(e)
+
+def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionString,
+                                blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
+                                s3SecretKey, s3Prefix):
     logging.info("Embedding text")
     try:
-      logging.info("Loading OpenAI")
-      openai.api_type = "azure"
-      openai.api_key = OpenAiKey
-      openai.api_version = OpenAiVersion
-      openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-      uResultNs = uuid.uuid4()
-      logging.info("Index will be created as " + uResultNs.hex)
+        logging.info("Loading OpenAI")
+        openai.api_type = "azure"
+        openai.api_key = OpenAiKey
+        openai.api_version = OpenAiVersion
+        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        uResultNs = uuid.uuid4()
+        logging.info("Index will be created as " + uResultNs.hex)
 
-      if (loadType == "files"):
-        try:
-            filesData = GetAllFiles(value)
-            filesData = list(filter(lambda x : not x['embedded'], filesData))
-            filesData = list(map(lambda x: {'filename': x['filename']}, filesData))
+        if (loadType == "files"):
+            try:
+                filesData = GetAllFiles(value)
+                filesData = list(filter(lambda x : not x['embedded'], filesData))
+                filesData = list(map(lambda x: {'filename': x['filename']}, filesData))
 
-            logging.info(f"Found {len(filesData)} files to embed")
-            for file in filesData:
-                logging.info(f"Adding {file['filename']} to Process")
-                fileName = file['filename']
-                # Check the file extension
-                if fileName.endswith('.txt'):
-                    logging.info("Embedding text file")
-                    readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                    fileContent = readBytes.decode('utf-8')
-                    downloadPath = os.path.join(tempfile.gettempdir(), fileName)
-                    os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
-                    try:
-                        with open(downloadPath, "wb") as file:
-                            file.write(bytes(fileContent, 'utf-8'))
-                    except Exception as e:
-                        logging.error(e)
+                logging.info(f"Found {len(filesData)} files to embed")
+                for file in filesData:
+                    logging.info(f"Adding {file['filename']} to Process")
+                    fileName = file['filename']
+                    # Check the file extension
+                    if fileName.endswith('.txt'):
+                        logging.info("Embedding text file")
+                        readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                        fileContent = readBytes.decode('utf-8')
+                        downloadPath = os.path.join(tempfile.gettempdir(), fileName)
+                        os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+                        try:
+                            with open(downloadPath, "wb") as file:
+                                file.write(bytes(fileContent, 'utf-8'))
+                        except Exception as e:
+                            logging.error(e)
 
-                    logging.info("File created")
-                    textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
-                    loader = UnstructuredFileLoader(downloadPath)
-                    rawDocs = loader.load()
-                    docs = textSplitter.split_documents(rawDocs)
-                    logging.info("Docs " + str(len(docs)))
-                    embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
-                                                    chunk_size=1,
-                                                    openai_api_key=OpenAiKey)
-                    if indexType == 'pinecone':
-                        Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResultNs.hex)
-                    elif indexType == "redis":
-                        Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
-                    elif indexType == "cogsearch":
-                        createSearchIndex(uResultNs.hex)
-                        indexSections(fileName, uResultNs.hex, docs)
-                    elif indexType == 'milvus':
-                        milvus = Milvus(connection_args={"host": "127.0.0.1", "port": "19530"},
-                                        collection_name=VsIndexName, text_field="text", embedding_function=embeddings)
-                        Milvus.from_documents(docs,embeddings)
-                    # Embed the file
-                    #data = chunk_and_embed(fileContent, fileName)
-                    # Set the document in Redis
-                    #set_document(data)
-                else:
-                    logging.info("Embedding Non-text file")
-                    readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                    downloadPath = os.path.join(tempfile.gettempdir(), fileName)
-                    os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
-                    try:
-                        with open(downloadPath, "wb") as file:
-                            file.write(readBytes)
-                    except Exception as e:
-                        logging.error(e)
+                        logging.info("File created")
+                        textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
+                        loader = UnstructuredFileLoader(downloadPath)
+                        rawDocs = loader.load()
+                        docs = textSplitter.split_documents(rawDocs)
+                        logging.info("Docs " + str(len(docs)))
+                        storeIndex(indexType, docs, fileName, uResultNs.hex)
+                    else:
+                        try:
+                            logging.info("Embedding Non-text file")
+                            readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                            downloadPath = os.path.join(tempfile.gettempdir(), fileName)
+                            os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+                            try:
+                                with open(downloadPath, "wb") as file:
+                                    file.write(readBytes)
+                            except Exception as e:
+                                logging.error(e)
 
-                    logging.info("File created " + downloadPath)
+                            logging.info("File created " + downloadPath)
+                            textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
+                            docs = []
+                            loader = PDFMinerLoader(downloadPath)
+                            #loader = PyMuPDFLoader(downloadPath)
+                            rawDocs = loader.load()
+                            docs = textSplitter.split_documents(rawDocs)
+                            logging.info("Docs " + str(len(docs)))
+                            storeIndex(indexType, docs, fileName, uResultNs.hex)
+                        except Exception as e:
+                            logging.info(e)
+                            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType})
+                            return "Error"
+                    logging.info("Perform Summarization and QA")
+                    qa, summary = summarizeGenerateQa(docs)
+                    logging.info("Upsert metadata")
+                    metadata = {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName}
+                    upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                    metadata = {'summary': summary, 'qa': qa}
+                    upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                    logging.info("Sleeping")
+                    time.sleep(5)
+                return "Success"
+            except Exception as e:
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
+                return "Error"
+        elif (loadType == "webpages"):
+            try:
+                allDocs = []
+                for webPage in value:
+                    logging.info("Processing Webpage at " + webPage)
                     textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                     docs = []
-                    loader = PDFMinerLoader(downloadPath)
-                    #loader = PyMuPDFLoader(downloadPath)
+                    loader = WebBaseLoader(webPage)
                     rawDocs = loader.load()
                     docs = textSplitter.split_documents(rawDocs)
                     embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
                                                     chunk_size=1,
                                                     openai_api_key=OpenAiKey)
-                    if indexType == 'pinecone': 
-                        pineconeDb = Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResultNs.hex)
-                    elif indexType == "redis":
-                        #redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
-                        Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
-                    elif indexType == "cogsearch":
-                        createSearchIndex(uResultNs.hex)
-                        indexSections(fileName, uResultNs.hex, docs)
-                    elif indexType == 'milvus':
-                        milvusDb = Milvus.from_documents(docs,embeddings)
+                    allDocs = allDocs + docs
+                    storeIndex(indexType, docs, fileName, uResultNs.hex)
+                logging.info("Perform Summarization and QA")
+                qa, summary = summarizeGenerateQa(allDocs)
+                logging.info("Upsert metadata")
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
+                return "Success"
+            except Exception as e:
+                logging.info(e)
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
+                return "Error"
+        elif (loadType == "adlscontainer"):
+            try:
+                logging.info("Embedding Azure Blob Container")
+                container = ContainerClient.from_connection_string(
+                    conn_str=blobConnectionString, container_name=blobContainer
+                )
+                rawDocs = []
+                blobList = container.list_blobs(name_starts_with=blobPrefix)
+                for blob in blobList:
+                    logging.info("Process Blob : " + blob.name)
+                    blobDocs = blobLoad(blobConnectionString, blobContainer, blob.name)
+                    rawDocs.extend(blobDocs)
+                textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
+                docs = []
+                docs = textSplitter.split_documents(rawDocs)
+                storeIndex(indexType, docs, indexName, uResultNs.hex)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(docs)
                 logging.info("Upsert metadata")
-                metadata = {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName}
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
-                metadata = {'summary': summary, 'qa': qa}
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
-                logging.info("Sleeping")
-                time.sleep(5)
-            return "Success"
-        except Exception as e:
-            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
-            return "Error"
-      elif (loadType == "webpages"):
-        try:
-            allDocs = []
-            for webPage in value:
-                logging.info("Processing Webpage at " + webPage)
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
+                return "Success"
+            except Exception as e:
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
+                return "Error"
+        elif (loadType == "adlsfile"):
+            try:
+                logging.info("Embedding Azure Blob File")
+                # loader = AzureBlobStorageFileLoader(conn_str=blobConnectionString, 
+                #                                      container=blobContainer, blob_name=blobName)
+                # rawDocs = loader.load()
+
+                rawDocs = blobLoad(blobConnectionString, blobContainer, blobName)
                 textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                 docs = []
-                loader = WebBaseLoader(webPage)
-                rawDocs = loader.load()
                 docs = textSplitter.split_documents(rawDocs)
-                embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
-                                                chunk_size=1,
-                                                openai_api_key=OpenAiKey)
-                allDocs = allDocs + docs
-                if indexType == 'pinecone':
-                    pineconeDb = Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=uResultNs.hex)
-                elif indexType == "redis":
-                    Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
-                elif indexType == "cogsearch":
-                    createSearchIndex(uResultNs.hex)
-                    indexSections(fileName, uResultNs.hex, docs)
-                # elif indexType == "weaviate":
-                #     try:
-                #         import weaviate
-                #         client = weaviate.Client(url=WeaviateUrl)
-                #         weaviate = Weaviate(client, index_name=uResultNs.hex, text_key="content")
-                #         texts = [d.page_content for d in docs]
-                #         metadatas = [d.metadata for d in docs]
-                #         weaviate.add_texts(texts, metadatas)
-                #         #weaviate.from_documents(docs, embeddings)
-                #     except Exception as e:
-                #         logging.info(e)
-
-                elif indexType == 'milvus':
-                    milvusDb = Milvus.from_documents(docs,embeddings)
-            logging.info("Perform Summarization and QA")
-            qa, summary = summarizeGenerateQa(allDocs)
-            logging.info("Upsert metadata")
-            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
-            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
-            return "Success"
-        except Exception as e:
-            logging.info(e)
-            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
-            return "Error"
-      elif (loadType == "iFixIt"):
-        logging.info("Embedding iFixIt")
-        return "Success"
-    
+                storeIndex(indexType, docs, blobName, uResultNs.hex)
+                logging.info("Perform Summarization and QA")
+                qa, summary = summarizeGenerateQa(docs)
+                logging.info("Upsert metadata")
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
+                return "Success"
+            except Exception as e:
+                logging.info(e)
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
+                return "Error"
+        elif (loadType == "s3Container"):
+            try:
+                logging.info("Embedding S3 Bucket Container")
+                s3Client = boto3.client( 's3', aws_access_key_id=s3AccessKey, aws_secret_access_key=s3SecretKey)
+                s3Resource = boto3.resource('s3',
+                    aws_access_key_id = s3AccessKey,
+                    aws_secret_access_key = s3SecretKey
+                )
+                myBucket = s3Resource.Bucket(s3Bucket)
+                rawDocs = []
+                for blob in myBucket.objects.filter(Prefix=s3Prefix):
+                    logging.info("Process Blob : " + blob.key)
+                    blobDocs = s3Load(s3Bucket, blob.key, s3Client)
+                    rawDocs.extend(blobDocs)
+                textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
+                docs = []
+                docs = textSplitter.split_documents(rawDocs)
+                storeIndex(indexType, docs, indexName, uResultNs.hex)
+                logging.info("Perform Summarization and QA")
+                qa, summary = summarizeGenerateQa(docs)
+                logging.info("Upsert metadata")
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
+                return "Success"            
+            except Exception as e:
+                logging.info(e)
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
+                return "Error"
+        elif (loadType == "s3file"):
+            try:
+                logging.info("Embedding S3 Bucket File")
+                s3Client = boto3.client( 's3', aws_access_key_id=s3AccessKey, aws_secret_access_key=s3SecretKey)
+                rawDocs = s3Load(s3Bucket, s3Key, s3Client)
+                textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
+                docs = []
+                docs = textSplitter.split_documents(rawDocs)
+                storeIndex(indexType, docs, blobName, uResultNs.hex)
+                logging.info("Perform Summarization and QA")
+                qa, summary = summarizeGenerateQa(docs)
+                logging.info("Upsert metadata")
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
+                return "Success"
+            except Exception as e:
+                logging.info(e)
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
+                return "Error"
     except Exception as e:
-      logging.error(e)
-      return func.HttpResponse(
+        logging.error(e)
+        return func.HttpResponse(
             "Error getting files",
             status_code=500
-      )
+        )
 
 def TransformValue(indexType, loadType,  multiple, indexName, record):
     logging.info("Calling Transform Value")
@@ -380,8 +485,19 @@ def TransformValue(indexType, loadType,  multiple, indexName, record):
     try:
         # Getting the items from the values/data/text
         value = data['text']
+        blobConnectionString = data['blobConnectionString']
+        blobContainer = data['blobContainer']
+        blobPrefix = data['blobPrefix']
+        blobName = data['blobName']
+        s3Bucket = data['s3Bucket']
+        s3Key = data['s3Key']
+        s3AccessKey = data['s3AccessKey']
+        s3SecretKey = data['s3SecretKey']
+        s3Prefix = data['s3Prefix']
 
-        summaryResponse = Embed(indexType, loadType,  multiple, indexName, value)
+        summaryResponse = Embed(indexType, loadType,  multiple, indexName, value, blobConnectionString,
+                                blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
+                                s3SecretKey, s3Prefix)
         return ({
             "recordId": recordId,
             "data": {

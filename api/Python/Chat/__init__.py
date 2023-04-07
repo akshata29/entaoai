@@ -30,7 +30,7 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage
 )
-from langchain.chains import VectorDBQAWithSourcesChain
+from langchain.chains import RetrievalQAWithSourcesChain, VectorDBQAWithSourcesChain
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
 
@@ -113,7 +113,7 @@ def getChatHistory(history, includeLastTurn=True, maxTokens=1000) -> str:
             break
     return historyText
 
-def GetRrrAnswer(history, indexNs, indexType, question, indexName):
+def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, indexName):
 
     qaTemplate = """You are an AI assistant for the all questions on document.
     I am still improving my Knowledge base. The documentation is located from document. You have a deep understanding of the document.
@@ -172,6 +172,9 @@ def GetRrrAnswer(history, indexNs, indexType, question, indexName):
     openai.api_version = OpenAiVersion
     openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
+    topK = overrides.get("top") or 5
+    logging.info("Search for Top " + str(topK))
+
     qaPrompt = PromptTemplate(
               template=qaTemplate, input_variables=["question", "context"]
           )
@@ -201,8 +204,10 @@ def GetRrrAnswer(history, indexNs, indexType, question, indexName):
             #docChain = load_qa_chain(llm, chain_type="stuff")
             qaChain = load_qa_with_sources_chain(llm,
             chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
-            chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, 
+            chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb,  k=topK,
                                          search_kwargs={"namespace": indexNs})
+            # chain = RetrievalQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb,  k=topK,
+            #                              search_kwargs={"namespace": indexNs})            
             # chain = ChatVectorDBChain(vectorstore=vectorDb, combine_docs_chain=docChain, 
             #                            question_generator=questionGenerator,
             #                            search_kwargs={"namespace": indexNs})
@@ -215,7 +220,7 @@ def GetRrrAnswer(history, indexNs, indexType, question, indexName):
             try:
                 returnField = ["metadata", "content", "vector_score"]
                 vectorField = "content_vector"
-                results = performRedisSearch(question, indexNs, 5, returnField, vectorField)
+                results = performRedisSearch(question, indexNs, topK, returnField, vectorField)
                 docs = [
                         Document(page_content=result.content, metadata=json.loads(result.metadata))
                         for result in results.docs
@@ -227,7 +232,7 @@ def GetRrrAnswer(history, indexNs, indexType, question, indexName):
             except Exception as e:
                 return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}
         elif indexType == "cogsearch":
-            r = performCogSearch(question, indexNs, 5)
+            r = performCogSearch(question, indexNs, topK)
             if r == None:
                     docs = [Document(page_content="No results found")]
             else :
@@ -254,7 +259,7 @@ def GetAnswer(history, approach, overrides, indexNs, indexType, question, indexN
     try:
       logging.info("Loading OpenAI")
       if (approach == 'rrr'):
-        r = GetRrrAnswer(history, indexNs, indexType, question, indexName)
+        r = GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, indexName)
       else:
           return json.dumps({"error": "unknown approach"})
       return r
@@ -301,7 +306,7 @@ def TransformValue(record, indexNs, indexType, question, indexName):
         # Getting the items from the values/data/text
         history = data['history']
         approach = data['approach']
-        overrides = data['approach']
+        overrides = data['overrides']
 
         summaryResponse = GetAnswer(history, approach, overrides, indexNs, indexType, question, indexName)
         return ({

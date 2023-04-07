@@ -32,7 +32,6 @@ const buttonStyles = makeStyles({
   },
 });
 
-
 const Upload = () => {
     const [files, setFiles] = useState<any>([])
     const [loading, setLoading] = useState(false)
@@ -46,6 +45,26 @@ const Upload = () => {
     const [missingIndexName, setMissingIndexName] = useState(false)
     const [parsedWebUrls, setParsedWebUrls] = useState<String[]>([''])
     const [webPages, setWebPages] = useState('')
+
+    const [selectedConnector, setSelectedConnector] = useState<IDropdownOption>();
+    const [connectorOptions, setConnectorOptions] = useState<any>([])
+    const [blobConnectionString, setBlobConnectionString] = useState('');
+    const [blobContainer, setBlobContainer] = useState('');
+    const [blobPrefix, setBlobPrefix] = useState('');
+    const [blobName, setBlobName] = useState('');
+    const [s3Bucket, setS3Bucket] = useState('');
+    const [s3Key, setS3Key] = useState('');
+    const [s3AccessKey, setS3AccessKey] = useState('');
+    const [s3SecretKey, setS3SecretKey] = useState('');
+    const [s3Prefix, setS3Prefix] = useState('');
+    const connectors = [
+      { key: 's3file', text: 'Amazon S3 File'},
+      { key: 's3Container', text: 'Amazon S3 Container'},
+      { key: 'rds', text: 'Amazon RDS' },
+      { key: 'adlscontainer', text: 'Azure Blob Container' },
+      { key: 'adlsfile', text: 'Azure Blob File' },
+    ]
+
 
     const labelStyles: Partial<IStyleSet<ILabelStyles>> = {
       root: { marginTop: 10 },
@@ -172,7 +191,9 @@ const Upload = () => {
       })
       setUploadText("File uploaded successfully.  Now indexing the document.")
 
-      await processDoc(String(selectedItem?.key), "files", (files.length > 1 ? "true" : "false"), (files.length > 1 ? indexName : files[0].name), files)
+      await processDoc(String(selectedItem?.key), "files", (files.length > 1 ? "true" : "false"), (files.length > 1 ? indexName : files[0].name), files,
+      blobConnectionString, blobContainer, blobPrefix, blobName,
+      s3Bucket, s3Key, s3AccessKey, s3SecretKey, s3Prefix)
       .then((response:string) => {
         if (response = "Success") {
           setUploadText("Completed Successfully.  You can now search for your document.")
@@ -216,7 +237,9 @@ const Upload = () => {
         await uploadFile(indexName + ".txt", fileContentsAsString, "text/plain")
         .then(async () => {
           setUploadText("File uploaded successfully.  Now indexing the document.")
-          await processDoc(String(selectedItem?.key), "webpages", "false", indexName, processPage)
+          await processDoc(String(selectedItem?.key), "webpages", "false", indexName, processPage, blobConnectionString,
+          blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
+          s3SecretKey, s3Prefix)
           .then((response) => {
             if (response == "Success") {
               setUploadText("Completed Successfully.  You can now search for your document.")
@@ -242,6 +265,89 @@ const Upload = () => {
       }
     }
 
+    const onProcessConnectors = async () => {
+      if (indexName == '') {
+        setMissingIndexName(true)
+        return
+      }
+      if (blobConnectionString == '' && (selectedConnector?.key == 'adlsfile' || selectedConnector?.key == 'adlscontainer')) {
+        setMissingIndexName(true)
+        return
+      }
+      if (blobContainer == '' && (selectedConnector?.key == 'adlsfile' || selectedConnector?.key == 'adlscontainer')) {
+        setMissingIndexName(true)
+        return
+      }
+      if (blobName == '' && selectedConnector?.key == 'adlsfile') {
+        setMissingIndexName(true)
+        return
+      }
+      if (s3AccessKey == '' && (selectedConnector?.key == 's3file' || selectedConnector?.key == 's3container')) {
+        setMissingIndexName(true)
+        return
+      }
+      if (s3SecretKey == '' && (selectedConnector?.key == 's3file' || selectedConnector?.key == 's3container')) {
+        setMissingIndexName(true)
+        return
+      }
+      if (s3Bucket == '' && (selectedConnector?.key == 's3file' || selectedConnector?.key == 's3container')) {
+        setMissingIndexName(true)
+        return
+      }
+      if (s3Key == '' && (selectedConnector?.key == 's3file')) {
+        setMissingIndexName(true)
+        return
+      }
+      setLoading(true)
+      setUploadText('Uploading your document...')
+      let count = 0
+
+      const fileContentsAsString = "Will Process the connector document and index it with IndexName as " + indexName
+      await uploadFile(indexName + ".txt", fileContentsAsString, "text/plain")
+      .then(async () => {
+        setUploadText("File uploaded successfully.  Now indexing the document.")
+        setUploadText('Processing data from your connector...')
+        await processDoc(String(selectedItem?.key), String(selectedConnector?.key), "false", indexName, '', blobConnectionString,
+        blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
+        s3SecretKey, s3Prefix )  
+        .then((response) => {
+          if (response == "Success") {
+            setUploadText("Completed Successfully.  You can now search for your document.")
+          }
+          else {
+            setUploadText("Failure to upload the document.")
+          }
+          setLoading(false)
+          setMissingIndexName(false)
+          setIndexName('')
+          setBlobConnectionString('')
+          setBlobContainer('')
+          setBlobPrefix('')
+          setBlobName('')
+          setS3Bucket('')
+          setS3Key('')
+          setS3AccessKey('')
+          setS3SecretKey('')
+          setS3Prefix('')
+          })
+        .catch((error : string) => {
+          setUploadText(error)
+          setLoading(false)
+          setMissingIndexName(false)
+          setIndexName('')
+          setBlobConnectionString('')
+          setBlobContainer('')
+          setBlobPrefix('')
+          setBlobName('')
+          setS3Bucket('')
+          setS3Key('')
+          setS3AccessKey('')
+          setS3SecretKey('')
+          setS3Prefix('')
+        })
+      })
+    }
+
     const onMultipleDocs = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
         setMultipleDocs(!!checked);
     };
@@ -260,8 +366,50 @@ const Upload = () => {
       setParsedWebUrls(webPage);
     };
 
+    const onConnectorChange = (event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedConnector(item);
+    };
+
+    const onBlobConnectionString = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setBlobConnectionString(newValue || "");
+    };
+    
+    const onBlobContainer = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setBlobContainer(newValue || "");
+    };
+    
+    const onBlobPrefix = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setBlobPrefix(newValue || "");
+    };
+
+    const onBlobName = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setBlobName(newValue || "");
+    };
+
+    const onS3Bucket = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setS3Bucket(newValue || "");
+    };
+    
+    const onS3Key = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setS3Key(newValue || "");
+    };
+    
+    const onS3AccessKey = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setS3AccessKey(newValue || "");
+    };
+
+    const onS3SecretKey = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setS3SecretKey(newValue || "");
+    };  
+    
+    const onS3Prefix = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setS3Prefix(newValue || "");
+    };  
+
     useEffect(() => {
       setSelectedItem(options[0])
+      setConnectorOptions(connectors)
+      setSelectedConnector(connectors[0])
     }, [])
 
     return (
@@ -348,6 +496,111 @@ const Upload = () => {
                     </Stack.Item>
                     <Stack.Item grow>
                         <PrimaryButton text="Process Pages" onClick={onProcessWebPages}  />
+                        <h2 className={styles.chatEmptyStateSubtitle}>
+                          <TextField disabled={true} label={uploadText} />
+                        </h2>
+                    </Stack.Item>
+                  </Stack>
+                </Stack>
+              </PivotItem>
+              <PivotItem headerText="Connectors">
+                <Stack enableScopedSelectors tokens={outerStackTokens}>
+                  <Stack enableScopedSelectors styles={stackStyles} tokens={innerStackTokens}>
+                    <Stack.Item grow={2} styles={stackItemStyles}>
+                        <Dropdown
+                            selectedKey={selectedConnector ? selectedConnector.key : undefined}
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onChange={onConnectorChange}
+                            placeholder="Select an Connector"
+                            options={connectorOptions}
+                            styles={dropdownStyles}
+                        />
+                        <h4 className={styles.chatEmptyStateSubtitle}>
+                          Note : Currently only PDF files are supported from cloud storage services
+                        </h4>
+                    </Stack.Item>
+                    <Stack.Item>
+                      <TextField onChange={onChangeIndexName} 
+                          styles={{root: {width: '400px'}}}
+                          errorMessage={!missingIndexName ? '' : "Index name is required"}
+                          value = {indexName}
+                          label="Index Name" />
+                    </Stack.Item>
+                    <Stack.Item grow>
+                    {(selectedConnector?.key === 'adlscontainer' || selectedConnector?.key === 'adlsfile') && (
+                        <div>
+                          <TextField onChange={onBlobConnectionString} 
+                            styles={{root: {width: '700px'}}}
+                            errorMessage={!missingIndexName ? '' : "Connection String is required"}
+                            value = {blobConnectionString}
+                            label="Connection String" />
+                          <div>
+                            <TextField onChange={onBlobContainer} 
+                              styles={{root: {width: '200px'}}}
+                              errorMessage={!missingIndexName ? '' : "Container Name required"}
+                              value = {blobContainer}
+                              label="Container Name" />
+                          </div>
+                        </div>
+                    )}
+                    {(selectedConnector?.key === 'adlscontainer') && (
+                        <div>
+                          <TextField onChange={onBlobPrefix} 
+                              styles={{root: {width: '150px'}}}
+                              value = {blobPrefix}
+                              label="Prefix Name" />
+                        </div>
+                    )}
+                    {(selectedConnector?.key === 'adlsfile') && (
+                        <div>
+                          <TextField onChange={onBlobName} 
+                              styles={{root: {width: '450px'}}}
+                              value = {blobName}
+                              errorMessage={!missingIndexName ? '' : "Blob Name required"}
+                              label="Blob Name" />
+                        </div>
+                    )}
+                    {(selectedConnector?.key === 's3file' || selectedConnector?.key === 's3Container') && (
+                        <div>
+                          <TextField onChange={onS3Bucket} 
+                            styles={{root: {width: '200px'}}}
+                            errorMessage={!missingIndexName ? '' : "S3 Bucket is required"}
+                            value = {s3Bucket}
+                            label="S3 Bucket" />
+                          <div>
+                            <TextField onChange={onS3AccessKey} 
+                              styles={{root: {width: '300px'}}}
+                              errorMessage={!missingIndexName ? '' : "S3 Access Key required"}
+                              value = {s3AccessKey}
+                              label="S3 Access Key" />
+                            <TextField onChange={onS3SecretKey} 
+                              styles={{root: {width: '400px'}}}
+                              errorMessage={!missingIndexName ? '' : "S3 Secret Key required"}
+                              value = {s3SecretKey}
+                              label="S3 Secret Key" />
+                          </div>
+                        </div>
+                    )}
+                    {(selectedConnector?.key === 's3Container') && (
+                        <div>
+                          <TextField onChange={onS3Prefix} 
+                              styles={{root: {width: '150px'}}}
+                              value = {s3Prefix}
+                              label="Prefix Name" />
+                        </div>
+                    )}
+                    {(selectedConnector?.key === 's3file') && (
+                        <div>
+                          <TextField onChange={onS3Key} 
+                              styles={{root: {width: '450px'}}}
+                              value = {s3Key}
+                              errorMessage={!missingIndexName ? '' : "S3 Key is required"}
+                              label="S3 Key" />
+                        </div>
+                    )}
+                    </Stack.Item>
+                    <Stack.Item grow>
+                        <PrimaryButton text="Process Documents" onClick={onProcessConnectors}  />
                         <h2 className={styles.chatEmptyStateSubtitle}>
                           <TextField disabled={true} label={uploadText} />
                         </h2>

@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+      "module": "nodenext",
+      "target": "ESNext",
+      "outDir": "dist",
+      "rootDir": ".",
+      "sourceMap": true,
+      "strict": false,
+      "resolveJsonModule": true,
+      "moduleResolution": "Node"
+    }
+  }

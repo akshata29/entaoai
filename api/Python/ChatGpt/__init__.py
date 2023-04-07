@@ -3,20 +3,10 @@ import azure.functions as func
 import openai
 from langchain.embeddings.openai import OpenAIEmbeddings
 import os
-from langchain.llms import OpenAIChat
-from datetime import datetime, timedelta
 from langchain.vectorstores import Pinecone
 import pinecone
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.prompts import PromptTemplate
-from langchain.embeddings.openai import OpenAIEmbeddings
-import pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.chains import VectorDBQAWithSourcesChain
-from langchain.llms.openai import OpenAI, AzureOpenAI
 from langchain.docstore.document import Document
-#from langchain.vectorstores.redis import Redis
-from redis import Redis
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
 
@@ -34,14 +24,10 @@ PineconeKey = os.environ['PineconeKey']
 VsIndexName = os.environ['VsIndexName']
 OpenAiChat = os.environ['OpenAiChat']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
-#RedisAddress = os.environ['RedisAddress']
-#RedisPassword = os.environ['RedisPassword']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
-#RedisPort = os.environ['RedisPort']
 SearchService = os.environ['SearchService']
 SearchKey = os.environ['SearchKey']
 
-#redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -98,7 +84,7 @@ def getChatHistory(history, includeLastTurn=True, maxTokens=1000) -> str:
             break
     return historyText
 
-def GetRrrAnswer(history, indexNs, indexType):
+def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     promptPrefix = """<|im_start|>system
     Be brief in your answers.
     Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
@@ -134,6 +120,10 @@ def GetRrrAnswer(history, indexNs, indexType):
     openai.api_version = OpenAiVersion
     openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
+    topK = overrides.get("top") or 5
+    temperature = overrides.get("temperature") or 0.3
+    tokenLength = overrides.get('tokenLength') or 500
+    logging.info("Search for Top " + str(topK))
     # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
     optimizedPrompt = qaPromptTemplate.format(chat_history=getChatHistory(history, includeLastTurn=False),
                                               question=history[-1]["user"])
@@ -144,8 +134,9 @@ def GetRrrAnswer(history, indexNs, indexType):
         completion = openai.Completion.create(
             engine=OpenAiDavinci,
             prompt=optimizedPrompt,
-            temperature=0.0,
-            max_tokens=32,
+            temperature=temperature,
+            #max_tokens=32,
+            max_tokens=tokenLength,
             n=1,
             stop=["\n"])
         q = completion.choices[0].text
@@ -163,7 +154,7 @@ def GetRrrAnswer(history, indexNs, indexType):
     if indexType == 'pinecone':
         vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings)
         logging.info("Pinecone Setup done to search against - " + indexNs + " for question " + q)
-        docs = vectorDb.similarity_search(q, k=5, namespace=indexNs)
+        docs = vectorDb.similarity_search(q, k=topK, namespace=indexNs)
         logging.info("Executed Index and found " + str(len(docs)))
     elif indexType == "redis":
         try:
@@ -172,7 +163,7 @@ def GetRrrAnswer(history, indexNs, indexType):
             #docs = vectorDb.similarity_search(q, k=5)
             returnField = ["metadata", "content", "vector_score"]
             vectorField = "content_vector"
-            results = performRedisSearch(q, indexNs, 5, returnField, vectorField)
+            results = performRedisSearch(q, indexNs, topK, returnField, vectorField)
             docs = [
                     Document(page_content=result.content, metadata=json.loads(result.metadata))
                     for result in results.docs
@@ -180,7 +171,7 @@ def GetRrrAnswer(history, indexNs, indexType):
         except Exception as e:
             return {"data_points": "", "answer": "Working on fixing Redis Implementation " + str(e), "thoughts": ""}
     elif indexType == "cogsearch":
-        r = performCogSearch(q, indexNs, 5)
+        r = performCogSearch(q, indexNs, topK)
         if r == None:
                 docs = [Document(page_content="No results found")]
         else :
@@ -206,8 +197,10 @@ def GetRrrAnswer(history, indexNs, indexType):
         completion = openai.Completion.create(
             engine=OpenAiChat,
             prompt=finalPrompt,
-            temperature=0.7,
-            max_tokens=1024,
+            #temperature=0.7,
+            #max_tokens=1024,
+            temperature=temperature,
+            max_tokens=tokenLength,
             n=1,
             stop=["<|im_end|>", "<|im_start|>"])
     except Exception as e:
@@ -237,7 +230,7 @@ def GetAnswer(history, approach, overrides, indexNs, indexType):
     try:
       logging.info("Loading OpenAI")
       if (approach == 'rrr'):
-        r = GetRrrAnswer(history, indexNs, indexType)
+        r = GetRrrAnswer(history, approach, overrides, indexNs, indexType)
       else:
           return json.dumps({"error": "unknown approach"})
       return r
@@ -284,7 +277,7 @@ def TransformValue(record, indexNs, indexType):
         # Getting the items from the values/data/text
         history = data['history']
         approach = data['approach']
-        overrides = data['approach']
+        overrides = data['overrides']
 
         summaryResponse = GetAnswer(history, approach, overrides, indexNs, indexType)
         return ({

@@ -15,6 +15,7 @@ import { QuestionInput } from "../../components/QuestionInput";
 import { UserChatMessage } from "../../components/UserChatMessage";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
 import { ClearChatButton } from "../../components/ClearChatButton";
+import { SettingsButton } from "../../components/SettingsButton";
 
 import { BlobServiceClient } from "@azure/storage-blob";
 
@@ -27,6 +28,8 @@ const ChatGpt = () => {
     const [excludeCategory, setExcludeCategory] = useState<string>("");
     const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(false);
     const [options, setOptions] = useState<any>([])
+    const [temperature, setTemperature] = useState<number>(0.3);
+    const [tokenLength, setTokenLength] = useState<number>(500);
 
     const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
@@ -69,9 +72,11 @@ const ChatGpt = () => {
                     promptTemplate: promptTemplate.length === 0 ? undefined : promptTemplate,
                     excludeCategory: excludeCategory.length === 0 ? undefined : excludeCategory,
                     top: retrieveCount,
+                    temperature: temperature,
                     semanticRanker: useSemanticRanker,
                     semanticCaptions: useSemanticCaptions,
-                    suggestFollowupQuestions: useSuggestFollowupQuestions
+                    suggestFollowupQuestions: useSuggestFollowupQuestions,
+                    tokenLength: tokenLength
                 }
             };
             const result = await chatGptApi(request, String(selectedItem?.key), String(selectedIndex));
@@ -100,9 +105,11 @@ const ChatGpt = () => {
                     promptTemplate: promptTemplate.length === 0 ? undefined : promptTemplate,
                     excludeCategory: excludeCategory.length === 0 ? undefined : excludeCategory,
                     top: retrieveCount,
+                    temperature: temperature,
                     semanticRanker: useSemanticRanker,
                     semanticCaptions: useSemanticCaptions,
-                    suggestFollowupQuestions: useSuggestFollowupQuestions
+                    suggestFollowupQuestions: useSuggestFollowupQuestions,
+                    tokenLength: tokenLength
                 }
             };
             const result = await chatGpt3Api(question, request, String(selectedItem?.key), String(selectedIndex));
@@ -256,15 +263,23 @@ const ChatGpt = () => {
         setUseSuggestFollowupQuestions(!!checked);
     };
 
-    const onShowCitation = (citation: string, index: number) => {
-        // if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab && selectedAnswer === index) {
-        //     setActiveAnalysisPanelTab(undefined);
-        // } else {
-        //     setActiveCitation(citation);
-        //     setActiveAnalysisPanelTab(AnalysisPanelTabs.CitationTab);
-        // }
+    const onTemperatureChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
+        setTemperature(parseInt(newValue || "0.3"));
+    };
 
-        // setSelectedAnswer(index);
+    const onTokenLengthChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
+        setTokenLength(parseInt(newValue || "500"));
+    };
+
+    const onShowCitation = (citation: string, index: number) => {
+        if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab && selectedAnswer === index) {
+            setActiveAnalysisPanelTab(undefined);
+        } else {
+            setActiveCitation(citation);
+            setActiveAnalysisPanelTab(AnalysisPanelTabs.CitationTab);
+        }
+
+        setSelectedAnswer(index);
     };
 
     const onToggleTab = (tab: AnalysisPanelTabs, index: number) => {
@@ -279,21 +294,6 @@ const ChatGpt = () => {
 
     return (
         <div className={styles.root}>
-            <div>
-                <div className={styles.commandsContainer}>
-                    <DefaultButton onClick={refreshBlob}>Refresh Doc & Index</DefaultButton>
-                    <Dropdown
-                        selectedKey={selectedItem ? selectedItem.key : undefined}
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onChange={onChange}
-                        placeholder="Select an PDF"
-                        options={options}
-                        styles={dropdownStyles}
-                    />
-                    &nbsp;
-                    <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
-                </div>
-            </div>
             <div className={styles.container}>
                 <Pivot aria-label="Chat">
                     <PivotItem
@@ -304,6 +304,7 @@ const ChatGpt = () => {
                     >
                         <div className={styles.commandsContainer}>
                             <ClearChatButton className={styles.commandButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
+                            <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                         </div>
                          <div className={styles.chatRoot}>
                             <div className={styles.chatContainer}>
@@ -382,7 +383,7 @@ const ChatGpt = () => {
                             )}
 
                             <Panel
-                                headerText="Configure answer generation"
+                                headerText="Configure Chat Interaction"
                                 isOpen={isConfigPanelOpen}
                                 isBlocking={false}
                                 onDismiss={() => setIsConfigPanelOpen(false)}
@@ -390,6 +391,20 @@ const ChatGpt = () => {
                                 onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
                                 isFooterAtBottom={true}
                             >
+                                <br/>
+                                <div>
+                                    <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
+                                    <Dropdown
+                                        selectedKey={selectedItem ? selectedItem.key : undefined}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onChange={onChange}
+                                        placeholder="Select an PDF"
+                                        options={options}
+                                        styles={dropdownStyles}
+                                    />
+                                    &nbsp;
+                                    <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                                </div>
                                 <TextField
                                     className={styles.chatSettingsSeparator}
                                     defaultValue={promptTemplate}
@@ -403,11 +418,27 @@ const ChatGpt = () => {
                                     className={styles.chatSettingsSeparator}
                                     label="Retrieve this many documents from search:"
                                     min={1}
-                                    max={50}
+                                    max={7}
                                     defaultValue={retrieveCount.toString()}
                                     onChange={onRetrieveCountChange}
                                 />
-                                <TextField className={styles.chatSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
+                                <SpinButton
+                                    className={styles.oneshotSettingsSeparator}
+                                    label="Set the Temperature:"
+                                    min={0.0}
+                                    max={1.0}
+                                    defaultValue={temperature.toString()}
+                                    onChange={onTemperatureChange}
+                                />
+                                <SpinButton
+                                    className={styles.oneshotSettingsSeparator}
+                                    label="Max Length (Tokens):"
+                                    min={0}
+                                    max={4000}
+                                    defaultValue={tokenLength.toString()}
+                                    onChange={onTokenLengthChange}
+                                />
+                                {/* <TextField className={styles.chatSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
                                 <Checkbox
                                     className={styles.chatSettingsSeparator}
                                     checked={useSemanticRanker}
@@ -426,7 +457,7 @@ const ChatGpt = () => {
                                     checked={useSuggestFollowupQuestions}
                                     label="Suggest follow-up questions"
                                     onChange={onUseSuggestFollowupQuestionsChange}
-                                />
+                                /> */}
                             </Panel>
                         </div>
                     </PivotItem>
@@ -438,6 +469,7 @@ const ChatGpt = () => {
                     >
                         <div className={styles.commandsContainer}>
                             <ClearChatButton className={styles.commandButton} onClick={clearChat3} disabled={!lastQuestionRef3.current || isLoading} />
+                            <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                         </div>
                          <div className={styles.chatRoot}>
                             <div className={styles.chatContainer}>
@@ -514,6 +546,84 @@ const ChatGpt = () => {
                                     activeTab={activeAnalysisPanelTab}
                                 />
                             )}
+
+                            <Panel
+                                headerText="Configure Chat Interaction"
+                                isOpen={isConfigPanelOpen}
+                                isBlocking={false}
+                                onDismiss={() => setIsConfigPanelOpen(false)}
+                                closeButtonAriaLabel="Close"
+                                onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
+                                isFooterAtBottom={true}
+                            >
+                                <br/>
+                                <div>
+                                    <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
+                                    <Dropdown
+                                        selectedKey={selectedItem ? selectedItem.key : undefined}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onChange={onChange}
+                                        placeholder="Select an PDF"
+                                        options={options}
+                                        styles={dropdownStyles}
+                                    />
+                                    &nbsp;
+                                    <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                                </div>
+                                <TextField
+                                    className={styles.chatSettingsSeparator}
+                                    defaultValue={promptTemplate}
+                                    label="Override prompt template"
+                                    multiline
+                                    autoAdjustHeight
+                                    onChange={onPromptTemplateChange}
+                                />
+
+                                <SpinButton
+                                    className={styles.chatSettingsSeparator}
+                                    label="Retrieve this many documents from search:"
+                                    min={1}
+                                    max={7}
+                                    defaultValue={retrieveCount.toString()}
+                                    onChange={onRetrieveCountChange}
+                                />
+                                <SpinButton
+                                    className={styles.oneshotSettingsSeparator}
+                                    label="Set the Temperature:"
+                                    min={0.0}
+                                    max={1.0}
+                                    defaultValue={temperature.toString()}
+                                    onChange={onTemperatureChange}
+                                />
+                                <SpinButton
+                                    className={styles.oneshotSettingsSeparator}
+                                    label="Max Length (Tokens):"
+                                    min={0}
+                                    max={4000}
+                                    defaultValue={tokenLength.toString()}
+                                    onChange={onTokenLengthChange}
+                                />
+                                {/* <TextField className={styles.chatSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
+                                <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useSemanticRanker}
+                                    label="Use semantic ranker for retrieval"
+                                    onChange={onUseSemanticRankerChange}
+                                />
+                                <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useSemanticCaptions}
+                                    label="Use query-contextual summaries instead of whole documents"
+                                    onChange={onUseSemanticCaptionsChange}
+                                    disabled={!useSemanticRanker}
+                                />
+                                <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useSuggestFollowupQuestions}
+                                    label="Suggest follow-up questions"
+                                    onChange={onUseSuggestFollowupQuestionsChange}
+                                /> */}
+                            </Panel>
                         </div>
                     </PivotItem>
               </Pivot>

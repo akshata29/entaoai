@@ -20,6 +20,11 @@ const Layout = () => {
                                 </NavLink>
                             </li>
                             {/* <li>
+                                <NavLink to="/botchat" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}> 
+                                    Bot Chat&nbsp;&nbsp;
+                                </NavLink>
+                            </li> */}
+                            {/* <li>
                                 <NavLink to="/chat" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}> 
                                     Chat Stream&nbsp;&nbsp;
                                 </NavLink>

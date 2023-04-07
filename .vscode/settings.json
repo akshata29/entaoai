@@ -5,7 +5,6 @@
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",
-    "debug.internalConsoleOptions": "neverOpen",
     "appService.zipIgnorePattern": [
         "node_modules{,/**}",
         ".vscode{,/**}"

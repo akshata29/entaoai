@@ -21,7 +21,20 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
                 {
                   recordId: 0,
                   data: {
-                    text: ''
+                    text: '',
+                    approach: options.approach,
+                    overrides: {
+                        semantic_ranker: options.overrides?.semanticRanker,
+                        semantic_captions: options.overrides?.semanticCaptions,
+                        top: options.overrides?.top,
+                        temperature: options.overrides?.temperature,
+                        prompt_template: options.overrides?.promptTemplate,
+                        prompt_template_prefix: options.overrides?.promptTemplatePrefix,
+                        prompt_template_suffix: options.overrides?.promptTemplateSuffix,
+                        exclude_category: options.overrides?.excludeCategory,
+                        chainType: options.overrides?.chainType,
+                        tokenLength: options.overrides?.tokenLength,
+                    }
                   }
                 }
               ]
@@ -36,7 +49,6 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
     return parsedResponse.values[0].data
 
 }
-
 export async function chatGptApi(options: ChatRequest, indexNs: string, indexType:string): Promise<AskResponse> {
     const response = await fetch('/chat' , {
         method: "POST",
@@ -53,11 +65,21 @@ export async function chatGptApi(options: ChatRequest, indexNs: string, indexTyp
                 data: {
                   history: options.history,
                   approach: 'rrr',
+                  // overrides: {
+                  //   semantic_ranker: true,
+                  //   semantic_captions: false,
+                  //   top: 3,
+                  //   suggest_followup_questions: false
+                  // }
                   overrides: {
-                    semantic_ranker: true,
-                    semantic_captions: false,
-                    top: 3,
-                    suggest_followup_questions: false
+                    semantic_ranker: options.overrides?.semanticRanker,
+                    semantic_captions: options.overrides?.semanticCaptions,
+                    top: options.overrides?.top,
+                    temperature: options.overrides?.temperature,
+                    prompt_template: options.overrides?.promptTemplate,
+                    prompt_template_prefix: options.overrides?.promptTemplatePrefix,
+                    prompt_template_suffix: options.overrides?.promptTemplateSuffix,
+                    suggest_followup_questions: options.overrides?.suggestFollowupQuestions
                   }
                 }
               }
@@ -89,11 +111,21 @@ export async function chatGpt3Api(question: string, options: ChatRequest, indexN
               data: {
                 history: options.history,
                 approach: 'rrr',
+                // overrides: {
+                //   semantic_ranker: true,
+                //   semantic_captions: false,
+                //   top: 3,
+                //   suggest_followup_questions: false
+                // }
                 overrides: {
-                  semantic_ranker: true,
-                  semantic_captions: false,
-                  top: 3,
-                  suggest_followup_questions: false
+                  semantic_ranker: options.overrides?.semanticRanker,
+                  semantic_captions: options.overrides?.semanticCaptions,
+                  top: options.overrides?.top,
+                  temperature: options.overrides?.temperature,
+                  prompt_template: options.overrides?.promptTemplate,
+                  prompt_template_prefix: options.overrides?.promptTemplatePrefix,
+                  prompt_template_suffix: options.overrides?.promptTemplateSuffix,
+                  suggest_followup_questions: options.overrides?.suggestFollowupQuestions
                 }
               }
             }
@@ -159,7 +191,9 @@ export async function uploadBinaryFile(formData:any) : Promise<string> {
   return "Success";
 }
 
-export async function processDoc(indexType: string, loadType : string, multiple: string, indexName : string, files: any) : Promise<string> {
+export async function processDoc(indexType: string, loadType : string, multiple: string, indexName : string, files: any,
+  blobConnectionString : string, blobContainer : string, blobPrefix : string, blobName : string,
+  s3Bucket : string, s3Key : string, s3AccessKey : string, s3SecretKey : string, s3Prefix : string) : Promise<string> {
   const response = await fetch('/processDoc', {
     method: "POST",
     headers: {
@@ -175,7 +209,16 @@ export async function processDoc(indexType: string, loadType : string, multiple:
           {
             recordId: 0,
             data: {
-              text: files
+              text: files,
+              blobConnectionString: blobConnectionString,
+              blobContainer : blobContainer,
+              blobPrefix : blobPrefix,
+              blobName : blobName,
+              s3Bucket: s3Bucket,
+              s3Key : s3Key,
+              s3AccessKey : s3AccessKey,
+              s3SecretKey : s3SecretKey,
+              s3Prefix : s3Prefix
             }
           }
         ]

@@ -1,9 +1,8 @@
 import logging, json, os
 import azure.functions as func
 import openai
-from langchain.llms.openai import OpenAI, AzureOpenAI
+from langchain.llms.openai import AzureOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.chains.summarize import load_summarize_chain
 import os
 from langchain.vectorstores import Pinecone
 import pinecone
@@ -11,11 +10,10 @@ from langchain.chains import VectorDBQAWithSourcesChain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import RegexParser
-#from langchain.vectorstores.redis import Redis
 from redis import Redis
 import numpy as np
 from langchain.docstore.document import Document
-from langchain.vectorstores import Weaviate
+#from langchain.vectorstores import Weaviate
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
 
@@ -32,17 +30,10 @@ OpenAiDocContainer = os.environ['OpenAiDocContainer']
 PineconeEnv = os.environ['PineconeEnv']
 PineconeKey = os.environ['PineconeKey']
 VsIndexName = os.environ['VsIndexName']
-#RedisAddress = os.environ['RedisAddress']
-#RedisPassword = os.environ['RedisPassword']
-#RedisPort = os.environ['RedisPort']
-#WeaviateUrl = os.environ['WeaviateUrl']
 SearchService = os.environ['SearchService']
 SearchKey = os.environ['SearchKey']
 
-#redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
-#redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
-
-def FindAnswer(chainType, question, indexType, value, indexNs):
+def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrides):
     logging.info("Calling FindAnswer Open AI")
     openai.api_type = "azure"
     openai.api_key = OpenAiKey
@@ -54,167 +45,176 @@ def FindAnswer(chainType, question, indexType, value, indexNs):
     # https://langchain.readthedocs.io/en/latest/modules/indexes/chain_examples/qa_with_sources.html
 
     try:
-      llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                temperature=os.environ['Temperature'] or 0.3,
-                openai_api_key=OpenAiKey,
-                max_tokens=os.environ['MaxTokens'] or 500,
-                batch_size=10)
-      #llm = AzureOpenAI(deployment_name=OpenAiDavinci, model_name="text-davinci-003",  openai_api_key=OpenAiKey)
+        topK = overrides.get("top") or 5
+        overrideChain = overrides.get("chainType") or 'stuff'
+        temperature = overrides.get("temperature") or 0.3
+        tokenLength = overrides.get('tokenLength') or 500
+        logging.info("Search for Top " + str(topK) + " and chainType is " + str(overrideChain))
+        if (approach == 'rtr'):
+            llm = AzureOpenAI(deployment_name=OpenAiDavinci,
+                    temperature=temperature,
+                    openai_api_key=OpenAiKey,
+                    max_tokens=tokenLength,
+                    batch_size=10)
 
-      logging.info("LLM Setup done")
-      embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+            logging.info("LLM Setup done")
+            embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
 
-      if (chainType == "stuff"):
-        template = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
-        If you don't know the answer, just say that you don't know. Don't try to make up an answer.
-        ALWAYS return a "SOURCES" part in your answer.
+            if (overrideChain == "stuff"):
+                template = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
+                If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+                ALWAYS return a "SOURCES" part in your answer.
 
-        QUESTION: {question}
-        =========
-        {summaries}
-        =========
-        """
-        qaPrompt = PromptTemplate(template=template, input_variables=["summaries", "question"])
-        qaChain = load_qa_with_sources_chain(llm, chain_type=chainType, prompt=qaPrompt)
-      elif (chainType == "map_rerank"):
-        outputParser = RegexParser(
-            regex=r"(.*?)\nScore: (.*)",
-            output_keys=["answer", "score"],
-        )
+                QUESTION: {question}
+                =========
+                {summaries}
+                =========
+                """
+                qaPrompt = PromptTemplate(template=template, input_variables=["summaries", "question"])
+                qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, prompt=qaPrompt)
+            elif (overrideChain == "map_rerank"):
+                outputParser = RegexParser(
+                    regex=r"(.*?)\nScore: (.*)",
+                    output_keys=["answer", "score"],
+                )
 
-        promptTemplate = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+                promptTemplate = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
-        In addition to giving an answer, also return a score of how fully it answered the user's question. This should be in the following format:
+                In addition to giving an answer, also return a score of how fully it answered the user's question. This should be in the following format:
 
-        Question: [question here]
-        [answer here]
-        Score: [score between 0 and 100]
+                Question: [question here]
+                [answer here]
+                Score: [score between 0 and 100]
 
-        Begin!
+                Begin!
 
-        Context:
-        ---------
-        {context}
-        ---------
-        Question: {question}
-        """
-        qaPrompt = PromptTemplate(
-            template=promptTemplate,
-            input_variables=["context", "question"],
-            output_parser=outputParser,
-        )
-        qaChain = load_qa_with_sources_chain(llm, chain_type=chainType,
-                                             metadata_keys=['source'], prompt=qaPrompt)
-      elif (chainType == "map_reduce"):
+                Context:
+                ---------
+                {context}
+                ---------
+                Question: {question}
+                """
+                qaPrompt = PromptTemplate(
+                    template=promptTemplate,
+                    input_variables=["context", "question"],
+                    output_parser=outputParser,
+                )
+                qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, metadata_keys=['source'], prompt=qaPrompt)
+            elif (overrideChain == "map_reduce"):
 
-          qaTemplate = """Use the following portion of a long document to see if any of the text is relevant to answer the question.
-          Return any relevant text.
-          {context}
-          Question: {question}
-          Relevant text, if any :"""
+                qaTemplate = """Use the following portion of a long document to see if any of the text is relevant to answer the question.
+                Return any relevant text.
+                {context}
+                Question: {question}
+                Relevant text, if any :"""
 
-          qaPrompt = PromptTemplate(
-              template=qaTemplate, input_variables=["context", "question"]
-          )
+                qaPrompt = PromptTemplate(
+                    template=qaTemplate, input_variables=["context", "question"]
+                )
 
-          combinePromptTemplate = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
-          If you don't know the answer, just say that you don't know. Don't try to make up an answer.
-          ALWAYS return a "SOURCES" part in your answer.
+                combinePromptTemplate = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
+                If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+                ALWAYS return a "SOURCES" part in your answer.
 
-          QUESTION: {question}
-          =========
-          {summaries}
-          =========
-          """
-          combinePrompt = PromptTemplate(
-              template=combinePromptTemplate, input_variables=["summaries", "question"]
-          )
-          qaChain = load_qa_with_sources_chain(llm,
-            chain_type=chainType, question_prompt=qaPrompt, combine_prompt=combinePrompt)
+                QUESTION: {question}
+                =========
+                {summaries}
+                =========
+                """
+                combinePrompt = PromptTemplate(
+                    template=combinePromptTemplate, input_variables=["summaries", "question"]
+                )
+                qaChain = load_qa_with_sources_chain(llm,
+                    chain_type=overrideChain, question_prompt=qaPrompt, combine_prompt=combinePrompt)
+            elif (overrideChain == "refine"):
+                refineTemplate = (
+                    "The original question is as follows: {question}\n"
+                    "We have provided an existing answer, including sources: {existing_answer}\n"
+                    "We have the opportunity to refine the existing answer"
+                    "(only if needed) with some more context below.\n"
+                    "------------\n"
+                    "{context_str}\n"
+                    "------------\n"
+                    "Given the new context, refine the original answer to better "
+                    "If you do update it, please update the sources as well. "
+                    "If the context isn't useful, return the original answer."
+                )
+                refinePrompt = PromptTemplate(
+                    input_variables=["question", "existing_answer", "context_str"],
+                    template=refineTemplate,
+                )
 
-      elif (chainType == "refine"):
-        refineTemplate = (
-            "The original question is as follows: {question}\n"
-            "We have provided an existing answer, including sources: {existing_answer}\n"
-            "We have the opportunity to refine the existing answer"
-            "(only if needed) with some more context below.\n"
-            "------------\n"
-            "{context_str}\n"
-            "------------\n"
-            "Given the new context, refine the original answer to better "
-            "If you do update it, please update the sources as well. "
-            "If the context isn't useful, return the original answer."
-        )
-        refinePrompt = PromptTemplate(
-            input_variables=["question", "existing_answer", "context_str"],
-            template=refineTemplate,
-        )
+                qaTemplate = (
+                    "Context information is below. \n"
+                    "---------------------\n"
+                    "{context_str}"
+                    "\n---------------------\n"
+                    "Given the context information and not prior knowledge, "
+                    "answer the question: {question}\n"
+                )
+                qaPrompt = PromptTemplate(
+                    input_variables=["context_str", "question"], template=qaTemplate
+                )
+                qaChain = load_qa_with_sources_chain(llm,
+                chain_type=overrideChain, question_prompt=qaPrompt, refine_prompt=refinePrompt)
 
-        qaTemplate = (
-            "Context information is below. \n"
-            "---------------------\n"
-            "{context_str}"
-            "\n---------------------\n"
-            "Given the context information and not prior knowledge, "
-            "answer the question: {question}\n"
-        )
-        qaPrompt = PromptTemplate(
-            input_variables=["context_str", "question"], template=qaTemplate
-        )
-        qaChain = load_qa_with_sources_chain(llm,
-          chain_type=chainType, question_prompt=qaPrompt, refine_prompt=refinePrompt)
-
-      #chain = VectorDBQAWithSourcesChain.from_chain_type(llm, chain_type=chainType, vectorstore=vectorDb)
-      if indexType == 'pinecone':
-        vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
-        logging.info("Pinecone Setup done")
-        chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, 
-                                         search_kwargs={"namespace": indexNs})
-        answer = chain({"question": question}, return_only_outputs=True)
-        return {"data_points": [], "answer": answer['answer'].replace("Answer: ", ''), "thoughts": answer['sources'], "error": ""}
-      elif indexType == "redis":
-        try:
-            returnField = ["metadata", "content", "vector_score"]
-            vectorField = "content_vector"
-            results = performRedisSearch(question, indexNs, 5, returnField, vectorField)
-            docs = [
-                    Document(page_content=result.content, metadata=json.loads(result.metadata))
-                    for result in results.docs
-            ]
-            answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-            return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
-        except Exception as e:
-            return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}
-      elif indexType == "cogsearch":
-        try:
-            r = performCogSearch(question, indexNs, 5)
-            if r == None:
-                docs = [Document(page_content="No results found")]
-            else :
-                docs = [
-                    Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
-                    for doc in r
+            if indexType == 'pinecone':
+                vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
+                logging.info("Pinecone Setup done")
+                chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, k=topK, 
+                                                search_kwargs={"namespace": indexNs})
+                answer = chain({"question": question}, return_only_outputs=True)
+                return {"data_points": [], "answer": answer['answer'].replace("Answer: ", ''), "thoughts": answer['sources'], "error": ""}
+            elif indexType == "redis":
+                try:
+                    returnField = ["metadata", "content", "vector_score"]
+                    vectorField = "content_vector"
+                    results = performRedisSearch(question, indexNs, topK, returnField, vectorField)
+                    docs = [
+                            Document(page_content=result.content, metadata=json.loads(result.metadata))
+                            for result in results.docs
                     ]
-            answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-            return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
-        except Exception as e:
-            return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}    
-    #   elif indexType == "weaviate":
-    #         try:
-    #             import weaviate
-    #             client = weaviate.Client(url=WeaviateUrl)
-    #             logging.info("Client initialized")
-    #             weaviate = Weaviate(client, index_name=indexNs, text_key="content")
-    #             docs = weaviate.similarity_search(question, 5)
-    #             logging.info(docs)
-    #             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-    #             return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
-    #         except Exception as e:
-    #             logging.info("Exception occurred in weaviate " + str(e))
-    #             return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
-      elif indexType == 'milvus':
-          answer = "{'answer': 'TBD', 'sources': ''}"
-          return answer
+                    answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+                    return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
+                except Exception as e:
+                    return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}
+            elif indexType == "cogsearch":
+                try:
+                    r = performCogSearch(question, indexNs, topK)
+                    if r == None:
+                        docs = [Document(page_content="No results found")]
+                    else :
+                        docs = [
+                            Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
+                            for doc in r
+                            ]
+                    answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+                    return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
+                except Exception as e:
+                    return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}    
+            #   elif indexType == "weaviate":
+            #         try:
+            #             import weaviate
+            #             client = weaviate.Client(url=WeaviateUrl)
+            #             logging.info("Client initialized")
+            #             weaviate = Weaviate(client, index_name=indexNs, text_key="content")
+            #             docs = weaviate.similarity_search(question, topK)
+            #             logging.info(docs)
+            #             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+            #             return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
+            #         except Exception as e:
+            #             logging.info("Exception occurred in weaviate " + str(e))
+            #             return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
+            elif indexType == 'milvus':
+                answer = "{'answer': 'TBD', 'sources': ''}"
+                return answer
+        elif approach == 'rrr':
+            answer = "{'answer': 'TBD', 'sources': ''}"
+            return answer
+        elif approach == 'rca':
+            answer = "{'answer': 'TBD', 'sources': ''}"
+            return answer
+    
 
     except Exception as e:
       logging.info("Error in FindAnswer Open AI : " + str(e))
@@ -306,8 +306,10 @@ def TransformValue(chainType, question, indexType, record, indexNs):
     try:
         # Getting the items from the values/data/text
         value = data['text']
+        approach = data['approach']
+        overrides = data['overrides']
 
-        answer = FindAnswer(chainType, question, indexType, value, indexNs)
+        answer = FindAnswer(chainType, question, indexType, value, indexNs, approach, overrides)
         return ({
             "recordId": recordId,
             "data": answer

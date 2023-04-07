@@ -18,6 +18,8 @@
     "@pity/vite-plugin-react-markdown": "^0.1.1",
     "@react-spring/web": "^9.7.1",
     "azure-openai": "^0.0.15",
+    "botframework-webchat": "^4.15.7",
+    "botframework-webchat-core": "^4.15.7",
     "dompurify": "^3.0.1",
     "langchain": "^0.0.36",
     "react": "^18.2.0",

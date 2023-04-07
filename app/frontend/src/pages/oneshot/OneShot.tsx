@@ -11,6 +11,7 @@ import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel
 import { BlobServiceClient } from "@azure/storage-blob";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
+import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -19,6 +20,8 @@ const OneShot = () => {
     const [promptTemplatePrefix, setPromptTemplatePrefix] = useState<string>("");
     const [promptTemplateSuffix, setPromptTemplateSuffix] = useState<string>("");
     const [retrieveCount, setRetrieveCount] = useState<number>(3);
+    const [temperature, setTemperature] = useState<number>(0.3);
+    const [tokenLength, setTokenLength] = useState<number>(500);
     const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(true);
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
     const [excludeCategory, setExcludeCategory] = useState<string>("");
@@ -37,6 +40,7 @@ const OneShot = () => {
 
     const [activeCitation, setActiveCitation] = useState<string>();
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
+    const [selectedChain, setSelectedChain] = useState<IDropdownOption>();
 
     //const [selectedIndex, setSelectedIndex] = useState<IDropdownOption>();
     const [selectedIndex, setSelectedIndex] = useState<string>();
@@ -44,7 +48,15 @@ const OneShot = () => {
     const [exampleList, setExampleList] = useState<ExampleModel[]>([{text:'', value: ''}]);
     const [summary, setSummary] = useState<string>();
     const [qa, setQa] = useState<string>('');
-    const [exampleLoading, setExampleLoading] = useState(false)     
+    const [exampleLoading, setExampleLoading] = useState(false)
+    const [chainTypeOptions, setChainTypeOptions] = useState<any>([])
+
+    const chainType = [
+        { key: 'stuff', text: 'Stuff'},
+        { key: 'map_rerank', text: 'Map ReRank' },
+        { key: 'map_reduce', text: 'Map Reduce' },
+        { key: 'refine', text: 'Refine'},
+    ]
 
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
@@ -62,12 +74,15 @@ const OneShot = () => {
                     promptTemplate: promptTemplate.length === 0 ? undefined : promptTemplate,
                     promptTemplatePrefix: promptTemplatePrefix.length === 0 ? undefined : promptTemplatePrefix,
                     promptTemplateSuffix: promptTemplateSuffix.length === 0 ? undefined : promptTemplateSuffix,
-                    excludeCategory: excludeCategory.length === 0 ? undefined : excludeCategory,
                     top: retrieveCount,
+                    temperature: temperature,
                     semanticRanker: useSemanticRanker,
-                    semanticCaptions: useSemanticCaptions
+                    semanticCaptions: useSemanticCaptions,
+                    chainType: String(selectedChain?.key),
+                    tokenLength: tokenLength,
                 }
             };
+            console.log(request)
             const result = await askApi(request, String(selectedItem?.key), String(selectedIndex), 'stuff');
             setAnswer(result);
             // const mapReduceResult = await askApi(request, selectedItem?.key, 'pinecone', 'map-reduce');
@@ -95,6 +110,14 @@ const OneShot = () => {
 
     const onRetrieveCountChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
         setRetrieveCount(parseInt(newValue || "3"));
+    };
+
+    const onTemperatureChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
+        setTemperature(parseInt(newValue || "0.3"));
+    };
+
+    const onTokenLengthChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
+        setTokenLength(parseInt(newValue || "500"));
     };
 
     const onApproachChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
@@ -215,44 +238,43 @@ const OneShot = () => {
         })
     };
 
+    const onChainChange = (event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedChain(item);
+    };
+
     useEffect(() => {
         refreshBlob()
+        setChainTypeOptions(chainType)
+        setSelectedChain(chainType[0])
     }, [])
+
+    // const approaches: IChoiceGroupOption[] = [
+    //     {
+    //         key: Approaches.RetrieveThenRead,
+    //         text: "Retrieve-Then-Read"
+    //     },
+    //     {
+    //         key: Approaches.ReadRetrieveRead,
+    //         text: "Read-Retrieve-Read"
+    //     },
+    //     {
+    //         key: Approaches.ReadDecomposeAsk,
+    //         text: "Read-Decompose-Ask"
+    //     }
+    // ];
 
     const approaches: IChoiceGroupOption[] = [
         {
             key: Approaches.RetrieveThenRead,
             text: "Retrieve-Then-Read"
-        },
-        {
-            key: Approaches.ReadRetrieveRead,
-            text: "Read-Retrieve-Read"
-        },
-        {
-            key: Approaches.ReadDecomposeAsk,
-            text: "Read-Decompose-Ask"
         }
     ];
 
     return (
         <div className={styles.root}>
-            <div>
-                <div className={styles.commandsContainer}>
-                    <DefaultButton onClick={refreshBlob}>Refresh Doc & Index</DefaultButton>
-                    <Dropdown
-                        selectedKey={selectedItem ? selectedItem.key : undefined}
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onChange={onChange}
-                        placeholder="Select an PDF"
-                        options={options}
-                        styles={dropdownStyles}
-                    />
-                    &nbsp;
-                    <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
-                </div>
-            </div>
             <div className={styles.oneshotContainer}>
                 <div className={styles.oneshotTopSection}>
+                    <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                     <h1 className={styles.oneshotTitle}>Ask your data</h1>
                     <div className={styles.example}>
                         <p className={styles.exampleText}><b>Document Summary</b> : {summary}</p>
@@ -325,6 +347,20 @@ const OneShot = () => {
                     onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
                     isFooterAtBottom={true}
                 >
+                    <br/>
+                    <div>
+                            <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
+                            <Dropdown
+                                selectedKey={selectedItem ? selectedItem.key : undefined}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onChange={onChange}
+                                placeholder="Select an PDF"
+                                options={options}
+                                styles={dropdownStyles}
+                            />
+                            &nbsp;
+                            <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                    </div>
                     <ChoiceGroup
                         className={styles.oneshotSettingsSeparator}
                         label="Approach"
@@ -369,11 +405,35 @@ const OneShot = () => {
                         className={styles.oneshotSettingsSeparator}
                         label="Retrieve this many documents from search:"
                         min={1}
-                        max={50}
+                        max={7}
                         defaultValue={retrieveCount.toString()}
                         onChange={onRetrieveCountChange}
                     />
-                    <TextField className={styles.oneshotSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
+                    <SpinButton
+                        className={styles.oneshotSettingsSeparator}
+                        label="Set the Temperature:"
+                        min={0.0}
+                        max={1.0}
+                        defaultValue={temperature.toString()}
+                        onChange={onTemperatureChange}
+                    />
+                    <SpinButton
+                        className={styles.oneshotSettingsSeparator}
+                        label="Max Length (Tokens):"
+                        min={0}
+                        max={4000}
+                        defaultValue={tokenLength.toString()}
+                        onChange={onTokenLengthChange}
+                    />
+                    <Dropdown 
+                        label="Chain Type"
+                        onChange={onChainChange}
+                        selectedKey={selectedChain ? selectedChain.key : 'stuff'}
+                        options={chainTypeOptions}
+                        defaultSelectedKey={'stuff'}
+                        styles={dropdownStyles}
+                    />
+                    {/* <TextField className={styles.oneshotSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
                     <Checkbox
                         className={styles.oneshotSettingsSeparator}
                         checked={useSemanticRanker}
@@ -386,7 +446,7 @@ const OneShot = () => {
                         label="Use query-contextual summaries instead of whole documents"
                         onChange={onUseSemanticCaptionsChange}
                         disabled={!useSemanticRanker}
-                    />
+                    /> */}
                 </Panel>
             </div>
         </div>
