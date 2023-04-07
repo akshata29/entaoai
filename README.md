@@ -77,9 +77,9 @@ The repo provides a way to upload your own data so it's ready to try end to end.
    11. Copy sample.settings.json to local.settings.json
    12. Update the configuration (Minimally you need OpenAi, one of the document store, storage account)
    13. Deploy the Azure Python API to Function app
-   14. Open new terminal and go to /api/frontend directory
+   14. Open new terminal and go to /app/frontend directory
    15. Run npm run build for production build and copying static files to app/backend/static directory
-   16. Open new terminal and go to /api/backend directory
+   16. Open new terminal and go to /app/backend directory
    17. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
    18. Deploy the app/backend Azure web app.
 
@@ -95,10 +95,10 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 7.  Copy sample.settings.json to local.settings.json
 8.  Update the configuration (Minimally you need OpenAi, one of the document store, storage account)
 9.  Start the Python API by running `func host start`
-10. Open new terminal and go to /api/backend directory
+10. Open new terminal and go to /app/backend directory
 12. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
 13. Run py app.py to start the backend locally (on port 5000)
-19. Open new terminal and go to /api/frontend directory
+19. Open new terminal and go to /app/frontend directory
 20. Run npm run dev to start the local server (on port 5173)
 21. Browse the localhost:5173 to open the web app.
 
