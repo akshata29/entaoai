@@ -229,6 +229,10 @@ module function 'core/host/function.bicep' = {
       SearchService:searchService.outputs.name
       SearchKey:searchService.outputs.key
       SecDocContainer:'secdoc'
+      SynapseName:'dummy'
+      SynapsePool:'dummy'
+      SynapseUser:'dummy'
+      SynapsePassword:'dummy'
     }
   }
 }
@@ -258,6 +262,7 @@ module backend 'core/host/appservice.bicep' = {
       CHAT3_URL: '${function.outputs.uri}/Chat?code=${function.outputs.key}'
       DOCGENERATOR_URL: '${function.outputs.uri}/DocGenerator?code=${function.outputs.key}'
       SUMMARYQA_URL: '${function.outputs.uri}/SampleQaSummary?code=${function.outputs.key}'
+      SQLCHAT_URL: '${function.outputs.uri}/SqlChat?code=${function.outputs.key}'
       BLOB_CONTAINER_NAME: containerName
       BLOB_CONNECTION_STRING: storage.outputs.connectionString
     }

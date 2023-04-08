@@ -300,6 +300,35 @@ export async function secSearch(indexType: string,  indexName: string, question:
   return result;
 }
 
+export async function sqlChat(question:string, top: number): Promise<AskResponse> {
+  const response = await fetch('/sqlChat' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        question:question,
+        top:top,
+        postBody: {
+          values: [
+            {
+              recordId: 0,
+              data: {
+                text: ''
+              }
+            }
+          ]
+        }
+      })
+  });
+
+  const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse.values[0].data
+}
+
 export function getCitationFilePath(citation: string): string {
     return `/content/${citation}`;
 }

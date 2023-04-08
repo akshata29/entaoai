@@ -10,6 +10,7 @@ import NoPage from "./pages/NoPage";
 import ChatGpt from "./pages/chatgpt/ChatGpt";
 import Chat from './pages/chat/Chat';
 import OneShot from "./pages/oneshot/OneShot";
+import SqlAgent from "./pages/sqlagent/SqlAgent";
 import Upload from "./pages/upload/Upload";
 import Help from "./pages/help/Help";
 import Edgar from "./pages/edgar/Edgar";
@@ -25,6 +26,7 @@ export default function App() {
                     <Route path="upload" element={<Upload />} />
                     {/* <Route path="chat" element={<Chat />} /> */}
                     <Route path="qa" element={<OneShot />} />
+                    <Route path="sql" element={<SqlAgent />} />
                     {/* <Route path="botchat" element={<BotChat />} /> */}
                     <Route path="edgar" element={<Edgar />} />
                     <Route index element={<ChatGpt />} />

@@ -139,7 +139,7 @@ const OneShot = () => {
         <div >
             <div >
                 <div className={styles.oneshotTopSection}>
-                    <h1 className={styles.oneshotTitle}>Ask your data</h1>
+                    <h1 className={styles.oneshotTitle}>Ask your financial data</h1>
                     <div className={styles.oneshotQuestionInput}>
                         <QuestionInput
                             placeholder="Ask me anything"

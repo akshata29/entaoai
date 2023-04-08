@@ -6,7 +6,6 @@ import os
 from langchain.agents import create_sql_agent
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.sql_database import SQLDatabase
-from langchain.llms.openai import OpenAI
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
@@ -24,16 +23,21 @@ SynapsePassword = os.environ['SynapsePassword']
 SynapsePool = os.environ['SynapsePool']
 
 def FindSqlAnswer(topK, question, value):
-    logging.info("Calling FindAnswer Open AI")
+    logging.info("Calling FindSqlAnswer Open AI")
     answer = ''
+    os.environ['OPENAI_API_KEY'] = OpenAiKey
 
     try:
-        synapseConnectionString = "Driver={{ODBC Driver 18 for SQL Server}};Server=tcp:{}.sql.azuresynapse.net,1433;" \
+        synapseConnectionString = "Driver={{ODBC Driver 18 for SQL Server}};Server=tcp:{};" \
                       "Database={};Uid={};Pwd={};Encrypt=yes;TrustServerCertificate=no;" \
                       "Connection Timeout=30;".format(SynapseName, SynapsePool, SynapseUser, SynapsePassword)
+        # synapseConnectionString = "Driver={ODBC Driver 18 for SQL Server};Server=tcp:dataaisqlsrv.database.windows.net,1433;"\
+        #     "Database=dataaisql;Uid=azureadmin;Pwd=P2ssw0rd2903$;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
         params = urllib.parse.quote_plus(synapseConnectionString)
         sqlConnectionString = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
         db = SQLDatabase.from_uri(sqlConnectionString)
+        #Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most {top_k} results using SELECT TOP in SQL Server syntax.
+
         SqlPrefix = """You are an agent designed to interact with SQL database systems.
         Given an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
         Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most {top_k} results using SELECT TOP in SQL Server syntax.
@@ -45,7 +49,7 @@ def FindSqlAnswer(topK, question, value):
         
         DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
         
-        If the question does not seem related to the database, just return "I don't know" as the answer.
+        If the question does not seem related to the database, just return "I don't know" as the answer.        
         """ 
 
         SqlSuffix = """Begin!
@@ -57,10 +61,9 @@ def FindSqlAnswer(topK, question, value):
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
         openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-        openai.engine = OpenAiDavinci
 
 
-        # logging.info("LLM Setup done")
+        logging.info("LLM Setup done")
 
         toolkit = SQLDatabaseToolkit(db=db)
         logging.info("Toolkit Setup done")
@@ -69,19 +72,21 @@ def FindSqlAnswer(topK, question, value):
                 temperature=os.environ['Temperature'] or 0,
                 openai_api_key=OpenAiKey)
 
+
         agentExecutor = create_sql_agent(
                 llm=llm,
                 toolkit=toolkit,
                 verbose=True,
                 prefix=SqlPrefix, 
-                suffix=SqlSuffix,
+                #suffix=SqlSuffix,
                 top_k=topK,
+                kwargs={"return_intermediate_steps": True}
             )
+        agentExecutor.return_intermediate_steps = True
      
         logging.info("Agent Setup done")
-        answer = agentExecutor.run(question)
-
-        return {"data_points": [], "answer": answer, "thoughts": '', "error": ""}
+        answer = agentExecutor._call({"input":question})
+        return {"data_points": [], "answer": answer['output'], "thoughts": answer['intermediate_steps'], "error": ""}
     except Exception as e:
       logging.info("Error in FindSqlAnswer Open AI : " + str(e))
 
@@ -167,7 +172,7 @@ def TransformValue(topK, question, record):
         # Getting the items from the values/data/text
         value = data['text']
 
-        answer = FindSqlAnswer(topK, question,value)
+        answer = FindSqlAnswer(topK, question, value)
         return ({
             "recordId": recordId,
             "data": answer

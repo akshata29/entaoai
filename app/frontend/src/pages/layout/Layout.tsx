@@ -40,6 +40,11 @@ const Layout = () => {
                                 </NavLink>
                             </li>
                             <li className={styles.headerNavLeftMargin}>
+                                <NavLink to="/sql" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    Sql Agent
+                                </NavLink>
+                            </li>
+                            <li className={styles.headerNavLeftMargin}>
                                 <NavLink to="/edgar" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Edgar Analysis
                                 </NavLink>
