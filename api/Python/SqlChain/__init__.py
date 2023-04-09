@@ -3,9 +3,9 @@ import azure.functions as func
 import openai
 from langchain.llms.openai import AzureOpenAI
 import os
-from langchain.agents import create_sql_agent
-from langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.sql_database import SQLDatabase
+from langchain.prompts.prompt import PromptTemplate
+from langchain.chains import SQLDatabaseSequentialChain
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
@@ -35,55 +35,40 @@ def FindSqlAnswer(topK, question, value):
         sqlConnectionString = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
         db = SQLDatabase.from_uri(sqlConnectionString)
 
-        SqlPrefix = """You are an agent designed to interact with SQL database systems.
-        Given an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
-        Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most {top_k} results using SELECT TOP in SQL Server syntax.
-        You can order the results by a relevant column to return the most interesting examples in the database.
-        Never query for all the columns from a specific table, only ask for a the few relevant columns given the question.
-        You have access to tools for interacting with the database.
-        Only use the below tools. Only use the information returned by the below tools to construct your final answer.
-        You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
-        
-        DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
-        
-        If the question does not seem related to the database, just return "I don't know" as the answer.        
-        """ 
-
-        SqlSuffix = """Begin!
-            Question: {input}
-            Thought: I should look at the tables in the database to see what I can query.
-            {agent_scratchpad}"""
-        
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
         openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-
         logging.info("LLM Setup done")
-
-        toolkit = SQLDatabaseToolkit(db=db)
-        logging.info("Toolkit Setup done")
 
         llm = AzureOpenAI(deployment_name=OpenAiDavinci,
                 temperature=os.environ['Temperature'] or 0,
                 openai_api_key=OpenAiKey)
 
+        defaultTemplate = """Given an input question, first create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
+        Use the following format:
 
-        agentExecutor = create_sql_agent(
-                llm=llm,
-                toolkit=toolkit,
-                verbose=True,
-                prefix=SqlPrefix, 
-                #suffix=SqlSuffix,
-                top_k=topK,
-                kwargs={"return_intermediate_steps": True}
-            )
-        agentExecutor.return_intermediate_steps = True
-     
-        logging.info("Agent Setup done")
-        answer = agentExecutor._call({"input":question})
-        return {"data_points": [], "answer": answer['output'], "thoughts": answer['intermediate_steps'], "error": ""}
+        Question: "Question here"
+        SQLQuery: "SQL Query to run"
+        SQLResult: "Result of the SQLQuery"
+        Answer: "Final answer here"
+
+        Only use the following tables:
+
+        {table_info}
+        
+        Question: {input}"""
+        SqlPrompt = PromptTemplate(
+            input_variables=["input", "table_info", "dialect"], template=defaultTemplate
+        )
+
+        # SqlDbChain = SQLDatabaseChain(llm=llm, database=db, prompt=SqlPrompt, verbose=True, return_intermediate_steps=True,
+        #                               top_k=topK)
+        SqlDbChain = SQLDatabaseSequentialChain.from_llm(llm, db, verbose=True, return_intermediate_steps=True, 
+                                                         query_prompt=SqlPrompt, top_k=topK)
+        answer = SqlDbChain(question)
+        return {"data_points": [], "answer": answer['result'], "thoughts": answer['intermediate_steps'], "error": ""}
     except Exception as e:
         logging.info("Error in FindSqlAnswer Open AI : " + str(e))
         return {"data_points": [], "answer": '', "thoughts": '', "error": str(e)}

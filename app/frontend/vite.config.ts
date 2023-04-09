@@ -26,7 +26,9 @@ export default defineConfig({
             "/uploadFile": "http://127.0.0.1:5000",
             "/uploadBinaryFile": "http://127.0.0.1:5000",
             "/secsearch": "http://127.0.0.1:5000",
-            "/sqlChat": "http://127.0.0.1:5000"
+            "/sqlChat": "http://127.0.0.1:5000",
+            "/sqlChain": "http://127.0.0.1:5000",
+            "/content": "http://127.0.0.1:5000"
         }
         // proxy: {
         //     "/ask": {

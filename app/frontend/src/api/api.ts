@@ -321,6 +321,34 @@ export async function sqlChat(question:string, top: number): Promise<AskResponse
         }
       })
   });
+  const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse.values[0].data
+}
+
+export async function sqlChain(question:string, top: number): Promise<AskResponse> {
+    const response = await fetch('/sqlChain' , {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          question:question,
+          top:top,
+          postBody: {
+            values: [
+              {
+                recordId: 0,
+                data: {
+                  text: ''
+                }
+              }
+            ]
+          }
+        })
+  });
 
   const parsedResponse: ChatResponse = await response.json();
   if (response.status > 299 || !response.ok) {

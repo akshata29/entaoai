@@ -263,6 +263,7 @@ module backend 'core/host/appservice.bicep' = {
       DOCGENERATOR_URL: '${function.outputs.uri}/DocGenerator?code=${function.outputs.key}'
       SUMMARYQA_URL: '${function.outputs.uri}/SampleQaSummary?code=${function.outputs.key}'
       SQLCHAT_URL: '${function.outputs.uri}/SqlChat?code=${function.outputs.key}'
+      SQLCHAIN_URL: '${function.outputs.uri}/SqlChain?code=${function.outputs.key}'
       BLOB_CONTAINER_NAME: containerName
       BLOB_CONNECTION_STRING: storage.outputs.connectionString
     }

@@ -2,9 +2,9 @@ import { useRef, useState, useEffect } from "react";
 import { Panel, DefaultButton, Spinner, SpinButton, Stack } from "@fluentui/react";
 
 import styles from "./SqlAgent.module.css";
-import { IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
+import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@fluentui/react';
 
-import { sqlChat, AskResponse, AskRequest } from "../../api";
+import { sqlChat, AskResponse, sqlChain } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
@@ -23,10 +23,13 @@ const SqlAgent = () => {
     const [activeCitation, setActiveCitation] = useState<string>();
 
     const lastQuestionRef = useRef<string>("");
+    const lastQuestionChainRef = useRef<string>("");
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<unknown>();
     const [answer, setAnswer] = useState<AskResponse>();
+    const [errorChain, setErrorChain] = useState<unknown>();
+    const [answerChain, setAnswerChain] = useState<AskResponse>();
 
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
 
@@ -47,8 +50,32 @@ const SqlAgent = () => {
         try {
             const result = await sqlChat(question, retrieveCount);
             setAnswer(result);
+            if (result.error) {
+                setError(result.error);
+            }
         } catch (e) {
             setError(e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const makeApiChainRequest = async (question: string) => {
+        lastQuestionChainRef.current = question;
+
+        errorChain && setErrorChain(undefined);
+        setIsLoading(true);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+
+        try {
+            const result = await sqlChain(question, retrieveCount);
+            setAnswerChain(result);
+            if (result.error) {
+                setErrorChain(result.error);
+            }
+        } catch (e) {
+            setErrorChain(e);
         } finally {
             setIsLoading(false);
         }
@@ -82,6 +109,10 @@ const SqlAgent = () => {
         makeApiRequest(example);
     };
 
+    const onExampleChainClicked = (example: string) => {
+        makeApiChainRequest(example);
+    };
+
     const onToggleTab = (tab: AnalysisPanelTabs) => {
         if (activeAnalysisPanelTab === tab) {
             setActiveAnalysisPanelTab(undefined);
@@ -96,7 +127,8 @@ const SqlAgent = () => {
     const documentSummaryAndQa = async () => {
         const sampleQuestion = []
         const  questionList = [] 
-        questionList.push("What products are available\n Which shippers can ship the orders?")
+        questionList.push("What products are available")
+        questionList.push("Which shippers can ship the orders?")
         questionList.push("How many shipment Speedy Express did?")
         questionList.push("How many customers did placed an order")
         questionList.push("For the year 1996 give me subtotals for each order")
@@ -112,7 +144,10 @@ const SqlAgent = () => {
         questionList.push("List of the Products that are above average price, also show average price for each product")
         questionList.push("Number of units in stock by category and supplier continent")
 
-        for (const item of questionList) {
+        const shuffled = questionList.sort(() => 0.5 - Math.random());
+        const selectedQuestion = shuffled.slice(0, 5);
+
+        for (const item of selectedQuestion) {
             if ((item != '')) {
                 sampleQuestion.push({
                     text: item,
@@ -141,59 +176,126 @@ const SqlAgent = () => {
     return (
         <div className={styles.root}>
             <div className={styles.oneshotContainer}>
-                <div className={styles.oneshotTopSection}>
-                    <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
-                    <h1 className={styles.oneshotTitle}>Ask your SQL</h1>
-                    <div className={styles.example}>
-                        <p className={styles.exampleText}><b>Scenario</b> : {summary}</p>
+            <Pivot aria-label="Chat">
+                    <PivotItem
+                        headerText="Agent"
+                        headerButtonProps={{
+                        'data-order': 1,
+                        }}
+                    >
+                    <div className={styles.oneshotTopSection}>
+                        <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                        <h1 className={styles.oneshotTitle}>Ask your SQL</h1>
+                        <div className={styles.example}>
+                            <p className={styles.exampleText}><b>Scenario</b> : {summary}</p>
+                        </div>
+                        <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
+                        {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                        <ExampleList onExampleClicked={onExampleClicked}
+                        EXAMPLES={
+                            exampleList
+                        } />
+                        <div className={styles.oneshotQuestionInput}>
+                            <QuestionInput
+                                placeholder="Ask me anything"
+                                disabled={isLoading}
+                                onSend={question => makeApiRequest(question)}
+                            />
+                        </div>
                     </div>
-                    <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
-                    {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
-                    <ExampleList onExampleClicked={onExampleClicked}
-                    EXAMPLES={
-                        exampleList
-                    } />
-                    <div className={styles.oneshotQuestionInput}>
-                        <QuestionInput
-                            placeholder="Ask me anything"
-                            disabled={isLoading}
-                            onSend={question => makeApiRequest(question)}
-                        />
-                    </div>
-                </div>
-                <div className={styles.oneshotBottomSection}>
-                    {isLoading && <Spinner label="Generating answer" />}
-                    {!isLoading && answer && !error && (
-                        <div>
+                    <div className={styles.oneshotBottomSection}>
+                        {isLoading && <Spinner label="Generating answer" />}
+                        {!isLoading && answer && !error && (
+                            <div>
+                                <div className={styles.oneshotAnswerContainer}>
+                                    <Stack horizontal horizontalAlign="space-between">
+                                        <Answer
+                                            answer={answer}
+                                            onCitationClicked={x => onShowCitation(x)}
+                                            onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
+                                            onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
+                                        />
+                                    </Stack>                               
+                                </div>
+                            </div>
+                        )}
+                        {error ? (
                             <div className={styles.oneshotAnswerContainer}>
-                                <Stack horizontal horizontalAlign="space-between">
-                                    <Answer
-                                        answer={answer}
-                                        onCitationClicked={x => onShowCitation(x)}
-                                        onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
-                                        onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
-                                    />
-                                </Stack>                               
+                                <AnswerError error={error.toString()} onRetry={() => makeApiRequest(lastQuestionRef.current)} />
+                            </div>
+                        ) : null}
+                        {activeAnalysisPanelTab && answer && (
+                            <AnalysisPanel
+                                className={styles.oneshotAnalysisPanel}
+                                activeCitation={activeCitation}
+                                onActiveTabChanged={x => onToggleTab(x)}
+                                citationHeight="600px"
+                                answer={answer}
+                                activeTab={activeAnalysisPanelTab}
+                            />
+                        )}
+                    </div>
+                    </PivotItem>
+                    <PivotItem
+                        headerText="Database Chain"
+                        headerButtonProps={{
+                        'data-order': 2,
+                        }}
+                    >
+                        <div className={styles.oneshotTopSection}>
+                            <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                            <h1 className={styles.oneshotTitle}>Ask your SQL</h1>
+                            <div className={styles.example}>
+                                <p className={styles.exampleText}><b>Scenario</b> : {summary}</p>
+                            </div>
+                            <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
+                            {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                            <ExampleList onExampleClicked={onExampleChainClicked}
+                            EXAMPLES={
+                                exampleList
+                            } />
+                            <div className={styles.oneshotQuestionInput}>
+                                <QuestionInput
+                                    placeholder="Ask me anything"
+                                    disabled={isLoading}
+                                    onSend={question => makeApiChainRequest(question)}
+                                />
                             </div>
                         </div>
-                    )}
-                    {error ? (
-                        <div className={styles.oneshotAnswerContainer}>
-                            <AnswerError error={error.toString()} onRetry={() => makeApiRequest(lastQuestionRef.current)} />
+                        <div className={styles.oneshotBottomSection}>
+                            {isLoading && <Spinner label="Generating answer" />}
+                            {!isLoading && answerChain && !errorChain && (
+                                <div>
+                                    <div className={styles.oneshotAnswerContainer}>
+                                        <Stack horizontal horizontalAlign="space-between">
+                                            <Answer
+                                                answer={answerChain}
+                                                onCitationClicked={x => onShowCitation(x)}
+                                                onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
+                                                onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
+                                            />
+                                        </Stack>                               
+                                    </div>
+                                </div>
+                            )}
+                            {error ? (
+                                <div className={styles.oneshotAnswerContainer}>
+                                    <AnswerError error={error.toString()} onRetry={() => makeApiChainRequest(lastQuestionChainRef.current)} />
+                                </div>
+                            ) : null}
+                            {activeAnalysisPanelTab && answer && (
+                                <AnalysisPanel
+                                    className={styles.oneshotAnalysisPanel}
+                                    activeCitation={activeCitation}
+                                    onActiveTabChanged={x => onToggleTab(x)}
+                                    citationHeight="600px"
+                                    answer={answer}
+                                    activeTab={activeAnalysisPanelTab}
+                                />
+                            )}
                         </div>
-                    ) : null}
-                    {activeAnalysisPanelTab && answer && (
-                        <AnalysisPanel
-                            className={styles.oneshotAnalysisPanel}
-                            activeCitation={activeCitation}
-                            onActiveTabChanged={x => onToggleTab(x)}
-                            citationHeight="600px"
-                            answer={answer}
-                            activeTab={activeAnalysisPanelTab}
-                        />
-                    )}
-                </div>
-
+                    </PivotItem>
+                </Pivot>
                 <Panel
                     headerText="Configure answer generation"
                     isOpen={isConfigPanelOpen}

@@ -6,6 +6,7 @@ import os
 import logging
 from azure.storage.blob import BlobServiceClient, ContentSettings
 import base64
+import mimetypes
 
 load_dotenv()
 app = Flask(__name__)
@@ -107,6 +108,25 @@ def sqlChat():
     except Exception as e:
         logging.exception("Exception in /sqlChat")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/sqlChain", methods=["POST"])
+def sqlChain():
+    question=request.json["question"]
+    top=request.json["top"]
+    postBody=request.json["postBody"]
+
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("SQLCHAIN_URL")
+
+        data = postBody
+        params = {'question': question, 'topK': top, }
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /sqlChain")
+        return jsonify({"error": str(e)}), 500
     
 @app.route("/processDoc", methods=["POST"])
 def processDoc():
@@ -172,9 +192,9 @@ def uploadFile():
         url = os.environ.get("BLOB_CONNECTION_STRING")
         containerName = os.environ.get("BLOB_CONTAINER_NAME")
         blobClient = BlobServiceClient.from_connection_string(url)
-        blobClient = blobClient.get_blob_client(container=containerName, blob=fileName)
+        blobContainer = blobClient.get_blob_client(container=containerName, blob=fileName)
         #blob_client.upload_blob(bytes_data,overwrite=True, content_settings=ContentSettings(content_type=content_type))
-        blobClient.upload_blob(fileContent, overwrite=True, content_settings=ContentSettings(content_type=contentType))
+        blobContainer.upload_blob(fileContent, overwrite=True, content_settings=ContentSettings(content_type=contentType))
         #jsonDict = json.dumps(blobJson)
         return jsonify({"Status" : "Success"})
     except Exception as e:
@@ -204,6 +224,22 @@ def uploadBinaryFile():
     except Exception as e:
         logging.exception("Exception in /uploadBinaryFile")
         return jsonify({"error": str(e)}), 500
+
+# Serve content files from blob storage from within the app to keep the example self-contained. 
+# *** NOTE *** this assumes that the content files are public, or at least that all users of the app
+# can access all the files. This is also slow and memory hungry.
+@app.route("/content/<path>")
+def content_file(path):
+    url = os.environ.get("BLOB_CONNECTION_STRING")
+    containerName = os.environ.get("BLOB_CONTAINER_NAME")
+    blobClient = BlobServiceClient.from_connection_string(url)
+    blobContainer = blobClient.get_container_client(container=containerName)
+    blob = blobContainer.get_blob_client(path).download_blob()
+    mime_type = blob.properties["content_settings"]["content_type"]
+    if mime_type == "application/octet-stream":
+        mime_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+    return blob.readall(), 200, {"Content-Type": mime_type, "Content-Disposition": f"inline; filename={path}"}
+    
 
 @app.route("/secsearch", methods=["POST"])
 def secsearch():

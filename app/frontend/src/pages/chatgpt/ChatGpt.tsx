@@ -26,7 +26,7 @@ const ChatGpt = () => {
     const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(true);
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
     const [excludeCategory, setExcludeCategory] = useState<string>("");
-    const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(false);
+    const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
     const [options, setOptions] = useState<any>([])
     const [temperature, setTemperature] = useState<number>(0.3);
     const [tokenLength, setTokenLength] = useState<number>(500);
@@ -438,6 +438,12 @@ const ChatGpt = () => {
                                     defaultValue={tokenLength.toString()}
                                     onChange={onTokenLengthChange}
                                 />
+                                <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useSuggestFollowupQuestions}
+                                    label="Suggest follow-up questions"
+                                    onChange={onUseSuggestFollowupQuestionsChange}
+                                />
                                 {/* <TextField className={styles.chatSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
                                 <Checkbox
                                     className={styles.chatSettingsSeparator}
@@ -500,8 +506,8 @@ const ChatGpt = () => {
                                                         onCitationClicked={c => onShowCitation(c, index)}
                                                         onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
                                                         onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
-                                                        onFollowupQuestionClicked={q => makeApiRequest(q)}
-                                                        showFollowupQuestions={useSuggestFollowupQuestions && answers.length - 1 === index}
+                                                        onFollowupQuestionClicked={q => makeApiRequest3(q)}
+                                                        showFollowupQuestions={useSuggestFollowupQuestions && answers3.length - 1 === index}
                                                     />
                                                 </div>
                                             </div>
@@ -602,6 +608,12 @@ const ChatGpt = () => {
                                     max={4000}
                                     defaultValue={tokenLength.toString()}
                                     onChange={onTokenLengthChange}
+                                />
+                                <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useSuggestFollowupQuestions}
+                                    label="Suggest follow-up questions"
+                                    onChange={onUseSuggestFollowupQuestionsChange}
                                 />
                                 {/* <TextField className={styles.chatSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
                                 <Checkbox

@@ -28,7 +28,6 @@ export const Answer = ({
     showFollowupQuestions
 }: Props) => {
     const parsedAnswer = useMemo(() => parseAnswerToHtml(answer.answer, onCitationClicked), [answer]);
-
     const sanitizedAnswerHtml = DOMPurify.sanitize(parsedAnswer.answerHtml);
 
     return (
@@ -61,7 +60,7 @@ export const Answer = ({
                 <div className={styles.answerText} dangerouslySetInnerHTML={{ __html: sanitizedAnswerHtml }}></div>
             </Stack.Item>
 
-            {/* {!!parsedAnswer.citations.length && (
+            {!!parsedAnswer.citations.length && (
                 <Stack.Item>
                     <Stack horizontal wrap tokens={{ childrenGap: 5 }}>
                         <span className={styles.citationLearnMore}>Citations:</span>
@@ -90,7 +89,7 @@ export const Answer = ({
                         })}
                     </Stack>
                 </Stack.Item>
-            )} */}
+            )}
         </Stack>
     );
 };
