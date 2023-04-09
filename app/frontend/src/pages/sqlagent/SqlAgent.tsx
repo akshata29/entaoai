@@ -278,18 +278,18 @@ const SqlAgent = () => {
                                     </div>
                                 </div>
                             )}
-                            {error ? (
+                            {errorChain ? (
                                 <div className={styles.oneshotAnswerContainer}>
-                                    <AnswerError error={error.toString()} onRetry={() => makeApiChainRequest(lastQuestionChainRef.current)} />
+                                    <AnswerError error={errorChain.toString()} onRetry={() => makeApiChainRequest(lastQuestionChainRef.current)} />
                                 </div>
                             ) : null}
-                            {activeAnalysisPanelTab && answer && (
+                            {activeAnalysisPanelTab && answerChain && (
                                 <AnalysisPanel
                                     className={styles.oneshotAnalysisPanel}
                                     activeCitation={activeCitation}
                                     onActiveTabChanged={x => onToggleTab(x)}
                                     citationHeight="600px"
-                                    answer={answer}
+                                    answer={answerChain}
                                     activeTab={activeAnalysisPanelTab}
                                 />
                             )}
