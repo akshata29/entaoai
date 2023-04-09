@@ -39,6 +39,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 * [Python 3.9](https://www.python.org/downloads/)
 * [Node.js](https://nodejs.org/en/download/)
 * [Git](https://git-scm.com/downloads)
+* [ODBC Driver 17 for SQL](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16)
 * [Azure Functions Extension for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions)
 * [Azure Functions Core tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools)
 * [Powershell 7+ (pwsh)](https://github.com/powershell/powershell) - For Windows users only. **Important**: Ensure you can run `pwsh.exe` from a PowerShell command. If this fails, you likely need to upgrade PowerShell.
