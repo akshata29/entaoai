@@ -60,9 +60,10 @@
 }
 
 .settingsButton {
-    align-self: flex-end;
+    align-self: flex-start;
     margin-right: 20px;
     margin-top: 20px;
+    font-size: 14px;
 }
 
 .container {
@@ -173,7 +174,7 @@
 
 .commandsContainer {
     display: flex;
-    align-self: flex-end;
+    align-self: flex-start;
 }
 
 .commandButton {

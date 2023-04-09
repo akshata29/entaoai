@@ -12,6 +12,7 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
+import { ClearChatButton } from "../../components/ClearChatButton";
 
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -24,7 +25,7 @@ const OneShot = () => {
     const [tokenLength, setTokenLength] = useState<number>(500);
     const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(true);
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
-    const [excludeCategory, setExcludeCategory] = useState<string>("");
+    const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
 
     const [options, setOptions] = useState<any>([])
     const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
@@ -35,8 +36,6 @@ const OneShot = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<unknown>();
     const [answer, setAnswer] = useState<AskResponse>();
-    const [mapReduceAnswer, setMapReduceAnswer] = useState<AskResponse>();
-    const [refineAnswer, setRefineAnswer] = useState<AskResponse>();
 
     const [activeCitation, setActiveCitation] = useState<string>();
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
@@ -80,15 +79,12 @@ const OneShot = () => {
                     semanticCaptions: useSemanticCaptions,
                     chainType: String(selectedChain?.key),
                     tokenLength: tokenLength,
+                    suggestFollowupQuestions: useSuggestFollowupQuestions,
                 }
             };
-            console.log(request)
             const result = await askApi(request, String(selectedItem?.key), String(selectedIndex), 'stuff');
+            console.log(result)
             setAnswer(result);
-            // const mapReduceResult = await askApi(request, selectedItem?.key, 'pinecone', 'map-reduce');
-            // setMapReduceAnswer(mapReduceResult);
-            // const refineResult = await askApi(request, selectedItem?.key, 'pinecone', 'refine');
-            // setRefineAnswer(refineResult);
         } catch (e) {
             setError(e);
         } finally {
@@ -98,6 +94,10 @@ const OneShot = () => {
 
     const onPromptTemplateChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
         setPromptTemplate(newValue || "");
+    };
+
+    const onUseSuggestFollowupQuestionsChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+        setUseSuggestFollowupQuestions(!!checked);
     };
 
     const onPromptTemplatePrefixChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
@@ -130,10 +130,6 @@ const OneShot = () => {
 
     const onUseSemanticCaptionsChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
         setUseSemanticCaptions(!!checked);
-    };
-
-    const onExcludeCategoryChanged = (_ev?: React.FormEvent, newValue?: string) => {
-        setExcludeCategory(newValue || "");
     };
 
     const onExampleClicked = (example: string) => {
@@ -270,21 +266,30 @@ const OneShot = () => {
         }
     ];
 
+    const clearChat = () => {
+        lastQuestionRef.current = "";
+        error && setError(undefined);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+        setAnswer(undefined);
+    };
+
     return (
         <div className={styles.root}>
             <div className={styles.oneshotContainer}>
                 <div className={styles.oneshotTopSection}>
-                    <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                    <div className={styles.commandsContainer}>
+                        <ClearChatButton className={styles.settingsButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
+                        <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                        <div className={styles.settingsButton}>{selectedItem ? 
+                                "Document Name : "  + selectedItem.text : undefined}</div>
+
+                    </div>
                     <h1 className={styles.oneshotTitle}>Ask your data</h1>
                     <div className={styles.example}>
                         <p className={styles.exampleText}><b>Document Summary</b> : {summary}</p>
                     </div>
-                    <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
-                    {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
-                    <ExampleList onExampleClicked={onExampleClicked}
-                    EXAMPLES={
-                        exampleList
-                    } />
+                    <br/>
                     <div className={styles.oneshotQuestionInput}>
                         <QuestionInput
                             placeholder="Ask me anything"
@@ -292,6 +297,14 @@ const OneShot = () => {
                             onSend={question => makeApiRequest(question)}
                         />
                     </div>
+                    {!answer && (<h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>)}
+                    {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                    {!answer && (
+                        <ExampleList onExampleClicked={onExampleClicked}
+                        EXAMPLES={
+                            exampleList
+                        } />
+                    )}
                 </div>
                 <div className={styles.oneshotBottomSection}>
                     {isLoading && <Spinner label="Generating answer" />}
@@ -304,19 +317,9 @@ const OneShot = () => {
                                         onCitationClicked={x => onShowCitation(x)}
                                         onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
                                         onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
+                                        onFollowupQuestionClicked={q => makeApiRequest(q)}
+                                        showFollowupQuestions={useSuggestFollowupQuestions}
                                     />
-                                     {/* <Answer
-                                        answer={mapReduceAnswer}
-                                        onCitationClicked={x => onShowCitation(x)}
-                                        onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
-                                        onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
-                                    />
-                                    <Answer
-                                        answer={refineAnswer}
-                                        onCitationClicked={x => onShowCitation(x)}
-                                        onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
-                                        onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
-                                    /> */}
                                 </Stack>                               
                             </div>
                         </div>
@@ -432,6 +435,12 @@ const OneShot = () => {
                         options={chainTypeOptions}
                         defaultSelectedKey={'stuff'}
                         styles={dropdownStyles}
+                    />
+                    <Checkbox
+                        className={styles.chatSettingsSeparator}
+                        checked={useSuggestFollowupQuestions}
+                        label="Suggest follow-up questions"
+                        onChange={onUseSuggestFollowupQuestionsChange}
                     />
                     {/* <TextField className={styles.oneshotSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
                     <Checkbox

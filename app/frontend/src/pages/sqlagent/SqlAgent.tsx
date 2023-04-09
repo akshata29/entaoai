@@ -3,6 +3,7 @@ import { Panel, DefaultButton, Spinner, SpinButton, Stack } from "@fluentui/reac
 
 import styles from "./SqlAgent.module.css";
 import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@fluentui/react';
+import { SparkleFilled, BarcodeScanner24Filled } from "@fluentui/react-icons";
 
 import { sqlChat, AskResponse, sqlChain } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
@@ -10,6 +11,7 @@ import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
 import { ExampleList, ExampleModel } from "../../components/Example";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
+import { ClearChatButton } from "../../components/ClearChatButton";
 
 const SqlAgent = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -169,6 +171,22 @@ const SqlAgent = () => {
 
     }
 
+    const clearChat = () => {
+        lastQuestionRef.current = "";
+        error && setError(undefined);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+        setAnswer(undefined);
+    };
+
+    const clearChainChat = () => {
+        lastQuestionChainRef.current = "";
+        errorChain && setErrorChain(undefined);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+        setAnswerChain(undefined);
+    };
+
     useEffect(() => {
         documentSummaryAndQa()
     }, [])
@@ -184,17 +202,16 @@ const SqlAgent = () => {
                         }}
                     >
                     <div className={styles.oneshotTopSection}>
-                        <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                        <div className={styles.commandsContainer}>
+                            <ClearChatButton className={styles.settingsButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
+                            <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                        </div>
+                        <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
                         <h1 className={styles.oneshotTitle}>Ask your SQL</h1>
                         <div className={styles.example}>
                             <p className={styles.exampleText}><b>Scenario</b> : {summary}</p>
                         </div>
                         <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
-                        {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
-                        <ExampleList onExampleClicked={onExampleClicked}
-                        EXAMPLES={
-                            exampleList
-                        } />
                         <div className={styles.oneshotQuestionInput}>
                             <QuestionInput
                                 placeholder="Ask me anything"
@@ -202,6 +219,17 @@ const SqlAgent = () => {
                                 onSend={question => makeApiRequest(question)}
                             />
                         </div>
+                        {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                        {/* {!answer && (
+                            <ExampleList onExampleClicked={onExampleClicked}
+                            EXAMPLES={
+                                exampleList
+                            } />
+                        )} */}
+                        <ExampleList onExampleClicked={onExampleClicked}
+                            EXAMPLES={
+                                exampleList
+                        } />
                     </div>
                     <div className={styles.oneshotBottomSection}>
                         {isLoading && <Spinner label="Generating answer" />}
@@ -243,17 +271,16 @@ const SqlAgent = () => {
                         }}
                     >
                         <div className={styles.oneshotTopSection}>
-                            <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                            <div className={styles.commandsContainer}>
+                                <ClearChatButton className={styles.settingsButton} onClick={clearChainChat} disabled={!lastQuestionChainRef.current || isLoading} />
+                                <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                            </div>
+                            <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
                             <h1 className={styles.oneshotTitle}>Ask your SQL</h1>
                             <div className={styles.example}>
                                 <p className={styles.exampleText}><b>Scenario</b> : {summary}</p>
                             </div>
                             <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
-                            {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
-                            <ExampleList onExampleClicked={onExampleChainClicked}
-                            EXAMPLES={
-                                exampleList
-                            } />
                             <div className={styles.oneshotQuestionInput}>
                                 <QuestionInput
                                     placeholder="Ask me anything"
@@ -261,6 +288,18 @@ const SqlAgent = () => {
                                     onSend={question => makeApiChainRequest(question)}
                                 />
                             </div>
+                            {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                            {/* {!answerChain && (
+                                <ExampleList onExampleClicked={onExampleChainClicked}
+                                EXAMPLES={
+                                    exampleList
+                                } />
+                            )}
+                             */}
+                            <ExampleList onExampleClicked={onExampleChainClicked}
+                                EXAMPLES={
+                                    exampleList
+                                } />
                         </div>
                         <div className={styles.oneshotBottomSection}>
                             {isLoading && <Spinner label="Generating answer" />}

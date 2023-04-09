@@ -6,6 +6,7 @@ import os
 from langchain.sql_database import SQLDatabase
 from langchain.prompts.prompt import PromptTemplate
 from langchain.chains import SQLDatabaseSequentialChain
+from langchain.chains import LLMChain
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
@@ -58,7 +59,9 @@ def FindSqlAnswer(topK, question, value):
 
         {table_info}
         
-        Question: {input}"""
+        Question: {input}
+
+        """
         SqlPrompt = PromptTemplate(
             input_variables=["input", "table_info", "dialect"], template=defaultTemplate
         )
@@ -68,6 +71,24 @@ def FindSqlAnswer(topK, question, value):
         SqlDbChain = SQLDatabaseSequentialChain.from_llm(llm, db, verbose=True, return_intermediate_steps=True, 
                                                          query_prompt=SqlPrompt, top_k=topK)
         answer = SqlDbChain(question)
+
+        # followupPrompt = """
+        # Given an input table definition, Generate three very brief follow-up questions that the user would likely ask next.
+        # Use double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.
+        # Try not to repeat questions that have already been asked.
+        # Only generate questions and do not generate any text before or after the questions, such as 'Next Questions
+
+        # QUESTION: {question}
+        # =========
+
+        # """
+        # followupPrompt = PromptTemplate(
+        #     input_variables=["question"], template=followupPrompt
+        # )
+        # qaChain = LLMChain(llm, prompt=followupPrompt)
+        # followupAnswer = qaChain.predict(question)
+        # logging.info(followupAnswer)
+
         return {"data_points": [], "answer": answer['result'], "thoughts": answer['intermediate_steps'], "error": ""}
     except Exception as e:
         logging.info("Error in FindSqlAnswer Open AI : " + str(e))

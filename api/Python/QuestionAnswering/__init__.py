@@ -65,6 +65,11 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                 If you don't know the answer, just say that you don't know. Don't try to make up an answer.
                 ALWAYS return a "SOURCES" part in your answer.
 
+                Generate three very brief follow-up questions that the user would likely ask next.
+                Use double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.
+                Try not to repeat questions that have already been asked.
+                Only generate questions and do not generate any text before or after the questions, such as 'Next Questions
+
                 QUESTION: {question}
                 =========
                 {summaries}
@@ -93,6 +98,7 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                 {context}
                 ---------
                 Question: {question}
+
                 """
                 qaPrompt = PromptTemplate(
                     template=promptTemplate,
@@ -151,6 +157,11 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                     "\n---------------------\n"
                     "Given the context information and not prior knowledge, "
                     "answer the question: {question}\n"
+                    "\n---------------------\n"
+                    # "Generate three very brief follow-up questions that the user would likely ask next.\n"
+                    # "Use double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.\n"
+                    # "Try not to repeat questions that have already been asked.\n"
+                    # "Only generate questions and do not generate any text before or after the questions, such as 'Next Questions"
                 )
                 qaPrompt = PromptTemplate(
                     input_variables=["context_str", "question"], template=qaTemplate
@@ -161,7 +172,7 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
             if indexType == 'pinecone':
                 vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
                 logging.info("Pinecone Setup done")
-                chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, k=topK, 
+                chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, k=topK,
                                                 search_kwargs={"namespace": indexNs})
                 answer = chain({"question": question}, return_only_outputs=True)
                 return {"data_points": [], "answer": answer['answer'].replace("Answer: ", ''), "thoughts": answer['sources'], "error": ""}
