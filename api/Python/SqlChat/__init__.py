@@ -31,12 +31,9 @@ def FindSqlAnswer(topK, question, value):
         synapseConnectionString = "Driver={{ODBC Driver 17 for SQL Server}};Server=tcp:{};" \
                       "Database={};Uid={};Pwd={};Encrypt=yes;TrustServerCertificate=no;" \
                       "Connection Timeout=30;".format(SynapseName, SynapsePool, SynapseUser, SynapsePassword)
-        # synapseConnectionString = "Driver={ODBC Driver 18 for SQL Server};Server=tcp:dataaisqlsrv.database.windows.net,1433;"\
-        #     "Database=dataaisql;Uid=azureadmin;Pwd=P2ssw0rd2903$;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
         params = urllib.parse.quote_plus(synapseConnectionString)
         sqlConnectionString = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
         db = SQLDatabase.from_uri(sqlConnectionString)
-        #Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most {top_k} results using SELECT TOP in SQL Server syntax.
 
         SqlPrefix = """You are an agent designed to interact with SQL database systems.
         Given an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
@@ -89,8 +86,6 @@ def FindSqlAnswer(topK, question, value):
         return {"data_points": [], "answer": answer['output'], "thoughts": answer['intermediate_steps'], "error": ""}
     except Exception as e:
       logging.info("Error in FindSqlAnswer Open AI : " + str(e))
-
-    #return answer
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
