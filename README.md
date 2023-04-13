@@ -4,6 +4,19 @@ This sample demonstrates a few approaches for creating ChatGPT-like experiences 
 
 The repo provides a way to upload your own data so it's ready to try end to end.
 
+## Updates
+
+* 3/16/2023 - Initial Release, Ask your Data and Chat with your Data
+* 3/17/2023
+  * Support uploading Multiple documents
+  * Bug fix - Redis Vectorstore Implementation
+* 3/18/2023 - API to generate summary on documents & Sample QA
+* 3/19/2023 - Add GPT3 Chat Implementation
+* 3/23/2023 - Add Cognitive Search as option to store documents
+* 3/29/2023 - Automated Deployment script
+* 4/8/2023 - Ask your SQL - Using [SQL Database Agent](https://python.langchain.com/en/latest/modules/agents/toolkits/examples/sql_database.html) or Using [SQL Database Chain](https://python.langchain.com/en/latest/modules/chains/examples/sqlite.html)
+* 4/13/2023 - Add new feature for [Vector QA Agent](https://python.langchain.com/en/latest/modules/agents/toolkits/examples/vectorstore.html)
+
 ## Features
 
 * Upload (PDF/Text Documents as well as Webpages).  **New** - Connectors support.  Connect to your data directly from the Azure Container or a specific file.   You can also connect to AWS S3 Bucket & key.
