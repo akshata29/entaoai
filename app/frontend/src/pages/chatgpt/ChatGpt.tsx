@@ -367,6 +367,14 @@ const ChatGpt = () => {
                                             </>
                                         ) : null}
                                         <div ref={chatMessageStreamEnd} />
+                                        <div className={styles.chatInput}>
+                                            <QuestionInput
+                                                clearOnSend
+                                                placeholder="Type a new question"
+                                                disabled={isLoading}
+                                                onSend={question => makeApiRequest(question)}
+                                            />
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -539,6 +547,14 @@ const ChatGpt = () => {
                                             </>
                                         ) : null}
                                         <div ref={chatMessageStreamEnd} />
+                                        <div className={styles.chatInput}>
+                                            <QuestionInput
+                                                clearOnSend
+                                                placeholder="Type a new question"
+                                                disabled={isLoading}
+                                                onSend={question => makeApiRequest3(question)}
+                                            />
+                                        </div>
                                     </div>
                                 )}
                             </div>

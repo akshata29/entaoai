@@ -25,7 +25,11 @@
       //"WeaviateUrl": "", // Weavite URL
       "SearchService":"", // Search Service 
       "SearchKey":"", // Search Key
-      "SecDocContainer": "" // Storage Container for storing SEC documents
+      "SecDocContainer": "",// Storage Container for storing SEC documents
+      "SynapseName": "", // Name of your database for SQL NLP
+      "SynapsePool": "", // Name of SQL Pool or the database
+      "SynapseUser": "", // User name for SQL NLP
+      "SynapsePassword": "" // User name for SQL Password
     },
     "Host": {
       "LocalHttpPort": 7071,

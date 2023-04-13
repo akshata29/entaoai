@@ -16,6 +16,8 @@ export type AskRequestOverrides = {
     suggestFollowupQuestions?: boolean;
     chainType?: string;
     tokenLength?: number;
+    indexType?: string;
+    indexes?: any;
 };
 
 export type AskRequest = {

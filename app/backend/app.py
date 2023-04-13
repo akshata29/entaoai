@@ -43,6 +43,23 @@ def ask():
         logging.exception("Exception in /ask")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/askAgent", methods=["POST"])
+def askAgent():
+    postBody=request.json["postBody"]
+ 
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("AGENTQA_URL")
+
+        data = postBody
+        resp = requests.post(url, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /ask")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/chat", methods=["POST"])
 def chat():
     indexType=request.json["indexType"]

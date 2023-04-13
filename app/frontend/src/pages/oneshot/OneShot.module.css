@@ -19,13 +19,13 @@
     justify-content: center;
     align-content: flex-start;
     width: 100%;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 .oneshotTitle {
-    font-size: 2rem;
+    font-size: 1rem;
     font-weight: 600;
-    margin-top: 40px;
+    margin-top: 1px;
 }
 
 @media only screen and (max-width: 800px) {
@@ -39,8 +39,8 @@
 .oneshotQuestionInput {
     max-width: 800px;
     width: 100%;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .oneshotAnswerContainer {
@@ -60,10 +60,9 @@
 }
 
 .settingsButton {
-    align-self: flex-start;
+    align-self: flex-end;
     margin-right: 20px;
     margin-top: 20px;
-    font-size: 14px;
 }
 
 .container {
@@ -202,4 +201,10 @@
     font-size: 12px;
     width: 750px;
     height: 120px;
+}
+
+.fullText {
+    margin: 0;
+    font-size: 12px;
+    width: 100%;
 }

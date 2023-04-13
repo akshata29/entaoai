@@ -134,6 +134,7 @@
 .exampleText {
     margin: 0;
     font-size: 12px;
-    width: 550px;
-    height: 150px;
+    width: 850px;
+    height: 120px;
+    /* width: 100%; */
 }
