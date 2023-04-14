@@ -50,7 +50,6 @@ VsIndexName = os.environ['VsIndexName']
 RedisAddress = os.environ['RedisAddress']
 RedisPassword = os.environ['RedisPassword']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
-#WeaviateUrl = os.environ['WeaviateUrl']
 RedisPort = os.environ['RedisPort']
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
@@ -231,17 +230,6 @@ def storeIndex(indexType, docs, fileName, nameSpace):
         milvus = Milvus(connection_args={"host": "127.0.0.1", "port": "19530"},
                         collection_name=VsIndexName, text_field="text", embedding_function=embeddings)
         Milvus.from_documents(docs,embeddings)
-    # elif indexType == "weaviate":
-    #     try:
-    #         import weaviate
-    #         client = weaviate.Client(url=WeaviateUrl)
-    #         weaviate = Weaviate(client, index_name=uResultNs.hex, text_key="content")
-    #         texts = [d.page_content for d in docs]
-    #         metadatas = [d.metadata for d in docs]
-    #         weaviate.add_texts(texts, metadatas)
-    #         #weaviate.from_documents(docs, embeddings)
-    #     except Exception as e:
-    #         logging.info(e)
 
 def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionString,
                                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,

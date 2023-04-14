@@ -203,19 +203,6 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                     return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
                 except Exception as e:
                     return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}    
-            #   elif indexType == "weaviate":
-            #         try:
-            #             import weaviate
-            #             client = weaviate.Client(url=WeaviateUrl)
-            #             logging.info("Client initialized")
-            #             weaviate = Weaviate(client, index_name=indexNs, text_key="content")
-            #             docs = weaviate.similarity_search(question, topK)
-            #             logging.info(docs)
-            #             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-            #             return {"data_points": [], "answer": answer['output_text'].replace("Answer: ", ''), "thoughts": '', "error": ""}
-            #         except Exception as e:
-            #             logging.info("Exception occurred in weaviate " + str(e))
-            #             return {"data_points": [], "answer": answer['output_text'], "thoughts": '', "error": ""}
             elif indexType == 'milvus':
                 answer = "{'answer': 'TBD', 'sources': ''}"
                 return answer

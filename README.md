@@ -44,6 +44,10 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ![Architecture](/assets/Chatbot.png)
 
+## Azure Architecture
+
+![Azure Services](/assets/ChatAsk.png)
+
 ## Getting Started
 
 **NOTE** In order to deploy and run this example, you'll need an Azure subscription with access enabled for the Azure OpenAI service. You can request access [here](https://aka.ms/oaiapply).

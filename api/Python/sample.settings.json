@@ -22,7 +22,6 @@
       "OpenAiDocStorName": "", // Storage name
       "OpenAiDocStorKey": "", // Storage doc
       "OpenAiDocContainer": "", // Storage Container
-      //"WeaviateUrl": "", // Weavite URL
       "SearchService":"", // Search Service 
       "SearchKey":"", // Search Key
       "SecDocContainer": "",// Storage Container for storing SEC documents
