@@ -163,7 +163,7 @@ const Speech = () => {
             setGptSummary('')
           }
           setScenario(item)
-          setPromptType(promptTypes[promptTypes.findLastIndex(i => i.key == 'custom')])
+          setPromptType(promptTypes[promptTypes.findIndex(i => i.key == 'custom')])
     };
 
     const generateCustomPrompt = async () => {

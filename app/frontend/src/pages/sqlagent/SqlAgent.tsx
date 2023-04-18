@@ -5,13 +5,14 @@ import styles from "./SqlAgent.module.css";
 import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@fluentui/react';
 import { SparkleFilled, BarcodeScanner24Filled } from "@fluentui/react-icons";
 
-import { sqlChat, AskResponse, sqlChain } from "../../api";
+import { sqlChat, AskResponse, sqlChain, getSpeechApi } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
 import { ExampleList, ExampleModel } from "../../components/Example";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 import { ClearChatButton } from "../../components/ClearChatButton";
+var audio = new Audio();
 
 const SqlAgent = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -26,12 +27,17 @@ const SqlAgent = () => {
 
     const lastQuestionRef = useRef<string>("");
     const lastQuestionChainRef = useRef<string>("");
+    const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<unknown>();
-    const [answer, setAnswer] = useState<AskResponse>();
+    //const [answer, setAnswer] = useState<AskResponse>();
+    const [answer, setAnswer] = useState<[AskResponse, string | null]>();
     const [errorChain, setErrorChain] = useState<unknown>();
-    const [answerChain, setAnswerChain] = useState<AskResponse>();
+    //const [answerChain, setAnswerChain] = useState<AskResponse>();
+    const [answerChain, setAnswerChain] = useState<[AskResponse, string | null]>();
+    const [useAutoSpeakAnswers, setUseAutoSpeakAnswers] = useState<boolean>(false);
+
 
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
 
@@ -40,6 +46,29 @@ const SqlAgent = () => {
     const [qa, setQa] = useState<string>('');
     const [exampleLoading, setExampleLoading] = useState(false)
 
+
+    const startSynthesis = (url: string | null) => {
+        if(isSpeaking) {
+            audio.pause();
+            setIsSpeaking(false);
+        }
+
+        if(url === null) {
+            return;
+        }
+
+        audio = new Audio(url);
+        audio.play();
+        setIsSpeaking(true);
+        audio.addEventListener('ended', () => {
+            setIsSpeaking(false);
+        });
+    };
+
+    const stopSynthesis = () => {
+        audio.pause();
+        setIsSpeaking(false);
+    };
 
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
@@ -51,7 +80,13 @@ const SqlAgent = () => {
 
         try {
             const result = await sqlChat(question, retrieveCount);
-            setAnswer(result);
+            //setAnswer(result);
+            const speechUrl = await getSpeechApi(result.answer);
+            setAnswer([result, speechUrl]);
+            if(useAutoSpeakAnswers) {
+                startSynthesis(speechUrl);
+            }
+
             if (result.error) {
                 setError(result.error);
             }
@@ -72,7 +107,12 @@ const SqlAgent = () => {
 
         try {
             const result = await sqlChain(question, retrieveCount);
-            setAnswerChain(result);
+            //setAnswerChain(result);
+            const speechUrl = await getSpeechApi(result.answer);
+            setAnswerChain([result, speechUrl]);
+            if(useAutoSpeakAnswers) {
+                startSynthesis(speechUrl);
+            }
             if (result.error) {
                 setErrorChain(result.error);
             }
@@ -238,10 +278,13 @@ const SqlAgent = () => {
                                 <div className={styles.oneshotAnswerContainer}>
                                     <Stack horizontal horizontalAlign="space-between">
                                         <Answer
-                                            answer={answer}
+                                            //answer={answer}
+                                            answer={answer[0]}
+                                            isSpeaking = {isSpeaking}
                                             onCitationClicked={x => onShowCitation(x)}
                                             onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
                                             onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
+                                            onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answer[1])}
                                         />
                                     </Stack>                               
                                 </div>
@@ -258,7 +301,8 @@ const SqlAgent = () => {
                                 activeCitation={activeCitation}
                                 onActiveTabChanged={x => onToggleTab(x)}
                                 citationHeight="600px"
-                                answer={answer}
+                                //answer={answer}
+                                answer={answer[0]}
                                 activeTab={activeAnalysisPanelTab}
                             />
                         )}
@@ -308,10 +352,13 @@ const SqlAgent = () => {
                                     <div className={styles.oneshotAnswerContainer}>
                                         <Stack horizontal horizontalAlign="space-between">
                                             <Answer
-                                                answer={answerChain}
+                                                //answer={answerChain}
+                                                answer={answerChain[0]}
+                                                isSpeaking = {isSpeaking}
                                                 onCitationClicked={x => onShowCitation(x)}
                                                 onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
                                                 onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
+                                                onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answerChain[1])}
                                             />
                                         </Stack>                               
                                     </div>
@@ -328,7 +375,8 @@ const SqlAgent = () => {
                                     activeCitation={activeCitation}
                                     onActiveTabChanged={x => onToggleTab(x)}
                                     citationHeight="600px"
-                                    answer={answerChain}
+                                    //answer={answerChain}
+                                    answer={answerChain[0]}
                                     activeTab={activeAnalysisPanelTab}
                                 />
                             )}
