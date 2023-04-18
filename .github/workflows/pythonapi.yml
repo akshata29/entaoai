@@ -16,7 +16,7 @@
 #
 # For more samples to get started with GitHub Action workflows to deploy to Azure: https://github.com/Azure/actions-workflow-samples/tree/master/FunctionApp
 
-name: Deploy Python project to Azure Function App
+name: Deploy Python API
 
 on:
   push:
