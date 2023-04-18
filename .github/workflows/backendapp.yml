@@ -48,7 +48,7 @@ jobs:
       - name: 'Resolve Project Dependencies Using Npm'
         shell: bash # For Linux, use bash
         run: |
-          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          pushd './${{ env.AZURE_NODEJS_PACKAGE_PATH }}'
           npm install
           npm run build --if-present
         
