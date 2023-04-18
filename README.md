@@ -16,7 +16,8 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 * 3/29/2023 - Automated Deployment script
 * 4/8/2023 - Ask your SQL - Using [SQL Database Agent](https://python.langchain.com/en/latest/modules/agents/toolkits/examples/sql_database.html) or Using [SQL Database Chain](https://python.langchain.com/en/latest/modules/chains/examples/sqlite.html)
 * 4/13/2023 - Add new feature to support asking questions on multiple document using [Vector QA Agent](https://python.langchain.com/en/latest/modules/agents/toolkits/examples/vectorstore.html)
-
+* 4/17/2023 - Real-time Speech Analytics and Speech to Text and Text to Speech for Chat & Ask Features. (You can configure Text to Speech feature from the Developer settings.  You will need Azure Speech Services)
+  
 ## Test Website
 
 [Chat and Ask over your data](https://dataaipdfchat.azurewebsites.net/)

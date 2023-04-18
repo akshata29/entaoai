@@ -9,7 +9,7 @@ import styles from "./ChatGpt.module.css";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
-import { chatGptApi, chatGpt3Api, Approaches, AskResponse, ChatRequest, ChatTurn, refreshIndex } from "../../api";
+import { chatGptApi, chatGpt3Api, Approaches, AskResponse, ChatRequest, ChatTurn, refreshIndex, getSpeechApi  } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { UserChatMessage } from "../../components/UserChatMessage";
@@ -17,6 +17,7 @@ import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel
 import { ClearChatButton } from "../../components/ClearChatButton";
 import { SettingsButton } from "../../components/SettingsButton";
 
+var audio = new Audio();
 
 const ChatGpt = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -26,6 +27,8 @@ const ChatGpt = () => {
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
     const [excludeCategory, setExcludeCategory] = useState<string>("");
     const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
+    const [useAutoSpeakAnswers, setUseAutoSpeakAnswers] = useState<boolean>(false);
+
     const [options, setOptions] = useState<any>([])
     const [temperature, setTemperature] = useState<number>(0.3);
     const [tokenLength, setTokenLength] = useState<number>(500);
@@ -44,8 +47,12 @@ const ChatGpt = () => {
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
 
     const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
-    const [answers, setAnswers] = useState<[user: string, response: AskResponse][]>([]);
-    const [answers3, setAnswers3] = useState<[user: string, response: AskResponse][]>([]);
+    //const [answers, setAnswers] = useState<[user: string, response: AskResponse][]>([]);
+    const [answers, setAnswers] = useState<[user: string, response: AskResponse, speechUrl: string | null][]>([]);
+    const [runningIndex, setRunningIndex] = useState<number>(-1);
+    //const [answers3, setAnswers3] = useState<[user: string, response: AskResponse][]>([]);
+    const [answers3, setAnswers3] = useState<[user: string, response: AskResponse, speechUrl: string | null][]>([]);
+
     const [exampleLoading, setExampleLoading] = useState(false)
 
     const [selectedIndex, setSelectedIndex] = useState<string>();
@@ -75,11 +82,17 @@ const ChatGpt = () => {
                     semanticRanker: useSemanticRanker,
                     semanticCaptions: useSemanticCaptions,
                     suggestFollowupQuestions: useSuggestFollowupQuestions,
-                    tokenLength: tokenLength
+                    tokenLength: tokenLength,
+                    autoSpeakAnswers: useAutoSpeakAnswers
                 }
             };
             const result = await chatGptApi(request, String(selectedItem?.key), String(selectedIndex));
-            setAnswers([...answers, [question, result]]);
+            //setAnswers([...answers, [question, result]]);
+            const speechUrl = await getSpeechApi(result.answer);
+            setAnswers([...answers, [question, result, speechUrl]]);
+            if(useAutoSpeakAnswers){
+                startOrStopSynthesis(speechUrl, answers.length);
+            }
         } catch (e) {
             setError(e);
         } finally {
@@ -108,11 +121,17 @@ const ChatGpt = () => {
                     semanticRanker: useSemanticRanker,
                     semanticCaptions: useSemanticCaptions,
                     suggestFollowupQuestions: useSuggestFollowupQuestions,
-                    tokenLength: tokenLength
+                    tokenLength: tokenLength,
+                    autoSpeakAnswers: useAutoSpeakAnswers
                 }
             };
             const result = await chatGpt3Api(question, request, String(selectedItem?.key), String(selectedIndex));
-            setAnswers3([...answers3, [question, result]]);
+            //setAnswers3([...answers3, [question, result]]);
+            const speechUrl = await getSpeechApi(result.answer);
+            setAnswers3([...answers3, [question, result, speechUrl]]);
+            if(useAutoSpeakAnswers){
+                startOrStopSynthesis(speechUrl, answers.length);
+            }
         } catch (e) {
             setError(e);
         } finally {
@@ -136,12 +155,40 @@ const ChatGpt = () => {
         setAnswers3([]);
     };
 
+    const onEnableAutoSpeakAnswersChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+        setUseAutoSpeakAnswers(!!checked);
+    };
+
     const onExampleClicked = (example: string) => {
         makeApiRequest(example);
     };
 
     const onExampleClicked3 = (example: string) => {
         makeApiRequest3(example);
+    };
+
+    const startOrStopSynthesis = (url: string | null, index: number) => {
+        if(runningIndex === index) {
+            audio.pause();
+            setRunningIndex(-1);
+            return;
+        }
+
+        if(runningIndex !== -1) {
+            audio.pause();
+            setRunningIndex(-1);
+        }
+
+        if(url === null) {
+            return;
+        }
+
+        audio = new Audio(url);
+        audio.play();
+        setRunningIndex(index);
+        audio.addEventListener('ended', () => {
+            setRunningIndex(-1);
+        });
     };
 
     const refreshBlob = async () => {
@@ -340,11 +387,13 @@ const ChatGpt = () => {
                                                     <Answer
                                                         key={index}
                                                         answer={answer[1]}
+                                                        isSpeaking = {runningIndex === index}
                                                         isSelected={selectedAnswer === index && activeAnalysisPanelTab !== undefined}
                                                         onCitationClicked={c => onShowCitation(c, index)}
                                                         onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
                                                         onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
                                                         onFollowupQuestionClicked={q => makeApiRequest(q)}
+                                                        onSpeechSynthesisClicked={() => startOrStopSynthesis(answer[2], index)}
                                                         showFollowupQuestions={useSuggestFollowupQuestions && answers.length - 1 === index}
                                                     />
                                                 </div>
@@ -452,6 +501,12 @@ const ChatGpt = () => {
                                     label="Suggest follow-up questions"
                                     onChange={onUseSuggestFollowupQuestionsChange}
                                 />
+                                <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useAutoSpeakAnswers}
+                                    label="Automatically speak answers"
+                                    onChange={onEnableAutoSpeakAnswersChange}
+                                />
                                 {/* <TextField className={styles.chatSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
                                 <Checkbox
                                     className={styles.chatSettingsSeparator}
@@ -520,10 +575,12 @@ const ChatGpt = () => {
                                                     <Answer
                                                         key={index}
                                                         answer={answer[1]}
+                                                        isSpeaking = {runningIndex === index}
                                                         isSelected={selectedAnswer === index && activeAnalysisPanelTab !== undefined}
                                                         onCitationClicked={c => onShowCitation(c, index)}
                                                         onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
                                                         onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
+                                                        onSpeechSynthesisClicked={() => startOrStopSynthesis(answer[2], index)}
                                                         onFollowupQuestionClicked={q => makeApiRequest3(q)}
                                                         showFollowupQuestions={useSuggestFollowupQuestions && answers3.length - 1 === index}
                                                     />
@@ -631,6 +688,12 @@ const ChatGpt = () => {
                                     checked={useSuggestFollowupQuestions}
                                     label="Suggest follow-up questions"
                                     onChange={onUseSuggestFollowupQuestionsChange}
+                                />
+                                <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useAutoSpeakAnswers}
+                                    label="Automatically speak answers"
+                                    onChange={onEnableAutoSpeakAnswersChange}
                                 />
                                 {/* <TextField className={styles.chatSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
                                 <Checkbox

@@ -2,3 +2,5 @@ Flask==2.2.2
 requests==2.28.2
 python-dotenv==0.21.0
 azure-storage-blob==12.15.0
+azure-ai-textanalytics==5.2.1
+azure-cognitiveservices-speech==1.27.0

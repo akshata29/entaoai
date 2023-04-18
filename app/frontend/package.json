@@ -9,12 +9,15 @@
     "watch": "tsc && vite build --watch"
   },
   "dependencies": {
+    "@azure/ai-language-conversations": "^1.0.0-beta.1",
+    "@azure/ai-language-text": "1.1.0-beta.1",
     "@azure/storage-blob": "^12.10.0",
     "@fluentui/react": "^8.105.3",
     "@fluentui/react-components": "^9.18.1",
     "@fluentui/react-icons": "^2.0.195",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@pinecone-database/pinecone": "^0.0.10",
+    "microsoft-cognitiveservices-speech-sdk": "^1.18.0",
     "@pity/vite-plugin-react-markdown": "^0.1.1",
     "@react-spring/web": "^9.7.1",
     "azure-openai": "^0.0.15",
@@ -25,7 +28,9 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
-    "react-router-dom": "^6.8.1"
+    "react-router-dom": "^6.8.1",
+    "react-markdown": "^8.0.6",
+    "rehype-raw": "^6.1.1"
   },
   "devDependencies": {
     "@types/dompurify": "^2.4.0",

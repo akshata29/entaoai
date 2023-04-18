@@ -29,7 +29,11 @@ export default defineConfig({
             "/secsearch": "http://127.0.0.1:5000",
             "/sqlChat": "http://127.0.0.1:5000",
             "/sqlChain": "http://127.0.0.1:5000",
-            "/content": "http://127.0.0.1:5000"
+            "/content": "http://127.0.0.1:5000",
+            "/speechToken": "http://127.0.0.1:5000",
+            "/textAnalytics": "http://127.0.0.1:5000",
+            "/summarizer": "http://127.0.0.1:5000",
+            "/speech": "http://127.0.0.1:5000"
         }
         // proxy: {
         //     "/ask": {

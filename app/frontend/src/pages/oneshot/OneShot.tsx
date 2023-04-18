@@ -1,10 +1,10 @@
 import { useRef, useState, useEffect } from "react";
-import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack, IPivotItemProps } from "@fluentui/react";
+import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack, IPivotItemProps, getFadedOverflowStyle} from "@fluentui/react";
 
 import styles from "./OneShot.module.css";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
-import { askApi, askAgentApi, Approaches, AskResponse, AskRequest, refreshIndex } from "../../api";
+import { askApi, askAgentApi, Approaches, AskResponse, AskRequest, refreshIndex, getSpeechApi } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
@@ -16,6 +16,8 @@ import { ClearChatButton } from "../../components/ClearChatButton";
 import { Pivot, PivotItem } from '@fluentui/react';
 import { IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
 import { DefaultPalette } from '@fluentui/react/lib/Styling';
+
+var audio = new Audio();
 
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -29,6 +31,8 @@ const OneShot = () => {
     const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(true);
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
     const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
+    const [useAutoSpeakAnswers, setUseAutoSpeakAnswers] = useState<boolean>(false);
+
     const [lastHeader, setLastHeader] = useState<{ props: IPivotItemProps } | undefined>(undefined);
 
     const [options, setOptions] = useState<any>([])
@@ -40,9 +44,13 @@ const OneShot = () => {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<unknown>();
-    const [answer, setAnswer] = useState<AskResponse>();
+    //const [answer, setAnswer] = useState<AskResponse>();
+    const [answer, setAnswer] = useState<[AskResponse, string | null]>();
+
     const [errorAgent, setAgentError] = useState<unknown>();
-    const [answerAgent, setAgentAnswer] = useState<AskResponse>();
+    //const [answerAgent, setAgentAnswer] = useState<AskResponse>();
+    const [answerAgent, setAgentAnswer] = useState<[AskResponse, string | null]>();
+
 
     const [activeCitation, setActiveCitation] = useState<string>();
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
@@ -63,6 +71,8 @@ const OneShot = () => {
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
     const [selectedText, setSelectedText] = useState<string[]>([]);
     const [selectedIndexes, setSelectedIndexes] = useState<{ indexNs: string; indexName: any; returnDirect: string; }[]>([]);
+    const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+
     const indexTypeOptions = [
         {
           key: 'pinecone',
@@ -168,10 +178,16 @@ const OneShot = () => {
                     chainType: String(selectedChain?.key),
                     tokenLength: tokenLength,
                     suggestFollowupQuestions: useSuggestFollowupQuestions,
+                    autoSpeakAnswers: useAutoSpeakAnswers
                 }
             };
             const result = await askApi(request, String(selectedItem?.key), String(selectedIndex), 'stuff');
-            setAnswer(result);
+            //setAnswer(result);
+            const speechUrl = await getSpeechApi(result.answer);
+            setAnswer([result, speechUrl]);
+            if(useAutoSpeakAnswers) {
+                startSynthesis(speechUrl);
+            }
         } catch (e) {
             setError(e);
         } finally {
@@ -186,8 +202,6 @@ const OneShot = () => {
         setIsLoading(true);
         setActiveCitation(undefined);
         setActiveAnalysisPanelTab(undefined);
-
-        console.log(selectedIndexes)
         try {
             const request: AskRequest = {
                 question,
@@ -205,15 +219,48 @@ const OneShot = () => {
                     chainType: String(selectedChain?.key),
                     tokenLength: tokenLength,
                     suggestFollowupQuestions: useSuggestFollowupQuestions,
+                    autoSpeakAnswers: useAutoSpeakAnswers
                 }
             };
             const result = await askAgentApi(request);
-            setAgentAnswer(result);
+            //setAgentAnswer(result);
+            const speechUrl = await getSpeechApi(result.answer);
+            setAgentAnswer([result, speechUrl]);
+            if(useAutoSpeakAnswers) {
+                startSynthesis(speechUrl);
+            }
         } catch (e) {
             setAgentError(e);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const startSynthesis = (url: string | null) => {
+        if(isSpeaking) {
+            audio.pause();
+            setIsSpeaking(false);
+        }
+
+        if(url === null) {
+            return;
+        }
+
+        audio = new Audio(url);
+        audio.play();
+        setIsSpeaking(true);
+        audio.addEventListener('ended', () => {
+            setIsSpeaking(false);
+        });
+    };
+
+    const stopSynthesis = () => {
+        audio.pause();
+        setIsSpeaking(false);
+    };
+
+    const onEnableAutoSpeakAnswersChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+        setUseAutoSpeakAnswers(!!checked);
     };
 
     const onPromptTemplateChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
@@ -472,12 +519,15 @@ const OneShot = () => {
                                         <div className={styles.oneshotAnswerContainer}>
                                             <Stack horizontal horizontalAlign="space-between">
                                                 <Answer
-                                                    answer={answer}
+                                                    //answer={answer}
+                                                    answer={answer[0]}
+                                                    isSpeaking = {isSpeaking}
                                                     onCitationClicked={x => onShowCitation(x)}
                                                     onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
                                                     onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
                                                     onFollowupQuestionClicked={q => makeApiRequest(q)}
                                                     showFollowupQuestions={useSuggestFollowupQuestions}
+                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answer[1])}
                                                 />
                                             </Stack>                               
                                         </div>
@@ -494,7 +544,8 @@ const OneShot = () => {
                                         activeCitation={activeCitation}
                                         onActiveTabChanged={x => onToggleTab(x)}
                                         citationHeight="600px"
-                                        answer={answer}
+                                        //answer={answer}
+                                        answer={answer[0]}
                                         activeTab={activeAnalysisPanelTab}
                                     />
                                 )}
@@ -601,6 +652,12 @@ const OneShot = () => {
                                     label="Suggest follow-up questions"
                                     onChange={onUseSuggestFollowupQuestionsChange}
                                 />
+                                <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useAutoSpeakAnswers}
+                                    label="Automatically speak answers"
+                                    onChange={onEnableAutoSpeakAnswersChange}
+                                />
                                 {/* <TextField className={styles.oneshotSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
                                 <Checkbox
                                     className={styles.oneshotSettingsSeparator}
@@ -686,12 +743,15 @@ const OneShot = () => {
                                         <div className={styles.oneshotAnswerContainer}>
                                             <Stack horizontal horizontalAlign="space-between">
                                                 <Answer
-                                                    answer={answerAgent}
+                                                    //answer={answerAgent}
+                                                    answer={answerAgent[0]}
+                                                    isSpeaking = {isSpeaking}
                                                     onCitationClicked={x => onShowCitation(x)}
                                                     onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
                                                     onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
                                                     onFollowupQuestionClicked={q => makeApiRequest(q)}
                                                     showFollowupQuestions={useSuggestFollowupQuestions}
+                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answerAgent[1])}
                                                 />
                                             </Stack>                               
                                         </div>
@@ -708,7 +768,8 @@ const OneShot = () => {
                                         activeCitation={activeCitation}
                                         onActiveTabChanged={x => onToggleTab(x)}
                                         citationHeight="600px"
-                                        answer={answerAgent}
+                                        //answer={answerAgent}
+                                        answer={answerAgent[0]}
                                         activeTab={activeAnalysisPanelTab}
                                     />
                                 )}
@@ -766,6 +827,12 @@ const OneShot = () => {
                                     checked={useSuggestFollowupQuestions}
                                     label="Suggest follow-up questions"
                                     onChange={onUseSuggestFollowupQuestionsChange}
+                                />
+                                 <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useAutoSpeakAnswers}
+                                    label="Automatically speak answers"
+                                    onChange={onEnableAutoSpeakAnswersChange}
                                 />
                             </Panel>
                         </PivotItem>

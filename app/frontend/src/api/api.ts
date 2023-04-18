@@ -1,4 +1,4 @@
-import { AskRequest, AskResponse, ChatRequest, ChatResponse } from "./models";
+import { AskRequest, AskResponse, ChatRequest, ChatResponse, SpeechTokenResponse} from "./models";
 import { PineconeStore } from "langchain/vectorstores";
 import { OpenAIEmbeddings } from 'langchain/embeddings'
 import { PineconeClient } from "@pinecone-database/pinecone";
@@ -400,6 +400,89 @@ export async function sqlChain(question:string, top: number): Promise<AskRespons
       throw Error("Unknown error");
   }
   return parsedResponse.values[0].data
+}
+
+export async function getSpeechToken(): Promise<SpeechTokenResponse> {
+  const response = await fetch('/speechToken' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+  });
+
+  const parsedResponse: SpeechTokenResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+    throw Error("Unknown error");
+  }
+  return parsedResponse
+}
+
+export async function summarizer(requestText: string, promptType:string, promptName: string, docType: string, chainType:string): Promise<string> {
+  const response = await fetch('/summarizer' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        docType: docType,
+        chainType: chainType,
+        promptType: promptType,
+        promptName: promptName,
+        postBody: {
+          values: [
+            {
+              recordId: 0,
+              data: {
+                text: requestText
+              }
+            }
+          ]
+        }
+    })
+  });
+
+  const parsedResponse: any = await response.json();
+  if (response.status > 299 || !response.ok) {
+    throw Error("Unknown error");
+  }
+  return parsedResponse.values[0].data.text
+}
+
+export async function textAnalytics(documentText: string): Promise<string> {
+  const response = await fetch('/textAnalytics' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        documentText:documentText
+      })
+  });
+
+  const parsedResponse: any = await response.json();
+  if (response.status > 299 || !response.ok) {
+    throw Error("Unknown error");
+  }
+  return parsedResponse.TextAnalytics
+}
+
+export async function getSpeechApi(text: string): Promise<string|null> {
+  return await fetch("/speech", {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+          text: text
+      })
+  }).then((response) => { 
+      if(response.status == 200){
+          return response.blob();
+      } else {
+          console.error("Unable to get speech synthesis.");
+          return null;
+      }
+  }).then((blob) => blob ? URL.createObjectURL(blob) : null);
 }
 
 export function getCitationFilePath(citation: string): string {

@@ -18,6 +18,7 @@ export type AskRequestOverrides = {
     tokenLength?: number;
     indexType?: string;
     indexes?: any;
+    autoSpeakAnswers?: boolean;
 };
 
 export type AskRequest = {
@@ -31,6 +32,11 @@ export type AskResponse = {
     thoughts: string | null;
     data_points: string[];
     error?: string;
+};
+
+export type SpeechTokenResponse = {
+    Token: string;
+    Region: string
 };
 
 export type ChatTurn = {

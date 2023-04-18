@@ -7,6 +7,15 @@ import logging
 from azure.storage.blob import BlobServiceClient, ContentSettings
 import base64
 import mimetypes
+from azure.core.credentials import AzureKeyCredential
+from azure.ai.textanalytics import (
+    TextAnalyticsClient,
+    RecognizeEntitiesAction,
+    AnalyzeSentimentAction,
+    RecognizePiiEntitiesAction,
+    ExtractKeyPhrasesAction,
+)
+import azure.cognitiveservices.speech as speechsdk
 
 load_dotenv()
 app = Flask(__name__)
@@ -278,6 +287,111 @@ def secsearch():
         return jsonify(jsonDict)
     except Exception as e:
         logging.exception("Exception in /secsearch")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/speechToken", methods=["POST"])
+def speechToken():
+  
+    try:
+        headers = { 'Ocp-Apim-Subscription-Key': os.environ.get("SPEECH_KEY"), 'content-type': 'application/x-www-form-urlencoded'}
+        url = 'https://' + os.environ.get("SPEECH_REGION") + '.api.cognitive.microsoft.com/sts/v1.0/issueToken'
+        resp = requests.post(url, headers=headers)
+        accessToken = str(resp.text)
+        return jsonify({"Token" : accessToken, "Region": os.environ.get("SPEECH_REGION")})
+    except Exception as e:
+        logging.exception("Exception in /speechToken")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/textAnalytics", methods=["POST"])
+def textAnalytics():
+  
+    try:
+        credential = AzureKeyCredential(os.environ.get("TEXTANALYTICS_KEY"))
+        taClient = TextAnalyticsClient(endpoint="https://" + os.environ.get("TEXTANALYTICS_REGION") + ".api.cognitive.microsoft.com/", credential=credential)
+        documentText=request.json["documentText"]
+        if (len(documentText) > 0):
+            documents = []
+            documents.append(documentText)
+
+            headers = { 'content-type': 'application/json'}
+
+            poller = taClient.begin_analyze_actions(
+                documents,
+                display_name="Speech Analytics",
+                actions=[
+                    RecognizeEntitiesAction(),
+                    AnalyzeSentimentAction(),
+                    RecognizePiiEntitiesAction(),
+                    ExtractKeyPhrasesAction(),
+                ]
+            )
+            docResults = poller.result()
+            entities = ''
+            piiEntities = ""
+
+            for doc, action_results in zip(documents, docResults):
+                for result in action_results:
+                    if result.kind == "EntityRecognition":
+                        for entity in result.entities:
+                            entities = entities + "......Entity: " + entity.text + ".........Category: " + entity.category
+                    elif result.kind == "PiiEntityRecognition":
+                            for entity in result.entities:
+                                piiEntities = piiEntities + "......Entity: " + entity.text + ".........Category: " + entity.category
+                    elif result.kind == "KeyPhraseExtraction":
+                        keyPhrases = ' '.join(result.key_phrases)
+                    elif result.kind == "SentimentAnalysis":
+                        sentiment = 'Overall sentiment: ' + result.sentiment +  ' Scores: positive=' + str(result.confidence_scores.positive) + " neutral=" + str(result.confidence_scores.neutral) + " negative=" + str(result.confidence_scores.negative)
+            nlpText = ''
+            if len(keyPhrases.strip()) > 0:
+                nlpText = 'Key Phrases: ' + keyPhrases + '\n'
+            nlpText = nlpText + sentiment + '\n'
+            if len(entities.strip()) > 0:
+                nlpText =  nlpText +  "Entities : " + entities + '\n' 
+            if len(piiEntities.strip()) > 0:
+                nlpText = nlpText + "PII Entities : " + piiEntities + '\n'
+
+        else:
+            nlpText = ''
+        return jsonify({"TextAnalytics" : nlpText})
+    except Exception as e:
+        logging.exception("Exception in /textAnalytics")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/summarizer", methods=["POST"])
+def summarizer():
+    docType=request.json["docType"]
+    chainType=request.json["chainType"]
+    promptName=request.json["promptName"]
+    promptType=request.json["promptType"]
+    postBody=request.json["postBody"]
+     
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("SUMMARIZER_URL")
+
+        data = postBody
+        params = {'docType': docType, "chainType": chainType, "promptName": promptName, "promptType": promptType}
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /summarizer")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/speech", methods=["POST"])
+def speech():
+    text = request.json["text"]
+    try:
+        speechKey = os.environ.get("SPEECH_KEY")
+        speechRegion = os.environ.get("SPEECH_REGION")
+        speech_config = speechsdk.SpeechConfig(subscription=speechKey, region=speechRegion)
+        speech_config.speech_synthesis_voice_name='en-US-SaraNeural'
+        synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
+        result = synthesizer.speak_text_async(text).get()
+        return result.audio_data, 200, {"Content-Type": "audio/wav"}
+    except Exception as e:
+        logging.exception("Exception in /speech")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":

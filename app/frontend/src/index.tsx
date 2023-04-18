@@ -15,6 +15,7 @@ import Upload from "./pages/upload/Upload";
 import Help from "./pages/help/Help";
 import Edgar from "./pages/edgar/Edgar";
 import BotChat from "./pages/botchat/BotChat";
+import Speech from "./pages/speech/Speech";
 
 initializeIcons();
 
@@ -29,6 +30,7 @@ export default function App() {
                     <Route path="sql" element={<SqlAgent />} />
                     {/* <Route path="botchat" element={<BotChat />} /> */}
                     <Route path="edgar" element={<Edgar />} />
+                    <Route path="speech" element={<Speech />} />
                     <Route index element={<ChatGpt />} />
                     <Route path="help" index element={<Help />} />
                     <Route path="*" element={<NoPage />} />
