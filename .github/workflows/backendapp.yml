@@ -24,6 +24,7 @@ env:
   PYTHON_VERSION: '3.9'              # set this to the Python version to use
   NODE_VERSION: '16.x'                      # set this to the node version to use (e.g. '8.x', '10.x', '12.x')
   AZURE_NODEJS_PACKAGE_PATH: 'app/frontend'       # set this to the path to your function app project, defaults to the repository root
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'app/backend'
 
 on:
   push:
@@ -64,8 +65,13 @@ jobs:
           python -m venv venv
           source venv/bin/activate
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: 'Resolve Project Dependencies Using Pip'
+        shell: bash
+        run: |
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          popd
 
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
