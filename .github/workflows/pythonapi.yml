@@ -21,7 +21,7 @@ name: Deploy Python API
 on:
   push:
     branches:
-    - ["main"]
+    - main
 
 env:
   AZURE_FUNCTIONAPP_NAME: 'dataaichatpdf'   # set this to your function app name on Azure
