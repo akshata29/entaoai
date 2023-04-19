@@ -488,7 +488,27 @@
 						{
 						  "name": "SUMMARYQA_URL",
 						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SampleQaSummary?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-						}
+						},
+                        {
+                            "name": "SPEECH_REGION",
+                            "value": "[parameters('location')]"
+                        },
+                        {
+                            "name": "SPEECH_KEY",
+                            "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('speechSvcName')), '2022-12-01').key1]"
+                        },
+                        {
+                            "name": "TEXTANALYTICS_KEY",
+                            "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('langSvcName')), '2022-12-01').key1]"
+                        },
+                        {
+                            "name": "TEXTANALYTICS_REGION",
+                            "value": "[parameters('location')]"
+                        },
+                        {
+                            "name": "SUMMARIZER_URL",
+                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Summarizer?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+                        }
 					]
                 },
                 "scmSiteAlsoStopped": false,
