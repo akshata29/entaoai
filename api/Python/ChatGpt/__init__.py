@@ -169,7 +169,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                     for result in results.docs
             ]
         except Exception as e:
-            return {"data_points": "", "answer": "Working on fixing Redis Implementation " + str(e), "thoughts": ""}
+            return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
     elif indexType == "cogsearch":
         r = performCogSearch(q, indexNs, topK)
         if r == None:
@@ -197,33 +197,16 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         completion = openai.Completion.create(
             engine=OpenAiChat,
             prompt=finalPrompt,
-            #temperature=0.7,
-            #max_tokens=1024,
             temperature=temperature,
             max_tokens=tokenLength,
             n=1,
             stop=["<|im_end|>", "<|im_start|>"])
+        logging.info(completion.choices[0].text)
     except Exception as e:
         logging.error(e)
-        return {"data_points": rawDocs, "answer": "Working on fixing OpenAI Implementation - Error " + str(e) , "thoughts": ""}
+        return {"data_points": "", "answer": "Working on fixing Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
     
     return {"data_points": rawDocs, "answer": completion.choices[0].text, "thoughts": f"Searched for:<br>{q}<br><br>Prompt:<br>" + finalPrompt.replace('\n', '<br>')}
-
-    # llm = OpenAIChat(deployment_name=OpenAiChat,
-    #           temperature=0.7,
-    #           openai_api_key=OpenAiApiKey,
-    #           max_tokens=1024,
-    #           batch_size=10)
-    # logging.info("LLM Setup done")
-    # chainType = 'stuff'
-    # followupPrompt = PromptTemplate(template=promptPrefix, input_variables=['sources', 'chat_history', 'follow_up_questions_prompt'])
-    # qaChain = load_qa_with_sources_chain(llm, chain_type=chainType, prompt=followupPrompt)
-
-    # # STEP 3: Generate a contextual and content specific answer using the search results and chat history
-    # chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb)
-    # answer = chain({"question": q}, return_only_outputs=False)
-
-    # return {"answer": answer, "thoughts": f"Searched for:<br>{q}<br><br>Prompt:<br>" + followupPrompt.replace('\n', '<br>')}
 
 def GetAnswer(history, approach, overrides, indexNs, indexType):
     logging.info("Getting Answer")

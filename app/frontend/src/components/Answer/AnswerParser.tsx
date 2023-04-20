@@ -7,25 +7,46 @@ type HtmlParsedAnswer = {
     followupQuestions: string[];
 };
 
-export function parseAnswerToHtml(answer: string, onCitationClicked: (citationFilePath: string) => void): HtmlParsedAnswer {
+export function parseAnswerToHtml(answer: string, 
+    onCitationClicked: (citationFilePath: string) => void, sources: string, nextQuestions: string): HtmlParsedAnswer {
     const citations: string[] = [];
     const followupQuestions: string[] = [];
 
     // Extract any follow-up questions that might be in the answer
-    let parsedAnswer = answer.replace(/<<([^>>]+)>>/g, (match, content) => {
+    nextQuestions.replace(/<<([^>>]+)>>/g, (match, content) => {
         followupQuestions.push(content);
         return "";
     });
 
     // trim any whitespace from the end of the answer after removing follow-up questions
-    parsedAnswer = parsedAnswer.trim();
+    //let parsedThoughts = sources.trim().replace("NEXT QUESTIONS:", "").replace("GENERATED FOLLOW-UP QUESTIONS:", "");
 
-    const parts = parsedAnswer.split(/\[([^\]]+)\]/g);
+    // const parts = parsedThoughts.split(/\[([^\]]+)\]/g);
+    // const fragments: string[] = parts.map((part, index) => {
+    //     if (index % 2 === 0) {
+    //         return part;
+    //     } else {
+    //         let citationIndex: number;
+    //         if (citations.indexOf(part) !== -1) {
+    //             citationIndex = citations.indexOf(part) + 1;
+    //         } else {
+    //             citations.push(part);
+    //             citationIndex = citations.length;
+    //         }
+    //         const path = getCitationFilePath(part);
 
-    const fragments: string[] = parts.map((part, index) => {
-        if (index % 2 === 0) {
-            return part;
-        } else {
+    //         return renderToStaticMarkup(
+    //             <a className="supContainer" title={part} onClick={() => onCitationClicked(path)}>
+    //                 <sup>{citationIndex}</sup>
+    //             </a>
+    //         );
+    //     }
+    // });
+
+    let parts = sources.split(',');
+    parts = sources.split('\n');
+    parts.map((part, index) => {
+        if (part.length > 0) {
             let citationIndex: number;
             if (citations.indexOf(part) !== -1) {
                 citationIndex = citations.indexOf(part) + 1;
@@ -33,7 +54,6 @@ export function parseAnswerToHtml(answer: string, onCitationClicked: (citationFi
                 citations.push(part);
                 citationIndex = citations.length;
             }
-
             const path = getCitationFilePath(part);
 
             return renderToStaticMarkup(
@@ -45,7 +65,7 @@ export function parseAnswerToHtml(answer: string, onCitationClicked: (citationFi
     });
 
     return {
-        answerHtml: fragments.join(""),
+        answerHtml: answer,
         citations,
         followupQuestions
     };

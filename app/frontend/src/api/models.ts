@@ -32,6 +32,8 @@ export type AskResponse = {
     thoughts: string | null;
     data_points: string[];
     error?: string;
+    sources?: string;
+    nextQuestions?: string;
 };
 
 export type SpeechTokenResponse = {

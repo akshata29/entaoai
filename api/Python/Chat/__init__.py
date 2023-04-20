@@ -25,11 +25,6 @@ from langchain.prompts.chat import (
     AIMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
-from langchain.schema import (
-    AIMessage,
-    HumanMessage,
-    SystemMessage
-)
 from langchain.chains import RetrievalQAWithSourcesChain, VectorDBQAWithSourcesChain
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
@@ -155,12 +150,18 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
 
     combinePromptTemplate = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
           If you don't know the answer, just say that you don't know. Don't try to make up an answer.
-          ALWAYS return a "SOURCES" part in your answer.
+          ALWAYS return a "SOURCES" section as part in your answer.
 
           QUESTION: {question}
           =========
           {summaries}
           =========
+
+          After finding the answer, generate three very brief follow-up questions that the user would likely ask next.
+          Use double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.
+          Try not to repeat questions that have already been asked.
+          Generate 'Next Questions' before the list of questions.
+          Next Questions should come after 'SOURCES' section
           """
     
     combinePrompt = PromptTemplate(
@@ -196,26 +197,95 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
         
         if indexType == 'pinecone':
             vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
+            docRetriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": topK})
             logging.info("Pinecone Setup done for indexName : " + indexNs)
-            # chain = ChatVectorDBChain.from_llm(llm, vectorstore=vectorDb,qa_prompt=qaPrompt, 
-            #     condense_question_prompt=condensePrompt, chain_type="stuff", search_kwargs={"namespace": indexNs})
-            
-            #questionGenerator = LLMChain(llm=llm, prompt=condensePrompt)
-            #docChain = load_qa_chain(llm, chain_type="stuff")
             qaChain = load_qa_with_sources_chain(llm,
             chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
-            chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb,  k=topK,
-                                         search_kwargs={"namespace": indexNs})
-            # chain = RetrievalQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb,  k=topK,
-            #                              search_kwargs={"namespace": indexNs})            
-            # chain = ChatVectorDBChain(vectorstore=vectorDb, combine_docs_chain=docChain, 
-            #                            question_generator=questionGenerator,
-            #                            search_kwargs={"namespace": indexNs})
+            #chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb,  k=topK,
+            #                             search_kwargs={"namespace": indexNs})
+            chain = RetrievalQAWithSourcesChain(combine_documents_chain=qaChain, retriever=docRetriever, return_source_documents=True)
             historyText = getChatHistory(history, includeLastTurn=False)
             answer = chain({"question": question, "chat_history": historyText}, return_only_outputs=True)
-            logging.info(answer)
-            return {"data_points": "", "answer": answer['answer'].replace("Answer: ", ''), "thoughts": ""}
+            docs = answer['source_documents']
+            rawDocs = []
+            for doc in docs:
+                rawDocs.append(doc.page_content)
+            thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
+            fullAnswer = answer['answer'].replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
+            modifiedAnswer = fullAnswer 
+            sources = answer['sources']
+            if (len(sources) > 0):
+                thoughts = sources.replace("NEXT QUESTIONS:", 'Next Questions:')
+                try:
+                    sources = thoughts[:thoughts.index("Next Questions:")]
+                    nextQuestions = thoughts[thoughts.index("Next Questions:"):]
+                except:
+                    try:
+                        sources = sources[:sources.index("<<")]
+                        nextQuestions = sources[sources.index("<<"):]
+                    except:
+                        sources = sources
+                        nextQuestions = ''
+                        if len(nextQuestions) <= 0:
+                            try:
+                                modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                                nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                                if len(nextQuestions) <=0:
+                                    modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                                    nextQuestions = thoughts[thoughts.index("<<"):]
+                            except:
+                                nextQuestions = ''
 
+                return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                        "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
+                        "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+            else :
+                try:
+                    if fullAnswer.index("SOURCES:") > 0:
+                        modifiedAnswer = fullAnswer[:fullAnswer.index("SOURCES:")]
+                        thoughts = fullAnswer[fullAnswer.index("SOURCES:"):]
+                        thoughts = thoughts.replace("NEXT QUESTIONS:", 'Next Questions:')
+                        try:
+                            sources = thoughts[:thoughts.index("Next Questions:")]
+                            nextQuestions = thoughts[thoughts.index("Next Questions:"):]
+                        except:
+                            try:
+                                sources = thoughts[:thoughts.index("<<")]
+                                nextQuestions = thoughts[thoughts.index("<<"):]
+                            except:
+                                sources = thoughts
+                                nextQuestions = ''
+                                if len(nextQuestions) <= 0:
+                                    try:
+                                        modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                                        nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                                        if len(nextQuestions) <=0:
+                                            modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                                            nextQuestions = thoughts[thoughts.index("<<"):]
+                                    except:
+                                        nextQuestions = ''
+
+                        return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
+                                "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+                    else:
+                        return {"data_points": rawDocs, "answer": answer['answer'].replace("Answer: ", ''), 
+                                "thoughts": '', 
+                                "sources": '', "nextQuestions": '', "error": ""}
+                except:
+                    try:
+                        modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                        nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                    except:
+                        try:
+                            modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                            nextQuestions = fullAnswer[fullAnswer.index("<<"):]
+                        except:
+                            modifiedAnswer = fullAnswer
+                            nextQuestions = ''
+                        return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
+                                "sources": sources, "nextQuestions": nextQuestions, "error": ""}
         elif indexType == "redis":
             try:
                 returnField = ["metadata", "content", "vector_score"]
@@ -225,12 +295,64 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
                         Document(page_content=result.content, metadata=json.loads(result.metadata))
                         for result in results.docs
                 ]
+                rawDocs = []
+                for doc in docs:
+                    rawDocs.append(doc.page_content)
+                thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
                 qaChain = load_qa_with_sources_chain(llm,
                     chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
                 answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                return {"data_points": [], "answer": answer['output_text'].replace('Answer: ', ''), "thoughts": '', "error": ""}
+                fullAnswer = answer['output_text'].replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
+                modifiedAnswer = fullAnswer 
+                try:
+                    if fullAnswer.index("SOURCES:") > 0:
+                        modifiedAnswer = fullAnswer[:fullAnswer.index("SOURCES:")]
+                        thoughts = fullAnswer[fullAnswer.index("SOURCES:"):]
+                        thoughts = thoughts.replace("NEXT QUESTIONS:", 'Next Questions:')
+                        try:
+                            sources = thoughts[:thoughts.index("Next Questions:")]
+                            nextQuestions = thoughts[thoughts.index("Next Questions:"):]
+                        except:
+                            try:
+                                sources = thoughts[:thoughts.index("<<")]
+                                nextQuestions = thoughts[thoughts.index("<<"):]
+                            except:
+                                sources = thoughts
+                                nextQuestions = ''
+                                if len(nextQuestions) <= 0:
+                                    try:
+                                        modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                                        nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                                        if len(nextQuestions) <=0:
+                                            modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                                            nextQuestions = thoughts[thoughts.index("<<"):]
+                                    except:
+                                        nextQuestions = ''
+
+                        return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
+                                "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+                    else:
+                        return {"data_points": rawDocs, "answer": answer['answer'].replace("Answer: ", ''), 
+                                "thoughts": '', 
+                                "sources": '', "nextQuestions": '', "error": ""}
+                except:
+                    try:
+                        modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                        nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                    except:
+                        try:
+                            modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                            nextQuestions = fullAnswer[fullAnswer.index("<<"):]
+                        except:
+                            modifiedAnswer = fullAnswer
+                            nextQuestions = ''
+                        return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
+                                "sources": sources, "nextQuestions": nextQuestions, "error": ""}
             except Exception as e:
-                return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": ""}
+                return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "",
+                        "sources": '', "nextQuestions": '', "error": str(e)}
         elif indexType == "cogsearch":
             r = performCogSearch(question, indexNs, topK)
             if r == None:
@@ -240,11 +362,62 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
                     Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
                     for doc in r
                     ]
+            
+            rawDocs = []
+            for doc in docs:
+                rawDocs.append(doc.page_content)
+            thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
             qaChain = load_qa_with_sources_chain(llm,
                     chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-            logging.info(answer)
-            return {"data_points": [], "answer": answer['output_text'].replace('Answer: ', ''), "thoughts": '', "error": ""}
+            fullAnswer = answer['output_text'].replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
+            modifiedAnswer = fullAnswer 
+            try:
+                if fullAnswer.index("SOURCES:") > 0:
+                    modifiedAnswer = fullAnswer[:fullAnswer.index("SOURCES:")]
+                    thoughts = fullAnswer[fullAnswer.index("SOURCES:"):]
+                    thoughts = thoughts.replace("NEXT QUESTIONS:", 'Next Questions:')
+                    try:
+                        sources = thoughts[:thoughts.index("Next Questions:")]
+                        nextQuestions = thoughts[thoughts.index("Next Questions:"):]
+                    except:
+                        try:
+                            sources = thoughts[:thoughts.index("<<")]
+                            nextQuestions = thoughts[thoughts.index("<<"):]
+                        except:
+                            sources = thoughts
+                            nextQuestions = ''
+                            if len(nextQuestions) <= 0:
+                                try:
+                                    modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                                    nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                                    if len(nextQuestions) <=0:
+                                        modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                                        nextQuestions = thoughts[thoughts.index("<<"):]
+                                except:
+                                    nextQuestions = ''
+
+                    return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                            "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
+                            "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+                else:
+                    return {"data_points": rawDocs, "answer": answer['answer'].replace("Answer: ", ''), 
+                            "thoughts": '', 
+                            "sources": '', "nextQuestions": '', "error": ""}
+            except:
+                try:
+                    modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                    nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                except:
+                    try:
+                        modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                        nextQuestions = fullAnswer[fullAnswer.index("<<"):]
+                    except:
+                        modifiedAnswer = fullAnswer
+                        nextQuestions = ''
+                    return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                            "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
+                            "sources": sources, "nextQuestions": nextQuestions, "error": ""}
         elif indexType == 'milvus':
             answer = "{'answer': 'TBD', 'sources': ''}"
             return answer
@@ -252,7 +425,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
     except Exception as e:
         logging.info(e)
 
-    return {"data_points": "", "answer": "", "thoughts": ""}
+    return {"data_points": "", "answer": "", "thoughts": "", "sources": '', "nextQuestions": '', "error": ""}
 
 def GetAnswer(history, approach, overrides, indexNs, indexType, question, indexName):
     logging.info("Getting Answer")

@@ -32,7 +32,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Azure Architecture
 
-![Azure Services](/assets/ChatAsk.png)
+![Azure Services](/assets/AskChat.png)
 
 ## Getting Started
 

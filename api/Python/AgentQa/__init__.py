@@ -96,14 +96,32 @@ def FindAnswer(question, overrides):
         #     ),
         # ]
         logging.info("Pinecone Setup done")
-        agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
-                    verbose=True, return_intermediate_steps=True,
-                    max_iterations=5, early_stopping_method="generate")
+        agent = initialize_agent(tools, llm, agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION, 
+                    verbose=False, return_intermediate_steps=True, early_stopping_method="generate")
         answer = agent({"input":question})
-        return {"data_points": [], "answer": answer['output'].replace("Answer: ", ''), "thoughts": answer['intermediate_steps'], "error": ""}
+        followupQaPromptTemplate = """Generate three very brief follow-up questions from the answer {answer} that the user would likely ask next.
+        Use double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.
+        Try not to repeat questions that have already been asked.
+        Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'"""
+
+        finalPrompt = followupQaPromptTemplate.format(answer = answer['output'])
+        try:
+            completion = openai.Completion.create(
+                engine=OpenAiDavinci,
+                prompt=finalPrompt,
+                temperature=temperature,
+                max_tokens=tokenLength,
+                n=1)
+            nextQuestions = completion.choices[0].text
+        except Exception as e:
+            logging.error(e)
+            nextQuestions =  ''
+    
+        return {"data_points": [], "answer": answer['output'].replace("Answer: ", ''), "thoughts": answer['intermediate_steps'], "sources": '', "nextQuestions":nextQuestions, "error": ""}
 
     except Exception as e:
-      logging.info("Error in FindAnswer Open AI : " + str(e))
+        logging.info("Error in FindAnswer Open AI : " + str(e))
+        return {"data_points": [], "answer": 'Exception Occured', "thoughts": '', "sources": '', "nextQuestions":'', "error": str(e)}
 
     #return answer
 

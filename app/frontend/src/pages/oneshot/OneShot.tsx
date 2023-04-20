@@ -356,7 +356,6 @@ const OneShot = () => {
         for (const item of uniqIndexType) {
             if (item.key == defaultKey) {
                 setSelectedIndex(item.iType)
-                console.log(lastHeader?.props.headerText)
                 setSummary(item.summary)
                 setQa(item.qa)
 
@@ -457,8 +456,8 @@ const OneShot = () => {
     };
 
     const clearAgentChat = () => {
-        lastQuestionRef.current = "";
-        error && setAgentError(undefined);
+        lastAgentQuestionRef.current = "";
+        errorAgent && setAgentError(undefined);
         setActiveCitation(undefined);
         setActiveAnalysisPanelTab(undefined);
         setAgentAnswer(undefined);
@@ -749,7 +748,7 @@ const OneShot = () => {
                                                     onCitationClicked={x => onShowCitation(x)}
                                                     onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
                                                     onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
-                                                    onFollowupQuestionClicked={q => makeApiRequest(q)}
+                                                    onFollowupQuestionClicked={q => makeApiAgentRequest(q)}
                                                     showFollowupQuestions={useSuggestFollowupQuestions}
                                                     onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answerAgent[1])}
                                                 />
