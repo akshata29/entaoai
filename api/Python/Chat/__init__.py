@@ -193,7 +193,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
                 openai_api_key=OpenAiKey,
                 max_tokens=os.environ['MaxTokens'] or 500,
                 batch_size=10)
-        embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+        embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
         
         if indexType == 'pinecone':
             vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)

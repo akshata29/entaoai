@@ -74,7 +74,7 @@ def FindAnswer(question, overrides):
                 batch_size=10)
 
         logging.info("LLM Setup done")
-        embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+        embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
 
         tools = []
         for index in indexes:

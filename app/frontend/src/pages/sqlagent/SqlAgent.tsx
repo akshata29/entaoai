@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Panel, DefaultButton, Spinner, SpinButton, Stack } from "@fluentui/react";
+import { Sparkle28Filled } from "@fluentui/react-icons";
 
 import styles from "./SqlAgent.module.css";
 import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@fluentui/react';
@@ -12,6 +13,13 @@ import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel
 import { ExampleList, ExampleModel } from "../../components/Example";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 import { ClearChatButton } from "../../components/ClearChatButton";
+//import { SqlViewer, DataTable } from "../../components/SqlViewer";
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomOneDark as theme } from "react-syntax-highlighter/dist/cjs/styles/hljs";
+import sql from "react-syntax-highlighter/dist/cjs/languages/hljs/sql";
+import { SqlViewer } from "../../components/SqlViewer";
+import { DataTable } from "../../components/DataTable/DataTable";
+
 var audio = new Audio();
 
 const SqlAgent = () => {
@@ -44,8 +52,11 @@ const SqlAgent = () => {
     const [exampleList, setExampleList] = useState<ExampleModel[]>([{text:'', value: ''}]);
     const [summary, setSummary] = useState<string>();
     const [qa, setQa] = useState<string>('');
+    const [sqlQuery, setSqlQuery] = useState<string>('');
+    const [sqlData, setSqlData] = useState<string[]>([]);
     const [exampleLoading, setExampleLoading] = useState(false)
 
+    // SyntaxHighlighter.registerLanguage("javascript", sql);
 
     const startSynthesis = (url: string | null) => {
         if(isSpeaking) {
@@ -70,6 +81,22 @@ const SqlAgent = () => {
         setIsSpeaking(false);
     };
 
+    const getSqlViewerContent = (question: string) => {
+		if (sqlQuery) {
+			if (isLoading) {
+				return `-- ${question}`;
+			} else {
+				return `-- ${question} \n${sqlQuery}`;
+			}
+		}
+
+		if (isLoading) {
+			return `-- ${question}`;
+		}
+
+		return "-- No prompt yet";
+	};
+
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
 
@@ -80,6 +107,36 @@ const SqlAgent = () => {
 
         try {
             const result = await sqlChat(question, retrieveCount);
+            setSqlQuery(result.toolInput? result.toolInput : '');
+            const dataTable: string[] = []
+            result.observation?.slice(1, -1).split('), (').forEach(function(el){
+                const columns = el.split(',');
+                let rowValues = ''
+                var item = {}
+                for (var i = 0; i < columns.length; i++) {
+                    const colName = "col" + String(i)
+                    var char = columns[i][0]
+                    let colValue = columns[i];
+                    if (char == '(') {
+                        colValue = columns[i].slice(1);
+                    } else if (char == "),") {
+                        colValue = columns[i].slice(0, -1);
+                    } else {
+                        colValue = columns[i];
+                    }
+
+                    if (colValue.trim() == "," || colValue.trim() == "" || colValue.trim() == ")," || colValue.trim() == ")")
+                    {
+                    } else {
+                        colValue = colValue.trim().replace(")", "").replace("Decimal(", "")
+                        colValue = colValue.replace("'", "").replace("'", "").replace(")", "")
+                        item[colName] = colValue
+                    }
+                }
+                dataTable.push(item) 
+            });
+
+            setSqlData(dataTable);
             //setAnswer(result);
             const speechUrl = await getSpeechApi(result.answer);
             setAnswer([result, speechUrl]);
@@ -107,6 +164,36 @@ const SqlAgent = () => {
 
         try {
             const result = await sqlChain(question, retrieveCount);
+            setSqlQuery(result.toolInput? result.toolInput : '');
+            const dataTable: string[] = []
+            result.observation?.slice(1, -1).split('), (').forEach(function(el){
+                const columns = el.split(',');
+                let rowValues = ''
+                var item = {}
+                for (var i = 0; i < columns.length; i++) {
+                    const colName = "col" + String(i)
+                    var char = columns[i][0]
+                    let colValue = columns[i];
+                    if (char == '(') {
+                        colValue = columns[i].slice(1);
+                    } else if (char == "),") {
+                        colValue = columns[i].slice(0, -1);
+                    } else {
+                        colValue = columns[i];
+                    }
+
+                    if (colValue.trim() == "," || colValue.trim() == "" || colValue.trim() == ")," || colValue.trim() == ")")
+                    {
+                    } else {
+                        colValue = colValue.trim().replace(")", "").replace("Decimal(", "")
+                        colValue = colValue.replace("'", "").replace("'", "").replace(")", "")
+                        item[colName] = colValue
+                    }
+                }
+                dataTable.push(item) 
+            });
+
+            setSqlData(dataTable);
             //setAnswerChain(result);
             const speechUrl = await getSpeechApi(result.answer);
             setAnswerChain([result, speechUrl]);
@@ -277,15 +364,63 @@ const SqlAgent = () => {
                             <div>
                                 <div className={styles.oneshotAnswerContainer}>
                                     <Stack horizontal horizontalAlign="space-between">
-                                        <Answer
-                                            //answer={answer}
-                                            answer={answer[0]}
-                                            isSpeaking = {isSpeaking}
-                                            onCitationClicked={x => onShowCitation(x)}
-                                            onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
-                                            onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
-                                            onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answer[1])}
-                                        />
+                                        <Pivot aria-label="Chat">
+                                            <PivotItem
+                                                headerText="Answer"
+                                                headerButtonProps={{
+                                                'data-order': 1,
+                                                }}
+                                            >
+                                                <Answer
+                                                    //answer={answer}
+                                                    answer={answer[0]}
+                                                    isSpeaking = {isSpeaking}
+                                                    onCitationClicked={x => onShowCitation(x)}
+                                                    onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
+                                                    onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
+                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answer[1])}
+                                                />
+                                            </PivotItem>
+                                            <PivotItem
+                                                headerText="SQL Query"
+                                                headerButtonProps={{
+                                                'data-order': 2,
+                                                }}
+                                            >
+                                                <Stack className={`${styles.answerContainer}`} verticalAlign="space-between">
+                                                    <Stack.Item>
+                                                        <Stack horizontal horizontalAlign="space-between">
+                                                            <Sparkle28Filled primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Answer logo" />
+                                                        </Stack>
+                                                    </Stack.Item>
+                                                    <Stack.Item>
+                                                        <div className={styles.answerText}>
+                                                            <SqlViewer content={getSqlViewerContent(lastQuestionRef.current)} />
+                                                        </div>
+                                                    </Stack.Item>
+                                                </Stack>
+                                            </PivotItem>
+                                            <PivotItem
+                                                headerText="SQL Data"
+                                                headerButtonProps={{
+                                                'data-order': 3,
+                                                }}
+                                            >
+                                                <Stack className={`${styles.answerContainer}`} verticalAlign="space-between">
+                                                    <Stack.Item>
+                                                        <Stack horizontal horizontalAlign="space-between">
+                                                            <Sparkle28Filled primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Answer logo" />
+                                                        </Stack>
+                                                    </Stack.Item>
+                                                    <Stack.Item>
+                                                        <div className={styles.answerText}>
+                                                            <DataTable data={sqlData} />
+                                                        </div>
+                                                    </Stack.Item>
+                                                </Stack>
+
+                                            </PivotItem>
+                                        </Pivot>
                                     </Stack>                               
                                 </div>
                             </div>
@@ -351,15 +486,63 @@ const SqlAgent = () => {
                                 <div>
                                     <div className={styles.oneshotAnswerContainer}>
                                         <Stack horizontal horizontalAlign="space-between">
-                                            <Answer
-                                                //answer={answerChain}
-                                                answer={answerChain[0]}
-                                                isSpeaking = {isSpeaking}
-                                                onCitationClicked={x => onShowCitation(x)}
-                                                onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
-                                                onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
-                                                onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answerChain[1])}
-                                            />
+                                        <Pivot aria-label="Chat">
+                                            <PivotItem
+                                                headerText="Answer"
+                                                headerButtonProps={{
+                                                'data-order': 1,
+                                                }}
+                                            >
+                                                <Answer
+                                                    //answer={answerChain}
+                                                    answer={answerChain[0]}
+                                                    isSpeaking = {isSpeaking}
+                                                    onCitationClicked={x => onShowCitation(x)}
+                                                    onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
+                                                    onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
+                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answerChain[1])}
+                                                />
+                                            </PivotItem>
+                                            <PivotItem
+                                                headerText="SQL Query"
+                                                headerButtonProps={{
+                                                'data-order': 2,
+                                                }}
+                                            >
+                                                <Stack className={`${styles.answerContainer}`} verticalAlign="space-between">
+                                                    <Stack.Item>
+                                                        <Stack horizontal horizontalAlign="space-between">
+                                                            <Sparkle28Filled primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Answer logo" />
+                                                        </Stack>
+                                                    </Stack.Item>
+                                                    <Stack.Item>
+                                                        <div className={styles.answerText}>
+                                                            <SqlViewer content={getSqlViewerContent(lastQuestionChainRef.current)} />
+                                                        </div>
+                                                    </Stack.Item>
+                                                </Stack>
+                                            </PivotItem>
+                                            <PivotItem
+                                                headerText="SQL Data"
+                                                headerButtonProps={{
+                                                'data-order': 3,
+                                                }}
+                                            >
+                                                <Stack className={`${styles.answerContainer}`} verticalAlign="space-between">
+                                                    <Stack.Item>
+                                                        <Stack horizontal horizontalAlign="space-between">
+                                                            <Sparkle28Filled primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Answer logo" />
+                                                        </Stack>
+                                                    </Stack.Item>
+                                                    <Stack.Item>
+                                                        <div className={styles.answerText}>
+                                                            <DataTable data={sqlData} />
+                                                        </div>
+                                                    </Stack.Item>
+                                                </Stack>
+
+                                            </PivotItem>
+                                        </Pivot>
                                         </Stack>                               
                                     </div>
                                 </div>

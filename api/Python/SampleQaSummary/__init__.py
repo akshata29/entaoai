@@ -99,7 +99,7 @@ def summarizeGenerateQa(indexType, value, indexNs):
                 max_tokens=1024,
                 batch_size=10)
     
-    embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+    embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
 
     if indexType == 'pinecone':
         vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
@@ -175,7 +175,7 @@ def FindAnswer(question, indexType, value, indexNs):
                 batch_size=10)
 
       logging.info("LLM Setup done")
-      embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+      embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
       template = """Given the following extracted parts of a long document, Generate 5 questions..
             Give me that without numbering.
 

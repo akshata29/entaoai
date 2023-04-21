@@ -7,6 +7,7 @@ from langchain.sql_database import SQLDatabase
 from langchain.prompts.prompt import PromptTemplate
 from langchain.chains import SQLDatabaseSequentialChain
 from langchain.chains import LLMChain
+from langchain.schema import AgentAction
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
@@ -89,7 +90,15 @@ def FindSqlAnswer(topK, question, value):
         # followupAnswer = qaChain.predict(question)
         # logging.info(followupAnswer)
 
-        return {"data_points": [], "answer": answer['result'], "thoughts": answer['intermediate_steps'], "error": ""}
+        intermediateSteps = answer['intermediate_steps']
+        toolInput = ''
+        observation = ''
+        logging.info("Intermediate Steps : " + str(intermediateSteps))
+
+        return {"data_points": [], "answer": answer['result'], "thoughts": intermediateSteps, 
+                "toolInput": intermediateSteps[0], "observation": intermediateSteps[1], "error": ""}
+    
+        #return {"data_points": [], "answer": answer['result'], "thoughts": answer['intermediate_steps'], "error": ""}
     except Exception as e:
         logging.info("Error in FindSqlAnswer Open AI : " + str(e))
         return {"data_points": [], "answer": '', "thoughts": '', "error": str(e)}

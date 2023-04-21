@@ -6,6 +6,7 @@ import os
 from langchain.agents import create_sql_agent
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.sql_database import SQLDatabase
+from langchain.schema import AgentAction
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
@@ -35,19 +36,35 @@ def FindSqlAnswer(topK, question, value):
         sqlConnectionString = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
         db = SQLDatabase.from_uri(sqlConnectionString)
 
-        SqlPrefix = """You are an agent designed to interact with SQL database systems.
+        # SqlPrefix = """You are an agent designed to interact with SQL database systems.
+        # Given an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
+        # Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most {top_k} results using SELECT TOP in SQL Server syntax.
+        # You can order the results by a relevant column to return the most interesting examples in the database.
+        # Never query for all the columns from a specific table, only ask for a the few relevant columns given the question.
+        # You have access to tools for interacting with the database.
+        # Only use the below tools. Only use the information returned by the below tools to construct your final answer.
+        # You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
+        
+        # DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
+        
+        # If the question does not seem related to the database, just return "I don't know" as the answer.        
+        # """ 
+
+        SqlPrefix = """You are an agent designed to interact with a SQL database.
         Given an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
-        Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most {top_k} results using SELECT TOP in SQL Server syntax.
+        Always limit your query to at most {top_k} results using the SELECT TOP in SQL Server syntax.
         You can order the results by a relevant column to return the most interesting examples in the database.
         Never query for all the columns from a specific table, only ask for a the few relevant columns given the question.
+        If you get a "no such table" error, rewrite your query by using the table in quotes.
+        DO NOT use a column name that does not exist in the table.
         You have access to tools for interacting with the database.
         Only use the below tools. Only use the information returned by the below tools to construct your final answer.
-        You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
-        
+        You MUST double check your query before executing it. If you get an error while executing a query, rewrite a different query and try again.
+        Observations from the database should be in the form of a JSON with following keys: "column_name", "column_value"
+        DO NOT try to execute the query more than three times.
         DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
-        
-        If the question does not seem related to the database, just return "I don't know" as the answer.        
-        """ 
+        If the question does not seem related to the database, just return "I don't know" as the answer.
+        If you cannot find a way to answer the question, just return the best answer you can find after trying at least three times."""
 
         SqlSuffix = """Begin!
             Question: {input}
@@ -66,6 +83,7 @@ def FindSqlAnswer(topK, question, value):
         logging.info("Toolkit Setup done")
 
         llm = AzureOpenAI(deployment_name=OpenAiDavinci,
+                model_name="text-davinci-003",
                 temperature=os.environ['Temperature'] or 0,
                 openai_api_key=OpenAiKey)
 
@@ -83,7 +101,17 @@ def FindSqlAnswer(topK, question, value):
      
         logging.info("Agent Setup done")
         answer = agentExecutor._call({"input":question})
-        return {"data_points": [], "answer": answer['output'], "thoughts": answer['intermediate_steps'], "error": ""}
+        intermediateSteps = answer['intermediate_steps']
+        toolInput = ''
+        observation = ''
+        for item in intermediateSteps:
+            agentAction: AgentAction = item[0]
+            if (agentAction.tool == 'query_sql_db'):
+                toolInput = str(agentAction.tool_input)
+                observation = item[1]
+
+        return {"data_points": [], "answer": answer['output'], "thoughts": intermediateSteps, 
+                "toolInput": toolInput, "observation": observation, "error": ""}
     except Exception as e:
         logging.info("Error in FindSqlAnswer Open AI : " + str(e))
         return {"data_points": [], "answer": '', "thoughts": '', "error": str(e)}

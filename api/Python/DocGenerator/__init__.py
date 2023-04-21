@@ -215,7 +215,7 @@ def s3Load(bucket, key, s3Client):
     return rawDocs
 
 def storeIndex(indexType, docs, fileName, nameSpace):
-    embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
+    embeddings = OpenAIEmbeddings(model=OpenAiEmbedding,
                                     chunk_size=1,
                                     openai_api_key=OpenAiKey)
     logging.info("Store the index in " + indexType + " and name : " + nameSpace)
@@ -322,7 +322,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     loader = WebBaseLoader(webPage)
                     rawDocs = loader.load()
                     docs = textSplitter.split_documents(rawDocs)
-                    embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding,
+                    embeddings = OpenAIEmbeddings(model=OpenAiEmbedding,
                                                     chunk_size=1,
                                                     openai_api_key=OpenAiKey)
                     allDocs = allDocs + docs

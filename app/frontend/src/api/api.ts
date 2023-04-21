@@ -1,4 +1,4 @@
-import { AskRequest, AskResponse, ChatRequest, ChatResponse, SpeechTokenResponse} from "./models";
+import { AskRequest, AskResponse, ChatRequest, ChatResponse, SpeechTokenResponse, SqlResponse} from "./models";
 import { PineconeStore } from "langchain/vectorstores";
 import { OpenAIEmbeddings } from 'langchain/embeddings'
 import { PineconeClient } from "@pinecone-database/pinecone";
@@ -345,7 +345,7 @@ export async function secSearch(indexType: string,  indexName: string, question:
   return result;
 }
 
-export async function sqlChat(question:string, top: number): Promise<AskResponse> {
+export async function sqlChat(question:string, top: number): Promise<SqlResponse> {
   const response = await fetch('/sqlChat' , {
       method: "POST",
       headers: {
@@ -373,7 +373,7 @@ export async function sqlChat(question:string, top: number): Promise<AskResponse
   return parsedResponse.values[0].data
 }
 
-export async function sqlChain(question:string, top: number): Promise<AskResponse> {
+export async function sqlChain(question:string, top: number): Promise<SqlResponse> {
     const response = await fetch('/sqlChain' , {
         method: "POST",
         headers: {

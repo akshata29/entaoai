@@ -59,7 +59,7 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                     batch_size=10)
 
             logging.info("LLM Setup done")
-            embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+            embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
 
             if (overrideChain == "stuff"):
                 if indexType == 'cogsearch':

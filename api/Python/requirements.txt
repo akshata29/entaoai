@@ -35,7 +35,7 @@ idna==3.4
 importlib-metadata==6.0.0
 isodate==0.6.1
 joblib==1.2.0
-langchain==0.0.132
+langchain==0.0.145
 loguru==0.6.0
 lxml==4.9.2
 Markdown==3.4.1
@@ -51,7 +51,7 @@ mypy-extensions==1.0.0
 nltk==3.8.1
 numpy==1.23.5
 oauthlib==3.2.2
-openai==0.27.1
+openai==0.27.4
 openpyxl==3.1.2
 packaging==23.0
 pandas==1.5.3

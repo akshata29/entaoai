@@ -36,6 +36,17 @@ export type AskResponse = {
     nextQuestions?: string;
 };
 
+export type SqlResponse = {
+    answer: string;
+    thoughts: string | null;
+    data_points: string[];
+    error?: string;
+    sources?: string;
+    nextQuestions?: string;
+    toolInput?: string;
+    observation?: string;
+};
+
 export type SpeechTokenResponse = {
     Token: string;
     Region: string

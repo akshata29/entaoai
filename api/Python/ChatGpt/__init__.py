@@ -150,7 +150,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
 
     logging.info("Execute step 2")
     # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
-    embeddings = OpenAIEmbeddings(document_model_name=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+    embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
     if indexType == 'pinecone':
         vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings)
         logging.info("Pinecone Setup done to search against - " + indexNs + " for question " + q)
