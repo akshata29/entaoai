@@ -3,8 +3,8 @@ import { Panel, DefaultButton, Spinner, SpinButton, Stack } from "@fluentui/reac
 import { Sparkle28Filled } from "@fluentui/react-icons";
 
 import styles from "./SqlAgent.module.css";
-import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@fluentui/react';
-import { SparkleFilled, BarcodeScanner24Filled } from "@fluentui/react-icons";
+import { Pivot, PivotItem } from '@fluentui/react';
+import { SparkleFilled } from "@fluentui/react-icons";
 
 import { sqlChat, AskResponse, sqlChain, getSpeechApi } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
@@ -13,10 +13,6 @@ import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel
 import { ExampleList, ExampleModel } from "../../components/Example";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 import { ClearChatButton } from "../../components/ClearChatButton";
-//import { SqlViewer, DataTable } from "../../components/SqlViewer";
-import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomOneDark as theme } from "react-syntax-highlighter/dist/cjs/styles/hljs";
-import sql from "react-syntax-highlighter/dist/cjs/languages/hljs/sql";
 import { SqlViewer } from "../../components/SqlViewer";
 import { DataTable } from "../../components/DataTable/DataTable";
 
@@ -53,7 +49,7 @@ const SqlAgent = () => {
     const [summary, setSummary] = useState<string>();
     const [qa, setQa] = useState<string>('');
     const [sqlQuery, setSqlQuery] = useState<string>('');
-    const [sqlData, setSqlData] = useState<string[]>([]);
+    const [sqlData, setSqlData] = useState<Record<string, string | boolean | number>[]>([]);
     const [exampleLoading, setExampleLoading] = useState(false)
 
     // SyntaxHighlighter.registerLanguage("javascript", sql);
@@ -108,11 +104,10 @@ const SqlAgent = () => {
         try {
             const result = await sqlChat(question, retrieveCount);
             setSqlQuery(result.toolInput? result.toolInput : '');
-            const dataTable: string[] = []
+            const dataTable:  Record<string, string | boolean | number>[] = []
             result.observation?.slice(1, -1).split('), (').forEach(function(el){
                 const columns = el.split(',');
-                let rowValues = ''
-                var item = {}
+                var item : any = {}
                 for (var i = 0; i < columns.length; i++) {
                     const colName = "col" + String(i)
                     var char = columns[i][0]
@@ -165,11 +160,11 @@ const SqlAgent = () => {
         try {
             const result = await sqlChain(question, retrieveCount);
             setSqlQuery(result.toolInput? result.toolInput : '');
-            const dataTable: string[] = []
+            const dataTable: Record<string, string | boolean | number>[] = []
             result.observation?.slice(1, -1).split('), (').forEach(function(el){
                 const columns = el.split(',');
                 let rowValues = ''
-                var item = {}
+                var item: any = {}
                 for (var i = 0; i < columns.length; i++) {
                     const colName = "col" + String(i)
                     var char = columns[i][0]
