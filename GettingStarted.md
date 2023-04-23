@@ -15,6 +15,30 @@
 * [Azure Functions Core tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools)
 * [Powershell 7+ (pwsh)](https://github.com/powershell/powershell) - For Windows users only. **Important**: Ensure you can run `pwsh.exe` from a PowerShell command. If this fails, you likely need to upgrade PowerShell.
 
+### Pre-build docker Image - API
+
+Configure your `.env` as described in as described in [Configuration](Configuration.md).  You can alternatively, copy .dockerenv.example to .env from api\Python folder
+
+Then run:
+
+```console
+docker run --env-file .env -p 7071:80 --name chataskapi -it akshata13/chataskapi:latest
+```
+
+Verify http://localhost:7071 to confirm the API is running locally.
+
+### Pre-build docker Image - Application
+
+Configure your `.env` as described in as described in [Configuration](Configuration.md).  You can alternatively, copy .dockerenv.example to .env from app\backend folder
+
+Then run:
+
+```console
+docker run --env-file .env --name chataskapp -it akshata13/chataskapp:latest
+```
+
+Verify http://localhost:5000 to confirm the App is running locally.
+
 ### Installation
 
 1. Deploy the required Azure Services - Using scripts and steps below:

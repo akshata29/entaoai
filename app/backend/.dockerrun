@@ -1,0 +1,9 @@
+-- Docker build
+docker build --tag akshata13/chataskapp:v1.0.0 .
+
+-- Docker  Push
+docker login
+docker push akshata13/chataskapp:v1.0.0
+
+-- Docker Run
+docker run --env-file .dockerenv --name chataskapp -it akshata13/chataskapp:v1.0.0

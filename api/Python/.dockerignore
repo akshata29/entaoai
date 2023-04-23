@@ -1,0 +1,4 @@
+local.settings.json
+.env
+.dockerenv
+.dockerenv.example

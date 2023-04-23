@@ -1,0 +1,5 @@
+.env
+.env.example
+.env.prod
+.dockerenv
+.dockerenv.example

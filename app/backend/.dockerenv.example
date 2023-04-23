@@ -1,0 +1,16 @@
+QA_URL=http://localhost:7071/api/QuestionAnswering?code=
+AGENTQA_URL=http://localhost:7071/api/AgentQa?code=
+CHAT_URL=http://localhost:7071/api/ChatGpt?code=
+CHAT3_URL=http://localhost:7071/api/Chat?code=
+DOCGENERATOR_URL=http://localhost:7071/api/DocGenerator?code=
+SUMMARYQA_URL=http://localhost:7071/api/SampleQaSummary?code=
+SECSEARCH_URL=http://localhost:7071/api/SecSearch?code=
+SQLCHAT_URL=http://localhost:7071/api/SqlChat?code=
+SQLCHAIN_URL=http://localhost:7071/api/SqlChain?code=
+BLOB_CONNECTION_STRING=
+BLOB_CONTAINER_NAME=chatpdf
+SPEECH_REGION=southcentralus
+SPEECH_KEY=
+TEXTANALYTICS_KEY=
+TEXTANALYTICS_REGION=eastus
+SUMMARIZER_URL=http://localhost:7071/api/Summarizer?code=
