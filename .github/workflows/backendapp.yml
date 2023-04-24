@@ -50,6 +50,7 @@ jobs:
         shell: bash # For Linux, use bash
         run: |
           pushd './${{ env.AZURE_NODEJS_PACKAGE_PATH }}'
+          export NODE_OPTIONS="--max_old_space_size=4096"
           npm install
           npm run build
           popd
