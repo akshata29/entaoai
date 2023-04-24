@@ -71,7 +71,7 @@ Verify http://localhost:5000 to confirm the App is running locally.
       6. Azure Open AI Service
       7. Azure Application Insight
       8. Cognitive Services (Language and Speech Service)
-      9. SQL Server and Database
+      9. SQL Server and Database (**Note** - SQL Script - northwind.sql need to run manually once database is created)
    2. [Fork the repo](https://github.com/akshata29/chatpdf/fork)
       1. **Note - Following information need to be performed only once**
       2. Click on Actions and select "I understand my workflow, go ahead and enable them"
