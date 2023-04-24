@@ -25,6 +25,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: "{{defaultContext}}:app\backend"
+          context: ./api/backend
+          file: ./api/backend/Dockerfile
           push: true
           tags: akshata13/chataskapp:latest
