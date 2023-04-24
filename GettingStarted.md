@@ -79,34 +79,34 @@ Verify http://localhost:5000 to confirm the App is running locally.
       4. Setup AZURE_FUNCTIONAPP_PUBLISH_PROFILE secret in your forked repository (Settings -> Secrets and Variables -> Actions -> New Repository Secret).  Copy/Paste the content of the Publish profile
       5. Download the [Publish Profile](https://docs.microsoft.com/en-us/azure/app-service/deploy-github-actions?tabs=applevel#generate-deployment-credentials) for your Azure Web App. You can download this file from the Overview page of your Web App in the Azure Portal.
       6. Create a secret in your repository named AZURE_WEBAPP_PUBLISH_PROFILE, paste the publish profile contents as the value of the secret.  More [Information](https://docs.microsoft.com/azure/app-service/deploy-github-actions#configure-the-github-secret)
-      7. Edit pythonapi.yml -> Change line 27 (AZURE_FUNCTIONAPP_NAME) to the name of your Function App
-      8. Edit backend.yml -> Change line 23 (AZURE_WEBAPP_NAME) to the name of your Azure App Service
+      7. Setup AZURE_FUNCTIONAPP_NAME secret in your forked repository as the name of your Function App
+      8. Setup AZURE_WEBAPP_NAME secret in your forked repository as the name of your Azure App Service
    3. Successful execution of both workflow will deploy the Python API and Azure App Services (UI application)
 
 3. Alternatively deploy the following services manually
    1. [OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal).   Please be aware of the model & region availability documented [here]
 (https://learn.microsoft.com/en-us/azure/cognitive-services/openai/concepts/models#model-summary-table-and-region-availability)
-   2. [Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal) and a container
-   3. One of the Document Store
+   1. [Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal) and a container
+   2. One of the Document Store
       1. [Pinecone Starter](https://www.pinecone.io/pricing/).  **Note** Make sure you create the index in Pincone with dimensions as 1536 and metric as cosine
       2. [Cognitive Search](https://learn.microsoft.com/en-us/azure/search/search-create-service-portal)
       3. Redis
-   4. Create [Function App](https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-function-app-portal)
-   5. Create Azure Web App
-   6. Git clone the repo
-   7. Open the cloned repo folder in VSCode
-   8. Open new terminal and go to /app/frontend directory
-   9. Run `npm install` to install all the packages
-   10. Go to /api/Python directory
-   11. Run `pip install -r requirements.txt` to install all required python packages
-   12. Copy sample.settings.json to local.settings.json
-   13. Update the configuration (Minimally you need OpenAi, one of the document store, storage account)
-   14. Deploy the Azure Python API to Function app
-   15. Open new terminal and go to /app/frontend directory
-   16. Run npm run build for production build and copying static files to app/backend/static directory
-   17. Open new terminal and go to /app/backend directory
-   18. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
-   19. Deploy the app/backend Azure web app.
+   3. Create [Function App](https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-function-app-portal)
+   4. Create Azure Web App
+   5. Git clone the repo
+   6. Open the cloned repo folder in VSCode
+   7. Open new terminal and go to /app/frontend directory
+   8. Run `npm install` to install all the packages
+   9.  Go to /api/Python directory
+   10. Run `pip install -r requirements.txt` to install all required python packages
+   11. Copy sample.settings.json to local.settings.json
+   12. Update the configuration (Minimally you need OpenAi, one of the document store, storage account)
+   13. Deploy the Azure Python API to Function app
+   14. Open new terminal and go to /app/frontend directory
+   15. Run npm run build for production build and copying static files to app/backend/static directory
+   16. Open new terminal and go to /app/backend directory
+   17. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
+   18. Deploy the app/backend Azure web app.
 
 ### Run Locally
 
