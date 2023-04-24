@@ -11,7 +11,7 @@
 |OpenAiDavinci|davinci|Deployment name of text-davinci-003 <br>model in Azure OpenAI
 |OpenAiEmbedding|text-embedding-ada-002|Deployment name of <br>text-embedding-ada-002 model in Azure OpenAI
 |MaxTokens|500|Maximum Tokens
-|Temperature|0.3|Temerature
+|Temperature|0.3|Temperature
 |OpenAiChat|chat|Deployment name of gpt-35-turbo model in <br>Azure OpenAI
 |PineconeKey|key|Pinecone Key
 |PineconeEnv|env|Pinecone Environment
