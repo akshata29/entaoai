@@ -27,7 +27,7 @@ const OneShot = () => {
     const [promptTemplateSuffix, setPromptTemplateSuffix] = useState<string>("");
     const [retrieveCount, setRetrieveCount] = useState<number>(3);
     const [temperature, setTemperature] = useState<number>(0.3);
-    const [tokenLength, setTokenLength] = useState<number>(500);
+    const [tokenLength, setTokenLength] = useState<number>(1000);
     const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(true);
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
     const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
@@ -288,7 +288,7 @@ const OneShot = () => {
     };
 
     const onTokenLengthChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
-        setTokenLength(parseInt(newValue || "500"));
+        setTokenLength(parseInt(newValue || "1000"));
     };
 
     const onApproachChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
