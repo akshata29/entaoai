@@ -259,6 +259,7 @@ def content_file(path):
     url = os.environ.get("BLOB_CONNECTION_STRING")
     containerName = os.environ.get("BLOB_CONTAINER_NAME")
     blobClient = BlobServiceClient.from_connection_string(url)
+    logging.info(f"Getting blob {path}")
     blobContainer = blobClient.get_container_client(container=containerName)
     blob = blobContainer.get_blob_client(path).download_blob()
     mime_type = blob.properties["content_settings"]["content_type"]

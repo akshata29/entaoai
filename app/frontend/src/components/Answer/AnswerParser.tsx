@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { getCitationFilePath } from "../../api";
+import { Link } from "react-router-dom";
 
 type HtmlParsedAnswer = {
     answerHtml: string;
@@ -9,19 +10,24 @@ type HtmlParsedAnswer = {
 
 export function parseAnswerToHtml(answer: string, 
     onCitationClicked: (citationFilePath: string) => void, sources: string, nextQuestions: string): HtmlParsedAnswer {
-    const citations: string[] = [];
+    let citations: string[] = [];
+    const dupCitations: string[] = [];
     const followupQuestions: string[] = [];
 
     // Extract any follow-up questions that might be in the answer
-    // nextQuestions.replace(/<([^>]+)>/g, (match, content) => {
-    //     followupQuestions.push(content);
-    //     return "";
-    // });
-    nextQuestions.split('\n').map((part, index) => {
-        if (part.trim().length > 0) {
-            followupQuestions.push(part);
-        }
+    nextQuestions.replace(/<([^>]+)>/g, (match, content) => {
+        followupQuestions.push(content);
+        return "";
     });
+    // var expression = /(https?:\/\/[^ ]*)/;
+    var expression = /(?:[^/][\d\w\.]+)$(?<=\.\w{3,4})/;
+    var regex = new RegExp(expression);
+
+    // nextQuestions.split('\n').map((part, index) => {
+    //     if (part.trim().length > 0) {
+    //         followupQuestions.push(part);
+    //     }
+    // });
 
     // trim any whitespace from the end of the answer after removing follow-up questions
     //let parsedThoughts = sources.trim().replace("NEXT QUESTIONS:", "").replace("GENERATED FOLLOW-UP QUESTIONS:", "");
@@ -56,17 +62,34 @@ export function parseAnswerToHtml(answer: string,
             if (citations.indexOf(part) !== -1) {
                 citationIndex = citations.indexOf(part) + 1;
             } else {
-                citations.push(part);
                 citationIndex = citations.length;
             }
-            const path = getCitationFilePath(part);
 
-            return renderToStaticMarkup(
-                <a className="supContainer" title={part} onClick={() => onCitationClicked(path)}>
-                    <sup>{citationIndex}</sup>
-                </a>
-            );
+            const path = getCitationFilePath(part);
+            // const name = part.split(',')[0].replace('-', '');
+            // let url = part.split(',')[1];
+            // if (url == undefined) {
+            //     if (part.match(expression)) {
+            //         url = part.match(expression)[1];
+            //     }
+            // }
+            const fileName  = part.substring(part.lastIndexOf('/')+1).replaceAll('%20', ' ');
+            if (fileName.trim() != "") {
+                dupCitations.push(fileName);
+            }
+            else if (part.match(expression))
+            {
+                const fileName = part.match(expression)[0];
+                if (fileName.trim() != "") {
+                    dupCitations.push(fileName);
+                }
+            }
+            else {
+                dupCitations.push(part);
+            }       
         }
+        citations = [...new Set(dupCitations)];
+
     });
 
     return {

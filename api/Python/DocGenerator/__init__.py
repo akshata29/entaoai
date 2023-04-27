@@ -27,7 +27,7 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain.prompts import PromptTemplate
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 #from langchain.vectorstores import Weaviate
-from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs
+from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs, getSasToken, getFullPath
 from Utilities.cogSearch import createSearchIndex, createSections, indexSections
 from langchain.document_loaders import AzureBlobStorageFileLoader
 from langchain.document_loaders import AzureBlobStorageContainerLoader
@@ -196,7 +196,12 @@ def blobLoad(blobConnectionString, blobContainer, blobName):
 
     logging.info("File created " + downloadPath)
     loader = PDFMinerLoader(downloadPath)
+    #loader = UnstructuredFileLoader(downloadPath)
     rawDocs = loader.load()
+
+    fullPath = getFullPath(blobConnectionString, blobContainer, blobName)
+    for doc in rawDocs:
+        doc.metadata['source'] = fullPath
     return rawDocs
 
 def s3Load(bucket, key, s3Client):
@@ -277,24 +282,31 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     else:
                         try:
                             logging.info("Embedding Non-text file")
-                            readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                            downloadPath = os.path.join(tempfile.gettempdir(), fileName)
-                            os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
-                            try:
-                                with open(downloadPath, "wb") as file:
-                                    file.write(readBytes)
-                            except Exception as e:
-                                logging.error(e)
-
-                            logging.info("File created " + downloadPath)
+                            rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                            logging.info(str(rawDocs))
                             textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                             docs = []
-                            loader = PDFMinerLoader(downloadPath)
-                            #loader = PyMuPDFLoader(downloadPath)
-                            rawDocs = loader.load()
                             docs = textSplitter.split_documents(rawDocs)
-                            logging.info("Docs " + str(len(docs)))
                             storeIndex(indexType, docs, fileName, uResultNs.hex)
+
+                            # readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                            # downloadPath = os.path.join(tempfile.gettempdir(), fileName)
+                            # os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+                            # try:
+                            #     with open(downloadPath, "wb") as file:
+                            #         file.write(readBytes)
+                            # except Exception as e:
+                            #     logging.error(e)
+
+                            # logging.info("File created " + downloadPath)
+                            # textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
+                            # docs = []
+                            # loader = PDFMinerLoader(downloadPath)
+                            # #loader = PyMuPDFLoader(downloadPath)
+                            # rawDocs = loader.load()
+                            # docs = textSplitter.split_documents(rawDocs)
+                            # logging.info("Docs " + str(len(docs)))
+                            # storeIndex(indexType, docs, fileName, uResultNs.hex)
                         except Exception as e:
                             logging.info(e)
                             upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType})

@@ -6,7 +6,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 import os
 from langchain.vectorstores import Pinecone
 import pinecone
-from langchain.chains import RetrievalQAWithSourcesChain, VectorDBQAWithSourcesChain, RetrievalQA
+from langchain.chains import RetrievalQAWithSourcesChain, VectorDBQAWithSourcesChain, RetrievalQA, LLMChain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
@@ -63,27 +63,49 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
             embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
 
             if (overrideChain == "stuff"):
-                #if indexType == 'cogsearch':
+                # template = """
+                #     Answer the question as truthfully as possible using the provided text below, and if the answer is not contained within the text below, say \"I don't know\".
+
+                #     Generate three very brief follow-up questions that the user would likely ask next.
+                #     Use double angle brackets to reference the questions, e.g. <>.
+                #     Try not to repeat questions that have already been asked.
+
+                #     ALWAYS return a "SOURCES" part in your answer.
+                #     ALWAYS return a "NEXT QUESTIONS" part in your answer.
+
+                #     QUESTION: {question}
+                #     =========
+                #     {summaries}
+                #     =========
+                #     """
+
                 template = """
-                Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES") and set of followup questions ("NEXT QUESTIONS")
-                If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+                Answer the question as truthfully as possible using the provided text below, and if the answer is not contained within the text below, say \"I don't know\".
+
+                QUESTION: {question}
+                =========
+                {summaries}
+                =========
+                """
+                #qaPrompt = load_prompt('lc://prompts/qa_with_sources/stuff/basic.json')
+                qaPrompt = PromptTemplate(template=template, input_variables=["summaries", "question"])
+                #qaChain = load_qa_chain(llm, chain_type=overrideChain, prompt=qaPrompt)
+                qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, prompt=qaPrompt)
+
+                followupTemplate = """
                 Generate three very brief follow-up questions that the user would likely ask next.
                 Use double angle brackets to reference the questions, e.g. <>.
                 Try not to repeat questions that have already been asked.
 
                 ALWAYS return a "NEXT QUESTIONS" part in your answer.
-                ALWAYS return a "SOURCES" part in your answer.
 
-                QUESTION: {question}
                 =========
                 {context}
                 =========
+
                 """
-                #else:
-                #    template = "Given the following extracted parts of a long document and a question, create a final answer with references (\"SOURCES\"). \nIf you don't know the answer, just say that you don't know. Don't try to make up an answer.\nALWAYS return a \"SOURCES\" part in your answer.\n\nQUESTION: Which state/country's law governs the interpretation of the contract?\n=========\nContent: This Agreement is governed by English law and the parties submit to the exclusive jurisdiction of the English courts in  relation to any dispute (contractual or non-contractual) concerning this Agreement save that either party may apply to any court for an  injunction or other relief to protect its Intellectual Property Rights.\nSource: 28-pl\nContent: No Waiver. Failure or delay in exercising any right or remedy under this Agreement shall not constitute a waiver of such (or any other)  right or remedy.\n\n11.7 Severability. The invalidity, illegality or unenforceability of any term (or part of a term) of this Agreement shall not affect the continuation  in force of the remainder of the term (if any) and this Agreement.\n\n11.8 No Agency. Except as expressly stated otherwise, nothing in this Agreement shall create an agency, partnership or joint venture of any  kind between the parties.\n\n11.9 No Third-Party Beneficiaries.\nSource: 30-pl\nContent: (b) if Google believes, in good faith, that the Distributor has violated or caused Google to violate any Anti-Bribery Laws (as  defined in Clause 8.5) or that such a violation is reasonably likely to occur,\nSource: 4-pl\n=========\nFINAL ANSWER: This Agreement is governed by English law.\nSOURCES: 28-pl\n\nQUESTION: What did the president say about Michael Jackson?\n=========\nContent: Madam Speaker, Madam Vice President, our First Lady and Second Gentleman. Members of Congress and the Cabinet. Justices of the Supreme Court. My fellow Americans.  \n\nLast year COVID-19 kept us apart. This year we are finally together again. \n\nTonight, we meet as Democrats Republicans and Independents. But most importantly as Americans. \n\nWith a duty to one another to the American people to the Constitution. \n\nAnd with an unwavering resolve that freedom will always triumph over tyranny. \n\nSix days ago, Russia\u2019s Vladimir Putin sought to shake the foundations of the free world thinking he could make it bend to his menacing ways. But he badly miscalculated. \n\nHe thought he could roll into Ukraine and the world would roll over. Instead he met a wall of strength he never imagined. \n\nHe met the Ukrainian people. \n\nFrom President Zelenskyy to every Ukrainian, their fearlessness, their courage, their determination, inspires the world. \n\nGroups of citizens blocking tanks with their bodies. Everyone from students to retirees teachers turned soldiers defending their homeland.\nSource: 0-pl\nContent: And we won\u2019t stop. \n\nWe have lost so much to COVID-19. Time with one another. And worst of all, so much loss of life. \n\nLet\u2019s use this moment to reset. Let\u2019s stop looking at COVID-19 as a partisan dividing line and see it for what it is: A God-awful disease.  \n\nLet\u2019s stop seeing each other as enemies, and start seeing each other for who we really are: Fellow Americans.  \n\nWe can\u2019t change how divided we\u2019ve been. But we can change how we move forward\u2014on COVID-19 and other issues we must face together. \n\nI recently visited the New York City Police Department days after the funerals of Officer Wilbert Mora and his partner, Officer Jason Rivera. \n\nThey were responding to a 9-1-1 call when a man shot and killed them with a stolen gun. \n\nOfficer Mora was 27 years old. \n\nOfficer Rivera was 22. \n\nBoth Dominican Americans who\u2019d grown up on the same streets they later chose to patrol as police officers. \n\nI spoke with their families and told them that we are forever in debt for their sacrifice, and we will carry on their mission to restore the trust and safety every community deserves.\nSource: 24-pl\nContent: And a proud Ukrainian people, who have known 30 years  of independence, have repeatedly shown that they will not tolerate anyone who tries to take their country backwards.  \n\nTo all Americans, I will be honest with you, as I\u2019ve always promised. A Russian dictator, invading a foreign country, has costs around the world. \n\nAnd I\u2019m taking robust action to make sure the pain of our sanctions  is targeted at Russia\u2019s economy. And I will use every tool at our disposal to protect American businesses and consumers. \n\nTonight, I can announce that the United States has worked with 30 other countries to release 60 Million barrels of oil from reserves around the world.  \n\nAmerica will lead that effort, releasing 30 Million barrels from our own Strategic Petroleum Reserve. And we stand ready to do more if necessary, unified with our allies.  \n\nThese steps will help blunt gas prices here at home. And I know the news about what\u2019s happening can seem alarming. \n\nBut I want you to know that we are going to be okay.\nSource: 5-pl\nContent: More support for patients and families. \n\nTo get there, I call on Congress to fund ARPA-H, the Advanced Research Projects Agency for Health. \n\nIt\u2019s based on DARPA\u2014the Defense Department project that led to the Internet, GPS, and so much more.  \n\nARPA-H will have a singular purpose\u2014to drive breakthroughs in cancer, Alzheimer\u2019s, diabetes, and more. \n\nA unity agenda for the nation. \n\nWe can do this. \n\nMy fellow Americans\u2014tonight , we have gathered in a sacred space\u2014the citadel of our democracy. \n\nIn this Capitol, generation after generation, Americans have debated great questions amid great strife, and have done great things. \n\nWe have fought for freedom, expanded liberty, defeated totalitarianism and terror. \n\nAnd built the strongest, freest, and most prosperous nation the world has ever known. \n\nNow is the hour. \n\nOur moment of responsibility. \n\nOur test of resolve and conscience, of history itself. \n\nIt is in this moment that our character is formed. Our purpose is found. Our future is forged. \n\nWell I know this nation.\nSource: 34-pl\n=========\nFINAL ANSWER: The president did not mention Michael Jackson.\nGenerate three very brief follow-up questions that the user would likely ask next.\nUse double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.\nTry not to repeat questions that have already been asked.\nOnly generate questions and do not generate any text before or after the questions, such as 'Next Questions\nSOURCES:\n\nQUESTION: {question}\n=========\n{summaries}\n=========\nFINAL ANSWER:"
-                #qaPrompt = load_prompt('lc://prompts/qa_with_sources/stuff/basic.json')
-                qaPrompt = PromptTemplate(template=template, input_variables=["context", "question"])
-                qaChain = load_qa_chain(llm, chain_type=overrideChain, prompt=qaPrompt)
+                followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
+                followupChain = load_qa_chain(llm, chain_type=overrideChain, prompt=followupPrompt)
             elif (overrideChain == "map_rerank"):
                 outputParser = RegexParser(
                     regex=r"(.*?)\nScore: (.*)",
@@ -92,7 +114,7 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
 
                 promptTemplate = """
                 
-                Use the following pieces of context to answer the question at the end with references ("SOURCES") and set of followup questions ("NEXT QUESTIONS"). If you don't know the answer, just say that you don't know, don't try to make up an answer.
+                Use the following pieces of context to answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
                 In addition to giving an answer, also return a score of how fully it answered the user's question. This should be in the following format:
 
@@ -104,17 +126,30 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
 
                 Context:
                 ---------
-                {context}
+                {summaries}
                 ---------
                 Question: {question}
 
                 """
-                qaPrompt = PromptTemplate(
-                    template=promptTemplate,
-                    input_variables=["context", "question"],
-                    output_parser=outputParser,
-                )
-                qaChain = load_qa_chain(llm, chain_type=overrideChain, prompt=qaPrompt)
+                qaPrompt = PromptTemplate(template=promptTemplate,input_variables=["summaries", "question"],
+                                          output_parser=outputParser)
+                qaChain = load_qa_with_sources_chain(llm, chain_type=chainType,
+                                            prompt=qaPrompt)
+
+                followupTemplate = """
+                Generate three very brief follow-up questions that the user would likely ask next.
+                Use double angle brackets to reference the questions, e.g. <>.
+                Try not to repeat questions that have already been asked.
+
+                ALWAYS return a "NEXT QUESTIONS" part in your answer.
+
+                =========
+                {context}
+                =========
+
+                """
+                followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
+                followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
             elif (overrideChain == "map_reduce"):
 
                 qaTemplate = """Use the following portion of a long document to see if any of the text is relevant to answer the question.
@@ -140,6 +175,21 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                     template=combinePromptTemplate, input_variables=["summaries", "question"]
                 )
                 qaChain = load_qa_chain(llm, chain_type=overrideChain, question_prompt=qaPrompt, combine_prompt=combinePrompt)
+
+                followupTemplate = """
+                Generate three very brief follow-up questions that the user would likely ask next.
+                Use double angle brackets to reference the questions, e.g. <>.
+                Try not to repeat questions that have already been asked.
+
+                ALWAYS return a "NEXT QUESTIONS" part in your answer.
+
+                =========
+                {context}
+                =========
+
+                """
+                followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
+                followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
             elif (overrideChain == "refine"):
                 refineTemplate = (
                     "The original question is as follows: {question}\n"
@@ -159,6 +209,7 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                 )
 
                 qaTemplate = (
+                    "Answer the question as truthfully as possible using the provided text below, and if the answer is not contained within the text below, say \"I don't know\"\n"
                     "Context information is below. \n"
                     "---------------------\n"
                     "{context_str}"
@@ -166,15 +217,26 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                     "Given the context information and not prior knowledge, "
                     "answer the question: {question}\n"
                     "\n---------------------\n"
-                    # "Generate three very brief follow-up questions that the user would likely ask next.\n"
-                    # "Use double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.\n"
-                    # "Try not to repeat questions that have already been asked.\n"
-                    # "Only generate questions and do not generate any text before or after the questions, such as 'Next Questions"
                 )
                 qaPrompt = PromptTemplate(
                     input_variables=["context_str", "question"], template=qaTemplate
                 )
-                qaChain = load_qa_chain(llm, chain_type=overrideChain, question_prompt=qaPrompt, refine_prompt=combinePrompt)
+                qaChain = load_qa_chain(llm, chain_type=overrideChain, question_prompt=qaPrompt, refine_prompt=refinePrompt)
+
+                followupTemplate = """
+                Generate three very brief follow-up questions that the user would likely ask next.
+                Use double angle brackets to reference the questions, e.g. <>.
+                Try not to repeat questions that have already been asked.
+
+                ALWAYS return a "NEXT QUESTIONS" part in your answer.
+
+                =========
+                {context}
+                =========
+
+                """
+                followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
+                followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
 
             if indexType == 'pinecone':
                 vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
@@ -191,27 +253,42 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                     rawDocs.append(doc.page_content)
                 
                 if overrideChain == "stuff" or overrideChain == "map_rerank":
+                    thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
+                elif overrideChain == "map_reduce":
                     thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
-                else:
-                    thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
+                elif overrideChain == "refine":
+                    thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
                 
                 answer = llmAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
                 modifiedAnswer = answer
-                try:
-                    if answer.find("SOURCES:") > 0:
-                        modifiedAnswer = answer[:answer.find("SOURCES:")]
-                        if answer.find("NEXT QUESTIONS:") > 0:
-                            sources = answer[answer.find("SOURCES:"):answer.find("NEXT QUESTIONS:")].replace("SOURCES:", '')
-                            nextQuestions = answer[answer.find("NEXT QUESTIONS:"):].replace("NEXT QUESTIONS:", '')
-                        else:
-                            sources = answer[answer.find("SOURCES:"):].replace("SOURCES:", '')
-                            nextQuestions = ''
-                    else:
-                        sources = ''
-                        nextQuestions = ''
-                except:
+                
+                # Followup questions
+                followupChain = RetrievalQA(combine_documents_chain=followupChain, retriever=docRetriever)
+                followupAnswer = followupChain({"query": question}, return_only_outputs=True)
+                nextQuestions = followupAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '')
+                sources = ''
+                # try:
+                #     if answer.find("SOURCES:") > 0:
+                #         modifiedAnswer = answer[:answer.find("SOURCES:")]
+                #         if answer.find("NEXT QUESTIONS:") > 0:
+                #             sources = answer[answer.find("SOURCES:"):answer.find("NEXT QUESTIONS:")].replace("SOURCES:", '')
+                #             nextQuestions = answer[answer.find("NEXT QUESTIONS:"):].replace("NEXT QUESTIONS:", '')
+                #         else:
+                #             sources = answer[answer.find("SOURCES:"):].replace("SOURCES:", '')
+                #             nextQuestions = ''
+                #     else:
+                #         sources = ''
+                #         nextQuestions = ''
+                # except:
+                #     sources = ''
+                #     nextQuestions = ''
+                
+                if (modifiedAnswer.find("I don't know") >= 0):
                     sources = ''
                     nextQuestions = ''
+                else:
+                    sources = sources + "\n" + docs[0].metadata['source']
+
                 return {"data_points": rawDocs, "answer": modifiedAnswer, 
                         "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
                             "sources": sources, "nextQuestions": nextQuestions, "error": ""}
@@ -228,7 +305,6 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                     for doc in docs:
                         rawDocs.append(doc.page_content)
                     answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-
                     if overrideChain == "stuff" or overrideChain == "map_rerank":
                         thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
                     else:
