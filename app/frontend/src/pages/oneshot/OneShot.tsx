@@ -688,6 +688,7 @@ const OneShot = () => {
                                 <Stack enableScopedSelectors tokens={outerStackTokens}>
                                     <Stack enableScopedSelectors  tokens={innerStackTokens}>
                                         <Stack.Item grow styles={stackItemStyles}>
+                                        <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>&nbsp;
                                         <Label>Index Type</Label>
                                         &nbsp;
                                         <Dropdown
@@ -784,7 +785,7 @@ const OneShot = () => {
                                 isFooterAtBottom={true}
                             >
                                 <br/>
-                                <div>
+                                {/* <div>
                                         <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
                                         <Dropdown
                                             selectedKey={selectedItem ? selectedItem.key : undefined}
@@ -796,7 +797,7 @@ const OneShot = () => {
                                         />
                                         &nbsp;
                                         <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
-                                </div>
+                                </div> */}
                                  <SpinButton
                                     className={styles.oneshotSettingsSeparator}
                                     label="Set the Temperature:"

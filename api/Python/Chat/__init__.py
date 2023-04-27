@@ -97,6 +97,73 @@ def ComposeResponse(jsonData, indexNs, indexType, question, indexName):
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
 
+def parseResponse(fullAnswer, sources):
+    modifiedAnswer = fullAnswer
+    if (len(sources) > 0):
+        thoughts = sources.replace("NEXT QUESTIONS:", 'Next Questions:')
+        try:
+            sources = thoughts[:thoughts.index("Next Questions:")]
+            nextQuestions = thoughts[thoughts.index("Next Questions:"):]
+        except:
+            try:
+                sources = sources[:sources.index("<<")]
+                nextQuestions = sources[sources.index("<<"):]
+            except:
+                sources = sources
+                nextQuestions = ''
+                if len(nextQuestions) <= 0:
+                    try:
+                        modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                        nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                        if len(nextQuestions) <=0:
+                            modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                            nextQuestions = thoughts[thoughts.index("<<"):]
+                    except:
+                        nextQuestions = ''
+
+        return modifiedAnswer.replace("Answer: ", ''), sources, nextQuestions
+    else :
+        try:
+            if fullAnswer.index("SOURCES:") > 0:
+                modifiedAnswer = fullAnswer[:fullAnswer.index("SOURCES:")]
+                thoughts = fullAnswer[fullAnswer.index("SOURCES:"):]
+                thoughts = thoughts.replace("NEXT QUESTIONS:", 'Next Questions:')
+                try:
+                    sources = thoughts[:thoughts.index("Next Questions:")]
+                    nextQuestions = thoughts[thoughts.index("Next Questions:"):]
+                except:
+                    try:
+                        sources = thoughts[:thoughts.index("<<")]
+                        nextQuestions = thoughts[thoughts.index("<<"):]
+                    except:
+                        sources = thoughts
+                        nextQuestions = ''
+                        if len(nextQuestions) <= 0:
+                            try:
+                                modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                                nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                                if len(nextQuestions) <=0:
+                                    modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                                    nextQuestions = thoughts[thoughts.index("<<"):]
+                            except:
+                                nextQuestions = ''
+
+                return modifiedAnswer.replace("Answer: ", ''), sources, nextQuestions
+            else:
+                return fullAnswer, '', ''
+        except:
+            try:
+                modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+            except:
+                try:
+                    modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                    nextQuestions = fullAnswer[fullAnswer.index("<<"):]
+                except:
+                    modifiedAnswer = fullAnswer
+                    nextQuestions = ''
+            return modifiedAnswer, '', ''
+        
 def getChatHistory(history, includeLastTurn=True, maxTokens=1000) -> str:
     historyText = []
     
@@ -121,33 +188,6 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
     ========= 
     """
 
-    qaTemplate1 = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
-        If you don't know the answer, just say that you don't know. Don't try to make up an answer.
-        QUESTION: {question}
-        =========
-        {summaries}
-        =========
-    """
-
-    condenseTemplate = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
-    
-    Chat History:
-    {chat_history}
-    Follow Up Input: {question}
-    Standalone question:
-    """
-
-    systemTemplate="""Use the following pieces of context to answer the users question. 
-    If you don't know the answer, just say that you don't know, don't try to make up an answer.
-    ----------------
-    {context}"""
-    
-    messages = [
-        SystemMessagePromptTemplate.from_template(systemTemplate),
-        HumanMessagePromptTemplate.from_template("{question}")
-    ]
-    qaPrompt2 = ChatPromptTemplate.from_messages(messages)
-
     combinePromptTemplate = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
           If you don't know the answer, just say that you don't know. Don't try to make up an answer.
           ALWAYS return a "SOURCES" section as part in your answer.
@@ -158,7 +198,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
           =========
 
           After finding the answer, generate three very brief follow-up questions that the user would likely ask next.
-          Use double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.
+          Use double angle brackets to reference the questions, e.g. <Is there a more details on that?>.
           Try not to repeat questions that have already been asked.
           Generate 'Next Questions' before the list of questions.
           Next Questions should come after 'SOURCES' section
@@ -179,13 +219,6 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
     qaPrompt = PromptTemplate(
               template=qaTemplate, input_variables=["question", "context"]
           )
-    qaPrompt1 = PromptTemplate(
-              template=qaTemplate1, input_variables=["question", "summaries"]
-          )
-
-    condensePrompt = PromptTemplate(
-              template=condenseTemplate, input_variables=["question", "chat_history"]
-          )
 
     try:
         llm = AzureOpenAI(deployment_name=OpenAiDavinci,
@@ -199,11 +232,10 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
             vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
             docRetriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": topK})
             logging.info("Pinecone Setup done for indexName : " + indexNs)
-            qaChain = load_qa_with_sources_chain(llm,
-            chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
-            #chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb,  k=topK,
-            #                             search_kwargs={"namespace": indexNs})
-            chain = RetrievalQAWithSourcesChain(combine_documents_chain=qaChain, retriever=docRetriever, return_source_documents=True)
+            qaChain = load_qa_with_sources_chain(llm, chain_type="map_reduce", 
+                                                 question_prompt=qaPrompt, combine_prompt=combinePrompt)
+            chain = RetrievalQAWithSourcesChain(combine_documents_chain=qaChain, retriever=docRetriever, 
+                                                return_source_documents=True)
             historyText = getChatHistory(history, includeLastTurn=False)
             answer = chain({"question": question, "chat_history": historyText}, return_only_outputs=True)
             docs = answer['source_documents']
@@ -212,80 +244,16 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
                 rawDocs.append(doc.page_content)
             thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
             fullAnswer = answer['answer'].replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
-            modifiedAnswer = fullAnswer 
             sources = answer['sources']
-            if (len(sources) > 0):
-                thoughts = sources.replace("NEXT QUESTIONS:", 'Next Questions:')
-                try:
-                    sources = thoughts[:thoughts.index("Next Questions:")]
-                    nextQuestions = thoughts[thoughts.index("Next Questions:"):]
-                except:
-                    try:
-                        sources = sources[:sources.index("<<")]
-                        nextQuestions = sources[sources.index("<<"):]
-                    except:
-                        sources = sources
-                        nextQuestions = ''
-                        if len(nextQuestions) <= 0:
-                            try:
-                                modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
-                                nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
-                                if len(nextQuestions) <=0:
-                                    modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
-                                    nextQuestions = thoughts[thoughts.index("<<"):]
-                            except:
-                                nextQuestions = ''
+            modifiedAnswer, sources, nextQuestions = parseResponse(fullAnswer, sources)
+            if ((modifiedAnswer.find("I don't know") >= 0) or (modifiedAnswer.find("I'm not sure") >= 0)):
+                sources = ''
+                nextQuestions = ''
 
-                return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
-                        "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
-                        "sources": sources, "nextQuestions": nextQuestions, "error": ""}
-            else :
-                try:
-                    if fullAnswer.index("SOURCES:") > 0:
-                        modifiedAnswer = fullAnswer[:fullAnswer.index("SOURCES:")]
-                        thoughts = fullAnswer[fullAnswer.index("SOURCES:"):]
-                        thoughts = thoughts.replace("NEXT QUESTIONS:", 'Next Questions:')
-                        try:
-                            sources = thoughts[:thoughts.index("Next Questions:")]
-                            nextQuestions = thoughts[thoughts.index("Next Questions:"):]
-                        except:
-                            try:
-                                sources = thoughts[:thoughts.index("<<")]
-                                nextQuestions = thoughts[thoughts.index("<<"):]
-                            except:
-                                sources = thoughts
-                                nextQuestions = ''
-                                if len(nextQuestions) <= 0:
-                                    try:
-                                        modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
-                                        nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
-                                        if len(nextQuestions) <=0:
-                                            modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
-                                            nextQuestions = thoughts[thoughts.index("<<"):]
-                                    except:
-                                        nextQuestions = ''
-
-                        return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
-                                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
-                                "sources": sources, "nextQuestions": nextQuestions, "error": ""}
-                    else:
-                        return {"data_points": rawDocs, "answer": answer['answer'].replace("Answer: ", ''), 
-                                "thoughts": '', 
-                                "sources": '', "nextQuestions": '', "error": ""}
-                except:
-                    try:
-                        modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
-                        nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
-                    except:
-                        try:
-                            modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
-                            nextQuestions = fullAnswer[fullAnswer.index("<<"):]
-                        except:
-                            modifiedAnswer = fullAnswer
-                            nextQuestions = ''
-                        return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
-                                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
-                                "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+                
+            return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                    "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
+                    "sources": sources, "nextQuestions": nextQuestions, "error": ""}
         elif indexType == "redis":
             try:
                 returnField = ["metadata", "content", "vector_score"]
@@ -303,53 +271,13 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
                     chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
                 answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
                 fullAnswer = answer['output_text'].replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
-                modifiedAnswer = fullAnswer 
-                try:
-                    if fullAnswer.index("SOURCES:") > 0:
-                        modifiedAnswer = fullAnswer[:fullAnswer.index("SOURCES:")]
-                        thoughts = fullAnswer[fullAnswer.index("SOURCES:"):]
-                        thoughts = thoughts.replace("NEXT QUESTIONS:", 'Next Questions:')
-                        try:
-                            sources = thoughts[:thoughts.index("Next Questions:")]
-                            nextQuestions = thoughts[thoughts.index("Next Questions:"):]
-                        except:
-                            try:
-                                sources = thoughts[:thoughts.index("<<")]
-                                nextQuestions = thoughts[thoughts.index("<<"):]
-                            except:
-                                sources = thoughts
-                                nextQuestions = ''
-                                if len(nextQuestions) <= 0:
-                                    try:
-                                        modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
-                                        nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
-                                        if len(nextQuestions) <=0:
-                                            modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
-                                            nextQuestions = thoughts[thoughts.index("<<"):]
-                                    except:
-                                        nextQuestions = ''
-
-                        return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
-                                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
-                                "sources": sources, "nextQuestions": nextQuestions, "error": ""}
-                    else:
-                        return {"data_points": rawDocs, "answer": answer['answer'].replace("Answer: ", ''), 
-                                "thoughts": '', 
-                                "sources": '', "nextQuestions": '', "error": ""}
-                except:
-                    try:
-                        modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
-                        nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
-                    except:
-                        try:
-                            modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
-                            nextQuestions = fullAnswer[fullAnswer.index("<<"):]
-                        except:
-                            modifiedAnswer = fullAnswer
-                            nextQuestions = ''
-                        return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
-                                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
-                                "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+                modifiedAnswer, sources, nextQuestions = parseResponse(fullAnswer, '')
+                if ((modifiedAnswer.find("I don't know") >= 0) or (modifiedAnswer.find("I'm not sure") >= 0)):
+                    sources = ''
+                    nextQuestions = ''
+                return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                    "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
+                    "sources": sources, "nextQuestions": nextQuestions, "error": ""}
             except Exception as e:
                 return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "",
                         "sources": '', "nextQuestions": '', "error": str(e)}
@@ -371,53 +299,15 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
                     chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
             fullAnswer = answer['output_text'].replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
-            modifiedAnswer = fullAnswer 
-            try:
-                if fullAnswer.index("SOURCES:") > 0:
-                    modifiedAnswer = fullAnswer[:fullAnswer.index("SOURCES:")]
-                    thoughts = fullAnswer[fullAnswer.index("SOURCES:"):]
-                    thoughts = thoughts.replace("NEXT QUESTIONS:", 'Next Questions:')
-                    try:
-                        sources = thoughts[:thoughts.index("Next Questions:")]
-                        nextQuestions = thoughts[thoughts.index("Next Questions:"):]
-                    except:
-                        try:
-                            sources = thoughts[:thoughts.index("<<")]
-                            nextQuestions = thoughts[thoughts.index("<<"):]
-                        except:
-                            sources = thoughts
-                            nextQuestions = ''
-                            if len(nextQuestions) <= 0:
-                                try:
-                                    modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
-                                    nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
-                                    if len(nextQuestions) <=0:
-                                        modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
-                                        nextQuestions = thoughts[thoughts.index("<<"):]
-                                except:
-                                    nextQuestions = ''
+            modifiedAnswer, sources, nextQuestions = parseResponse(fullAnswer, '')
+            if ((modifiedAnswer.find("I don't know") >= 0) or (modifiedAnswer.find("I'm not sure") >= 0)):
+                sources = ''
+                nextQuestions = ''
 
-                    return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
-                            "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
-                            "sources": sources, "nextQuestions": nextQuestions, "error": ""}
-                else:
-                    return {"data_points": rawDocs, "answer": answer['answer'].replace("Answer: ", ''), 
-                            "thoughts": '', 
-                            "sources": '', "nextQuestions": '', "error": ""}
-            except:
-                try:
-                    modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
-                    nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
-                except:
-                    try:
-                        modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
-                        nextQuestions = fullAnswer[fullAnswer.index("<<"):]
-                    except:
-                        modifiedAnswer = fullAnswer
-                        nextQuestions = ''
-                    return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
-                            "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
-                            "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+            return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
+                "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+
         elif indexType == 'milvus':
             answer = "{'answer': 'TBD', 'sources': ''}"
             return answer

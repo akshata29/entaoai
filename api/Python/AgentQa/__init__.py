@@ -108,8 +108,6 @@ def FindAnswer(question, overrides):
         for a, data in action:
             sources = a.tool
             break;
-
-        logging.info("Answer is " + str(action))
         
         followupQaPromptTemplate = """Generate three very brief follow-up questions from the answer {answer} that the user would likely ask next.
         Use double angle brackets to reference the questions, e.g. <Is there a more details on that?>.

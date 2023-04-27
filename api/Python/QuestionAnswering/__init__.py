@@ -266,23 +266,7 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                 followupChain = RetrievalQA(combine_documents_chain=followupChain, retriever=docRetriever)
                 followupAnswer = followupChain({"query": question}, return_only_outputs=True)
                 nextQuestions = followupAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '')
-                sources = ''
-                # try:
-                #     if answer.find("SOURCES:") > 0:
-                #         modifiedAnswer = answer[:answer.find("SOURCES:")]
-                #         if answer.find("NEXT QUESTIONS:") > 0:
-                #             sources = answer[answer.find("SOURCES:"):answer.find("NEXT QUESTIONS:")].replace("SOURCES:", '')
-                #             nextQuestions = answer[answer.find("NEXT QUESTIONS:"):].replace("NEXT QUESTIONS:", '')
-                #         else:
-                #             sources = answer[answer.find("SOURCES:"):].replace("SOURCES:", '')
-                #             nextQuestions = ''
-                #     else:
-                #         sources = ''
-                #         nextQuestions = ''
-                # except:
-                #     sources = ''
-                #     nextQuestions = ''
-                
+                sources = ''                
                 if (modifiedAnswer.find("I don't know") >= 0):
                     sources = ''
                     nextQuestions = ''
@@ -305,28 +289,27 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                     for doc in docs:
                         rawDocs.append(doc.page_content)
                     answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                    if overrideChain == "stuff" or overrideChain == "map_rerank":
-                        thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
-                    else:
-                        thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
-                    
                     answer = answer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
                     modifiedAnswer = answer
-                    try:
-                        if answer.find("SOURCES:") > 0:
-                            modifiedAnswer = answer[:answer.find("SOURCES:")]
-                            if answer.find("NEXT QUESTIONS:") > 0:
-                                sources = answer[answer.find("SOURCES:"):answer.find("NEXT QUESTIONS:")].replace("SOURCES:", '')
-                                nextQuestions = answer[answer.find("NEXT QUESTIONS:"):].replace("NEXT QUESTIONS:", '')
-                            else:
-                                sources = answer[answer.find("SOURCES:"):].replace("SOURCES:", '')
-                                nextQuestions = ''
-                        else:
-                            sources = ''
-                            nextQuestions = ''
-                    except:
+
+                    if overrideChain == "stuff" or overrideChain == "map_rerank":
+                        thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
+                    elif overrideChain == "map_reduce":
+                        thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
+                    elif overrideChain == "refine":
+                        thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
+                    
+                    # Followup questions
+                    followupAnswer = followupChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+                    nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '')
+                    sources = ''                
+                    if (modifiedAnswer.find("I don't know") >= 0):
                         sources = ''
                         nextQuestions = ''
+                    else:
+                        sources = sources + "\n" + docs[0].metadata['source']
+
+
                     return {"data_points": rawDocs, "answer": modifiedAnswer, 
                             "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
                                 "sources": sources, "nextQuestions": nextQuestions, "error": ""}
@@ -347,29 +330,27 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                         rawDocs.append(doc.page_content)
                                         
                     answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-
-                    if overrideChain == "stuff" or overrideChain == "map_rerank":
-                        thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
-                    else:
-                        thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
-                    
                     answer = answer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
                     modifiedAnswer = answer
-                    try:
-                        if answer.find("SOURCES:") > 0:
-                            modifiedAnswer = answer[:answer.find("SOURCES:")]
-                            if answer.find("NEXT QUESTIONS:") > 0:
-                                sources = answer[answer.find("SOURCES:"):answer.find("NEXT QUESTIONS:")].replace("SOURCES:", '')
-                                nextQuestions = answer[answer.find("NEXT QUESTIONS:"):].replace("NEXT QUESTIONS:", '')
-                            else:
-                                sources = answer[answer.find("SOURCES:"):].replace("SOURCES:", '')
-                                nextQuestions = ''
-                        else:
-                            sources = ''
-                            nextQuestions = ''
-                    except:
+
+                    if overrideChain == "stuff" or overrideChain == "map_rerank":
+                        thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
+                    elif overrideChain == "map_reduce":
+                        thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
+                    elif overrideChain == "refine":
+                        thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
+                    
+
+                    # Followup questions
+                    followupAnswer = followupChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+                    nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '')
+                    sources = ''                
+                    if (modifiedAnswer.find("I don't know") >= 0):
                         sources = ''
                         nextQuestions = ''
+                    else:
+                        sources = sources + "\n" + docs[0].metadata['source']
+
                     return {"data_points": rawDocs, "answer": modifiedAnswer, 
                             "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
                                 "sources": sources, "nextQuestions": nextQuestions, "error": ""}

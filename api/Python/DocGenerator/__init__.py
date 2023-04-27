@@ -287,25 +287,6 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                             docs = []
                             docs = textSplitter.split_documents(rawDocs)
                             storeIndex(indexType, docs, fileName, uResultNs.hex)
-
-                            # readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                            # downloadPath = os.path.join(tempfile.gettempdir(), fileName)
-                            # os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
-                            # try:
-                            #     with open(downloadPath, "wb") as file:
-                            #         file.write(readBytes)
-                            # except Exception as e:
-                            #     logging.error(e)
-
-                            # logging.info("File created " + downloadPath)
-                            # textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
-                            # docs = []
-                            # loader = PDFMinerLoader(downloadPath)
-                            # #loader = PyMuPDFLoader(downloadPath)
-                            # rawDocs = loader.load()
-                            # docs = textSplitter.split_documents(rawDocs)
-                            # logging.info("Docs " + str(len(docs)))
-                            # storeIndex(indexType, docs, fileName, uResultNs.hex)
                         except Exception as e:
                             logging.info(e)
                             upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType})
