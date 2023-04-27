@@ -11,6 +11,10 @@ import numpy as np
 from langchain.chains import RetrievalQA
 from langchain.agents import initialize_agent, Tool
 from langchain.agents import AgentType
+from langchain.schema import (
+    AgentAction,
+    AgentFinish,
+)
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
@@ -99,8 +103,16 @@ def FindAnswer(question, overrides):
         agent = initialize_agent(tools, llm, agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION, 
                     verbose=False, return_intermediate_steps=True, early_stopping_method="generate")
         answer = agent({"input":question})
+        action = answer['intermediate_steps']
+        sources = ''
+        for a, data in action:
+            sources = a.tool
+            break;
+
+        logging.info("Answer is " + str(action))
+        
         followupQaPromptTemplate = """Generate three very brief follow-up questions from the answer {answer} that the user would likely ask next.
-        Use double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.
+        Use double angle brackets to reference the questions, e.g. <Is there a more details on that?>.
         Try not to repeat questions that have already been asked.
         Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'"""
 
@@ -117,7 +129,7 @@ def FindAnswer(question, overrides):
             logging.error(e)
             nextQuestions =  ''
     
-        return {"data_points": [], "answer": answer['output'].replace("Answer: ", ''), "thoughts": answer['intermediate_steps'], "sources": '', "nextQuestions":nextQuestions, "error": ""}
+        return {"data_points": [], "answer": answer['output'].replace("Answer: ", ''), "thoughts": answer['intermediate_steps'], "sources": sources, "nextQuestions":nextQuestions, "error": ""}
 
     except Exception as e:
         logging.info("Error in FindAnswer Open AI : " + str(e))

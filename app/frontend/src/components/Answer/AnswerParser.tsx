@@ -21,7 +21,6 @@ export function parseAnswerToHtml(answer: string,
     });
     // var expression = /(https?:\/\/[^ ]*)/;
     var expression = /(?:[^/][\d\w\.]+)$(?<=\.\w{3,4})/;
-    var regex = new RegExp(expression);
 
     // nextQuestions.split('\n').map((part, index) => {
     //     if (part.trim().length > 0) {
@@ -79,7 +78,7 @@ export function parseAnswerToHtml(answer: string,
             }
             else if (part.match(expression))
             {
-                const fileName = part.match(expression)[0];
+                const fileName = part.match(expression)![0];
                 if (fileName.trim() != "") {
                     dupCitations.push(fileName);
                 }

@@ -283,7 +283,6 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                         try:
                             logging.info("Embedding Non-text file")
                             rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                            logging.info(str(rawDocs))
                             textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                             docs = []
                             docs = textSplitter.split_documents(rawDocs)
