@@ -63,24 +63,10 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
             embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
 
             if (overrideChain == "stuff"):
-                # template = """
-                #     Answer the question as truthfully as possible using the provided text below, and if the answer is not contained within the text below, say \"I don't know\".
-
-                #     Generate three very brief follow-up questions that the user would likely ask next.
-                #     Use double angle brackets to reference the questions, e.g. <>.
-                #     Try not to repeat questions that have already been asked.
-
-                #     ALWAYS return a "SOURCES" part in your answer.
-                #     ALWAYS return a "NEXT QUESTIONS" part in your answer.
-
-                #     QUESTION: {question}
-                #     =========
-                #     {summaries}
-                #     =========
-                #     """
-
                 template = """
-                Answer the question as truthfully as possible using the provided text below, and if the answer is not contained within the text below, say \"I don't know\".
+                Given the following extracted parts of a long document and a question, create a final answer. 
+                If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
+                If the answer is not contained within the text below, say \"I don't know\".
 
                 QUESTION: {question}
                 =========

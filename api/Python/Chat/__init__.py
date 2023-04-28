@@ -253,7 +253,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
                 
             return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
                     "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
-                    "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+                    "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", ''), 
+                    "nextQuestions": nextQuestions, "error": ""}
         elif indexType == "redis":
             try:
                 returnField = ["metadata", "content", "vector_score"]
@@ -277,7 +278,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
                     nextQuestions = ''
                 return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
                     "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
-                    "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+                    "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", ''), 
+                    "nextQuestions": nextQuestions, "error": ""}
             except Exception as e:
                 return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "",
                         "sources": '', "nextQuestions": '', "error": str(e)}
@@ -306,7 +308,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
 
             return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
                 "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
-                "sources": sources, "nextQuestions": nextQuestions, "error": ""}
+                "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", ''), 
+                "nextQuestions": nextQuestions, "error": ""}
 
         elif indexType == 'milvus':
             answer = "{'answer': 'TBD', 'sources': ''}"
