@@ -1,0 +1,71 @@
+{
+    "name": "CopyS3ToAdls",
+    "properties": {
+        "activities": [
+            {
+                "name": "Copy data",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "BinarySource",
+                        "storeSettings": {
+                            "type": "AmazonS3ReadSettings",
+                            "recursive": true,
+                            "deleteFilesAfterCompletion": false
+                        },
+                        "formatSettings": {
+                            "type": "BinaryReadSettings"
+                        }
+                    },
+                    "sink": {
+                        "type": "BinarySink",
+                        "storeSettings": {
+                            "type": "AzureBlobFSWriteSettings"
+                        }
+                    },
+                    "enableStaging": false
+                },
+                "inputs": [
+                    {
+                        "referenceName": "s3Binary",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "BucketName": {
+                                "value": "@pipeline().parameters.BucketName",
+                                "type": "Expression"
+                            },
+                            "FileName": {
+                                "value": "@pipeline().parameters.FileName",
+                                "type": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "referenceName": "adlsgen2binary",
+                        "type": "DatasetReference"
+                    }
+                ]
+            }
+        ],
+        "parameters": {
+            "FileName": {
+                "type": "string"
+            },
+            "BucketName": {
+                "type": "string"
+            }
+        },
+        "annotations": []
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "name": "aopenai",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AmazonS3",
+        "typeProperties": {
+            "serviceUrl": "https://s3.amazonaws.com",
+            "accessKeyId": "",
+            "authenticationType": "AccessKey",
+            "encryptedCredential": ""
+        },
+        "connectVia": {
+            "referenceName": "dataaiazureir",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}

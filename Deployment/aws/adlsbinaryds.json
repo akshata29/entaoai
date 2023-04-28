@@ -1,0 +1,17 @@
+{
+    "name": "adlsgen2binary",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "dataaiopenaistor",
+            "type": "LinkedServiceReference"
+        },
+        "annotations": [],
+        "type": "Binary",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileSystem": "s3files"
+            }
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "name": "s3egtrigger",
+    "properties": {
+        "annotations": [],
+        "runtimeState": "Started",
+        "pipelines": [
+            {
+                "pipelineReference": {
+                    "referenceName": "CopyS3ToAdls",
+                    "type": "PipelineReference"
+                },
+                "parameters": {
+                    "FileName": "@triggerBody().event.data.filename",
+                    "BucketName": "@triggerBody().event.data.bucketname"
+                }
+            }
+        ],
+        "type": "CustomEventsTrigger",
+        "typeProperties": {
+            "subjectEndsWith": "",
+            "subjectBeginsWith": "copyings3data",
+            "scope": "/subscriptions/<yoursubscriptionid>/resourceGroups/<yourrg>/providers/Microsoft.EventGrid/topics/<youreventgridtopic>",
+            "events": [
+                "s3filereceived"
+            ]
+        }
+    }
+}

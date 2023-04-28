@@ -243,15 +243,15 @@ def uploadBinaryFile():
         blobServiceClient = BlobServiceClient.from_connection_string(url)
         containerClient = blobServiceClient.get_container_client(containerName)
         blobClient = containerClient.get_blob_client(blobName)
-        # blobClient.set_blob_metadata(metadata={"embedded": "false", 
-        #                                        "indexName": "", 
-        #                                        "namespace": "", 
-        #                                        "qa": "No Qa Generated",
-        #                                        "name":blobName,
-        #                                        "summary": "No Summary Created", 
-        #                                        "indexType": ""})
         #blob_client.upload_blob(bytes_data,overwrite=True, content_settings=ContentSettings(content_type=content_type))
         blobClient.upload_blob(file.read(), overwrite=True)
+        blobClient.set_blob_metadata(metadata={"embedded": "false", 
+                                        "indexName": "", 
+                                        "namespace": "", 
+                                        "qa": "No Qa Generated",
+                                        "name":blobName,
+                                        "summary": "No Summary Created", 
+                                        "indexType": ""})
         #jsonDict = json.dumps(blobJson)
         return jsonify({'message': 'File uploaded successfully'}), 200
     except Exception as e:

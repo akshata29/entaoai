@@ -1,0 +1,15 @@
+{
+    "IsEncrypted": false,
+    "Values": {
+      "FUNCTIONS_WORKER_RUNTIME": "python",
+      "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+      "BLOB_CONNECTION_STRING": "",
+      "BLOB_CONTAINER_NAME": ""  
+    },
+    "Host": {
+      "LocalHttpPort": 7071,
+      "CORS": "*",
+      "CORSCredentials": false
+    }
+  }
+  

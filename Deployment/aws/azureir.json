@@ -1,0 +1,17 @@
+{
+    "name": "dataaiazureir",
+    "properties": {
+        "type": "Managed",
+        "typeProperties": {
+            "computeProperties": {
+                "location": "AutoResolve",
+                "dataFlowProperties": {
+                    "computeType": "General",
+                    "coreCount": 8,
+                    "timeToLive": 10,
+                    "cleanup": false
+                }
+            }
+        }
+    }
+}

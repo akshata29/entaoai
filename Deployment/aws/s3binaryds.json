@@ -1,0 +1,32 @@
+{
+    "name": "s3Binary",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "aopenai",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "BucketName": {
+                "type": "string"
+            },
+            "FileName": {
+                "type": "string"
+            }
+        },
+        "annotations": [],
+        "type": "Binary",
+        "typeProperties": {
+            "location": {
+                "type": "AmazonS3Location",
+                "bucketName": {
+                    "value": "@dataset().BucketName",
+                    "type": "Expression"
+                },
+                "fileName": {
+                    "value": "@uriComponentToString(dataset().FileName)",
+                    "type": "Expression"
+                }
+            }
+        }
+    }
+}

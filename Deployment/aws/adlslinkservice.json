@@ -1,0 +1,16 @@
+{
+    "name": "dataaiopenaistor",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzureBlobFS",
+        "typeProperties": {
+            "url": "https://<youraccount>.dfs.core.windows.net/",
+            "encryptedCredential": ""
+        },
+        "connectVia": {
+            "referenceName": "dataaiazureir",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}
