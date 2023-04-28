@@ -1,0 +1,13 @@
+{
+    "scriptFile": "__init__.py",
+    "bindings": [
+      {
+        "name": "processFile",
+        "type": "blobTrigger",
+        "direction": "in",
+        "path": "s3files/{name}",
+        "source": "EventGrid",
+        "connection": "OpenAiDocStorConnString"
+      }
+    ]
+  }

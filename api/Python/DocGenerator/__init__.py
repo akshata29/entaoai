@@ -181,6 +181,7 @@ def summarizeGenerateQa(docs):
     except Exception as e:
         logging.info(e)
         qa = 'No Sample QA generated'
+        pass
     #qa = qa.decode('utf8')
     return qa, summary
 
@@ -255,7 +256,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 filesData = list(filter(lambda x : not x['embedded'], filesData))
                 filesData = list(map(lambda x: {'filename': x['filename']}, filesData))
 
-                logging.info(f"Found {len(filesData)} files to embed")
+                logging.info(f"Found {len(filesData)} filesfu to embed")
                 for file in filesData:
                     logging.info(f"Adding {file['filename']} to Process")
                     fileName = file['filename']
@@ -302,11 +303,11 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     time.sleep(5)
                 return "Success"
             except Exception as e:
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
                 return "Error"
         elif (loadType == "webpages"):
             try:
                 allDocs = []
+                logging.info(value)
                 for webPage in value:
                     logging.info("Processing Webpage at " + webPage)
                     textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
@@ -314,11 +315,8 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     loader = WebBaseLoader(webPage)
                     rawDocs = loader.load()
                     docs = textSplitter.split_documents(rawDocs)
-                    embeddings = OpenAIEmbeddings(model=OpenAiEmbedding,
-                                                    chunk_size=1,
-                                                    openai_api_key=OpenAiKey)
                     allDocs = allDocs + docs
-                    storeIndex(indexType, docs, fileName, uResultNs.hex)
+                    storeIndex(indexType, docs, indexName + ".txt", uResultNs.hex)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(allDocs)
                 logging.info("Upsert metadata")

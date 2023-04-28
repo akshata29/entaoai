@@ -614,6 +614,10 @@
 						  "name": "OpenAiDocContainer",
 						  "value": "chatpdf"
 						},
+                        {
+                            "name": "OpenAiDocStorConnString",
+                            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value)]"
+                        },
 						{
 						  "name": "OpenAiDocStorKey",
 						  "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value]"
