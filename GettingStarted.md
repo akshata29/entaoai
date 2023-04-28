@@ -2,6 +2,8 @@
 
 **NOTE** In order to deploy and run this example, you'll need an Azure subscription with access enabled for the Azure OpenAI service. You can request access [here](https://aka.ms/oaiapply).
 
+Before to jumping to the Azure OpenAI API, this guide will show how to have access to Azure OpenAI services in your Azure Subscription as well the step by step on how to setup this service. [here](https://github.com/hcmarque/AzureOpenAI)
+
 ## Prerequisites
 
 ### To Run Locally
