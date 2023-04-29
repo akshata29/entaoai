@@ -246,10 +246,9 @@ def uploadBinaryFile():
         #blob_client.upload_blob(bytes_data,overwrite=True, content_settings=ContentSettings(content_type=content_type))
         blobClient.upload_blob(file.read(), overwrite=True)
         blobClient.set_blob_metadata(metadata={"embedded": "false", 
-                                        "indexName": "", 
+                                        "indexName": blobName, 
                                         "namespace": "", 
                                         "qa": "No Qa Generated",
-                                        "name":blobName,
                                         "summary": "No Summary Created", 
                                         "indexType": ""})
         #jsonDict = json.dumps(blobJson)

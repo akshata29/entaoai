@@ -25,10 +25,9 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
       blobClient = containerClient.get_blob_client(blobName)
       logging.info("Set Blob Metadata")
       blobClient.set_blob_metadata(metadata={"embedded": "false", 
-                                      "indexName": "", 
+                                      "indexName": blobName, 
                                       "namespace": "", 
                                       "qa": "No Qa Generated",
-                                      "name":blobName,
                                       "summary": "No Summary Created", 
                                       "indexType": ""})
 

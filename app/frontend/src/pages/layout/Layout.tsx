@@ -1,10 +1,31 @@
+import { useRef, useState, useEffect } from "react";
 import { Outlet, NavLink, Link } from "react-router-dom";
+import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack, IPivotItemProps, getFadedOverflowStyle} from "@fluentui/react";
 
 import github from "../../assets/github.svg"
 
 import styles from "./Layout.module.css";
+import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
+
 
 const Layout = () => {
+    const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
+    const [showUpload, setShowUpload] = useState<boolean>(false);
+    const [showEdgar, setshowEdgar] = useState<boolean>(false);
+    const [showSpeech, setShowSpeech] = useState<boolean>(true);
+
+    const onShowUpload = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+        setShowUpload(!!checked);
+    };
+
+    const onShowEdgar = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+        setshowEdgar(!!checked);
+    };
+
+    const onShowSpeech = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+        setShowSpeech(!!checked);
+    };
+
     return (
         <div className={styles.layout}>
             <header className={styles.header} role={"banner"}>
@@ -14,11 +35,13 @@ const Layout = () => {
                     </Link>
                     <nav>
                         <ul className={styles.headerNavList}>
-                            <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/upload" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                Upload &nbsp;&nbsp;&nbsp;
-                                </NavLink>
-                            </li>
+                            {showUpload && (
+                                <li className={styles.headerNavLeftMargin}>
+                                    <NavLink to="/upload" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    Upload &nbsp;&nbsp;&nbsp;
+                                    </NavLink>
+                                </li>
+                            )}
                             {/* <li>
                                 <NavLink to="/botchat" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}> 
                                     Bot Chat&nbsp;&nbsp;
@@ -44,16 +67,20 @@ const Layout = () => {
                                     Sql NLP
                                 </NavLink>
                             </li>
-                            <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/speech" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Speech Analytics
-                                </NavLink>
-                            </li>
-                            <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/edgar" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Edgar Analysis
-                                </NavLink>
-                            </li>
+                            { showSpeech && (
+                                <li className={styles.headerNavLeftMargin}>
+                                    <NavLink to="/speech" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                        Speech Analytics
+                                    </NavLink>
+                                 </li>
+                            )}
+                            {showEdgar && (
+                                 <li className={styles.headerNavLeftMargin}>
+                                 <NavLink to="/edgar" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                     Edgar Analysis
+                                 </NavLink>
+                             </li>
+                            )}
                             {/* <li className={styles.headerNavLeftMargin}>
                                 <NavLink to="/help" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Help
@@ -71,12 +98,45 @@ const Layout = () => {
                                     />
                                 </a>
                             </li>
+                            <li className={styles.headerNavLeftMargin}>
+                                <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                            </li>
                         </ul>
                     </nav>
                     <h4 className={styles.headerRightText}>Azure OpenAI</h4>
                 </div>
             </header>
-
+            <Panel
+                headerText="Configure Page Settings"
+                isOpen={isConfigPanelOpen}
+                isBlocking={false}
+                onDismiss={() => setIsConfigPanelOpen(false)}
+                closeButtonAriaLabel="Close"
+                onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
+                isFooterAtBottom={true}
+            >
+                <br/>
+                <Checkbox
+                    className={styles.chatSettingsSeparator}
+                    checked={showUpload}
+                    label="Show Upload Capability"
+                    onChange={onShowUpload}
+                />
+                <br/>
+                <Checkbox
+                    className={styles.chatSettingsSeparator}
+                    checked={showEdgar}
+                    label="Display Edgar Analysis"
+                    onChange={onShowEdgar}
+                />
+                <br/>
+                <Checkbox
+                    className={styles.chatSettingsSeparator}
+                    checked={showSpeech}
+                    label="Display Speech Analytics"
+                    onChange={onShowSpeech}
+                />
+            </Panel>
             <Outlet />
         </div>
     );
