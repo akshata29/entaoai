@@ -253,7 +253,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
                 
             return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
                     "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
-                    "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", ''), 
+                    "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", '').replace('- ', ''), 
                     "nextQuestions": nextQuestions, "error": ""}
         elif indexType == "redis":
             try:
@@ -278,7 +278,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
                     nextQuestions = ''
                 return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
                     "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
-                    "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", ''), 
+                    "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", '').replace('- ', ''), 
                     "nextQuestions": nextQuestions, "error": ""}
             except Exception as e:
                 return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "",
@@ -308,7 +308,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
 
             return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
                 "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
-                "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", ''), 
+                "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", '').replace('- ', ''), 
                 "nextQuestions": nextQuestions, "error": ""}
 
         elif indexType == 'milvus':

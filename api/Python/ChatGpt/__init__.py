@@ -9,6 +9,9 @@ from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.docstore.document import Document
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
+from langchain.chat_models import AzureChatOpenAI
+from langchain.chains import RetrievalQAWithSourcesChain
+from langchain.prompts import PromptTemplate
 
 OpenAiKey = os.environ['OpenAiKey']
 OpenAiEndPoint = os.environ['OpenAiEndPoint']
@@ -84,27 +87,77 @@ def getChatHistory(history, includeLastTurn=True, maxTokens=1000) -> str:
             break
     return historyText
 
+def parseResponse(fullAnswer, sources):
+    modifiedAnswer = fullAnswer
+    if (len(sources) > 0):
+        thoughts = sources.replace("NEXT QUESTIONS:", 'Next Questions:')
+        try:
+            sources = thoughts[:thoughts.index("Next Questions:")]
+            nextQuestions = thoughts[thoughts.index("Next Questions:"):]
+        except:
+            try:
+                sources = sources[:sources.index("<<")]
+                nextQuestions = sources[sources.index("<<"):]
+            except:
+                sources = sources
+                nextQuestions = ''
+                if len(nextQuestions) <= 0:
+                    try:
+                        modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                        nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                        if len(nextQuestions) <=0:
+                            modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                            nextQuestions = thoughts[thoughts.index("<<"):]
+                    except:
+                        nextQuestions = ''
+
+        return modifiedAnswer.replace("Answer: ", ''), sources, nextQuestions
+    else :
+        try:
+            if fullAnswer.index("SOURCES:") > 0:
+                modifiedAnswer = fullAnswer[:fullAnswer.index("SOURCES:")]
+                thoughts = fullAnswer[fullAnswer.index("SOURCES:"):]
+                thoughts = thoughts.replace("NEXT QUESTIONS:", 'Next Questions:')
+                try:
+                    sources = thoughts[:thoughts.index("Next Questions:")]
+                    nextQuestions = thoughts[thoughts.index("Next Questions:"):]
+                except:
+                    try:
+                        sources = thoughts[:thoughts.index("<<")]
+                        nextQuestions = thoughts[thoughts.index("<<"):]
+                    except:
+                        sources = thoughts
+                        nextQuestions = ''
+                        if len(nextQuestions) <= 0:
+                            try:
+                                modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                                nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+                                if len(nextQuestions) <=0:
+                                    modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                                    nextQuestions = thoughts[thoughts.index("<<"):]
+                            except:
+                                nextQuestions = ''
+
+                return modifiedAnswer.replace("Answer: ", ''), sources, nextQuestions
+            else:
+                return fullAnswer, '', ''
+        except:
+            try:
+                modifiedAnswer = fullAnswer[:fullAnswer.index("Next Questions:")]
+                nextQuestions = fullAnswer[fullAnswer.index("Next Questions:"):]
+            except:
+                try:
+                    modifiedAnswer = fullAnswer[:fullAnswer.index("<<")]
+                    nextQuestions = fullAnswer[fullAnswer.index("<<"):]
+                except:
+                    modifiedAnswer = fullAnswer
+                    nextQuestions = ''
+            return modifiedAnswer, '', ''
+        
 def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
-    promptPrefix = """<|im_start|>system
-    Be brief in your answers.
-    Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
-    Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. Use square brackets to reference the source, e.g. [info1.txt]. Don't combine sources, list each source separately, e.g. [info1.txt][info2.pdf].
-    {follow_up_questions_prompt}
-    Sources:
-    {sources}
-    <|im_end|>
-    {chat_history}
-    """
-
-    followupQaPromptTemplate = """Generate three very brief follow-up questions that the user would likely ask next.
-    Use double angle brackets to reference the questions, e.g. <<Is there a more details on that?>>.
-    Try not to repeat questions that have already been asked.
-    Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'"""
-
     qaPromptTemplate = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
     Generate a search query based on the conversation and the new question.
-    Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
-    Do not include any text inside [] or <<>> in the search query terms.
+    The search query should be optimized to find the answer to the question in the knowledge base.
 
     Chat History:
     {chat_history}
@@ -119,6 +172,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     openai.api_key = OpenAiKey
     openai.api_version = OpenAiVersion
     openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+
+    baseUrl = f"https://{OpenAiService}.openai.azure.com"
 
     topK = overrides.get("top") or 5
     temperature = overrides.get("temperature") or 0.3
@@ -135,8 +190,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             engine=OpenAiDavinci,
             prompt=optimizedPrompt,
             temperature=temperature,
-            #max_tokens=32,
-            max_tokens=tokenLength,
+            max_tokens=32,
+            #max_tokens=tokenLength,
             n=1,
             stop=["\n"])
         q = completion.choices[0].text
@@ -151,16 +206,68 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     logging.info("Execute step 2")
     # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
     embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+
+    llmChat = AzureChatOpenAI(
+                openai_api_base=baseUrl,
+                openai_api_version="2023-03-15-preview",
+                deployment_name=OpenAiChat,
+                temperature=temperature,
+                openai_api_key=OpenAiKey,
+                openai_api_type="azure",
+                max_tokens=tokenLength)
+    
+    combinePromptTemplate = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
+          If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+          ALWAYS return a "SOURCES" section as part in your answer.
+
+          QUESTION: {question}
+          =========
+          {summaries}
+          =========
+
+          After finding the answer, generate three very brief next questions that the user would likely ask next.
+          Use angle brackets to reference the next questions, e.g. <Is there a more details on that?>.
+          Try not to repeat questions that have already been asked.
+          next questions should come after 'SOURCES' section
+          ALWAYS return a "NEXT QUESTIONS" part in your answer.
+          """
+    
+    combinePrompt = PromptTemplate(
+        template=combinePromptTemplate, input_variables=["summaries", "question"]
+    )
+
+    logging.info("Final Prompt created")
     if indexType == 'pinecone':
-        vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings)
-        logging.info("Pinecone Setup done to search against - " + indexNs + " for question " + q)
-        docs = vectorDb.similarity_search(q, k=topK, namespace=indexNs)
-        logging.info("Executed Index and found " + str(len(docs)))
+        vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
+        docRetriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": topK})
+        logging.info("Pinecone Setup done for indexName : " + indexNs)
+        qaChain = load_qa_with_sources_chain(llmChat, chain_type="stuff", 
+                                                prompt=combinePrompt)
+        chain = RetrievalQAWithSourcesChain(combine_documents_chain=qaChain, retriever=docRetriever, 
+                                            return_source_documents=True)
+        historyText = getChatHistory(history, includeLastTurn=False)
+        answer = chain({"question": q, "summaries": historyText}, return_only_outputs=True)
+        docs = answer['source_documents']
+        rawDocs = []
+        for doc in docs:
+            rawDocs.append(doc.page_content)
+        thoughtPrompt = combinePrompt.format(question=q, summaries=rawDocs)
+        fullAnswer = answer['answer'].replace('ANSWER:', '').replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
+        sources = answer['sources'].replace("NEXT QUESTIONS:", 'Next Questions:')
+        modifiedAnswer, sources, nextQuestions = parseResponse(fullAnswer, sources)
+        if ((modifiedAnswer.find("I don't know") >= 0) or (modifiedAnswer.find("I'm not sure") >= 0)):
+            sources = ''
+            nextQuestions = ''
+
+        logging.info("Sources: " + sources)
+        logging.info('Next Questions: ' + nextQuestions)
+
+        return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
+                "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", '').replace('- ', ''), 
+                "nextQuestions": nextQuestions.replace('Next Questions:', '').replace('- ', ''), "error": ""}
     elif indexType == "redis":
         try:
-            #vectorDb =  Redis.from_existing_index(embeddings, index_name=indexNs, kwargs={'redis_url': redisUrl}),
-            #logging.info("Redis Setup done")
-            #docs = vectorDb.similarity_search(q, k=5)
             returnField = ["metadata", "content", "vector_score"]
             vectorField = "content_vector"
             results = performRedisSearch(q, indexNs, topK, returnField, vectorField)
@@ -168,8 +275,25 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                     Document(page_content=result.content, metadata=json.loads(result.metadata))
                     for result in results.docs
             ]
+            rawDocs = []
+            for doc in docs:
+                rawDocs.append(doc.page_content)
+            thoughtPrompt = combinePrompt.format(question=q, summaries=rawDocs)
+            qaChain = load_qa_with_sources_chain(llmChat,
+                chain_type="stuff", prompt=combinePrompt)
+            answer = qaChain({"input_documents": docs, "question": q}, return_only_outputs=True)
+            fullAnswer = answer['output_text'].replace('ANSWER:', '').replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
+            modifiedAnswer, sources, nextQuestions = parseResponse(fullAnswer, '')
+            if ((modifiedAnswer.find("I don't know") >= 0) or (modifiedAnswer.find("I'm not sure") >= 0)):
+                sources = ''
+                nextQuestions = ''
+            return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+                "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
+                "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", '').replace('- ', ''), 
+                "nextQuestions": nextQuestions.replace('Next Questions:', '').replace('- ', ''), "error": ""}
         except Exception as e:
-            return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
+            return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "",
+                    "sources": '', "nextQuestions": '', "error": str(e)}
     elif indexType == "cogsearch":
         r = performCogSearch(q, indexNs, topK)
         if r == None:
@@ -179,34 +303,86 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
                 for doc in r
                 ]
+        
+        rawDocs = []
+        for doc in docs:
+            rawDocs.append(doc.page_content)
+        thoughtPrompt = optimizedPrompt.format(question=q, summaries=rawDocs)
+        qaChain = load_qa_with_sources_chain(llmChat,
+                chain_type="stuff", prompt=combinePrompt)
+        answer = qaChain({"input_documents": docs, "question": q}, return_only_outputs=True)
+        fullAnswer = answer['output_text'].replace('ANSWER:', '').replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
+        modifiedAnswer, sources, nextQuestions = parseResponse(fullAnswer, '')
+        if ((modifiedAnswer.find("I don't know") >= 0) or (modifiedAnswer.find("I'm not sure") >= 0)):
+            sources = ''
+            nextQuestions = ''
+
+        logging.info(sources)
+        return {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
+            "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
+            "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", '').replace('- ', ''), 
+            "nextQuestions": nextQuestions.replace('Next Questions:', '').replace('- ', ''), "error": ""}
+
     elif indexType == 'milvus':
-        docs = []
+        answer = "{'answer': 'TBD', 'sources': ''}"
+        return answer
 
-    rawDocs = []
-    for doc in docs:
-      rawDocs.append(doc.page_content)
-    #content = "\n".join(docs)
 
-    # Allow client to replace the entire prompt, or to inject into the exiting prompt using >>>
-    finalPrompt = promptPrefix.format(injected_prompt="", sources=rawDocs,
-                                      chat_history=getChatHistory(history),
-                                      follow_up_questions_prompt=followupQaPromptTemplate)
-    logging.info("Final Prompt created")
-    # STEP 3: Generate a contextual and content specific answer using the search results and chat history
-    try:
-        completion = openai.Completion.create(
-            engine=OpenAiChat,
-            prompt=finalPrompt,
-            temperature=temperature,
-            max_tokens=tokenLength,
-            n=1,
-            stop=["<|im_end|>", "<|im_start|>"])
-        logging.info(completion.choices[0].text)
-    except Exception as e:
-        logging.error(e)
-        return {"data_points": "", "answer": "Working on fixing Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
+    # if indexType == 'pinecone':
+    #     vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings)
+    #     logging.info("Pinecone Setup done to search against - " + indexNs + " for question " + q)
+    #     docs = vectorDb.similarity_search(q, k=topK, namespace=indexNs)
+    #     logging.info("Executed Index and found " + str(len(docs)))
+    # elif indexType == "redis":
+    #     try:
+    #         #vectorDb =  Redis.from_existing_index(embeddings, index_name=indexNs, kwargs={'redis_url': redisUrl}),
+    #         #logging.info("Redis Setup done")
+    #         #docs = vectorDb.similarity_search(q, k=5)
+    #         returnField = ["metadata", "content", "vector_score"]
+    #         vectorField = "content_vector"
+    #         results = performRedisSearch(q, indexNs, topK, returnField, vectorField)
+    #         docs = [
+    #                 Document(page_content=result.content, metadata=json.loads(result.metadata))
+    #                 for result in results.docs
+    #         ]
+    #     except Exception as e:
+    #         return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
+    # elif indexType == "cogsearch":
+    #     r = performCogSearch(q, indexNs, topK)
+    #     if r == None:
+    #             docs = [Document(page_content="No results found")]
+    #     else :
+    #         docs = [
+    #             Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
+    #             for doc in r
+    #             ]
+    # elif indexType == 'milvus':
+    #     docs = []
+
+    # rawDocs = []
+    # for doc in docs:
+    #   rawDocs.append(doc.page_content)
+
+    # # Allow client to replace the entire prompt, or to inject into the exiting prompt using >>>
+    # finalPrompt = promptPrefix.format(injected_prompt="", sources=rawDocs,
+    #                                   chat_history=getChatHistory(history),
+    #                                   follow_up_questions_prompt=followupQaPromptTemplate)
+    # logging.info("Final Prompt created")
+    # # STEP 3: Generate a contextual and content specific answer using the search results and chat history
+    # try:
+    #     completion = openai.Completion.create(
+    #         engine=OpenAiChat,
+    #         prompt=finalPrompt,
+    #         temperature=temperature,
+    #         max_tokens=tokenLength,
+    #         n=1,
+    #         stop=["<|im_end|>", "<|im_start|>"])
+    #     logging.info(completion.choices[0].text)
+    # except Exception as e:
+    #     logging.error(e)
+    #     return {"data_points": "", "answer": "Working on fixing Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
     
-    return {"data_points": rawDocs, "answer": completion.choices[0].text, "thoughts": f"Searched for:<br>{q}<br><br>Prompt:<br>" + finalPrompt.replace('\n', '<br>')}
+    # return {"data_points": rawDocs, "answer": completion.choices[0].text, "thoughts": f"Searched for:<br>{q}<br><br>Prompt:<br>" + finalPrompt.replace('\n', '<br>')}
 
 def GetAnswer(history, approach, overrides, indexNs, indexType):
     logging.info("Getting Answer")

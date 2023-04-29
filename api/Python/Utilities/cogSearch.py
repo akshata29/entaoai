@@ -4,6 +4,7 @@ from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 import os
 import logging
+from azure.search.documents.models import QueryType
 
 SearchService = os.environ['SearchService']
 SearchKey = os.environ['SearchKey']
@@ -82,7 +83,15 @@ def performCogSearch(question, indexName, k):
         index_name=indexName,
         credential=AzureKeyCredential(SearchKey))
     try:
-        r = searchClient.search(question, filter=None, top=k)
+        #r = searchClient.search(question, filter=None, top=k)
+        r = searchClient.search(question, 
+                            filter=None,
+                            query_type=QueryType.SEMANTIC, 
+                            query_language="en-us", 
+                            query_speller="lexicon", 
+                            semantic_configuration_name="default", 
+                            top=k, 
+                            query_caption="extractive|highlight-false")
         return r
     except Exception as e:
         logging.info(e)

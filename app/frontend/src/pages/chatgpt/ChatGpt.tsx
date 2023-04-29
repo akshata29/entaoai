@@ -318,13 +318,16 @@ const ChatGpt = () => {
     };
 
     const onShowCitation = (citation: string, index: number) => {
-        if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab && selectedAnswer === index) {
-            setActiveAnalysisPanelTab(undefined);
+        if (citation.indexOf('http') > -1) {
+            window.open(citation.replace('/content/', ''), '_blank');
         } else {
-            setActiveCitation(citation);
-            setActiveAnalysisPanelTab(AnalysisPanelTabs.CitationTab);
+            if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab && selectedAnswer === index) {
+                setActiveAnalysisPanelTab(undefined);
+            } else {
+                setActiveCitation(citation);
+                setActiveAnalysisPanelTab(AnalysisPanelTabs.CitationTab);
+            }
         }
-
         setSelectedAnswer(index);
     };
 

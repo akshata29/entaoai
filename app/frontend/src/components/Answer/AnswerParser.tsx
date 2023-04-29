@@ -14,11 +14,20 @@ export function parseAnswerToHtml(answer: string,
     const dupCitations: string[] = [];
     const followupQuestions: string[] = [];
 
+    console.log(nextQuestions)
     // Extract any follow-up questions that might be in the answer
     nextQuestions.replace(/<([^>]+)>/g, (match, content) => {
         followupQuestions.push(content);
         return "";
     });
+
+    if (followupQuestions.length == 0) {
+        nextQuestions.split('\n').map((part, index) => {
+            if (part.trim().length > 0) {
+                followupQuestions.push(part);
+            }
+        });
+    }
     // var expression = /(https?:\/\/[^ ]*)/;
     var expression = /(?:[^/][\d\w\.]+)$(?<=\.\w{3,4})/;
 
@@ -72,19 +81,22 @@ export function parseAnswerToHtml(answer: string,
             //         url = part.match(expression)[1];
             //     }
             // }
-            const fileName  = part.substring(part.lastIndexOf('/')+1).replaceAll('%20', ' ');
-            if (fileName.trim() != "") {
-                dupCitations.push(fileName);
-            }
-            else if (part.match(expression))
-            {
-                const fileName = part.match(expression)![0];
+            if (part.indexOf('blob.core.windows.net') > -1) { 
+                const fileName  = part.substring(part.lastIndexOf('/')+1).replaceAll('%20', ' ');
                 if (fileName.trim() != "") {
                     dupCitations.push(fileName);
+                } else if (part.match(expression))
+                {
+                    const fileName = part.match(expression)![0];
+                    if (fileName.trim() != "") {
+                        dupCitations.push(fileName);
+                    }
                 }
-            }
+            } 
             else {
-                dupCitations.push(part);
+                if (part.indexOf('http') > -1 || part.indexOf('.pdf') > -1) {
+                    dupCitations.push(part);
+                }
             }       
         }
         citations = [...new Set(dupCitations)];
