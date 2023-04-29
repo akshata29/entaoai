@@ -1,0 +1,17 @@
+{
+    "name": "ProcessEvent",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzureFunction",
+        "typeProperties": {
+            "functionAppUrl": "https://<yourfunctionapp>.azurewebsites.net",
+            "authentication": "Anonymous",
+            "encryptedCredential": ""
+        },
+        "connectVia": {
+            "referenceName": "dataaiazureir",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}

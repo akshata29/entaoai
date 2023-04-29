@@ -56,6 +56,38 @@
                         "type": "DatasetReference"
                     }
                 ]
+            },
+            {
+                "name": "Call Process Events",
+                "type": "AzureFunctionActivity",
+                "dependsOn": [
+                    {
+                        "activity": "Copy data",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "functionName": {
+                        "value": "@concat('ProcessEvents?fileName=', uriComponentToString(pipeline().parameters.FileName))",
+                        "type": "Expression"
+                    },
+                    "method": "GET",
+                    "body": ""
+                },
+                "linkedServiceName": {
+                    "referenceName": "ProcessEvent",
+                    "type": "LinkedServiceReference"
+                }
             }
         ],
         "parameters": {
@@ -66,6 +98,8 @@
                 "type": "string"
             }
         },
-        "annotations": []
-    }
+        "annotations": [],
+        "lastPublishTime": "2023-04-27T23:07:30Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
 }

@@ -1,0 +1,256 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Auth": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "Auth",
+                            "type": "string",
+                            "value": "@{concat('SharedKey ', variables('storName'), ':', variables('storKey'))}"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Copy_Blob": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Call_Doc_Generator": {
+                "inputs": {
+                    "body": {
+                        "values": [
+                            {
+                                "data": {
+                                    "blobConnectionString": "",
+                                    "blobContainer": "",
+                                    "blobName": "",
+                                    "blobPrefix": "",
+                                    "s3AccessKey": "",
+                                    "s3Bucket": "s3Bucket",
+                                    "s3Key": "",
+                                    "s3Prefix": "",
+                                    "s3SecretKey": "",
+                                    "text": [
+                                        {
+                                            "path": "@variables('blobName')"
+                                        }
+                                    ]
+                                },
+                                "recordId": 0
+                            }
+                        ]
+                    },
+                    "headers": {
+                        "content-type": "application/json"
+                    },
+                    "method": "POST",
+                    "queries": {
+                        "indexName": "@variables('blobName')",
+                        "indexType": "pinecone",
+                        "loadType": "files",
+                        "multiple": "false"
+                    },
+                    "uri": "https://dataaichatpdf.azurewebsites.net/api/DocGenerator?code=1DYM43OuqC9r5x42mBwXmdM_94GcTnwui5hwtjFraOiTAzFukmrJ_g=="
+                },
+                "runAfter": {
+                    "Temp": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Http"
+            },
+            "Copy_Blob": {
+                "inputs": {
+                    "headers": {
+                        "ReadFileMetadataFromServer": true
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azureblob']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/copyFile",
+                    "queries": {
+                        "destination": "@{concat('chatpdf/', variables('blobName'))}",
+                        "overwrite": true,
+                        "queryParametersSingleEncoded": true,
+                        "source": "@variables('blobPath')"
+                    }
+                },
+                "runAfter": {
+                    "Set_Blob_Path": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
+            },
+            "Set_Blob_Path": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "blobPath",
+                            "type": "string",
+                            "value": "@{concat('s3files/', variables('blobName'))}"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Set_the_Blob_Name": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Set_the_Blob_Name": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "blobName",
+                            "type": "string",
+                            "value": "@{last(split(triggerBody()?['subject'],'/'))}"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Storage_Key": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Storage_Key": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "storKey",
+                            "type": "string",
+                            "value": "zG/cJ/Bj+KmoXROlPgsZULpPucE/ibzIaQfxaItDTjtTEqqoyM9EYVdZaGplnxg52ytX+RmquYrp+AStRMdQUQ=="
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Storage_Name": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Storage_Name": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "storName",
+                            "type": "string",
+                            "value": "dataaiopenaistor"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
+            },
+            "Temp": {
+                "actions": {
+                    "Set_Metadata": {
+                        "inputs": {
+                            "headers": {
+                                "Authorization": "SharedKey dataaiopenaistor:zG/cJ/Bj+KmoXROlPgsZULpPucE/ibzIaQfxaItDTjtTEqqoyM9EYVdZaGplnxg52ytX+RmquYrp+AStRMdQUQ==",
+                                "x-ms-date": "@{utcnow('R')}",
+                                "x-ms-meta-embedded": "false",
+                                "x-ms-meta-indexName": "",
+                                "x-ms-meta-indexType": "",
+                                "x-ms-meta-name": "@variables('blobName')",
+                                "x-ms-meta-namespace": "",
+                                "x-ms-meta-qa": "No Qa Generated",
+                                "x-ms-meta-summary": "No Summary Created",
+                                "x-ms-version": "2022-11-02"
+                            },
+                            "method": "PUT",
+                            "uri": "@{concat('https://', variables('storName'), '.blob.core.windows.net/chatpdf/', variables('blobName'), '?comp=metadata')}"
+                        },
+                        "runAfter": {},
+                        "type": "Http"
+                    }
+                },
+                "expression": {
+                    "and": [
+                        {
+                            "equals": [
+                                1,
+                                2
+                            ]
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Auth": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "If"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "When_Blob_is_Created": {
+                "inputs": {
+                    "body": {
+                        "properties": {
+                            "destination": {
+                                "endpointType": "webhook",
+                                "properties": {
+                                    "endpointUrl": "@{listCallbackUrl()}"
+                                }
+                            },
+                            "filter": {
+                                "includedEventTypes": [
+                                    "Microsoft.Storage.BlobCreated"
+                                ],
+                                "subjectBeginsWith": "/blobServices/default/containers/s3files"
+                            },
+                            "topic": "/subscriptions/e2171f6d-2650-45e6-af7e-6d6e44ca92b1/resourceGroups/dataai/providers/Microsoft.Storage/storageAccounts/dataaiopenaistor"
+                        }
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azureeventgrid']['connectionId']"
+                        }
+                    },
+                    "path": "/subscriptions/@{encodeURIComponent('e2171f6d-2650-45e6-af7e-6d6e44ca92b1')}/providers/@{encodeURIComponent('Microsoft.Storage.StorageAccounts')}/resource/eventSubscriptions",
+                    "queries": {
+                        "x-ms-api-version": "2017-06-15-preview"
+                    }
+                },
+                "splitOn": "@triggerBody()",
+                "type": "ApiConnectionWebhook"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "azureblob": {
+                    "connectionId": "/subscriptions/e2171f6d-2650-45e6-af7e-6d6e44ca92b1/resourceGroups/dataai/providers/Microsoft.Web/connections/azureblob",
+                    "connectionName": "azureblob",
+                    "id": "/subscriptions/e2171f6d-2650-45e6-af7e-6d6e44ca92b1/providers/Microsoft.Web/locations/southcentralus/managedApis/azureblob"
+                },
+                "azureeventgrid": {
+                    "connectionId": "/subscriptions/e2171f6d-2650-45e6-af7e-6d6e44ca92b1/resourceGroups/dataai/providers/Microsoft.Web/connections/azureeventgrid",
+                    "connectionName": "azureeventgrid",
+                    "id": "/subscriptions/e2171f6d-2650-45e6-af7e-6d6e44ca92b1/providers/Microsoft.Web/locations/southcentralus/managedApis/azureeventgrid"
+                }
+            }
+        }
+    }
+}
