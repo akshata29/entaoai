@@ -5,11 +5,19 @@ from azure.storage.blob import BlobServiceClient, ContentSettings
 import requests
 import json
 
-def main(processFile: func.InputStream):
+def main(processFile: func.InputStream, context: func.Context):
     logging.info(f"Python blob trigger function processed blob \n"
                  f"Name: {processFile.name}\n"
                  f"Blob Size: {processFile.length} bytes")
     
+    if hasattr(context, 'retry_context'):
+        logging.info(f'Current retry count: {context.retry_context.retry_count}')
+
+        if context.retry_context.retry_count == context.retry_context.max_retry_count:
+            logging.info(
+                f"Max retries of {context.retry_context.max_retry_count} for "
+                f"function {context.function_name} has been reached")
+
     blobName = os.path.basename(processFile.name)
     # Upload the File to regular Blob Storage
     url = os.environ['OpenAiDocStorConnString']
@@ -17,7 +25,7 @@ def main(processFile: func.InputStream):
     blobServiceClient = BlobServiceClient.from_connection_string(url)
     containerClient = blobServiceClient.get_container_client(containerName)
     blobClient = containerClient.get_blob_client(blobName)
-    blobClient.upload_blob(blobName.read(), overwrite=True)
+    blobClient.upload_blob(processFile.read(), overwrite=True)
     blobClient.set_blob_metadata(metadata={"embedded": "false", 
                                     "indexName": "", 
                                     "namespace": "", 
@@ -31,12 +39,13 @@ def main(processFile: func.InputStream):
     indexName=processFile.name
     multiple="false" # Because the files events are triggered into functions one at a time, we can assume that this is always false
     loadType="files"
+
     postBody={
         "values": [
           {
             "recordId": 0,
             "data": {
-              "text": "files",
+              "text": [{"path":blobName}],
               "blobConnectionString": "",
               "blobContainer" : "",
               "blobPrefix" : "",
@@ -58,7 +67,6 @@ def main(processFile: func.InputStream):
         data = postBody
         params = {'indexType': indexType, "indexName": indexName, "multiple": multiple , "loadType": loadType}
         resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
-        return func.HttpResponse(json.dumps(resp.text), mimetype="application/json")
     except Exception as e:
         logging.exception("Exception in /processDoc")
         return func.HttpResponse(

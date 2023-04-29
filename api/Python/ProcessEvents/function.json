@@ -9,5 +9,10 @@
         "source": "EventGrid",
         "connection": "OpenAiDocStorConnString"
       }
-    ]
+    ],
+    "retry": {
+      "strategy": "fixedDelay",
+      "maxRetryCount": 0,
+      "delayInterval": "00:00:10"
+    }
   }

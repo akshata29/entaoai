@@ -2,6 +2,7 @@
     "IsEncrypted": false,
     "Values": {
       "FUNCTIONS_WORKER_RUNTIME": "python",
+      "DOCGENERATOR_URL": "http://localhost:7071/api/DocGenerator?code=",
       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
       "OpenAiKey": "", // Open AI Key
       "OpenAiService": "", // Name of Open AI Service

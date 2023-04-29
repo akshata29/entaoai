@@ -14,7 +14,6 @@ export function parseAnswerToHtml(answer: string,
     const dupCitations: string[] = [];
     const followupQuestions: string[] = [];
 
-    console.log(nextQuestions)
     // Extract any follow-up questions that might be in the answer
     nextQuestions.replace(/<([^>]+)>/g, (match, content) => {
         followupQuestions.push(content);
