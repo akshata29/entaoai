@@ -24,7 +24,6 @@ export const AnalysisPanel = ({ answer, activeTab, activeCitation, citationHeigh
     const isDisabledCitationTab: boolean = !activeCitation;
 
     const sanitizedThoughts = DOMPurify.sanitize(answer.thoughts!);
-
     return (
         <Pivot
             className={className}

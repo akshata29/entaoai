@@ -21,6 +21,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 * 4/25/2023 - Initial version of Power Virtual Agent
 * 4/28/2023 - Fix Bugs, Citations & Follow-up questions across QA & Chat.  Prompt bit more restrictive to limit responding from the document.
 * 4/29/2023 - AWS S3 Process Integration using S3, AWS Lambda Function and Azure Data Factory (automated deployment not available yet, scripts are available in /Deployment/aws folder)
+* 4/30/2023 - Initial version of Task Agent Feature added.  Autonomous Agents are agents that designed to be more long running. You give them one or multiple long term goals, and they independently execute towards those goals. The applications combine tool usage and long term memory.  Initial feature implements [Baby AGI](https://github.com/yoheinakajima/babyagi) with execution tools
   
 ## Test Website
 

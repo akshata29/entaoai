@@ -68,6 +68,23 @@ def askAgent():
     except Exception as e:
         logging.exception("Exception in /ask")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/askTaskAgent", methods=["POST"])
+def askTaskAgent():
+    postBody=request.json["postBody"]
+ 
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("TASKAGENTQA_URL")
+
+        data = postBody
+        resp = requests.post(url, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /askTaskAgent")
+        return jsonify({"error": str(e)}), 500
     
 @app.route("/chat", methods=["POST"])
 def chat():

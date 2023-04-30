@@ -123,6 +123,7 @@
             "properties": {
                 "replicaCount": 1,
                 "partitionCount": 1,
+                "semanticSearch": "free",
                 "hostingMode": "default",
                 "publicNetworkAccess": "Enabled",
                 "networkRuleSet": {
@@ -451,6 +452,11 @@
 						  "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
 						  "value": "True"
 						},
+                        {
+                            "name": "TASKAGENTQA_URL",
+                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/TaskAgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+                            
+                          },
 						{
 						  "name": "AGENTQA_URL",
 						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/AgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
@@ -582,10 +588,6 @@
 						  "name": "AzureWebJobsStorage",
 						  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"
 						},
-                        {
-                            "name": "DOCGENERATOR_URL",
-                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/DocGenerator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                        },
 						{
 						  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
 						  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"

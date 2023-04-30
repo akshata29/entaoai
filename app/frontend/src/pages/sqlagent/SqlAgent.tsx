@@ -562,7 +562,7 @@ const SqlAgent = () => {
                     </PivotItem>
                 </Pivot>
                 <Panel
-                    headerText="Configure answer generation"
+                    headerText="Configure SQL NLP"
                     isOpen={isConfigPanelOpen}
                     isBlocking={false}
                     onDismiss={() => setIsConfigPanelOpen(false)}
