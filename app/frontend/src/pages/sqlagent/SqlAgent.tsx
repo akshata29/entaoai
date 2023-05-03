@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Panel, DefaultButton, Spinner, SpinButton, Stack } from "@fluentui/react";
+import { Checkbox, Panel, DefaultButton, Spinner, SpinButton, Stack } from "@fluentui/react";
 import { Sparkle28Filled } from "@fluentui/react-icons";
 
 import styles from "./SqlAgent.module.css";
@@ -54,22 +54,38 @@ const SqlAgent = () => {
 
     // SyntaxHighlighter.registerLanguage("javascript", sql);
 
-    const startSynthesis = (url: string | null) => {
+    const startSynthesis = async (answerType:string, url: string | null) => {
         if(isSpeaking) {
             audio.pause();
             setIsSpeaking(false);
         }
 
         if(url === null) {
-            return;
-        }
+            let speechAnswer;
+            if (answerType == "Agent")
+                speechAnswer = answer && answer[0].answer;
+            else if (answerType == "Chain")
+                speechAnswer = answerChain && answerChain[0].answer;
 
-        audio = new Audio(url);
-        audio.play();
-        setIsSpeaking(true);
-        audio.addEventListener('ended', () => {
-            setIsSpeaking(false);
-        });
+            const speechUrl = await getSpeechApi(speechAnswer || '');
+            if (speechUrl === null) {
+                return;
+            }
+            audio = new Audio(speechUrl);
+            audio.play();
+            setIsSpeaking(true);
+            audio.addEventListener('ended', () => {
+                setIsSpeaking(false);
+            });
+
+        } else {
+            audio = new Audio(url);
+            audio.play();
+            setIsSpeaking(true);
+            audio.addEventListener('ended', () => {
+                setIsSpeaking(false);
+            });
+        }
     };
 
     const stopSynthesis = () => {
@@ -133,10 +149,11 @@ const SqlAgent = () => {
 
             setSqlData(dataTable);
             //setAnswer(result);
-            const speechUrl = await getSpeechApi(result.answer);
-            setAnswer([result, speechUrl]);
+            setAnswer([result, null]);
             if(useAutoSpeakAnswers) {
-                startSynthesis(speechUrl);
+                const speechUrl = await getSpeechApi(result.answer);
+                setAnswer([result, speechUrl]);
+                startSynthesis("Agent", speechUrl);
             }
 
             if (result.error) {
@@ -190,10 +207,11 @@ const SqlAgent = () => {
 
             setSqlData(dataTable);
             //setAnswerChain(result);
-            const speechUrl = await getSpeechApi(result.answer);
-            setAnswerChain([result, speechUrl]);
+            setAnswerChain([result, null]);
             if(useAutoSpeakAnswers) {
-                startSynthesis(speechUrl);
+                const speechUrl = await getSpeechApi(result.answer);
+                setAnswerChain([result, speechUrl]);
+                startSynthesis("Chain", speechUrl);
             }
             if (result.error) {
                 setErrorChain(result.error);
@@ -203,6 +221,10 @@ const SqlAgent = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const onEnableAutoSpeakAnswersChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+        setUseAutoSpeakAnswers(!!checked);
     };
 
     const onPromptTemplateChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
@@ -338,6 +360,7 @@ const SqlAgent = () => {
                             <QuestionInput
                                 placeholder="Ask me anything"
                                 disabled={isLoading}
+                                updateQuestion={lastQuestionRef.current}
                                 onSend={question => makeApiRequest(question)}
                             />
                         </div>
@@ -373,7 +396,7 @@ const SqlAgent = () => {
                                                     onCitationClicked={x => onShowCitation(x)}
                                                     onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
                                                     onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
-                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answer[1])}
+                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis("Agent", answer[1])}
                                                 />
                                             </PivotItem>
                                             <PivotItem
@@ -459,6 +482,7 @@ const SqlAgent = () => {
                                 <QuestionInput
                                     placeholder="Ask me anything"
                                     disabled={isLoading}
+                                    updateQuestion={lastQuestionChainRef.current}
                                     onSend={question => makeApiChainRequest(question)}
                                 />
                             </div>
@@ -495,7 +519,7 @@ const SqlAgent = () => {
                                                     onCitationClicked={x => onShowCitation(x)}
                                                     onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
                                                     onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
-                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answerChain[1])}
+                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis("Chain", answerChain[1])}
                                                 />
                                             </PivotItem>
                                             <PivotItem
@@ -594,6 +618,12 @@ const SqlAgent = () => {
                         max={4000}
                         defaultValue={tokenLength.toString()}
                         onChange={onTokenLengthChange}
+                    />
+                    <Checkbox
+                        className={styles.chatSettingsSeparator}
+                        checked={useAutoSpeakAnswers}
+                        label="Automatically speak answers"
+                        onChange={onEnableAutoSpeakAnswersChange}
                     />
                 </Panel>
             </div>

@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { TextField, PrimaryButton, Label, DefaultPalette, Stack, IStackStyles, IStackTokens } from "@fluentui/react";
+import { Checkbox,Panel, DefaultButton,  SpinButton } from "@fluentui/react";
 
 import styles from "./Speech.module.css";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
-import { getSpeechToken, textAnalytics, summarizer } from "../../api";
+import { AskRequest, Approaches, getSpeechToken, textAnalytics, summarizer } from "../../api";
 
 import { ResultReason } from 'microsoft-cognitiveservices-speech-sdk'
 import * as speechsdk from 'microsoft-cognitiveservices-speech-sdk';
+import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 
 
 const stackStyles: IStackStyles = {
@@ -28,6 +30,11 @@ const stackTokens: IStackTokens = { childrenGap: 5 };
 
 const Speech = () => {
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
+    const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
+    const [temperature, setTemperature] = useState<number>(0);
+    const [tokenLength, setTokenLength] = useState<number>(1000);
+    const [chainTypeOptions, setChainTypeOptions] = useState<any>([])
+    const [selectedChain, setSelectedChain] = useState<IDropdownOption>();
 
     const bankingRaw = "Royal Human Bank, this is Linda speaking. \r\n Hi Linda. I was just at your Bridgeport branch and I think I left my Debit card in the ATM machine \r\n Okay. Do you have your Debit card number? \r\n Actually, I don’t. \r\n Okay, well do you have the checking account number associated with the Debit card? That I do have. Are you ready? I’ll give you what I’ve got. 765 456 789.  Okay. That’s 765 456 789.  \r\n Correct\r\n Okay and what is your name sir? \r\n It’s Robert Applebaum. That’s A-P-P-L-E-B-A-U-M. \r\n Okay. I have Robert Applebaum.\r\n Yes\r\n And what is your date of birth Robert? \r\n July 7th, 1974. \r\n Okay. And your phone number? \r\n It’s 610-265-1715. \r\n Okay Robert. I have just temporarily suspended your card. If it is in the machine, we will contact you and lift the suspension. \r\n Oh, thank you. \r\n Sure. Thank you. \r\n Goodbye\r\n Goodbye"
     const insuranceRaw = "Thank you for calling Contoso Insurance. My name is Ashish Talati How may I help you? \r\n I had an accident. I am calling to file a new claim\r\n Oh, I am so sorry to hear that.  Was anyone injured in the accident?\r\n No, nobody was injured. Kids were scared and there is some damage to the car but thankfully nobody suffered any injuries.\r\n That’s good to hear. Can I get your name please? \r\n My name is John Smith \r\n Can you please verify your data of birth?\r\n It is October 29th, 1984\r\n Let me pull up your information. Please hold on \r\n I see you live at 425 Michigan Ave in Chicago, IL. Is that correct?\r\n Yes\r\n Can you please verify your phone number in case we need to contact you?\r\n My phone number is 312-456-9876 \r\n I see you have multiple cars on the policy. Which car was involved in the accident?\r\n It was my Honda Accord\r\n Ok, where did the accident happen?\r\n It happened in the Walmart parking lot in the north side of Chicago. It was raining heavily and I guess the other car didn’t see my car when backing up.\r\n Ok, when did the accident happen? \r\n It happened on Sunday morning around 10am. I think it was September 12.\r\n Can you please describe the damage to your car? \r\n Yes, front of other person’s car hit my car’s bumper on the right side.\r\n Ok, let me create a new claim for this. Please hold on \r\n I have created a new claim for you. We will be contacting you for scheduling repairs to your car. Is there anything else I can help with?\r\n No, thank you for your help.\r\n My Pleasure.  You have a great day!"
@@ -58,6 +65,14 @@ const Speech = () => {
     const [promptDetails, setPromptDetails] = useState(
         "Extract the following from the conversation: \n 1. What is customer's name? \n 2. Which car was involved in the accident? \n 3. What are the action items and follow-ups?"
     )
+
+    const chainType = [
+      { key: 'stuff', text: 'Stuff'},
+      { key: 'map_rerank', text: 'Map ReRank' },
+      { key: 'map_reduce', text: 'Map Reduce' },
+      { key: 'refine', text: 'Refine'},
+    ]
+
     const [promptType, setPromptType] = useState<IDropdownOption>();
     const scenarioType = [
         { key: 'Insurance', text: 'Insurance' },
@@ -170,12 +185,23 @@ const Speech = () => {
         setGptPromptSummary('')
         const requestText = JSON.stringify(speechText)
         const requestCustomPrompt = JSON.stringify(promptDetails)
-        const customParsePrompt = requestText + '\n\n' + requestCustomPrompt
+        //const customParsePrompt = requestText + '\n\n' + requestCustomPrompt
+        const customParsePrompt = ''.concat(requestText, '\r\n', requestCustomPrompt)
     
+        const request: AskRequest = {
+          question: '',
+          approach: Approaches.RetrieveThenRead,
+          overrides: {
+              temperature: temperature,
+              chainType: String(selectedChain?.key),
+              tokenLength: tokenLength,
+          }
+        };
+
         let promptName = 'RealTimeSpeechPrompt'
     
         if (promptType?.key == 'custom') {
-          const summary = await summarizer(customParsePrompt, String(promptType?.key), '', 'inline', 'refine')
+          const summary = await summarizer(request, customParsePrompt, String(promptType?.key), '', 'inline', String(selectedChain?.key))
           setGptPromptSummary(summary)
         } else if (promptType?.key == 'summaryNotes') {
           promptName = 'RtsSummaryNotesPrompt'
@@ -196,7 +222,7 @@ const Speech = () => {
         }
     
         if (promptType?.key != 'custom') {
-            const summary = await summarizer(requestText, String(promptType?.key), promptName, 'inline', 'refine')
+            const summary = await summarizer(request, requestText, String(promptType?.key), promptName, 'inline', String(selectedChain?.key))
             setGptPromptSummary(summary)
         }
     }
@@ -293,8 +319,22 @@ const Speech = () => {
         recognizer.stopContinuousRecognitionAsync()
     }
 
+    const onTemperatureChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
+      setTemperature(parseInt(newValue || "0.3"));
+    };
+
+    const onTokenLengthChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
+        setTokenLength(parseInt(newValue || "1000"));
+    };
+
+    const onChainChange = (event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedChain(item);
+    };
+
     useEffect(() => {
         getTokenOrRefresh()
+        setChainTypeOptions(chainType)
+        setSelectedChain(chainType[0])
     }, [])
 
     return (
@@ -304,6 +344,10 @@ const Speech = () => {
                     <h1 className={styles.oneshotTitle}>Real-time Speech Analytics</h1>
                 </div>
                 <div className={styles.oneshotBottomSection}>
+                    <div className={styles.commandsContainer}>
+                        <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                    </div>
+                    <br/>
                     <Stack enableScopedSelectors tokens={stackTokens}>
                         <Stack enableScopedSelectors horizontal horizontalAlign="start" styles={stackStyles}>
                             <span style={itemStyles}>
@@ -390,6 +434,41 @@ const Speech = () => {
                             </span>
                         </Stack>
                     </Stack>
+                    <Panel
+                        headerText="Configure Speech settings"
+                        isOpen={isConfigPanelOpen}
+                        isBlocking={false}
+                        onDismiss={() => setIsConfigPanelOpen(false)}
+                        closeButtonAriaLabel="Close"
+                        onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
+                        isFooterAtBottom={true}
+                    >
+                        <br/>
+                        <SpinButton
+                          className={styles.oneshotSettingsSeparator}
+                          label="Set the Temperature:"
+                          min={0.0}
+                          max={1.0}
+                          defaultValue={temperature.toString()}
+                          onChange={onTemperatureChange}
+                        />
+                        <SpinButton
+                            className={styles.oneshotSettingsSeparator}
+                            label="Max Length (Tokens):"
+                            min={0}
+                            max={4000}
+                            defaultValue={tokenLength.toString()}
+                            onChange={onTokenLengthChange}
+                        />
+                        <Dropdown 
+                            label="Chain Type"
+                            onChange={onChainChange}
+                            selectedKey={selectedChain ? selectedChain.key : 'stuff'}
+                            options={chainTypeOptions}
+                            defaultSelectedKey={'stuff'}
+                            styles={dropdownStyles}
+                        />
+                    </Panel>
                 </div>
             </div>
         </div>

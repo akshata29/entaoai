@@ -76,16 +76,15 @@ def FindSqlAnswer(topK, question, value):
         openai.api_version = OpenAiVersion
         openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
+        llm = AzureOpenAI(deployment_name=OpenAiDavinci,
+                model_name=OpenAiDavinci,
+                temperature=os.environ['Temperature'] or 0,
+                openai_api_key=OpenAiKey)
 
         logging.info("LLM Setup done")
 
-        toolkit = SQLDatabaseToolkit(db=db)
+        toolkit = SQLDatabaseToolkit(db=db, llm=llm)
         logging.info("Toolkit Setup done")
-
-        llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                model_name="text-davinci-003",
-                temperature=os.environ['Temperature'] or 0,
-                openai_api_key=OpenAiKey)
 
 
         agentExecutor = create_sql_agent(

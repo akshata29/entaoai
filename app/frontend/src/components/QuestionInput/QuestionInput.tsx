@@ -6,6 +6,7 @@ import styles from "./QuestionInput.module.css";
 
 interface Props {
     onSend: (question: string) => void;
+    updateQuestion?: string;
     disabled: boolean;
     placeholder?: string;
     clearOnSend?: boolean;
@@ -19,9 +20,15 @@ recognition.lang = "en-US";
 recognition.interimResults = true;
 recognition.maxAlternatives = 1;
 
-export const QuestionInput = ({ onSend, disabled, placeholder, clearOnSend }: Props) => {
+export const QuestionInput = ({ onSend, updateQuestion, disabled, placeholder, clearOnSend }: Props) => {
     const [question, setQuestion] = useState<string>("");
+    const [prevQuestion, setPrevQuestion] = useState<string>("");
     const [isRecording, setIsRecording] = useState<boolean>(false);
+
+    if (updateQuestion && prevQuestion != updateQuestion) {
+        setQuestion(updateQuestion);
+        setPrevQuestion(updateQuestion)
+    }
 
     const sendQuestion = () => {
         if (disabled || !question.trim()) {
@@ -32,6 +39,7 @@ export const QuestionInput = ({ onSend, disabled, placeholder, clearOnSend }: Pr
 
         if (clearOnSend) {
             setQuestion("");
+            setPrevQuestion("")
         }
     };
 

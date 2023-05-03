@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { getCitationFilePath } from "../../api";
 import { Link } from "react-router-dom";
+import { logger } from "@azure/storage-blob";
 
 type HtmlParsedAnswer = {
     answerHtml: string;
@@ -93,7 +94,7 @@ export function parseAnswerToHtml(answer: string,
                 }
             } 
             else {
-                if (part.indexOf('http') > -1 || part.indexOf('.pdf') > -1) {
+                if (part.indexOf('http') > -1 || part.indexOf('.pdf') > -1 || part.indexOf('https') > -1) {
                     dupCitations.push(part);
                 }
             }       

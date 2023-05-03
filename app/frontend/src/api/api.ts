@@ -461,7 +461,7 @@ export async function getSpeechToken(): Promise<SpeechTokenResponse> {
   return parsedResponse
 }
 
-export async function summarizer(requestText: string, promptType:string, promptName: string, docType: string, chainType:string): Promise<string> {
+export async function summarizer(options: AskRequest, requestText: string, promptType:string, promptName: string, docType: string, chainType:string): Promise<string> {
   const response = await fetch('/summarizer' , {
       method: "POST",
       headers: {
@@ -477,7 +477,11 @@ export async function summarizer(requestText: string, promptType:string, promptN
             {
               recordId: 0,
               data: {
-                text: requestText
+                text: requestText,
+                overrides: {
+                  temperature: options.overrides?.temperature,
+                  tokenLength: options.overrides?.tokenLength
+                }
               }
             }
           ]

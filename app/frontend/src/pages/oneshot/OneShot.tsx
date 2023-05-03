@@ -216,10 +216,11 @@ const OneShot = () => {
             };
             const result = await askApi(request, String(selectedItem?.key), String(selectedIndex), 'stuff');
             //setAnswer(result);
-            const speechUrl = await getSpeechApi(result.answer);
-            setAnswer([result, speechUrl]);
+            setAnswer([result, null]);
             if(useAutoSpeakAnswers) {
-                startSynthesis(speechUrl);
+                const speechUrl = await getSpeechApi(result.answer);
+                setAnswer([result, speechUrl]);
+                startSynthesis("Answer", speechUrl);
             }
         } catch (e) {
             setError(e);
@@ -257,10 +258,11 @@ const OneShot = () => {
             };
             const result = await askAgentApi(request);
             //setAgentAnswer(result);
-            const speechUrl = await getSpeechApi(result.answer);
-            setAgentAnswer([result, speechUrl]);
+            setAgentAnswer([result, null]);
             if(useAutoSpeakAnswers) {
-                startSynthesis(speechUrl);
+                const speechUrl = await getSpeechApi(result.answer);
+                setAgentAnswer([result, speechUrl]);
+                startSynthesis("AnswerAgent", speechUrl);
             }
         } catch (e) {
             setAgentError(e);
@@ -298,10 +300,11 @@ const OneShot = () => {
             };
             const result = await askTaskAgentApi(request);
             //setAgentAnswer(result);
-            const speechUrl = await getSpeechApi(result.answer);
-            setTaskAgentAnswer([result, speechUrl]);
+            setTaskAgentAnswer([result, null]);
             if(useAutoSpeakAnswers) {
-                startSynthesis(speechUrl);
+                const speechUrl = await getSpeechApi(result.answer);
+                setTaskAgentAnswer([result, speechUrl]);
+                startSynthesis("AnswerTaskAgent", speechUrl);
             }
         } catch (e) {
             setTaskAgentError(e);
@@ -310,22 +313,40 @@ const OneShot = () => {
         }
     };
 
-    const startSynthesis = (url: string | null) => {
+    const startSynthesis = async (answerType: string, url: string | null) => {
         if(isSpeaking) {
             audio.pause();
             setIsSpeaking(false);
         }
 
         if(url === null) {
-            return;
-        }
+            let speechAnswer;
+            if (answerType == "Answer")
+                speechAnswer = answer && answer[0].answer;
+            else if (answerType == "AnswerAgent")
+                speechAnswer = answerAgent && answerAgent[0].answer;
+            else if (answerType == "AnswerTaskAgent")
+                speechAnswer = answerTaskAgent && answerTaskAgent[0].answer;
 
-        audio = new Audio(url);
-        audio.play();
-        setIsSpeaking(true);
-        audio.addEventListener('ended', () => {
-            setIsSpeaking(false);
-        });
+            const speechUrl = await getSpeechApi(speechAnswer || '');
+            if (speechUrl === null) {
+                return;
+            }
+            audio = new Audio(speechUrl);
+            audio.play();
+            setIsSpeaking(true);
+            audio.addEventListener('ended', () => {
+                setIsSpeaking(false);
+            });
+
+        } else {
+            audio = new Audio(url);
+            audio.play();
+            setIsSpeaking(true);
+            audio.addEventListener('ended', () => {
+                setIsSpeaking(false);
+            });    
+        }
     };
 
     const stopSynthesis = () => {
@@ -382,11 +403,15 @@ const OneShot = () => {
     };
 
     const onShowCitation = (citation: string) => {
-        if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab) {
-            setActiveAnalysisPanelTab(undefined);
+        if (citation.indexOf('http') > -1 || citation.indexOf('https') > -1) {
+            window.open(citation.replace('/content/', ''), '_blank');
         } else {
-            setActiveCitation(citation);
-            setActiveAnalysisPanelTab(AnalysisPanelTabs.CitationTab);
+            if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab) {
+                setActiveAnalysisPanelTab(undefined);
+            } else {
+                setActiveCitation(citation);
+                setActiveAnalysisPanelTab(AnalysisPanelTabs.CitationTab);
+            }
         }
     };
 
@@ -589,6 +614,7 @@ const OneShot = () => {
                                 <div className={styles.oneshotQuestionInput}>
                                     <QuestionInput
                                         placeholder="Ask me anything"
+                                        updateQuestion={lastQuestionRef.current}
                                         disabled={isLoading}
                                         onSend={question => makeApiRequest(question)}
                                     />
@@ -622,7 +648,7 @@ const OneShot = () => {
                                                     onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
                                                     onFollowupQuestionClicked={q => makeApiRequest(q)}
                                                     showFollowupQuestions={useSuggestFollowupQuestions}
-                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answer[1])}
+                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis("Answer", answer[1])}
                                                 />
                                             </Stack>                               
                                         </div>
@@ -819,6 +845,7 @@ const OneShot = () => {
                                     <QuestionInput
                                         placeholder="Ask me anything"
                                         disabled={isLoading}
+                                        updateQuestion={lastAgentQuestionRef.current}
                                         onSend={question => makeApiAgentRequest(question)}
                                     />
                                 </div>
@@ -847,7 +874,7 @@ const OneShot = () => {
                                                     onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
                                                     onFollowupQuestionClicked={q => makeApiAgentRequest(q)}
                                                     showFollowupQuestions={useSuggestFollowupQuestions}
-                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answerAgent[1])}
+                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis("AnswerAgent", answerAgent[1])}
                                                 />
                                             </Stack>                               
                                         </div>
@@ -982,6 +1009,7 @@ const OneShot = () => {
                                     <QuestionInput
                                         placeholder="Ask me anything"
                                         disabled={isLoading}
+                                        updateQuestion={lastTaskAgentQuestionRef.current}
                                         onSend={question => makeApiTaskAgentRequest(question)}
                                     />
                                 </div>
@@ -1002,7 +1030,7 @@ const OneShot = () => {
                                                     onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
                                                     onFollowupQuestionClicked={q => makeApiTaskAgentRequest(q)}
                                                     showFollowupQuestions={useSuggestFollowupQuestions}
-                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis(answerTaskAgent[1])}
+                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis("AnswerTaskAgent", answerTaskAgent[1])}
                                                 />
                                             </Stack>                               
                                         </div>

@@ -47,7 +47,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
              status_code=400
         )
 
-def Summarize(promptType, promptName, chainType, docType, inLineText):
+def Summarize(promptType, promptName, chainType, docType, inLineText, overrides):
     logging.info("Calling Summarize Open AI")
     openai.api_type = "azure"
     openai.api_key = OpenAiKey
@@ -56,16 +56,18 @@ def Summarize(promptType, promptName, chainType, docType, inLineText):
 
     summaryResponse = ''
 
+    temperature = overrides.get("temperature") or 0.3
+    tokenLength = overrides.get('tokenLength') or 500
+
     if (promptType == "custom"):
         try:
             response = openai.Completion.create(
                 engine= OpenAiDavinci,
                 prompt = inLineText,
-                temperature = 0.3,
-                max_tokens = 1000,
-                top_p = 1.0,
-                best_of = 1
+                temperature = temperature,
+                max_tokens = tokenLength,
             )
+            logging.info(inLineText)
         except Exception as e:
             logging.info("Exception : " + str(e))
         summaryResponse = response.choices[0].text
@@ -76,7 +78,7 @@ def Summarize(promptType, promptName, chainType, docType, inLineText):
         InputVariables = os.environ[promptName + "Iv"]
         if (docType == "inline"):
             llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                            temperature=os.environ['Temperature'] or 0.3,
+                            temperature=temperature,
                             openai_api_key=openai.api_key)
             logging.info("Llm created")
             uResult = uuid.uuid4()
@@ -190,8 +192,9 @@ def TransformValue(promptType, promptName, chainType, docType, record):
     try:
         # Getting the items from the values/data/text
         inlineText = data['text']
+        overrides = data['overrides']
 
-        summaryResponse = Summarize(promptType, promptName, chainType, docType, inlineText)
+        summaryResponse = Summarize(promptType, promptName, chainType, docType, inlineText, overrides)
         return ({
             "recordId": recordId,
             "data": {
