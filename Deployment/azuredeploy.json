@@ -453,10 +453,15 @@
 						  "value": "True"
 						},
                         {
+                            "name": "VERIFYPASS_URL",
+                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/VerifyPassword?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+                            
+                        },
+                        {
                             "name": "TASKAGENTQA_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/TaskAgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
                             
-                          },
+                        },
 						{
 						  "name": "AGENTQA_URL",
 						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/AgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
@@ -604,6 +609,14 @@
 						  "name": "FUNCTIONS_WORKER_RUNTIME",
 						  "value": "python"
 						},
+                        {
+                            "name": "UploadPassword",
+                            "value": ""
+                        },
+                        {
+                            "name": "AdminPassword",
+                            "value": ""
+                        },
 						{
 						  "name": "MaxTokens",
 						  "value": "500"

@@ -51,6 +51,8 @@ RedisAddress = os.environ['RedisAddress']
 RedisPassword = os.environ['RedisPassword']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
 RedisPort = os.environ['RedisPort']
+UploadPassword = os.environ['UploadPassword'] or ''
+AdminPassword = os.environ['AdminPassword'] or ''
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 

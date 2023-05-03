@@ -14,7 +14,7 @@ import { Label } from '@fluentui/react/lib/Label';
 import { Stack, IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
 import { DefaultPalette } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
-import { processDoc, uploadFile, uploadBinaryFile } from "../../api";
+import { processDoc, uploadFile, uploadBinaryFile, verifyPassword } from "../../api";
 
 import styles from "./Upload.module.css";
 
@@ -57,6 +57,11 @@ const Upload = () => {
     const [s3AccessKey, setS3AccessKey] = useState('');
     const [s3SecretKey, setS3SecretKey] = useState('');
     const [s3Prefix, setS3Prefix] = useState('');
+
+    const [uploadPassword, setUploadPassword] = useState('');
+    const [missingUploadPassword, setMissingUploadPassword] = useState(false)
+    const [uploadError, setUploadError] = useState(false)
+
     const connectors = [
       { key: 's3file', text: 'Amazon S3 File'},
       { key: 's3Container', text: 'Amazon S3 Container'},
@@ -161,6 +166,11 @@ const Upload = () => {
     ))
     
     const handleUploadFiles = async () => {
+      if (uploadPassword == '') {
+        setMissingUploadPassword(true)
+        return
+      }
+
       if (files.length > 1) {
         setMultipleDocs(true)
         if (indexName == '') {
@@ -168,44 +178,63 @@ const Upload = () => {
           return
         }
       }
-      setLoading(true)
-      setUploadText('Uploading your document...')
-      let count = 0
-      await new Promise( (resolve) => {
-      files.forEach(async (element: File) => {
-        //await uploadFileToBlob(element)
-        try {
-          const formData = new FormData();
-          formData.append('file', element);
 
-          await uploadBinaryFile(formData)
-        }
-        finally
-        {
-          count += 1
-          if (count == files.length) {
-            resolve(element)
-          }
-        }
-      })
-      })
-      setUploadText("File uploaded successfully.  Now indexing the document.")
+      await verifyPassword("upload", uploadPassword)
+      .then(async (verifyResponse:string) => {
+        if (verifyResponse == "Success") {
+          setUploadText("Password verified")
+          setLoading(true)
+          setUploadText('Uploading your document...')
+          let count = 0
+          await new Promise( (resolve) => {
+          files.forEach(async (element: File) => {
+            //await uploadFileToBlob(element)
+            try {
+              const formData = new FormData();
+              formData.append('file', element);
+    
+              await uploadBinaryFile(formData)
+            }
+            finally
+            {
+              count += 1
+              if (count == files.length) {
+                resolve(element)
+              }
+            }
+          })
+          })
+          setUploadText("File uploaded successfully.  Now indexing the document.")
 
-      await processDoc(String(selectedItem?.key), "files", (files.length > 1 ? "true" : "false"), (files.length > 1 ? indexName : files[0].name), files,
-      blobConnectionString, blobContainer, blobPrefix, blobName,
-      s3Bucket, s3Key, s3AccessKey, s3SecretKey, s3Prefix)
-      .then((response:string) => {
-        if (response = "Success") {
-          setUploadText("Completed Successfully.  You can now search for your document.")
+          await processDoc(String(selectedItem?.key), "files", (files.length > 1 ? "true" : "false"), (files.length > 1 ? indexName : files[0].name), files,
+          blobConnectionString, blobContainer, blobPrefix, blobName,
+          s3Bucket, s3Key, s3AccessKey, s3SecretKey, s3Prefix)
+          .then((response:string) => {
+            console.log(response)
+            if (response == "Success") {
+              setUploadText("Completed Successfully.  You can now search for your document.")
+            }
+            else {
+              setUploadText(response)
+            }
+            setFiles([])
+            setLoading(false)
+            setMissingIndexName(false)
+            setMultipleDocs(false)
+            setIndexName('')
+          })
+          .catch((error : string) => {
+            setUploadText(error)
+            setFiles([])
+            setLoading(false)
+            setMissingIndexName(false)
+            setMultipleDocs(false)
+            setIndexName('')
+          })
         }
         else {
-          setUploadText("Failure to upload the document.")
+          setUploadText(verifyResponse)
         }
-        setFiles([])
-        setLoading(false)
-        setMissingIndexName(false)
-        setMultipleDocs(false)
-        setIndexName('')
       })
       .catch((error : string) => {
         setUploadText(error)
@@ -218,6 +247,10 @@ const Upload = () => {
     }
 
     const onProcessWebPages = async () => {
+      if (uploadPassword == '') {
+        setMissingUploadPassword(true)
+        return
+      }
       const processPage = parsedWebUrls.filter(function(e){return e})
       if (processPage?.length == 0) {
         setUploadText('Provide the list of URL to Process...')
@@ -246,6 +279,7 @@ const Upload = () => {
             }
             else {
               setUploadText("Failure to upload the document.")
+              setUploadError(true)
             }
             setWebPages('')
             setParsedWebUrls([''])
@@ -255,6 +289,7 @@ const Upload = () => {
           })
           .catch((error : string) => {
             setUploadText(error)
+            setUploadError(true)
             setWebPages('')
             setParsedWebUrls([''])
             setLoading(false)
@@ -266,6 +301,10 @@ const Upload = () => {
     }
 
     const onProcessConnectors = async () => {
+      if (uploadPassword == '') {
+        setMissingUploadPassword(true)
+        return
+      }
       if (indexName == '') {
         setMissingIndexName(true)
         return
@@ -309,7 +348,7 @@ const Upload = () => {
         setUploadText('Processing data from your connector...')
         await processDoc(String(selectedItem?.key), String(selectedConnector?.key), "false", indexName, '', blobConnectionString,
         blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
-        s3SecretKey, s3Prefix )  
+        s3SecretKey, s3Prefix)  
         .then((response) => {
           if (response == "Success") {
             setUploadText("Completed Successfully.  You can now search for your document.")
@@ -382,6 +421,16 @@ const Upload = () => {
       setBlobPrefix(newValue || "");
     };
 
+    const onUploadPassword = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setUploadPassword(newValue || "");
+      if (newValue == '') {
+        setMissingUploadPassword(true)
+      }
+      else {
+        setMissingUploadPassword(false)
+      }
+    };
+
     const onBlobName = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setBlobName(newValue || "");
     };
@@ -428,6 +477,10 @@ const Upload = () => {
                       disabled={false}
                       styles={dropdownStyles}
                   />
+                  &nbsp;
+                  <Label>Upload Password:</Label>&nbsp;
+                  <TextField onChange={onUploadPassword}
+                      errorMessage={!missingUploadPassword ? '' : "Note - Upload Password is required for Upload Functionality"}/>
                 </Stack.Item>
               </Stack>
             </Stack>
@@ -474,7 +527,7 @@ const Upload = () => {
                     {loading ? <div><span>Please wait, Uploading and Processing your file</span><Spinner/></div> : null}
                     <hr />
                     <h2 className={styles.chatEmptyStateSubtitle}>
-                      <TextField disabled={true} label={uploadText} />
+                      <TextField disabled={true} label={uploadError ? '' : uploadText} errorMessage={!uploadError ? '' : uploadText} />
                     </h2>
                 </div>
               </PivotItem>

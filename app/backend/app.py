@@ -193,6 +193,26 @@ def processDoc():
         logging.exception("Exception in /processDoc")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/verifyPassword", methods=["POST"])
+def verifyPassword():
+    passType=request.json["passType"]
+    password=request.json["password"]
+    postBody=request.json["postBody"]
+
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("VERIFYPASS_URL")
+
+        data = postBody
+        params = {'passType': passType, "password": password}
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /verifyPassword")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/refreshIndex", methods=["GET"])
 def refreshIndex():
    

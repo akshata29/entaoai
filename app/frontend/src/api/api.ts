@@ -315,10 +315,20 @@ export async function processDoc(indexType: string, loadType : string, multiple:
     })
   });
 
+  const parsedResponse: ChatResponse = await response.json();
   if (response.status > 299 || !response.ok) {
-    return "Error";
+      return "Error";
+  } else {
+    if (parsedResponse.values[0].data.error) {
+      return parsedResponse.values[0].data.error;
+    }
+    return 'Success';
   }
-  return "Success";
+  // if (response.status > 299 || !response.ok) {
+  //   return "Error";
+  // }
+  
+  // return "Success";
 }
 
 export async function chatJsApi(question: string, history: never[], indexNs: string, indexType:string): Promise<AskResponse> { 
@@ -444,6 +454,39 @@ export async function sqlChain(question:string, top: number): Promise<SqlRespons
       throw Error("Unknown error");
   }
   return parsedResponse.values[0].data
+}
+
+export async function verifyPassword(passType:string, password: string): Promise<string> {
+  const response = await fetch('/verifyPassword' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        passType:passType,
+        password:password,
+        postBody: {
+          values: [
+            {
+              recordId: 0,
+              data: {
+                text: ''
+              }
+            }
+          ]
+        }
+      })
+});
+
+const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      return "Error";
+  } else {
+    if (parsedResponse.values[0].data.error) {
+      return parsedResponse.values[0].data.error;
+    }
+    return 'Success';
+  }
 }
 
 export async function getSpeechToken(): Promise<SpeechTokenResponse> {

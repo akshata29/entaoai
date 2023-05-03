@@ -3,6 +3,8 @@
     "Values": {
       "FUNCTIONS_WORKER_RUNTIME": "python",
       "DOCGENERATOR_URL": "http://localhost:7071/api/DocGenerator?code=",
+      "AdminPassword": "", // Admin Password that is used for protected pages
+      "UploadPassword": "", // Upload Password that is used for uploading files
       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
       "OpenAiKey": "", // Open AI Key
       "OpenAiService": "", // Name of Open AI Service

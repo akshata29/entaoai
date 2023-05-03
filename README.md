@@ -55,4 +55,4 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ### Note
 
->Adapted from the Azure OpenAI Search repo at [OpenAI-CogSearch](https://github.com/Azure-Samples/azure-search-openai-demo/)
+>Adapted from the Azure OpenAI Search repo at [OpenAI-CogSearch](https://github.com/Azure-Samples/azure-search-openai-demo/) and [Call Center Analytics](https://github.com/amulchapla/AI-Powered-Call-Center-Intelligence)
