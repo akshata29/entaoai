@@ -92,6 +92,8 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         loadType = req.params.get('loadType')
         multiple = req.params.get('multiple')
         indexName = req.params.get('indexName')
+        existingIndex=req.params.get("existingIndex")
+        existingIndexNs=req.params.get("existingIndexNs")
         body = json.dumps(req.get_json())
     except ValueError:
         return func.HttpResponse(
@@ -132,7 +134,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         #   collection.create_index(field_name="embed", index_params=indexParam)
         #   collection.load()
 
-        result = ComposeResponse(indexType, loadType, multiple, indexName, body)
+        result = ComposeResponse(indexType, loadType, multiple, indexName, existingIndex, existingIndexNs, body)
         return func.HttpResponse(result, mimetype="application/json")
     else:
         return func.HttpResponse(
@@ -140,7 +142,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
              status_code=400
         )
 
-def ComposeResponse(indexType, loadType,  multiple, indexName, jsonData):
+def ComposeResponse(indexType, loadType,  multiple, indexName, existingIndex, existingIndexNs, jsonData):
     values = json.loads(jsonData)['values']
 
     logging.info("Calling Compose Response")
@@ -149,7 +151,7 @@ def ComposeResponse(indexType, loadType,  multiple, indexName, jsonData):
     results["values"] = []
 
     for value in values:
-        outputRecord = TransformValue(indexType, loadType,  multiple, indexName, value)
+        outputRecord = TransformValue(indexType, loadType,  multiple, indexName, existingIndex, existingIndexNs, value)
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
@@ -241,7 +243,7 @@ def storeIndex(indexType, docs, fileName, nameSpace):
 
 def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionString,
                                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
-                                s3SecretKey, s3Prefix):
+                                s3SecretKey, s3Prefix, existingIndex, existingIndexNs):
     logging.info("Embedding text")
     try:
         logging.info("Loading OpenAI")
@@ -250,7 +252,11 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
         openai.api_version = OpenAiVersion
         openai.api_base = f"https://{OpenAiService}.openai.azure.com"
         uResultNs = uuid.uuid4()
-        logging.info("Index will be created as " + uResultNs.hex)
+        if (existingIndex == "true"):
+            indexGuId = existingIndexNs
+        else:
+            indexGuId = uResultNs.hex
+        logging.info("Index will be created as " + indexGuId)
 
         if (loadType == "files"):
             try:
@@ -258,7 +264,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 filesData = list(filter(lambda x : not x['embedded'], filesData))
                 filesData = list(map(lambda x: {'filename': x['filename']}, filesData))
 
-                logging.info(f"Found {len(filesData)} filesfu to embed")
+                logging.info(f"Found {len(filesData)} files to embed")
                 for file in filesData:
                     logging.info(f"Adding {file['filename']} to Process")
                     fileName = file['filename']
@@ -281,7 +287,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                         rawDocs = loader.load()
                         docs = textSplitter.split_documents(rawDocs)
                         logging.info("Docs " + str(len(docs)))
-                        storeIndex(indexType, docs, fileName, uResultNs.hex)
+                        storeIndex(indexType, docs, fileName, indexGuId)
                     else:
                         try:
                             logging.info("Embedding Non-text file")
@@ -289,7 +295,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                             textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                             docs = []
                             docs = textSplitter.split_documents(rawDocs)
-                            storeIndex(indexType, docs, fileName, uResultNs.hex)
+                            storeIndex(indexType, docs, fileName, indexGuId)
                         except Exception as e:
                             logging.info(e)
                             upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType})
@@ -297,7 +303,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     logging.info("Perform Summarization and QA")
                     qa, summary = summarizeGenerateQa(docs)
                     logging.info("Upsert metadata")
-                    metadata = {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName}
+                    metadata = {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName}
                     upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
                     metadata = {'summary': summary, 'qa': qa}
                     upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
@@ -318,11 +324,11 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     rawDocs = loader.load()
                     docs = textSplitter.split_documents(rawDocs)
                     allDocs = allDocs + docs
-                    storeIndex(indexType, docs, indexName + ".txt", uResultNs.hex)
+                    storeIndex(indexType, docs, indexName + ".txt", indexGuId)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(allDocs)
                 logging.info("Upsert metadata")
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName})
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
                 return "Success"
             except Exception as e:
@@ -344,11 +350,11 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                 docs = []
                 docs = textSplitter.split_documents(rawDocs)
-                storeIndex(indexType, docs, indexName, uResultNs.hex)
+                storeIndex(indexType, docs, indexName, indexGuId)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(docs)
                 logging.info("Upsert metadata")
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName})
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
                 return "Success"
             except Exception as e:
@@ -365,11 +371,11 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                 docs = []
                 docs = textSplitter.split_documents(rawDocs)
-                storeIndex(indexType, docs, blobName, uResultNs.hex)
+                storeIndex(indexType, docs, blobName, indexGuId)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(docs)
                 logging.info("Upsert metadata")
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName})
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
                 return "Success"
             except Exception as e:
@@ -393,11 +399,11 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                 docs = []
                 docs = textSplitter.split_documents(rawDocs)
-                storeIndex(indexType, docs, indexName, uResultNs.hex)
+                storeIndex(indexType, docs, indexName, indexGuId)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(docs)
                 logging.info("Upsert metadata")
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName})
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
                 return "Success"            
             except Exception as e:
@@ -412,11 +418,11 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                 docs = []
                 docs = textSplitter.split_documents(rawDocs)
-                storeIndex(indexType, docs, blobName, uResultNs.hex)
+                storeIndex(indexType, docs, blobName, indexGuId)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(docs)
                 logging.info("Upsert metadata")
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': uResultNs.hex, 'indexType': indexType, "indexName": indexName})
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName})
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
                 return "Success"
             except Exception as e:
@@ -430,7 +436,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
             status_code=500
         )
 
-def TransformValue(indexType, loadType,  multiple, indexName, record):
+def TransformValue(indexType, loadType,  multiple, indexName, existingIndex, existingIndexNs, record):
     logging.info("Calling Transform Value")
     try:
         recordId = record['recordId']
@@ -477,11 +483,11 @@ def TransformValue(indexType, loadType,  multiple, indexName, record):
 
         summaryResponse = Embed(indexType, loadType,  multiple, indexName, value, blobConnectionString,
                                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
-                                s3SecretKey, s3Prefix)
+                                s3SecretKey, s3Prefix, existingIndex, existingIndexNs)
         return ({
             "recordId": recordId,
             "data": {
-                "text": summaryResponse
+                "error": summaryResponse
                     }
             })
 

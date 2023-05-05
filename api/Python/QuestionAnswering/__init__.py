@@ -57,7 +57,8 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                     temperature=temperature,
                     openai_api_key=OpenAiKey,
                     max_tokens=tokenLength,
-                    batch_size=10)
+                    batch_size=10, 
+                    max_retries=12)
 
             logging.info("LLM Setup done")
             embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)

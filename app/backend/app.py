@@ -177,6 +177,8 @@ def processDoc():
     indexName=request.json["indexName"]
     multiple=request.json["multiple"]
     loadType=request.json["loadType"]
+    existingIndex=request.json["existingIndex"]
+    existingIndexNs=request.json["existingIndexNs"]
     postBody=request.json["postBody"]
    
     try:
@@ -184,7 +186,8 @@ def processDoc():
         url = os.environ.get("DOCGENERATOR_URL")
 
         data = postBody
-        params = {'indexType': indexType, "indexName": indexName, "multiple": multiple , "loadType": loadType}
+        params = {'indexType': indexType, "indexName": indexName, "multiple": multiple , "loadType": loadType,
+                  "existingIndex": existingIndex, "existingIndexNs": existingIndexNs}
         resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
         jsonDict = json.loads(resp.text)
         #return json.dumps(jsonDict)
@@ -244,6 +247,31 @@ def refreshIndex():
         logging.exception("Exception in /refreshIndex")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/indexManagement", methods=["POST"])
+def indexManagement():
+   
+    try:
+        indexType=request.json["indexType"]
+        indexName=request.json["indexName"]
+        blobName=request.json["blobName"]
+        indexNs=request.json["indexNs"]
+        operation=request.json["operation"]    
+        postBody=request.json["postBody"]
+
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("INDEXMANAGEMENT_URL")
+
+        data = postBody
+        params = {'indexType': indexType, "indexName": indexName, "blobName": blobName , "indexNs": indexNs, "operation": operation}
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+
+    except Exception as e:
+        logging.exception("Exception in /indexManagement")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/uploadFile", methods=["POST"])
 def uploadFile():
    

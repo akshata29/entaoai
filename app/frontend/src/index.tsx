@@ -16,6 +16,7 @@ import Help from "./pages/help/Help";
 import Edgar from "./pages/edgar/Edgar";
 import BotChat from "./pages/botchat/BotChat";
 import Speech from "./pages/speech/Speech";
+import Admin from "./pages/admin/Admin";
 
 initializeIcons();
 
@@ -31,6 +32,7 @@ export default function App() {
                     {/* <Route path="botchat" element={<BotChat />} /> */}
                     <Route path="edgar" element={<Edgar />} />
                     <Route path="speech" element={<Speech />} />
+                    <Route path="admin" element={<Admin />} />
                     <Route index element={<ChatGpt />} />
                     <Route path="help" index element={<Help />} />
                     <Route path="*" element={<NoPage />} />

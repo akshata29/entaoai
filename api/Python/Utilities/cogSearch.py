@@ -9,6 +9,15 @@ from azure.search.documents.models import QueryType
 SearchService = os.environ['SearchService']
 SearchKey = os.environ['SearchKey']
 
+def deleteSearchIndex(indexName):
+    indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            credential=AzureKeyCredential(SearchKey))
+    if indexName in indexClient.list_index_names():
+        logging.info(f"Deleting {indexName} search index")
+        indexClient.delete_index(indexName)
+    else:
+        logging.info(f"Search index {indexName} does not exist")
+        
 def createSearchIndex(indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
             credential=AzureKeyCredential(SearchKey))

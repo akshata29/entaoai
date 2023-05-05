@@ -23,6 +23,7 @@ export default defineConfig({
             "/askTaskAgent": "http://127.0.0.1:5000",
             "/chat": "http://127.0.0.1:5000",
             "/chat3": "http://127.0.0.1:5000",
+            "/indexManagement": "http://127.0.0.1:5000",
             "/processDoc": "http://127.0.0.1:5000",
             "/refreshIndex": "http://127.0.0.1:5000",
             "/uploadFile": "http://127.0.0.1:5000",

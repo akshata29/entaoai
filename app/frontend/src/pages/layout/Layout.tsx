@@ -12,10 +12,15 @@ const Layout = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [showUpload, setShowUpload] = useState<boolean>(false);
     const [showEdgar, setshowEdgar] = useState<boolean>(false);
+    const [showAdmin, setShowAdmin] = useState<boolean>(false);
     const [showSpeech, setShowSpeech] = useState<boolean>(true);
 
     const onShowUpload = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
         setShowUpload(!!checked);
+    };
+
+    const onShowAdmin = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+        setShowAdmin(!!checked);
     };
 
     const onShowEdgar = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
@@ -81,6 +86,13 @@ const Layout = () => {
                                  </NavLink>
                              </li>
                             )}
+                            {showAdmin && (
+                                 <li className={styles.headerNavLeftMargin}>
+                                 <NavLink to="/admin" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                     Admin
+                                 </NavLink>
+                             </li>
+                            )}
                             {/* <li className={styles.headerNavLeftMargin}>
                                 <NavLink to="/help" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Help
@@ -135,6 +147,13 @@ const Layout = () => {
                     checked={showSpeech}
                     label="Display Speech Analytics"
                     onChange={onShowSpeech}
+                />
+                <br/>
+                <Checkbox
+                    className={styles.chatSettingsSeparator}
+                    checked={showAdmin}
+                    label="Display Admin Features"
+                    onChange={onShowAdmin}
                 />
             </Panel>
             <Outlet />

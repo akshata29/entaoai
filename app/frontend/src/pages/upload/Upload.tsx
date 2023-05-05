@@ -14,7 +14,7 @@ import { Label } from '@fluentui/react/lib/Label';
 import { Stack, IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
 import { DefaultPalette } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
-import { processDoc, uploadFile, uploadBinaryFile, verifyPassword } from "../../api";
+import { processDoc, uploadFile, uploadBinaryFile, refreshIndex, verifyPassword } from "../../api";
 
 import styles from "./Upload.module.css";
 
@@ -35,10 +35,19 @@ const buttonStyles = makeStyles({
 const Upload = () => {
     const [files, setFiles] = useState<any>([])
     const [loading, setLoading] = useState(false)
-
+    const [selectedPdf, setSelectedPdf] = useState<IDropdownOption>();
+    const [optionsPdf, setOptionsPdf] = useState<any>([])
+    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; name:string; indexName:string; embedded:boolean}[]>();
+    const [embedded, setEmbedded] = useState(false);
+    const [indexNs, setIndexNs] = useState('');
+    const [existingIndexName, setExistingIndexName] = useState('');
+    const [selectedIndex, setSelectedIndex] = useState<string>();
+      
     const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
     const [multipleDocs, setMultipleDocs] = useState(false);
+    const [existingIndex, setExistingIndex] = useState(false);
+
     const [indexName, setIndexName] = useState('');
     const [uploadText, setUploadText] = useState('');
     const [lastHeader, setLastHeader] = useState<{ props: IPivotItemProps } | undefined>(undefined);
@@ -129,8 +138,11 @@ const Upload = () => {
         },
         onDrop: acceptedFiles => {
           setFiles(acceptedFiles.map(file => Object.assign(file)))
+          console.log(acceptedFiles[0].name.split('.').slice(0, -1).join('.'))
+          setIndexName(acceptedFiles[0].name.split('.').slice(0, -1).join('.'));
         }
     })
+
     const renderFilePreview = (file: File ) => {
         if (file.type.startsWith('image')) {
           return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />
@@ -139,6 +151,88 @@ const Upload = () => {
         }
     }
     
+    const refreshBlob = async (indexT: string) => {
+      const files = []
+      const indexType = []
+  
+      //const blobs = containerClient.listBlobsFlat(listOptions)
+      const blobs = await refreshIndex()       
+      for (const blob of blobs.values) {
+        // if (blob.embedded == "true")
+        // {
+          if (blob.indexType == indexT) {
+            files.push({
+              text: blob.indexName,
+              key: blob.namespace
+            })
+          }
+          indexType.push({
+                  key:blob.namespace,
+                  iType:blob.indexType,
+                  name:blob.name,
+                  indexName:blob.indexName,                  
+                  embedded: blob.embedded = (blob.embedded == "true")
+          })
+        //}
+      }
+      var uniqFiles = files.filter((v,i,a)=>a.findIndex(v2=>(v2.key===v.key))===i)
+      setOptionsPdf(uniqFiles)
+
+      const defaultKey = uniqFiles[0].key
+      setSelectedPdf(uniqFiles[0])
+
+      var uniqIndexType = indexType.filter((v,i,a)=>a.findIndex(v2=>(v2.key===v.key))===i)
+
+      for (const item of uniqIndexType) {
+          if (item.key == defaultKey) {
+              setSelectedIndex(item.iType)
+              setExistingIndexName(item.indexName)
+              if (existingIndex)
+                setIndexName(item.indexName)
+              setIndexNs(item.key)
+              setEmbedded(item.embedded)
+          }
+      }
+      if (!existingIndex) 
+        setIndexName('')
+      setIndexMapping(uniqIndexType)
+    }
+
+    const onChangePdf = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedPdf(item);
+      const defaultKey = item?.key
+      const defaultName = item?.text
+      if (defaultKey == undefined || defaultKey == '') {
+        indexMapping?.findIndex((item) => {
+          if (item.indexName == defaultName) {
+              setSelectedIndex(item.iType)
+              setExistingIndexName(item.indexName)
+              if (existingIndex)
+                setIndexName(item.indexName)
+              setIndexNs(item.key)
+              setEmbedded(item.embedded)
+          }
+        })
+        if (!existingIndex) 
+          setIndexName('')
+      }
+      else {
+        indexMapping?.findIndex((item) => {
+            if (item.key == defaultKey) {
+                setSelectedIndex(item.iType)
+                setExistingIndexName(item.indexName)
+                if (existingIndex)
+                  setIndexName(item.indexName)
+                setIndexNs(item.key)
+                setEmbedded(item.embedded)
+            }
+        })
+        if (!existingIndex) 
+          setIndexName('')
+      }
+    };
+
+
     const handleRemoveFile = (file: File ) => {
         const uploadedFiles = files
         //const filtered = uploadedFiles.filter(i => i.name !== file.name)
@@ -148,6 +242,7 @@ const Upload = () => {
 
     const handleRemoveAllFiles = () => {
         setFiles([])
+        setIndexName('')
     }
     const fileList = files.map((file:File) => (
         <div>
@@ -179,6 +274,11 @@ const Upload = () => {
         }
       }
 
+      if (existingIndex && existingIndexName == '') {
+        setMissingIndexName(true)
+        return
+      }
+
       await verifyPassword("upload", uploadPassword)
       .then(async (verifyResponse:string) => {
         if (verifyResponse == "Success") {
@@ -193,7 +293,7 @@ const Upload = () => {
               const formData = new FormData();
               formData.append('file', element);
     
-              await uploadBinaryFile(formData)
+              await uploadBinaryFile(formData, indexName)
             }
             finally
             {
@@ -206,11 +306,12 @@ const Upload = () => {
           })
           setUploadText("File uploaded successfully.  Now indexing the document.")
 
-          await processDoc(String(selectedItem?.key), "files", (files.length > 1 ? "true" : "false"), (files.length > 1 ? indexName : files[0].name), files,
+          await processDoc(String(selectedItem?.key), "files", (files.length > 1 ? "true" : "false"), 
+          existingIndex ? existingIndexName : indexName, files,
           blobConnectionString, blobContainer, blobPrefix, blobName,
-          s3Bucket, s3Key, s3AccessKey, s3SecretKey, s3Prefix)
+          s3Bucket, s3Key, s3AccessKey, s3SecretKey, s3Prefix,
+          existingIndex ? "true" : "false", existingIndex ? indexNs : '')
           .then((response:string) => {
-            console.log(response)
             if (response == "Success") {
               setUploadText("Completed Successfully.  You can now search for your document.")
             }
@@ -231,6 +332,7 @@ const Upload = () => {
             setMultipleDocs(false)
             setIndexName('')
           })
+          refreshBlob(String(selectedItem?.key))
         }
         else {
           setUploadText(verifyResponse)
@@ -251,6 +353,12 @@ const Upload = () => {
         setMissingUploadPassword(true)
         return
       }
+
+      if (existingIndex && existingIndexName == '') {
+        setMissingIndexName(true)
+        return
+      }
+
       const processPage = parsedWebUrls.filter(function(e){return e})
       if (processPage?.length == 0) {
         setUploadText('Provide the list of URL to Process...')
@@ -262,40 +370,61 @@ const Upload = () => {
           setMissingIndexName(true)
           return
         }
-        setLoading(true)
-        setUploadText('Uploading your document...')
-        let count = 0
 
-        const fileContentsAsString = "Will Process the Webpage and index it with IndexName as " + indexName + " and the URLs are " + processPage
-        await uploadFile(indexName + ".txt", fileContentsAsString, "text/plain")
-        .then(async () => {
-          setUploadText("File uploaded successfully.  Now indexing the document.")
-          await processDoc(String(selectedItem?.key), "webpages", "false", indexName, processPage, blobConnectionString,
-          blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
-          s3SecretKey, s3Prefix)
-          .then((response) => {
-            if (response == "Success") {
-              setUploadText("Completed Successfully.  You can now search for your document.")
-            }
-            else {
-              setUploadText("Failure to upload the document.")
-              setUploadError(true)
-            }
-            setWebPages('')
-            setParsedWebUrls([''])
-            setLoading(false)
-            setMissingIndexName(false)
-            setIndexName('')
-          })
-          .catch((error : string) => {
-            setUploadText(error)
-            setUploadError(true)
-            setWebPages('')
-            setParsedWebUrls([''])
-            setLoading(false)
-            setMissingIndexName(false)
-            setIndexName('')
-          })
+        await verifyPassword("upload", uploadPassword)
+        .then(async (verifyResponse:string) => {
+          if (verifyResponse == "Success") {
+            setUploadText("Password verified")
+
+            setLoading(true)
+            setUploadText('Uploading your document...')
+    
+            const fileContentsAsString = "Will Process the Webpage and index it with IndexName as " + indexName + " and the URLs are " + processPage
+            await uploadFile(indexName + ".txt", fileContentsAsString, "text/plain")
+            .then(async () => {
+              setUploadText("File uploaded successfully.  Now indexing the document.")
+              await processDoc(String(selectedItem?.key), "webpages", "false", existingIndex ? existingIndexName : indexName, 
+              processPage, blobConnectionString,
+              blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
+              s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '')
+              .then((response) => {
+                if (response == "Success") {
+                  setUploadText("Completed Successfully.  You can now search for your document.")
+                }
+                else {
+                  setUploadText("Failure to upload the document.")
+                  setUploadError(true)
+                }
+                setWebPages('')
+                setParsedWebUrls([''])
+                setLoading(false)
+                setMissingIndexName(false)
+                setIndexName('')
+              })
+              .catch((error : string) => {
+                setUploadText(error)
+                setUploadError(true)
+                setWebPages('')
+                setParsedWebUrls([''])
+                setLoading(false)
+                setMissingIndexName(false)
+                setIndexName('')
+              })
+              refreshBlob(String(selectedItem?.key))
+            })
+          }
+          else {
+            setUploadText(verifyResponse)
+          }
+        })
+        .catch((error : string) => {
+          setUploadText(error)
+          setUploadError(true)
+          setWebPages('')
+          setParsedWebUrls([''])
+          setLoading(false)
+          setMissingIndexName(false)
+          setIndexName('')
         })
       }
     }
@@ -337,39 +466,72 @@ const Upload = () => {
         setMissingIndexName(true)
         return
       }
-      setLoading(true)
-      setUploadText('Uploading your document...')
-      let count = 0
 
-      const fileContentsAsString = "Will Process the connector document and index it with IndexName as " + indexName
-      await uploadFile(indexName + ".txt", fileContentsAsString, "text/plain")
-      .then(async () => {
-        setUploadText("File uploaded successfully.  Now indexing the document.")
-        setUploadText('Processing data from your connector...')
-        await processDoc(String(selectedItem?.key), String(selectedConnector?.key), "false", indexName, '', blobConnectionString,
-        blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
-        s3SecretKey, s3Prefix)  
-        .then((response) => {
-          if (response == "Success") {
-            setUploadText("Completed Successfully.  You can now search for your document.")
+      if (existingIndex && existingIndexName == '') {
+        setMissingIndexName(true)
+        return
+      }
+
+      await verifyPassword("upload", uploadPassword)
+        .then(async (verifyResponse:string) => {
+          if (verifyResponse == "Success") {
+            setUploadText("Password verified")
+
+            setLoading(true)
+            setUploadText('Uploading your document...')
+      
+            const fileContentsAsString = "Will Process the connector document and index it with IndexName as " + indexName
+            await uploadFile(indexName + ".txt", fileContentsAsString, "text/plain")
+              .then(async () => {
+                setUploadText("File uploaded successfully.  Now indexing the document.")
+                setUploadText('Processing data from your connector...')
+                await processDoc(String(selectedItem?.key), String(selectedConnector?.key), "false", existingIndex ? existingIndexName : indexName,
+                '', blobConnectionString,
+                blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
+                s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '')  
+                .then((response) => {
+                  if (response == "Success") {
+                    setUploadText("Completed Successfully.  You can now search for your document.")
+                  }
+                  else {
+                    setUploadText("Failure to upload the document.")
+                  }
+                  setLoading(false)
+                  setMissingIndexName(false)
+                  setIndexName('')
+                  setBlobConnectionString('')
+                  setBlobContainer('')
+                  setBlobPrefix('')
+                  setBlobName('')
+                  setS3Bucket('')
+                  setS3Key('')
+                  setS3AccessKey('')
+                  setS3SecretKey('')
+                  setS3Prefix('')
+                  })
+                .catch((error : string) => {
+                  setUploadText(error)
+                  setLoading(false)
+                  setMissingIndexName(false)
+                  setIndexName('')
+                  setBlobConnectionString('')
+                  setBlobContainer('')
+                  setBlobPrefix('')
+                  setBlobName('')
+                  setS3Bucket('')
+                  setS3Key('')
+                  setS3AccessKey('')
+                  setS3SecretKey('')
+                  setS3Prefix('')
+                })
+                refreshBlob(String(selectedItem?.key))
+              })
           }
           else {
-            setUploadText("Failure to upload the document.")
+            setUploadText(verifyResponse)
           }
-          setLoading(false)
-          setMissingIndexName(false)
-          setIndexName('')
-          setBlobConnectionString('')
-          setBlobContainer('')
-          setBlobPrefix('')
-          setBlobName('')
-          setS3Bucket('')
-          setS3Key('')
-          setS3AccessKey('')
-          setS3SecretKey('')
-          setS3Prefix('')
-          })
-        .catch((error : string) => {
+      })
+      .catch((error : string) => {
           setUploadText(error)
           setLoading(false)
           setMissingIndexName(false)
@@ -383,7 +545,6 @@ const Upload = () => {
           setS3AccessKey('')
           setS3SecretKey('')
           setS3Prefix('')
-        })
       })
     }
 
@@ -391,8 +552,16 @@ const Upload = () => {
         setMultipleDocs(!!checked);
     };
 
+    const onExistingIndex = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
+      setExistingIndex(!!checked);
+      if (!checked) {
+        setIndexName('')
+      }
+    };
+
     const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
       setSelectedItem(item);
+      refreshBlob(item?.key as string)
     };
 
     const onChangeIndexName = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
@@ -481,6 +650,18 @@ const Upload = () => {
                   <Label>Upload Password:</Label>&nbsp;
                   <TextField onChange={onUploadPassword}
                       errorMessage={!missingUploadPassword ? '' : "Note - Upload Password is required for Upload Functionality"}/>
+                  &nbsp;
+                  <Checkbox boxSide="end" label="Existing Index?" checked={existingIndex} onChange={onExistingIndex} />
+                  &nbsp;
+                  {existingIndex ? (
+                  <Dropdown
+                      selectedKey={selectedPdf ? selectedPdf.key : undefined}
+                      // eslint-disable-next-line react/jsx-no-bind
+                      onChange={onChangePdf}
+                      placeholder="Select an PDF"
+                      options={optionsPdf}
+                      styles={dropdownStyles}
+                  />) : (<></>)}
                 </Stack.Item>
               </Stack>
             </Stack>
@@ -497,9 +678,9 @@ const Upload = () => {
                       <Checkbox label="Multiple Documents" checked={multipleDocs} onChange={onMultipleDocs} />
                     </Stack.Item>
                     <Stack.Item grow={2} styles={stackItemStyles}>
-                      <TextField onChange={onChangeIndexName} disabled={!multipleDocs} 
+                      <TextField onChange={onChangeIndexName} value={indexName}
                           errorMessage={!missingIndexName ? '' : "Index name is required"}
-                          label="Index Name (for single file will default to filename)" />
+                          label="Index Name" />
                     </Stack.Item>
                   </Stack>
                 </Stack>

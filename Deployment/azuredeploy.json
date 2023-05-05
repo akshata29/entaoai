@@ -467,6 +467,11 @@
 						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/AgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
 						  
 						},
+                        {
+                            "name": "INDEXMANAGEMENT_URL",
+                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/IndexManagement?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+                            
+                        },
 						{
 						  "name": "CHAT3_URL",
 						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Chat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 

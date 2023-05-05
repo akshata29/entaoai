@@ -267,7 +267,7 @@ export async function uploadFile(fileName:string, fileContent:any, contentType:s
   return "Success";
 }
 
-export async function uploadBinaryFile(formData:any) : Promise<string> {
+export async function uploadBinaryFile(formData:any, indexName:string) : Promise<string> {
   const response = await fetch('/uploadBinaryFile', {
     method: "POST",
     body: formData
@@ -282,7 +282,8 @@ export async function uploadBinaryFile(formData:any) : Promise<string> {
 
 export async function processDoc(indexType: string, loadType : string, multiple: string, indexName : string, files: any,
   blobConnectionString : string, blobContainer : string, blobPrefix : string, blobName : string,
-  s3Bucket : string, s3Key : string, s3AccessKey : string, s3SecretKey : string, s3Prefix : string) : Promise<string> {
+  s3Bucket : string, s3Key : string, s3AccessKey : string, s3SecretKey : string, s3Prefix : string,
+  existingIndex : string, existingIndexNs: string) : Promise<string> {
   const response = await fetch('/processDoc', {
     method: "POST",
     headers: {
@@ -293,6 +294,8 @@ export async function processDoc(indexType: string, loadType : string, multiple:
       multiple: multiple,
       loadType:loadType,
       indexName:indexName,
+      existingIndex:existingIndex,
+      existingIndexNs:existingIndexNs,
       postBody: {
         values: [
           {
@@ -308,6 +311,48 @@ export async function processDoc(indexType: string, loadType : string, multiple:
               s3AccessKey : s3AccessKey,
               s3SecretKey : s3SecretKey,
               s3Prefix : s3Prefix
+            }
+          }
+        ]
+      }
+    })
+  });
+
+  const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      return "Error";
+  } else {
+    if (parsedResponse.values[0].data.error) {
+      return parsedResponse.values[0].data.error;
+    }
+    return 'Success';
+  }
+  // if (response.status > 299 || !response.ok) {
+  //   return "Error";
+  // }
+  
+  // return "Success";
+}
+
+export async function indexManagement(indexType:string, indexName:string, blobName:string, indexNs:string,
+  operation:string) : Promise<string> {
+  const response = await fetch('/indexManagement', {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      indexType:indexType,
+      blobName:blobName,
+      indexNs:indexNs,
+      indexName:indexName,
+      operation:operation,
+      postBody: {
+        values: [
+          {
+            recordId: 0,
+            data: {
+              text: ''
             }
           }
         ]
