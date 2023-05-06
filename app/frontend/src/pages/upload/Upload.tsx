@@ -554,9 +554,7 @@ const Upload = () => {
 
     const onExistingIndex = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
       setExistingIndex(!!checked);
-      if (!checked) {
-        setIndexName('')
-      }
+      checked ? setIndexName(selectedPdf ? selectedPdf.text as string : optionsPdf[0].text as string) : setIndexName('')
     };
 
     const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
@@ -628,6 +626,7 @@ const Upload = () => {
       setSelectedItem(options[0])
       setConnectorOptions(connectors)
       setSelectedConnector(connectors[0])
+      refreshBlob(options[0].key as string)
     }, [])
 
     return (

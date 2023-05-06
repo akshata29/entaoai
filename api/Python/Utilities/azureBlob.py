@@ -1,11 +1,19 @@
 from azure.storage.blob import BlobServiceClient, ContentSettings, generate_blob_sas
 from datetime import datetime, timedelta
+import logging
 
 def upsertMetadata(connectionString, container, fileName, metadata):
-    blobClient = BlobServiceClient.from_connection_string(connectionString).get_blob_client(container=container, blob=fileName)
-    blob_metadata = blobClient.get_blob_properties().metadata
-    blob_metadata.update(metadata)
-    blobClient.set_blob_metadata(metadata= blob_metadata)
+    try:
+        blobServiceClient = BlobServiceClient.from_connection_string(connectionString)
+        containerClient = blobServiceClient.get_container_client(container)
+        blobClient = containerClient.get_blob_client(fileName)
+        blobMetadata = blobClient.get_blob_properties().metadata
+        blobMetadata.update(metadata)
+        logging.info("Upserting metadata for file: " + fileName + " Metadata: " + str(blobMetadata))
+        blobClient.set_blob_metadata(metadata=blobMetadata)
+    except Exception as e:
+        logging.info("Error upserting metadata for file: " + fileName + " Error: " + str(e))
+        pass
 
 def getBlob(connectionString, container, fileName):
     blobServiceClient = BlobServiceClient.from_connection_string(connectionString)

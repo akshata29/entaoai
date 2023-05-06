@@ -303,10 +303,13 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     logging.info("Perform Summarization and QA")
                     qa, summary = summarizeGenerateQa(docs)
                     logging.info("Upsert metadata")
-                    metadata = {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName}
+                    metadata = {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName.replace("-", "_")}
                     upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
-                    metadata = {'summary': summary, 'qa': qa}
-                    upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                    try:
+                        metadata = {'summary': summary.replace("-", "_"), 'qa': qa.replace("-", "_")}
+                        upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                    except:
+                        pass
                     logging.info("Sleeping")
                     time.sleep(5)
                 return "Success"

@@ -43,27 +43,8 @@ Verify http://localhost:5000 to confirm the App is running locally.
 
 ### Installation
 
-1. Deploy the required Azure Services - Using scripts and steps below:
-   1. Git clone the repo
-   2. Download the pre-requisites above
-   3. Run `azd login` to login to Azure using your credentials
-   4. Run `azd init` to initialize the environment name, subscription & location (If you already have the environment setup and want to create a new environment you can run instead `azd env new <name>`)
-      1. enter environment name, select subscription & location
-   5. Run `azd env set AZURE_PREFIX <PrefixName>`  - Replace prefix name that will be used during deployment
-   6. Run `azd up` to deploy the infrastructure code (azure services) and deploy the Azure functions as well as Backend app
 
-   **Note** Ensure that the location you select is the location where OpenAI service is available to [deploy](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/concepts/models#model-summary-table-and-region-availability)
-      1. Above command will deploy following services
-         1. Azure App Service Plan (Linux - B1 Tier)
-         2. Cognitive Search Service (Standard Tier)
-         3. Azure App Service (To Deploy backend service)
-         4. Azure Function app (For all Python API)
-         5. Storage Account (to store all your files) & Function storage account
-         6. Azure Open AI Service
-         7. Azure Application Insight
-
-   **Note** External vector store are not deployed and you will need to manually deploy them (Pinecone or Redis)
-2. Semi-Automated Installation
+1. Semi-Automated Installation
    1. Click [![Deployment to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fakshata29%2Fchatpdf%2Fmain%2FDeployment%2Fazuredeploy.json) to deploy following services
       1. Azure App Service Plan (Linux - B1 Tier)
       2. Cognitive Search Service (Standard Tier)
@@ -85,7 +66,7 @@ Verify http://localhost:5000 to confirm the App is running locally.
       8. Setup AZURE_WEBAPP_NAME secret in your forked repository as the name of your Azure App Service
    3. Successful execution of both workflow will deploy the Python API and Azure App Services (UI application)
 
-3. Alternatively deploy the following services manually
+2. Alternatively deploy the following services manually
    1. [OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal).   Please be aware of the model & region availability documented [here]
 (https://learn.microsoft.com/en-us/azure/cognitive-services/openai/concepts/models#model-summary-table-and-region-availability)
    1. [Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal) and a container
