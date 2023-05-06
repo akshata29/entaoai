@@ -29,6 +29,9 @@
 |SynapsePool||Database or SQL Pool Name
 |SynapseUser||SQL User name
 |SynapsePassword||SQL Password
+|UploadPassword||Password required for upload functionality.
+|AdminPassword||Password required for Admin capabilities.
+|DOCGENERATOR_URL|Optional Settings|Required only if you are planning to use the AWS Integration.
 |*PROMPTS*||Default Prompts for Speech Analytics Use-case. <br>26 Keys with different prompt.
 
 ## Application Configuration
@@ -36,9 +39,12 @@
 | Key | Default Value | Detail |
 | --- | --- | ------------- |
 AGENTQA_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/AgentQa?code=<yourcode>)
+BLOB_CONNECTION_STRING||Blob Connection string for the storage account
+BLOB_CONTAINER_NAME||Blob container name where all PDF are uploaded
 CHAT3_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/Chat?code=<yourcode>)
 CHAT_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/ChatGpt?code=<yourcode>)
 DOCGENERATOR_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/DocGenerator?code=<yourcode>)
+INDEXMANAGEMENT_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/IndexManagement?code=<yourcode>)
 QA_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/QuestionAnswering?code=<yourcode>)
 SECSEARCH_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/SecSearch?code=<yourcode>)
 SPEECH_KEY||Speech Service Key
@@ -47,5 +53,7 @@ SQLCHAIN_URL||Azure Function URL with host/default key <br> (https://<yourfuncti
 SQLCHAT_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/SqlChat?code=<yourcode>)
 SUMMARIZER_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/Summarizer?code=<yourcode>)
 SUMMARYQA_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/SampleQaSummary?code=<yourcode>)
+TASKAGENTQA_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/TaskAgentQa?code=<yourcode>)
 TEXTANALYTICS_KEY||Text Analytics(Language) Service Key
 TEXTANALYTICS_REGION||Region where Text Analytics(Language) is deployed <br> (i.e. eastus, southcentralus)
+VERIFYPASS_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/VerifyPassword?code=<yourcode>)

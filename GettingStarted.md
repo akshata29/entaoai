@@ -55,6 +55,8 @@ Verify http://localhost:5000 to confirm the App is running locally.
       7. Azure Application Insight
       8. Cognitive Services (Language and Speech Service)
       9. SQL Server and Database (**Note** - SQL Script - northwind.sql need to run manually once database is created)
+      10. **Note** - Pinecone and Redis needs to be installed manually if you want vector database support.
+      11. **AWS Integration** - None of the artifacts are deployed for AWS Integration.  Scripts are available in Deployment\aws folder
    2. [Fork the repo](https://github.com/akshata29/chatpdf/fork)
       1. **Note - Following information need to be performed only once**
       2. Click on Actions and select "I understand my workflow, go ahead and enable them"
@@ -64,32 +66,40 @@ Verify http://localhost:5000 to confirm the App is running locally.
       6. Create a secret in your repository named AZURE_WEBAPP_PUBLISH_PROFILE, paste the publish profile contents as the value of the secret.  More [Information](https://docs.microsoft.com/azure/app-service/deploy-github-actions#configure-the-github-secret)
       7. Setup AZURE_FUNCTIONAPP_NAME secret in your forked repository as the name of your Function App
       8. Setup AZURE_WEBAPP_NAME secret in your forked repository as the name of your Azure App Service
+      9. Setup DOCKER_HUB_USERNAME and DOCKER_HUB_ACCESS_TOKEN secret in your forked repository as the name of you docker user name and access token (Optional)
+      10. **Note** You can disable the Docker Api and Docker App Actions if it's not required.
+      11. Verify the [Configuration](./Configuration.md) settings are properly configured in Azure Function App and Azure App Service
    3. Successful execution of both workflow will deploy the Python API and Azure App Services (UI application)
 
 2. Alternatively deploy the following services manually
-   1. [OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal).   Please be aware of the model & region availability documented [here]
+   1. [OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal).   Please be aware of the model & region availability documented [here].  Once the service is created, deploy the model for gpt35-turbo(chat), text-davinci-003 (davinci) and text-ada-embedding-002.
 (https://learn.microsoft.com/en-us/azure/cognitive-services/openai/concepts/models#model-summary-table-and-region-availability)
-   1. [Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal) and a container
+   1. [Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal) and a container (chatpdf)
    2. One of the Document Store
       1. [Pinecone Starter](https://www.pinecone.io/pricing/).  **Note** Make sure you create the index in Pincone with dimensions as 1536 and metric as cosine
       2. [Cognitive Search](https://learn.microsoft.com/en-us/azure/search/search-create-service-portal)
       3. Redis
    3. Create [Function App](https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-function-app-portal)
-   4. Create Azure Web App
-   5. Git clone the repo
-   6. Open the cloned repo folder in VSCode
-   7. Open new terminal and go to /app/frontend directory
-   8. Run `npm install` to install all the packages
-   9.  Go to /api/Python directory
-   10. Run `pip install -r requirements.txt` to install all required python packages
-   11. Copy sample.settings.json to local.settings.json
-   12. Update the configuration (Minimally you need OpenAi, one of the document store, storage account)
-   13. Deploy the Azure Python API to Function app
-   14. Open new terminal and go to /app/frontend directory
-   15. Run npm run build for production build and copying static files to app/backend/static directory
-   16. Open new terminal and go to /app/backend directory
-   17. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
-   18. Deploy the app/backend Azure web app.
+   4. Create SQL Server and SQL Database and run northwind.sql script
+   5. Create Speech Cognitive Service
+   6. Create Language/Text Analytics Cognitive Service
+   7. Create Application Insight service
+   8. Create Azure Web App and App Service Plan
+   9. Git clone the repo
+   10. Open the cloned repo folder in VSCode
+   11. Open new terminal and go to /app/frontend directory
+   12. Run `npm install` to install all the packages
+   13. Go to /api/Python directory
+   14. Run `pip install -r requirements.txt` to install all required python packages
+   15. Copy sample.settings.json to local.settings.json
+   16. Update the configuration (Minimally you need OpenAi, one of the document store, storage account)
+   17. Deploy the Azure Python API to Function app
+   18. Open new terminal and go to /app/frontend directory
+   19. Run npm run build for production build and copying static files to app/backend/static directory
+   20. Open new terminal and go to /app/backend directory
+   21. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
+   22. Deploy the app/backend Azure web app.
+   23. Verify the [Configuration](./Configuration.md) settings are properly configured in Azure Function App and Azure App Service
 
 ### Run Locally
 
@@ -114,4 +124,3 @@ Once in the web app:
 * Try different topics in chat or Q&A context. For chat, try follow up questions, clarifications, ask to simplify or elaborate on answer, etc.
 * Explore citations and sources
 * Click on "settings" to try different options, tweak prompts, etc.
-  
