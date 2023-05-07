@@ -10,21 +10,11 @@ from langchain.prompts import PromptTemplate
 from langchain.embeddings.openai import OpenAIEmbeddings
 import pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.llms.openai import AzureOpenAI
-#from langchain.vectorstores.redis import Redis
+from langchain.llms.openai import AzureOpenAI, OpenAI
 from redis import Redis
 import numpy as np
 from langchain.docstore.document import Document
-from typing import Mapping
 from langchain import LLMChain, PromptTemplate
-from langchain.chains import ChatVectorDBChain
-from langchain.chains.question_answering import load_qa_chain
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    AIMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
 from langchain.chains import RetrievalQAWithSourcesChain, VectorDBQAWithSourcesChain
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
@@ -46,6 +36,7 @@ OpenAiEmbedding = os.environ['OpenAiEmbedding']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
 SearchService = os.environ['SearchService']
 SearchKey = os.environ['SearchKey']
+OpenAiApiKey = os.environ['OpenAiApiKey']
 
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
@@ -208,12 +199,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
         template=combinePromptTemplate, input_variables=["summaries", "question"]
     )
 
-    openai.api_type = "azure"
-    openai.api_key = OpenAiKey
-    openai.api_version = OpenAiVersion
-    openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-
     topK = overrides.get("top") or 5
+    embeddingModelType = overrides.get('embeddingModelType') or 'azureopenai'
+    temperature = overrides.get("temperature") or 0.3
+    tokenLength = overrides.get('tokenLength') or 500
+    
     logging.info("Search for Top " + str(topK))
 
     qaPrompt = PromptTemplate(
@@ -221,12 +211,31 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
           )
 
     try:
-        llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                temperature=os.environ['Temperature'] or 0.3,
-                openai_api_key=OpenAiKey,
-                max_tokens=os.environ['MaxTokens'] or 500,
-                batch_size=10)
-        embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+        if (embeddingModelType == 'azureopenai'):
+            openai.api_type = "azure"
+            openai.api_key = OpenAiKey
+            openai.api_version = OpenAiVersion
+            openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+
+            llm = AzureOpenAI(deployment_name=OpenAiDavinci,
+                    temperature=temperature,
+                    openai_api_key=OpenAiKey,
+                    max_tokens=tokenLength,
+                    batch_size=10, 
+                    max_retries=12)
+
+            logging.info("LLM Setup done")
+            embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+        elif embeddingModelType == "openai":
+            openai.api_type = "open_ai"
+            openai.api_base = "https://api.openai.com/v1"
+            openai.api_version = '2020-11-07' 
+            openai.api_key = OpenAiApiKey
+            llm = OpenAI(temperature=temperature,
+                    openai_api_key=OpenAiApiKey,
+                    max_tokens=tokenLength)
+            embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
+
         
         if indexType == 'pinecone':
             vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
@@ -259,7 +268,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
             try:
                 returnField = ["metadata", "content", "vector_score"]
                 vectorField = "content_vector"
-                results = performRedisSearch(question, indexNs, topK, returnField, vectorField)
+                results = performRedisSearch(question, indexNs, topK, returnField, vectorField, embeddingModelType)
                 docs = [
                         Document(page_content=result.content, metadata=json.loads(result.metadata))
                         for result in results.docs

@@ -44,6 +44,7 @@ const Upload = () => {
     const [selectedIndex, setSelectedIndex] = useState<string>();
       
     const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
+    const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
     const [multipleDocs, setMultipleDocs] = useState(false);
     const [existingIndex, setExistingIndex] = useState(false);
@@ -109,6 +110,21 @@ const Upload = () => {
       padding: 10,
     };
 
+    const embeddingOptions = [
+      {
+        key: 'azureopenai',
+        text: 'Azure Open AI'
+      },
+      {
+        key: 'openai',
+        text: 'Open AI'
+      }
+      // {
+      //   key: 'local',
+      //   text: 'Local Embedding'
+      // }
+    ]
+
     const options = [
       {
         key: 'pinecone',
@@ -117,11 +133,15 @@ const Upload = () => {
       {
         key: 'redis',
         text: 'Redis Stack'
-      }
-      ,{
+      },
+      {
         key: 'cogsearch',
         text: 'Cognitive Search'
       }
+      // {
+      //   key: 'chroma',
+      //   text: 'Chroma'
+      // }
       // ,
       // {
       //   key: 'weaviate',
@@ -138,7 +158,6 @@ const Upload = () => {
         },
         onDrop: acceptedFiles => {
           setFiles(acceptedFiles.map(file => Object.assign(file)))
-          console.log(acceptedFiles[0].name.split('.').slice(0, -1).join('.'))
           setIndexName(acceptedFiles[0].name.split('.').slice(0, -1).join('.'));
         }
     })
@@ -279,11 +298,11 @@ const Upload = () => {
         return
       }
 
+      setLoading(true)
       await verifyPassword("upload", uploadPassword)
       .then(async (verifyResponse:string) => {
         if (verifyResponse == "Success") {
           setUploadText("Password verified")
-          setLoading(true)
           setUploadText('Uploading your document...')
           let count = 0
           await new Promise( (resolve) => {
@@ -310,7 +329,8 @@ const Upload = () => {
           existingIndex ? existingIndexName : indexName, files,
           blobConnectionString, blobContainer, blobPrefix, blobName,
           s3Bucket, s3Key, s3AccessKey, s3SecretKey, s3Prefix,
-          existingIndex ? "true" : "false", existingIndex ? indexNs : '')
+          existingIndex ? "true" : "false", existingIndex ? indexNs : '',
+          String(selectedEmbeddingItem?.key))
           .then((response:string) => {
             if (response == "Success") {
               setUploadText("Completed Successfully.  You can now search for your document.")
@@ -346,6 +366,7 @@ const Upload = () => {
         setMultipleDocs(false)
         setIndexName('')
       })
+      setLoading(false)
     }
 
     const onProcessWebPages = async () => {
@@ -370,13 +391,12 @@ const Upload = () => {
           setMissingIndexName(true)
           return
         }
-
+        setLoading(true)
         await verifyPassword("upload", uploadPassword)
         .then(async (verifyResponse:string) => {
           if (verifyResponse == "Success") {
             setUploadText("Password verified")
 
-            setLoading(true)
             setUploadText('Uploading your document...')
     
             const fileContentsAsString = "Will Process the Webpage and index it with IndexName as " + indexName + " and the URLs are " + processPage
@@ -386,7 +406,8 @@ const Upload = () => {
               await processDoc(String(selectedItem?.key), "webpages", "false", existingIndex ? existingIndexName : indexName, 
               processPage, blobConnectionString,
               blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
-              s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '')
+              s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '',
+              String(selectedEmbeddingItem?.key))
               .then((response) => {
                 if (response == "Success") {
                   setUploadText("Completed Successfully.  You can now search for your document.")
@@ -426,6 +447,7 @@ const Upload = () => {
           setMissingIndexName(false)
           setIndexName('')
         })
+        setLoading(false)
       }
     }
 
@@ -472,12 +494,12 @@ const Upload = () => {
         return
       }
 
+      setLoading(true)
       await verifyPassword("upload", uploadPassword)
         .then(async (verifyResponse:string) => {
           if (verifyResponse == "Success") {
             setUploadText("Password verified")
 
-            setLoading(true)
             setUploadText('Uploading your document...')
       
             const fileContentsAsString = "Will Process the connector document and index it with IndexName as " + indexName
@@ -488,7 +510,8 @@ const Upload = () => {
                 await processDoc(String(selectedItem?.key), String(selectedConnector?.key), "false", existingIndex ? existingIndexName : indexName,
                 '', blobConnectionString,
                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
-                s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '')  
+                s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '',
+                String(selectedEmbeddingItem?.key))  
                 .then((response) => {
                   if (response == "Success") {
                     setUploadText("Completed Successfully.  You can now search for your document.")
@@ -546,6 +569,7 @@ const Upload = () => {
           setS3SecretKey('')
           setS3Prefix('')
       })
+      setLoading(false)
     }
 
     const onMultipleDocs = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
@@ -560,6 +584,10 @@ const Upload = () => {
     const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
       setSelectedItem(item);
       refreshBlob(item?.key as string)
+    };
+
+    const onEmbeddingChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedEmbeddingItem(item);
     };
 
     const onChangeIndexName = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
@@ -627,6 +655,7 @@ const Upload = () => {
       setConnectorOptions(connectors)
       setSelectedConnector(connectors[0])
       refreshBlob(options[0].key as string)
+      setSelectedEmbeddingItem(embeddingOptions[0])
     }, [])
 
     return (
@@ -642,6 +671,18 @@ const Upload = () => {
                       defaultSelectedKey="pinecone"
                       placeholder="Select an Index Type"
                       options={options}
+                      disabled={false}
+                      styles={dropdownStyles}
+                  />
+                  &nbsp;
+                  <Label>Embedding Model</Label>
+                  &nbsp;
+                  <Dropdown
+                      selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                      onChange={onEmbeddingChange}
+                      defaultSelectedKey="azureopenai"
+                      placeholder="Select an Embedding Model"
+                      options={embeddingOptions}
                       disabled={false}
                       styles={dropdownStyles}
                   />

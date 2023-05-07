@@ -6,6 +6,8 @@
       "AdminPassword": "", // Admin Password that is used for protected pages
       "UploadPassword": "", // Upload Password that is used for uploading files
       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+      "OpenAiApiKey": "",
+      "OpenAiOrg": "",
       "OpenAiKey": "", // Open AI Key
       "OpenAiService": "", // Name of Open AI Service
       "OpenAiEndPoint": "", // FQDN of Open AI Service
@@ -21,6 +23,8 @@
       "RedisPassword": "Password", // Redis Password
       "RedisAddress": "http://localhost", // Redis URL
       "RedisPort": "6379",
+      "ChromaUrl": "", // Chroma URL
+      "ChromaPort": "8000",
       "OpenAiDocStorName": "", // Storage name
       "OpenAiDocStorKey": "", // Storage doc
       "OpenAiDocStorConnString": "", // Storage connection string

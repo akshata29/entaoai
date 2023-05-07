@@ -95,10 +95,14 @@ const Admin = () => {
       {
         key: 'redis',
         text: 'Redis Stack'
-      }
-      ,{
+      },
+      {
         key: 'cogsearch',
         text: 'Cognitive Search'
+      },
+      {
+        key: 'chroma',
+        text: 'Chroma'
       }
       // ,
       // {

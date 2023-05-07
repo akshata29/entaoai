@@ -43,7 +43,7 @@ def createRedisIndex(fields, indexName):
 def getEmbedding(text: str, engine=OpenAiEmbedding) -> list[float]:
     text = text.replace("\n", " ")
     encoding = tiktoken.get_encoding("cl100k_base")
-    #logging.info("Perform Embedding")
+    logging.info("Perform Embedding")
     return openai.Embedding.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
 
 def batched(iterable, n):
@@ -166,9 +166,15 @@ def chunkAndEmbed(redisClient, indexName, secDoc, engine="text-embedding-ada-002
     setDocuments(redisClient, indexName, fullData)
     return None
 
-def performRedisSearch(question, indexName, k, returnField, vectorField):
+def performRedisSearch(question, indexName, k, returnField, vectorField, embeddingModelType):
     question = question.replace("\n", " ")
-    embeddingQuery = getEmbedding(question, engine=OpenAiEmbedding)
+    if (embeddingModelType == "azureopenai"):
+        engineType = OpenAiEmbedding
+    elif (embeddingModelType == "openai"):
+        engineType = "text-embedding-ada-002"
+
+    embeddingQuery = getEmbedding(question, engine=engineType)
+    logging.info("Got embedding")
     arrayEmbedding = np.array(embeddingQuery)
     hybridField = "*"
     #hybridField = "(@cik:{{4962|2179|7323}})"

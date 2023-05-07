@@ -1,32 +1,26 @@
 import logging, json, os
 import azure.functions as func
 import openai
-from langchain.llms.openai import AzureOpenAI
+from langchain.llms.openai import AzureOpenAI, OpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import tempfile
 import uuid
 from langchain.document_loaders import (
     PDFMinerLoader,
-    PyMuPDFLoader,
     UnstructuredFileLoader,
-    UnstructuredPDFLoader,
 )
 import os
 from langchain.vectorstores import Pinecone
 from langchain.vectorstores import Milvus
 import pinecone
 from langchain.document_loaders import PDFMinerLoader
-# from pymilvus import connections
-# from pymilvus import CollectionSchema, FieldSchema, DataType, Collection
-# from pymilvus import utility
 import time
 from langchain.vectorstores.redis import Redis
 from langchain.document_loaders import WebBaseLoader
 from langchain.chains.summarize import load_summarize_chain
 from langchain.prompts import PromptTemplate
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-#from langchain.vectorstores import Weaviate
 from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs, getSasToken, getFullPath
 from Utilities.cogSearch import createSearchIndex, createSections, indexSections
 from langchain.document_loaders import AzureBlobStorageFileLoader
@@ -34,9 +28,14 @@ from langchain.document_loaders import AzureBlobStorageContainerLoader
 from azure.storage.blob import BlobClient
 from azure.storage.blob import ContainerClient
 import boto3
+import chromadb
+from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
+from chromadb.config import Settings
+from langchain.vectorstores import Chroma
+from sentence_transformers import SentenceTransformer
+from typing import List
 
 OpenAiKey = os.environ['OpenAiKey']
-OpenAiEndPoint = os.environ['OpenAiEndPoint']
 OpenAiVersion = os.environ['OpenAiVersion']
 OpenAiDavinci = os.environ['OpenAiDavinci']
 OpenAiService = os.environ['OpenAiService']
@@ -53,9 +52,49 @@ OpenAiEmbedding = os.environ['OpenAiEmbedding']
 RedisPort = os.environ['RedisPort']
 UploadPassword = os.environ['UploadPassword'] or ''
 AdminPassword = os.environ['AdminPassword'] or ''
+ChromaUrl = os.environ['ChromaUrl'] or ''
+ChromaPort = os.environ['ChromaPort'] or '8000'
+OpenAiApiKey = os.environ['OpenAiApiKey']
+OpenAiOrg = os.environ['OpenAiOrg']
 
-redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+try:
+    redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+    chromaClient = chromadb.Client(Settings(
+            chroma_api_impl="rest",
+            chroma_server_host=ChromaUrl,
+            chroma_server_http_port=ChromaPort))
+    chromaClient.heartbeat()
+    logging.info("Successfully connected to Chroma DB. Collections found: %s",chromaClient.list_collections())
+except:
+    logging.info("Chroma dn Redis not configured")
 
+class LocalHuggingFaceEmbeddings(Embeddings):
+    def __init__(self, model_id):
+        # Should use the GPU by default
+        self.model = SentenceTransformer(model_id)
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        """Embed a list of documents using a locally running
+           Hugging Face Sentence Transformer model
+        Args:
+            texts: The list of texts to embed.
+        Returns:
+            List of embeddings, one for each text.
+        """
+        embeddings = self.model.encode(texts)
+        return embeddings
+
+    def embed_query(self, text: str) -> List[float]:
+        """Embed a query using a locally running HF
+        Sentence transformer.
+        Args:
+            text: The text to embed.
+        Returns:
+            Embeddings for the text.
+        """
+        embedding = self.model.encode(text)
+        return list(map(float, embedding))
+    
 def GetAllFiles(filesToProcess):
     files = []
     convertedFiles = {}
@@ -94,6 +133,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         indexName = req.params.get('indexName')
         existingIndex=req.params.get("existingIndex")
         existingIndexNs=req.params.get("existingIndexNs")
+        embeddingModelType=req.params.get("embeddingModelType")
         body = json.dumps(req.get_json())
     except ValueError:
         return func.HttpResponse(
@@ -102,39 +142,17 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         )
 
     if body:
-        pinecone.init(
-            api_key=PineconeKey,  # find at app.pinecone.io
-            environment=PineconeEnv  # next to api key in console
-        )
+        try:
+            pinecone.init(
+                api_key=PineconeKey,  # find at app.pinecone.io
+                environment=PineconeEnv  # next to api key in console
+            )
+        except:
+            logging.info("Pinecone already initialized")
 
-        # Once we can get the Milvus index running in Azure, we can use this
-
-        # connections.connect(
-        #   alias="default",
-        #   host='127.0.0.1',
-        #   port='19530'
-        # )
-        # if not utility.has_collection(VsIndexName):
-        #   pkId = FieldSchema(name="pkId", dtype=DataType.INT64, is_primary=True)
-        #   source = FieldSchema(name="source", dtype=DataType.VARCHAR, max_length=500)
-        #   text = FieldSchema(name="text",dtype=DataType.VARCHAR,max_length=1500)
-        #   id = FieldSchema(name="id",dtype=DataType.INT64)
-        #   embed = FieldSchema(name="embed",dtype=DataType.FLOAT_VECTOR,dim=1536)
-        #   schema = CollectionSchema(
-        #     fields=[pkId, source, text, id, embed],
-        #     description="Open AI Documents"
-        #   )
-        #   collectionName = VsIndexName
-        #   collection = Collection(name=collectionName, schema=schema, using='default')
-        #   indexParam = {
-        #     "metric_type":"L2",
-        #     "index_type":"HNSW",
-        #     "params":{"M":8, "efConstruction":64}
-        #   }
-        #   collection.create_index(field_name="embed", index_params=indexParam)
-        #   collection.load()
-
-        result = ComposeResponse(indexType, loadType, multiple, indexName, existingIndex, existingIndexNs, body)
+        logging.info("Embedding Model Type: %s", embeddingModelType)
+        result = ComposeResponse(indexType, loadType, multiple, indexName, existingIndex, existingIndexNs, 
+                                 embeddingModelType, body)
         return func.HttpResponse(result, mimetype="application/json")
     else:
         return func.HttpResponse(
@@ -142,7 +160,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
              status_code=400
         )
 
-def ComposeResponse(indexType, loadType,  multiple, indexName, existingIndex, existingIndexNs, jsonData):
+def ComposeResponse(indexType, loadType,  multiple, indexName, existingIndex, existingIndexNs, embeddingModelType, jsonData):
     values = json.loads(jsonData)['values']
 
     logging.info("Calling Compose Response")
@@ -151,17 +169,35 @@ def ComposeResponse(indexType, loadType,  multiple, indexName, existingIndex, ex
     results["values"] = []
 
     for value in values:
-        outputRecord = TransformValue(indexType, loadType,  multiple, indexName, existingIndex, existingIndexNs, value)
+        outputRecord = TransformValue(indexType, loadType,  multiple, indexName, existingIndex, existingIndexNs, embeddingModelType, value)
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
 
-def summarizeGenerateQa(docs):
-    llm = AzureOpenAI(deployment_name=OpenAiDavinci,
+def summarizeGenerateQa(docs, embeddingModelType):
+
+    if embeddingModelType == "azureopenai":
+        openai.api_type = "azure"
+        openai.api_key = OpenAiKey
+        openai.api_version = OpenAiVersion
+        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        llm = AzureOpenAI(deployment_name=OpenAiDavinci,
                 temperature=os.environ['Temperature'] or 0.3,
                 openai_api_key=OpenAiKey,
                 max_tokens=1024,
                 batch_size=10)
+    elif embeddingModelType == "openai":
+        openai.api_type = "open_ai"
+        openai.api_base = "https://api.openai.com/v1"
+        openai.api_version = '2020-11-07' 
+        openai.api_key = OpenAiApiKey
+        llm = OpenAI(temperature=os.environ['Temperature'] or 0.3,
+                openai_api_key=OpenAiApiKey,
+                verbose=True,
+                max_tokens=1024)
+    elif embeddingModelType == "local":
+        return "Local not supported", "Local not supported"
+
     try:
         summaryChain = load_summarize_chain(llm, chain_type="map_reduce")
         summary = summaryChain.run(docs)
@@ -213,21 +249,32 @@ def s3Load(bucket, key, s3Client):
     downloadPath = os.path.join(tempfile.gettempdir(), key)
     os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
     s3Client.download_file(bucket, key, downloadPath)
-    # try:
-    #     with open(downloadPath, "wb") as file:
-    #         file.write(readBytes)
-    # except Exception as e:
-    #     logging.error(e)
-
     logging.info("File created " + downloadPath)
     loader = PDFMinerLoader(downloadPath)
     rawDocs = loader.load()
     return rawDocs
 
-def storeIndex(indexType, docs, fileName, nameSpace):
-    embeddings = OpenAIEmbeddings(model=OpenAiEmbedding,
-                                    chunk_size=1,
-                                    openai_api_key=OpenAiKey)
+def storeIndex(indexType, docs, fileName, nameSpace, embeddingModelType):
+    if embeddingModelType == "azureopenai":
+        openai.api_type = "azure"
+        openai.api_key = OpenAiKey
+        openai.api_version = OpenAiVersion
+        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        embeddings = OpenAIEmbeddings(model=OpenAiEmbedding,
+                chunk_size=1,
+                openai_api_key=OpenAiKey)
+    elif embeddingModelType == "openai":
+        #openai.debug = True
+        #openai.log = 'debug'
+        openai.api_type = "open_ai"
+        openai.api_base = "https://api.openai.com/v1"
+        openai.api_version = '2020-11-07' 
+        openai.api_key = OpenAiApiKey
+        embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
+    elif embeddingModelType == "local":
+        #embeddings = LocalHuggingFaceEmbeddings("all-mpnet-base-v2")
+        return
+
     logging.info("Store the index in " + indexType + " and name : " + nameSpace)
     if indexType == 'pinecone':
         Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=nameSpace)
@@ -236,6 +283,9 @@ def storeIndex(indexType, docs, fileName, nameSpace):
     elif indexType == "cogsearch":
         createSearchIndex(nameSpace)
         indexSections(fileName, nameSpace, docs)
+    elif indexType == "chroma":
+        logging.info("Chroma Client: " + str(docs))
+        Chroma.from_documents(docs, embeddings, collection_name=nameSpace, client=chromaClient, embedding_function=embeddings)
     elif indexType == 'milvus':
         milvus = Milvus(connection_args={"host": "127.0.0.1", "port": "19530"},
                         collection_name=VsIndexName, text_field="text", embedding_function=embeddings)
@@ -243,15 +293,14 @@ def storeIndex(indexType, docs, fileName, nameSpace):
 
 def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionString,
                                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
-                                s3SecretKey, s3Prefix, existingIndex, existingIndexNs):
-    logging.info("Embedding text")
+                                s3SecretKey, s3Prefix, existingIndex, existingIndexNs,
+                                embeddingModelType):
+    logging.info("Embedding Data")
     try:
-        logging.info("Loading OpenAI")
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        logging.info("Loading Embedding Model " + embeddingModelType)
+
         uResultNs = uuid.uuid4()
+        
         if (existingIndex == "true"):
             indexGuId = existingIndexNs
         else:
@@ -287,7 +336,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                         rawDocs = loader.load()
                         docs = textSplitter.split_documents(rawDocs)
                         logging.info("Docs " + str(len(docs)))
-                        storeIndex(indexType, docs, fileName, indexGuId)
+                        storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
                     else:
                         try:
                             logging.info("Embedding Non-text file")
@@ -295,13 +344,13 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                             textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                             docs = []
                             docs = textSplitter.split_documents(rawDocs)
-                            storeIndex(indexType, docs, fileName, indexGuId)
+                            storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
                         except Exception as e:
                             logging.info(e)
                             upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType})
                             return "Error"
                     logging.info("Perform Summarization and QA")
-                    qa, summary = summarizeGenerateQa(docs)
+                    qa, summary = summarizeGenerateQa(docs, embeddingModelType)
                     logging.info("Upsert metadata")
                     metadata = {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName.replace("-", "_")}
                     upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
@@ -327,9 +376,9 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     rawDocs = loader.load()
                     docs = textSplitter.split_documents(rawDocs)
                     allDocs = allDocs + docs
-                    storeIndex(indexType, docs, indexName + ".txt", indexGuId)
+                    storeIndex(indexType, docs, indexName + ".txt", indexGuId, embeddingModelType)
                 logging.info("Perform Summarization and QA")
-                qa, summary = summarizeGenerateQa(allDocs)
+                qa, summary = summarizeGenerateQa(allDocs, embeddingModelType)
                 logging.info("Upsert metadata")
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName})
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
@@ -353,9 +402,9 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                 docs = []
                 docs = textSplitter.split_documents(rawDocs)
-                storeIndex(indexType, docs, indexName, indexGuId)
+                storeIndex(indexType, docs, indexName, indexGuId, embeddingModelType)
                 logging.info("Perform Summarization and QA")
-                qa, summary = summarizeGenerateQa(docs)
+                qa, summary = summarizeGenerateQa(docs, embeddingModelType)
                 logging.info("Upsert metadata")
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName})
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
@@ -366,17 +415,13 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
         elif (loadType == "adlsfile"):
             try:
                 logging.info("Embedding Azure Blob File")
-                # loader = AzureBlobStorageFileLoader(conn_str=blobConnectionString, 
-                #                                      container=blobContainer, blob_name=blobName)
-                # rawDocs = loader.load()
-
                 rawDocs = blobLoad(blobConnectionString, blobContainer, blobName)
                 textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                 docs = []
                 docs = textSplitter.split_documents(rawDocs)
-                storeIndex(indexType, docs, blobName, indexGuId)
+                storeIndex(indexType, docs, blobName, indexGuId, embeddingModelType)
                 logging.info("Perform Summarization and QA")
-                qa, summary = summarizeGenerateQa(docs)
+                qa, summary = summarizeGenerateQa(docs, embeddingModelType)
                 logging.info("Upsert metadata")
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName})
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
@@ -402,9 +447,9 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                 docs = []
                 docs = textSplitter.split_documents(rawDocs)
-                storeIndex(indexType, docs, indexName, indexGuId)
+                storeIndex(indexType, docs, indexName, indexGuId, embeddingModelType)
                 logging.info("Perform Summarization and QA")
-                qa, summary = summarizeGenerateQa(docs)
+                qa, summary = summarizeGenerateQa(docs, embeddingModelType)
                 logging.info("Upsert metadata")
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName})
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
@@ -421,9 +466,9 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 textSplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=0)
                 docs = []
                 docs = textSplitter.split_documents(rawDocs)
-                storeIndex(indexType, docs, blobName, indexGuId)
+                storeIndex(indexType, docs, blobName, indexGuId, embeddingModelType)
                 logging.info("Perform Summarization and QA")
-                qa, summary = summarizeGenerateQa(docs)
+                qa, summary = summarizeGenerateQa(docs, embeddingModelType)
                 logging.info("Upsert metadata")
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName})
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
@@ -439,7 +484,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
             status_code=500
         )
 
-def TransformValue(indexType, loadType,  multiple, indexName, existingIndex, existingIndexNs, record):
+def TransformValue(indexType, loadType,  multiple, indexName, existingIndex, existingIndexNs, embeddingModelType, record):
     logging.info("Calling Transform Value")
     try:
         recordId = record['recordId']
@@ -486,7 +531,7 @@ def TransformValue(indexType, loadType,  multiple, indexName, existingIndex, exi
 
         summaryResponse = Embed(indexType, loadType,  multiple, indexName, value, blobConnectionString,
                                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
-                                s3SecretKey, s3Prefix, existingIndex, existingIndexNs)
+                                s3SecretKey, s3Prefix, existingIndex, existingIndexNs, embeddingModelType)
         return ({
             "recordId": recordId,
             "data": {

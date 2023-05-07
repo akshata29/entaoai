@@ -1,7 +1,7 @@
 import logging, json, os
 import azure.functions as func
 import openai
-from langchain.llms.openai import AzureOpenAI
+from langchain.llms.openai import AzureOpenAI, OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -14,6 +14,7 @@ OpenAiEndPoint = os.environ['OpenAiEndPoint']
 OpenAiVersion = os.environ['OpenAiVersion']
 OpenAiDavinci = os.environ['OpenAiDavinci']
 OpenAiService = os.environ['OpenAiService']
+OpenAiApiKey = os.environ['OpenAiApiKey']
 
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
@@ -49,37 +50,57 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
 def Summarize(promptType, promptName, chainType, docType, inLineText, overrides):
     logging.info("Calling Summarize Open AI")
-    openai.api_type = "azure"
-    openai.api_key = OpenAiKey
-    openai.api_version = OpenAiVersion
-    openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+    temperature = overrides.get("temperature") or 0.3
+    tokenLength = overrides.get('tokenLength') or 500
+    embeddingModelType = overrides.get('embeddingModelType') or 'azureopenai'
 
     summaryResponse = ''
 
-    temperature = overrides.get("temperature") or 0.3
-    tokenLength = overrides.get('tokenLength') or 500
+    if (embeddingModelType == 'azureopenai'):
+        openai.api_type = "azure"
+        openai.api_key = OpenAiKey
+        openai.api_version = OpenAiVersion
+        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-    if (promptType == "custom"):
-        try:
-            response = openai.Completion.create(
+        llm = AzureOpenAI(deployment_name=OpenAiDavinci,
+                temperature=temperature,
+                max_tokens=tokenLength,
+                openai_api_key=OpenAiKey)
+
+        completion = openai.Completion.create(
                 engine= OpenAiDavinci,
                 prompt = inLineText,
                 temperature = temperature,
                 max_tokens = tokenLength,
-            )
+        )
+        logging.info("LLM Setup done")
+    elif embeddingModelType == "openai":
+        openai.api_type = "open_ai"
+        openai.api_base = "https://api.openai.com/v1"
+        openai.api_version = '2020-11-07' 
+        openai.api_key = OpenAiApiKey
+        
+        llm = OpenAI(temperature=temperature,
+                openai_api_key=OpenAiApiKey)
+        
+        completion = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=inLineText,
+            temperature=temperature,
+            max_tokens=tokenLength)
+            
+    if (promptType == "custom"):
+        try:
             logging.info(inLineText)
         except Exception as e:
             logging.info("Exception : " + str(e))
-        summaryResponse = response.choices[0].text
+        summaryResponse = completion.choices[0].text
         return summaryResponse
     else:
         pTemplate = os.environ[promptName]
         logging.info("Prompt Template : " + pTemplate)
         InputVariables = os.environ[promptName + "Iv"]
         if (docType == "inline"):
-            llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                            temperature=temperature,
-                            openai_api_key=openai.api_key)
             logging.info("Llm created")
             uResult = uuid.uuid4()
             logging.info(uResult.hex)

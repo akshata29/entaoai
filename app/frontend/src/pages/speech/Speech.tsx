@@ -11,7 +11,6 @@ import { ResultReason } from 'microsoft-cognitiveservices-speech-sdk'
 import * as speechsdk from 'microsoft-cognitiveservices-speech-sdk';
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 
-
 const stackStyles: IStackStyles = {
     root: {
       //background: DefaultPalette.white,
@@ -104,6 +103,27 @@ const Speech = () => {
 
     let recognizer: speechsdk.SpeechRecognizer
 
+    const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
+
+    const embeddingOptions = [
+            {
+              key: 'azureopenai',
+              text: 'Azure Open AI'
+            },
+            {
+              key: 'openai',
+              text: 'Open AI'
+            }
+            // {
+            //   key: 'local',
+            //   text: 'Local Embedding'
+            // }
+    ]
+
+    const onEmbeddingChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedEmbeddingItem(item);
+    };
+    
     const setScenarios = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         if (item?.key == 'BankingRaw') {
             setspeechText(bankingRaw)
@@ -201,7 +221,8 @@ const Speech = () => {
         let promptName = 'RealTimeSpeechPrompt'
     
         if (promptType?.key == 'custom') {
-          const summary = await summarizer(request, customParsePrompt, String(promptType?.key), '', 'inline', String(selectedChain?.key))
+          const summary = await summarizer(request, customParsePrompt, String(promptType?.key), '', 'inline', 
+          String(selectedChain?.key), String(selectedEmbeddingItem?.key))
           setGptPromptSummary(summary)
         } else if (promptType?.key == 'summaryNotes') {
           promptName = 'RtsSummaryNotesPrompt'
@@ -222,7 +243,8 @@ const Speech = () => {
         }
     
         if (promptType?.key != 'custom') {
-            const summary = await summarizer(request, requestText, String(promptType?.key), promptName, 'inline', String(selectedChain?.key))
+            const summary = await summarizer(request, requestText, String(promptType?.key), promptName, 'inline', 
+            String(selectedChain?.key), String(selectedEmbeddingItem?.key))
             setGptPromptSummary(summary)
         }
     }
@@ -335,6 +357,7 @@ const Speech = () => {
         getTokenOrRefresh()
         setChainTypeOptions(chainType)
         setSelectedChain(chainType[0])
+        setSelectedEmbeddingItem(embeddingOptions[0])
     }, [])
 
     return (
@@ -443,6 +466,18 @@ const Speech = () => {
                         onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
                         isFooterAtBottom={true}
                     >
+                        <div>
+                          <Label>LLM Model</Label>
+                          <Dropdown
+                              selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                              onChange={onEmbeddingChange}
+                              defaultSelectedKey="azureopenai"
+                              placeholder="Select an LLM Model"
+                              options={embeddingOptions}
+                              disabled={false}
+                              styles={dropdownStyles}
+                          />
+                        </div>
                         <br/>
                         <SpinButton
                           className={styles.oneshotSettingsSeparator}

@@ -9,7 +9,7 @@ from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.docstore.document import Document
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
-from langchain.chat_models import AzureChatOpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.prompts import PromptTemplate
 
@@ -30,6 +30,7 @@ OpenAiEmbedding = os.environ['OpenAiEmbedding']
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
 SearchService = os.environ['SearchService']
 SearchKey = os.environ['SearchKey']
+OpenAiApiKey = os.environ['OpenAiApiKey']
 
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
@@ -155,6 +156,12 @@ def parseResponse(fullAnswer, sources):
             return modifiedAnswer, '', ''
         
 def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
+    embeddingModelType = overrides.get('embeddingModelType') or 'azureopenai'
+    topK = overrides.get("top") or 5
+    temperature = overrides.get("temperature") or 0.3
+    tokenLength = overrides.get('tokenLength') or 500
+    logging.info("Search for Top " + str(topK))
+
     qaPromptTemplate = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
     Generate a search query based on the conversation and the new question.
     The search query should be optimized to find the answer to the question in the knowledge base.
@@ -168,24 +175,27 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     Search query:
     """
 
-    openai.api_type = "azure"
-    openai.api_key = OpenAiKey
-    openai.api_version = OpenAiVersion
-    openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-
-    baseUrl = f"https://{OpenAiService}.openai.azure.com"
-
-    topK = overrides.get("top") or 5
-    temperature = overrides.get("temperature") or 0.3
-    tokenLength = overrides.get('tokenLength') or 500
-    logging.info("Search for Top " + str(topK))
     # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
     optimizedPrompt = qaPromptTemplate.format(chat_history=getChatHistory(history, includeLastTurn=False),
                                               question=history[-1]["user"])
 
-    #.info("Optimized Prompt" + optimizedPrompt)
+    if (embeddingModelType == 'azureopenai'):
+        baseUrl = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_type = "azure"
+        openai.api_key = OpenAiKey
+        openai.api_version = OpenAiVersion
+        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-    try:
+        embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+        llmChat = AzureChatOpenAI(
+                    openai_api_base=baseUrl,
+                    openai_api_version="2023-03-15-preview",
+                    deployment_name=OpenAiChat,
+                    temperature=temperature,
+                    openai_api_key=OpenAiKey,
+                    openai_api_type="azure",
+                    max_tokens=tokenLength)
+        
         completion = openai.Completion.create(
             engine=OpenAiDavinci,
             prompt=optimizedPrompt,
@@ -194,6 +204,26 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             #max_tokens=tokenLength,
             n=1,
             stop=["\n"])
+
+        logging.info("LLM Setup done")
+    elif embeddingModelType == "openai":
+        openai.api_type = "open_ai"
+        openai.api_base = "https://api.openai.com/v1"
+        openai.api_version = '2020-11-07' 
+        openai.api_key = OpenAiApiKey
+        llmChat = ChatOpenAI(temperature=temperature,
+                openai_api_key=OpenAiApiKey,
+                max_tokens=tokenLength)
+        embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
+        completion = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=optimizedPrompt,
+            temperature=temperature,
+            max_tokens=32,
+            n=1,
+            stop=["\n"])
+    
+    try:
         q = completion.choices[0].text
         logging.info("Question " + completion.choices[0].text)
         if (q == ''):
@@ -204,18 +234,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
 
 
     logging.info("Execute step 2")
-    # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
-    embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
-
-    llmChat = AzureChatOpenAI(
-                openai_api_base=baseUrl,
-                openai_api_version="2023-03-15-preview",
-                deployment_name=OpenAiChat,
-                temperature=temperature,
-                openai_api_key=OpenAiKey,
-                openai_api_type="azure",
-                max_tokens=tokenLength)
-    
+    # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query    
     combinePromptTemplate = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
           If you don't know the answer, just say that you don't know. Don't try to make up an answer.
           ALWAYS return a "SOURCES" section as part in your answer.
@@ -270,7 +289,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         try:
             returnField = ["metadata", "content", "vector_score"]
             vectorField = "content_vector"
-            results = performRedisSearch(q, indexNs, topK, returnField, vectorField)
+            results = performRedisSearch(q, indexNs, topK, returnField, vectorField, embeddingModelType)
             docs = [
                     Document(page_content=result.content, metadata=json.loads(result.metadata))
                     for result in results.docs
@@ -326,63 +345,6 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     elif indexType == 'milvus':
         answer = "{'answer': 'TBD', 'sources': ''}"
         return answer
-
-
-    # if indexType == 'pinecone':
-    #     vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings)
-    #     logging.info("Pinecone Setup done to search against - " + indexNs + " for question " + q)
-    #     docs = vectorDb.similarity_search(q, k=topK, namespace=indexNs)
-    #     logging.info("Executed Index and found " + str(len(docs)))
-    # elif indexType == "redis":
-    #     try:
-    #         #vectorDb =  Redis.from_existing_index(embeddings, index_name=indexNs, kwargs={'redis_url': redisUrl}),
-    #         #logging.info("Redis Setup done")
-    #         #docs = vectorDb.similarity_search(q, k=5)
-    #         returnField = ["metadata", "content", "vector_score"]
-    #         vectorField = "content_vector"
-    #         results = performRedisSearch(q, indexNs, topK, returnField, vectorField)
-    #         docs = [
-    #                 Document(page_content=result.content, metadata=json.loads(result.metadata))
-    #                 for result in results.docs
-    #         ]
-    #     except Exception as e:
-    #         return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
-    # elif indexType == "cogsearch":
-    #     r = performCogSearch(q, indexNs, topK)
-    #     if r == None:
-    #             docs = [Document(page_content="No results found")]
-    #     else :
-    #         docs = [
-    #             Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
-    #             for doc in r
-    #             ]
-    # elif indexType == 'milvus':
-    #     docs = []
-
-    # rawDocs = []
-    # for doc in docs:
-    #   rawDocs.append(doc.page_content)
-
-    # # Allow client to replace the entire prompt, or to inject into the exiting prompt using >>>
-    # finalPrompt = promptPrefix.format(injected_prompt="", sources=rawDocs,
-    #                                   chat_history=getChatHistory(history),
-    #                                   follow_up_questions_prompt=followupQaPromptTemplate)
-    # logging.info("Final Prompt created")
-    # # STEP 3: Generate a contextual and content specific answer using the search results and chat history
-    # try:
-    #     completion = openai.Completion.create(
-    #         engine=OpenAiChat,
-    #         prompt=finalPrompt,
-    #         temperature=temperature,
-    #         max_tokens=tokenLength,
-    #         n=1,
-    #         stop=["<|im_end|>", "<|im_start|>"])
-    #     logging.info(completion.choices[0].text)
-    # except Exception as e:
-    #     logging.error(e)
-    #     return {"data_points": "", "answer": "Working on fixing Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
-    
-    # return {"data_points": rawDocs, "answer": completion.choices[0].text, "thoughts": f"Searched for:<br>{q}<br><br>Prompt:<br>" + finalPrompt.replace('\n', '<br>')}
 
 def GetAnswer(history, approach, overrides, indexNs, indexType):
     logging.info("Getting Answer")

@@ -1,5 +1,7 @@
 import { useRef, useState, useEffect } from "react";
-import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack } from "@fluentui/react";
+import { ChoiceGroup, IChoiceGroupOption, Spinner } from "@fluentui/react";
+import { TextField, PrimaryButton, Label, DefaultPalette, Stack, IStackStyles, IStackTokens } from "@fluentui/react";
+import { Checkbox, Panel, DefaultButton,  SpinButton } from "@fluentui/react";
 
 import styles from "./Edgar.module.css";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
@@ -11,6 +13,7 @@ import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel
 import { ExampleList, ExampleModel } from "../../components/Example";
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn } from '@fluentui/react/lib/DetailsList';
 import { Link } from '@fluentui/react/lib/Link';
+import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 
 type Item = {
     company:  { label: string; };
@@ -22,7 +25,7 @@ type Item = {
     content:  { label: string; };
   };
 
-const OneShot = () => {
+const Edgar = () => {
     const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
 
     const lastQuestionRef = useRef<string>("");
@@ -39,6 +42,29 @@ const OneShot = () => {
     const [selectedIndex, setSelectedIndex] = useState<string>();
     const [exampleList, setExampleList] = useState<ExampleModel[]>([{text:'', value: ''}]);
     const [exampleLoading, setExampleLoading] = useState(false)     
+
+    const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
+    const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
+    const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
+
+    const embeddingOptions = [
+            {
+              key: 'azureopenai',
+              text: 'Azure Open AI'
+            },
+            {
+              key: 'openai',
+              text: 'Open AI'
+            }
+            // {
+            //   key: 'local',
+            //   text: 'Local Embedding'
+            // }
+    ]
+
+    const onEmbeddingChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedEmbeddingItem(item);
+    };
 
     const columns: IColumn[] = [
         {
@@ -101,7 +127,7 @@ const OneShot = () => {
         setActiveAnalysisPanelTab(undefined);
 
         try {
-            const result = await secSearch('redis', 'secdocs', question, "10");
+            const result = await secSearch('redis', 'secdocs', question, "10", String(selectedEmbeddingItem?.key));
             
             const itemsResponse: Item[] = [];
             console.log(result.values[0].data.text);
@@ -134,10 +160,16 @@ const OneShot = () => {
         }
     };
 
+    useEffect(() => {
+        setSelectedEmbeddingItem(embeddingOptions[0])
+    }, []);
 
     return (
         <div >
             <div >
+                <div className={styles.commandsContainer}>
+                        <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                </div>
                 <div className={styles.oneshotTopSection}>
                     <h1 className={styles.oneshotTitle}>Ask your financial data</h1>
                     <div className={styles.oneshotQuestionInput}>
@@ -183,9 +215,32 @@ const OneShot = () => {
                     )}
                 </div>
             </div>
+            <Panel
+                headerText="Configure Speech settings"
+                isOpen={isConfigPanelOpen}
+                isBlocking={false}
+                onDismiss={() => setIsConfigPanelOpen(false)}
+                closeButtonAriaLabel="Close"
+                onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
+                isFooterAtBottom={true}
+            >
+                <div>
+                    <Label>LLM Model</Label>
+                    <Dropdown
+                        selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                        onChange={onEmbeddingChange}
+                        defaultSelectedKey="azureopenai"
+                        placeholder="Select an LLM Model"
+                        options={embeddingOptions}
+                        disabled={false}
+                        styles={dropdownStyles}
+                    />
+                </div>
+                <br/>
+            </Panel>
         </div>
     );
 };
 
-export default OneShot;
+export default Edgar;
 

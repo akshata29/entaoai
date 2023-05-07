@@ -61,6 +61,23 @@ const ChatGpt = () => {
     const [summary, setSummary] = useState<string>();
     const [qa, setQa] = useState<string>('');
 
+    const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
+
+    const embeddingOptions = [
+        {
+          key: 'azureopenai',
+          text: 'Azure Open AI'
+        },
+        {
+          key: 'openai',
+          text: 'Open AI'
+        }
+        // {
+        //   key: 'local',
+        //   text: 'Local Embedding'
+        // }
+    ]
+
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
 
@@ -83,7 +100,8 @@ const ChatGpt = () => {
                     semanticCaptions: useSemanticCaptions,
                     suggestFollowupQuestions: useSuggestFollowupQuestions,
                     tokenLength: tokenLength,
-                    autoSpeakAnswers: useAutoSpeakAnswers
+                    autoSpeakAnswers: useAutoSpeakAnswers,
+                    embeddingModelType: String(selectedEmbeddingItem?.key)
                 }
             };
             const result = await chatGptApi(request, String(selectedItem?.key), String(selectedIndex));
@@ -123,7 +141,8 @@ const ChatGpt = () => {
                     semanticCaptions: useSemanticCaptions,
                     suggestFollowupQuestions: useSuggestFollowupQuestions,
                     tokenLength: tokenLength,
-                    autoSpeakAnswers: useAutoSpeakAnswers
+                    autoSpeakAnswers: useAutoSpeakAnswers,
+                    embeddingModelType: String(selectedEmbeddingItem?.key)
                 }
             };
             const result = await chatGpt3Api(question, request, String(selectedItem?.key), String(selectedIndex));
@@ -301,6 +320,7 @@ const ChatGpt = () => {
     useEffect(() => {
         setOptions([])
         refreshBlob()
+        setSelectedEmbeddingItem(embeddingOptions[0])
     }, [])
 
     useEffect(() => chatMessageStreamEnd.current?.scrollIntoView({ behavior: "smooth" }), [isLoading]);
@@ -335,6 +355,10 @@ const ChatGpt = () => {
 
     const onTokenLengthChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
         setTokenLength(parseInt(newValue || "500"));
+    };
+
+    const onEmbeddingChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedEmbeddingItem(item);
     };
 
     const onShowCitation = (citation: string, index: number) => {
@@ -484,6 +508,19 @@ const ChatGpt = () => {
                                     />
                                     &nbsp;
                                     <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                                </div>
+                                <br/>
+                                <div>
+                                    <Label>LLM Model</Label>
+                                    <Dropdown
+                                        selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                                        onChange={onEmbeddingChange}
+                                        defaultSelectedKey="azureopenai"
+                                        placeholder="Select an LLM Model"
+                                        options={embeddingOptions}
+                                        disabled={false}
+                                        styles={dropdownStyles}
+                                    />
                                 </div>
                                 <TextField
                                     className={styles.chatSettingsSeparator}
@@ -672,6 +709,19 @@ const ChatGpt = () => {
                                     />
                                     &nbsp;
                                     <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                                </div>
+                                <br/>
+                                <div>
+                                    <Label>LLM Model</Label>
+                                    <Dropdown
+                                        selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                                        onChange={onEmbeddingChange}
+                                        defaultSelectedKey="azureopenai"
+                                        placeholder="Select an LLM Model"
+                                        options={embeddingOptions}
+                                        disabled={false}
+                                        styles={dropdownStyles}
+                                    />
                                 </div>
                                 <TextField
                                     className={styles.chatSettingsSeparator}

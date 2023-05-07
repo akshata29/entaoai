@@ -137,6 +137,7 @@ def chat3():
 def sqlChat():
     question=request.json["question"]
     top=request.json["top"]
+    embeddingModelType = request.json["embeddingModelType"]
     postBody=request.json["postBody"]
 
     try:
@@ -144,7 +145,7 @@ def sqlChat():
         url = os.environ.get("SQLCHAT_URL")
 
         data = postBody
-        params = {'question': question, 'topK': top, }
+        params = {'question': question, 'topK': top, 'embeddingModelType': embeddingModelType}
         resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
         jsonDict = json.loads(resp.text)
         return jsonify(jsonDict)
@@ -156,6 +157,7 @@ def sqlChat():
 def sqlChain():
     question=request.json["question"]
     top=request.json["top"]
+    embeddingModelType=request.json["embeddingModelType"]
     postBody=request.json["postBody"]
 
     try:
@@ -163,7 +165,7 @@ def sqlChain():
         url = os.environ.get("SQLCHAIN_URL")
 
         data = postBody
-        params = {'question': question, 'topK': top, }
+        params = {'question': question, 'topK': top, 'embeddingModelType': embeddingModelType }
         resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
         jsonDict = json.loads(resp.text)
         return jsonify(jsonDict)
@@ -179,6 +181,7 @@ def processDoc():
     loadType=request.json["loadType"]
     existingIndex=request.json["existingIndex"]
     existingIndexNs=request.json["existingIndexNs"]
+    embeddingModelType=request.json["embeddingModelType"]
     postBody=request.json["postBody"]
    
     try:
@@ -187,7 +190,7 @@ def processDoc():
 
         data = postBody
         params = {'indexType': indexType, "indexName": indexName, "multiple": multiple , "loadType": loadType,
-                  "existingIndex": existingIndex, "existingIndexNs": existingIndexNs}
+                  "existingIndex": existingIndex, "existingIndexNs": existingIndexNs, "embeddingModelType": embeddingModelType}
         resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
         jsonDict = json.loads(resp.text)
         #return json.dumps(jsonDict)
@@ -345,6 +348,7 @@ def secsearch():
     indexName=request.json["indexName"]
     question=request.json["question"]
     top=request.json["top"]
+    embeddingModelType=request.json["embeddingModelType"]
     postBody=request.json["postBody"]
   
     try:
@@ -352,7 +356,7 @@ def secsearch():
         url = os.environ.get("SECSEARCH_URL")
 
         data = postBody
-        params = {'indexType': indexType, "indexName": indexName, "question": question, "top": top }
+        params = {'indexType': indexType, "indexName": indexName, "question": question, "top": top, "embeddingModelType": embeddingModelType }
         resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
         jsonDict = json.loads(resp.text)
         #return json.dumps(jsonDict)

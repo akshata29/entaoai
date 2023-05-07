@@ -1,7 +1,7 @@
 import logging, json, os, urllib
 import azure.functions as func
 import openai
-from langchain.llms.openai import AzureOpenAI
+from langchain.llms.openai import AzureOpenAI, OpenAI
 import os
 from langchain.agents import create_sql_agent
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
@@ -22,8 +22,9 @@ SynapseName = os.environ['SynapseName']
 SynapseUser = os.environ['SynapseUser']
 SynapsePassword = os.environ['SynapsePassword']
 SynapsePool = os.environ['SynapsePool']
+OpenAiApiKey = os.environ['OpenAiApiKey']
 
-def FindSqlAnswer(topK, question, value):
+def FindSqlAnswer(topK, question, embeddingModelType, value):
     logging.info("Calling FindSqlAnswer Open AI")
     answer = ''
     os.environ['OPENAI_API_KEY'] = OpenAiKey
@@ -71,15 +72,25 @@ def FindSqlAnswer(topK, question, value):
             Thought: I should look at the tables in the database to see what I can query.
             {agent_scratchpad}"""
         
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        if (embeddingModelType == 'azureopenai'):
+            openai.api_type = "azure"
+            openai.api_key = OpenAiKey
+            openai.api_version = OpenAiVersion
+            openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-        llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                model_name=OpenAiDavinci,
-                temperature=os.environ['Temperature'] or 0,
-                openai_api_key=OpenAiKey)
+            llm = AzureOpenAI(deployment_name=OpenAiDavinci,
+                    temperature=os.environ['Temperature'] or 0,
+                    openai_api_key=OpenAiKey,
+                    max_tokens=1000)
+
+            logging.info("LLM Setup done")
+        elif embeddingModelType == "openai":
+            openai.api_type = "open_ai"
+            openai.api_base = "https://api.openai.com/v1"
+            openai.api_version = '2020-11-07' 
+            openai.api_key = OpenAiApiKey
+            llm = OpenAI(temperature=os.environ['Temperature'] or 0,
+                    openai_api_key=OpenAiApiKey)
 
         logging.info("LLM Setup done")
 
@@ -128,6 +139,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     try:
         topK = req.params.get('topK')
         question = req.params.get('question')
+        embeddingModelType = req.params.get('embeddingModelType')
         logging.info("Input parameters : " + topK + " " + question)
         body = json.dumps(req.get_json())
     except ValueError:
@@ -137,7 +149,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         )
 
     if body:
-        result = ComposeResponse(topK, question, body)
+        result = ComposeResponse(topK, question, embeddingModelType, body)
         return func.HttpResponse(result, mimetype="application/json")
     else:
         return func.HttpResponse(
@@ -145,7 +157,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
              status_code=400
         )
 
-def ComposeResponse(topK, question, jsonData):
+def ComposeResponse(topK, question, embeddingModelType, jsonData):
     values = json.loads(jsonData)['values']
 
     logging.info("Calling Compose Response")
@@ -154,12 +166,12 @@ def ComposeResponse(topK, question, jsonData):
     results["values"] = []
 
     for value in values:
-        outputRecord = TransformValue(topK, question, value)
+        outputRecord = TransformValue(topK, question, embeddingModelType, value)
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
 
-def TransformValue(topK, question, record):
+def TransformValue(topK, question, embeddingModelType, record):
     logging.info("Calling Transform Value")
     try:
         recordId = record['recordId']
@@ -195,7 +207,7 @@ def TransformValue(topK, question, record):
         # Getting the items from the values/data/text
         value = data['text']
 
-        answer = FindSqlAnswer(topK, question, value)
+        answer = FindSqlAnswer(topK, question, embeddingModelType, value)
         return ({
             "recordId": recordId,
             "data": answer

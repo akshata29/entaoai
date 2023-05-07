@@ -19,6 +19,7 @@ export type AskRequestOverrides = {
     indexType?: string;
     indexes?: any;
     autoSpeakAnswers?: boolean;
+    embeddingModelType?: string;
 };
 
 export type AskRequest = {

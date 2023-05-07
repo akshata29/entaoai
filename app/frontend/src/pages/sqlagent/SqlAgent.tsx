@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
-import { Checkbox, Panel, DefaultButton, Spinner, SpinButton, Stack } from "@fluentui/react";
+import { Checkbox, Panel, DefaultButton, Spinner, SpinButton, Stack, Label } from "@fluentui/react";
 import { Sparkle28Filled } from "@fluentui/react-icons";
+import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
 import styles from "./SqlAgent.module.css";
 import { Pivot, PivotItem } from '@fluentui/react';
@@ -41,6 +42,7 @@ const SqlAgent = () => {
     //const [answerChain, setAnswerChain] = useState<AskResponse>();
     const [answerChain, setAnswerChain] = useState<[AskResponse, string | null]>();
     const [useAutoSpeakAnswers, setUseAutoSpeakAnswers] = useState<boolean>(false);
+    const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
 
 
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
@@ -52,8 +54,27 @@ const SqlAgent = () => {
     const [sqlData, setSqlData] = useState<Record<string, string | boolean | number>[]>([]);
     const [exampleLoading, setExampleLoading] = useState(false)
 
-    // SyntaxHighlighter.registerLanguage("javascript", sql);
+    const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
 
+    const embeddingOptions = [
+        {
+          key: 'azureopenai',
+          text: 'Azure Open AI'
+        },
+        {
+          key: 'openai',
+          text: 'Open AI'
+        }
+        // {
+        //   key: 'local',
+        //   text: 'Local Embedding'
+        // }
+    ]
+
+    const onEmbeddingChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedEmbeddingItem(item);
+    };
+    
     const startSynthesis = async (answerType:string, url: string | null) => {
         if(isSpeaking) {
             audio.pause();
@@ -118,7 +139,7 @@ const SqlAgent = () => {
         setActiveAnalysisPanelTab(undefined);
 
         try {
-            const result = await sqlChat(question, retrieveCount);
+            const result = await sqlChat(question, retrieveCount, String(selectedEmbeddingItem?.key));
             setSqlQuery(result.toolInput? result.toolInput : '');
             const dataTable:  Record<string, string | boolean | number>[] = []
             result.observation?.slice(1, -1).split('), (').forEach(function(el){
@@ -175,7 +196,7 @@ const SqlAgent = () => {
         setActiveAnalysisPanelTab(undefined);
 
         try {
-            const result = await sqlChain(question, retrieveCount);
+            const result = await sqlChain(question, retrieveCount, String(selectedEmbeddingItem?.key));
             setSqlQuery(result.toolInput? result.toolInput : '');
             const dataTable: Record<string, string | boolean | number>[] = []
             result.observation?.slice(1, -1).split('), (').forEach(function(el){
@@ -333,6 +354,7 @@ const SqlAgent = () => {
 
     useEffect(() => {
         documentSummaryAndQa()
+        setSelectedEmbeddingItem(embeddingOptions[0])
     }, [])
 
     return (
@@ -365,12 +387,6 @@ const SqlAgent = () => {
                             />
                         </div>
                         {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
-                        {/* {!answer && (
-                            <ExampleList onExampleClicked={onExampleClicked}
-                            EXAMPLES={
-                                exampleList
-                            } />
-                        )} */}
                         <ExampleList onExampleClicked={onExampleClicked}
                             EXAMPLES={
                                 exampleList
@@ -594,6 +610,18 @@ const SqlAgent = () => {
                     onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
                     isFooterAtBottom={true}
                 >
+                     <div>
+                        <Label>LLM Model</Label>
+                        <Dropdown
+                            selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                            onChange={onEmbeddingChange}
+                            defaultSelectedKey="azureopenai"
+                            placeholder="Select an LLM Model"
+                            options={embeddingOptions}
+                            disabled={false}
+                            styles={dropdownStyles}
+                        />
+                    </div>
                     <br/>
                     <SpinButton
                         className={styles.oneshotSettingsSeparator}

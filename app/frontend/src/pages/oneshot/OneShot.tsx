@@ -81,6 +81,22 @@ const OneShot = () => {
     const [selectedTaskAgentKeys, setSelectedTaskAgentKeys] = useState<string[]>([]);
     const [selectedTaskAgentText, setSelectedTaskAgentText] = useState<string[]>([]);
     const [selectedTaskAgentIndexes, setSelectedTaskAgentIndexes] = useState<{ indexNs: string; indexName: any; returnDirect: string; }[]>([]);
+    const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
+
+    const embeddingOptions = [
+        {
+          key: 'azureopenai',
+          text: 'Azure Open AI'
+        },
+        {
+          key: 'openai',
+          text: 'Open AI'
+        }
+        // {
+        //   key: 'local',
+        //   text: 'Local Embedding'
+        // }
+    ]
 
     const indexTypeOptions = [
         {
@@ -90,6 +106,10 @@ const OneShot = () => {
         {
           key: 'redis',
           text: 'Redis Stack'
+        },
+        {
+          key: 'chroma',
+          text: 'Chroma'
         }
     ]
 
@@ -211,7 +231,8 @@ const OneShot = () => {
                     chainType: String(selectedChain?.key),
                     tokenLength: tokenLength,
                     suggestFollowupQuestions: useSuggestFollowupQuestions,
-                    autoSpeakAnswers: useAutoSpeakAnswers
+                    autoSpeakAnswers: useAutoSpeakAnswers,
+                    embeddingModelType: String(selectedEmbeddingItem?.key)
                 }
             };
             const result = await askApi(request, String(selectedItem?.key), String(selectedIndex), 'stuff');
@@ -253,7 +274,8 @@ const OneShot = () => {
                     chainType: String(selectedChain?.key),
                     tokenLength: tokenLength,
                     suggestFollowupQuestions: useSuggestFollowupQuestions,
-                    autoSpeakAnswers: useAutoSpeakAnswers
+                    autoSpeakAnswers: useAutoSpeakAnswers,
+                    embeddingModelType: String(selectedEmbeddingItem?.key)
                 }
             };
             const result = await askAgentApi(request);
@@ -295,11 +317,11 @@ const OneShot = () => {
                     chainType: String(selectedChain?.key),
                     tokenLength: tokenLength,
                     suggestFollowupQuestions: useSuggestFollowupQuestions,
-                    autoSpeakAnswers: useAutoSpeakAnswers
+                    autoSpeakAnswers: useAutoSpeakAnswers,
+                    embeddingModelType: String(selectedEmbeddingItem?.key)
                 }
             };
             const result = await askTaskAgentApi(request);
-            //setAgentAnswer(result);
             setTaskAgentAnswer([result, null]);
             if(useAutoSpeakAnswers) {
                 const speechUrl = await getSpeechApi(result.answer);
@@ -347,6 +369,10 @@ const OneShot = () => {
                 setIsSpeaking(false);
             });    
         }
+    };
+
+    const onEmbeddingChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedEmbeddingItem(item);
     };
 
     const stopSynthesis = () => {
@@ -532,22 +558,8 @@ const OneShot = () => {
         setSelectedChain(chainType[0])
         setSelectedindexTypeItem(indexTypeOptions[0])
         refreshFilteredBlob(indexTypeOptions[0].key)
+        setSelectedEmbeddingItem(embeddingOptions[0])
     }, [])
-
-    // const approaches: IChoiceGroupOption[] = [
-    //     {
-    //         key: Approaches.RetrieveThenRead,
-    //         text: "Retrieve-Then-Read"
-    //     },
-    //     {
-    //         key: Approaches.ReadRetrieveRead,
-    //         text: "Read-Retrieve-Read"
-    //     },
-    //     {
-    //         key: Approaches.ReadDecomposeAsk,
-    //         text: "Read-Decompose-Ask"
-    //     }
-    // ];
 
     const approaches: IChoiceGroupOption[] = [
         {
@@ -621,13 +633,6 @@ const OneShot = () => {
                                 </div>
                                 {!answer && (<h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>)}
                                 {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
-                                {/* {!answer && (
-                                    <ExampleList onExampleClicked={onExampleClicked}
-                                    EXAMPLES={
-                                        exampleList
-                                    } />
-                                )} */}
-
                                 <ExampleList onExampleClicked={onExampleClicked}
                                 EXAMPLES={
                                     exampleList
@@ -640,7 +645,6 @@ const OneShot = () => {
                                         <div className={styles.oneshotAnswerContainer}>
                                             <Stack horizontal horizontalAlign="space-between">
                                                 <Answer
-                                                    //answer={answer}
                                                     answer={answer[0]}
                                                     isSpeaking = {isSpeaking}
                                                     onCitationClicked={x => onShowCitation(x)}
@@ -683,17 +687,29 @@ const OneShot = () => {
                             >
                                 <br/>
                                 <div>
-                                        <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
-                                        <Dropdown
-                                            selectedKey={selectedItem ? selectedItem.key : undefined}
-                                            // eslint-disable-next-line react/jsx-no-bind
-                                            onChange={onChange}
-                                            placeholder="Select an PDF"
-                                            options={options}
-                                            styles={dropdownStyles}
-                                        />
-                                        &nbsp;
-                                        <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                                    <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
+                                    <Dropdown
+                                        selectedKey={selectedItem ? selectedItem.key : undefined}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onChange={onChange}
+                                        placeholder="Select an PDF"
+                                        options={options}
+                                        styles={dropdownStyles}
+                                    />
+                                    <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                                </div>
+                                <br/>
+                                <div>
+                                    <Label>LLM Model</Label>
+                                    <Dropdown
+                                        selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                                        onChange={onEmbeddingChange}
+                                        defaultSelectedKey="azureopenai"
+                                        placeholder="Select an LLM Model"
+                                        options={embeddingOptions}
+                                        disabled={false}
+                                        styles={dropdownStyles}
+                                    />
                                 </div>
                                 <ChoiceGroup
                                     className={styles.oneshotSettingsSeparator}
@@ -779,20 +795,6 @@ const OneShot = () => {
                                     label="Automatically speak answers"
                                     onChange={onEnableAutoSpeakAnswersChange}
                                 />
-                                {/* <TextField className={styles.oneshotSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
-                                <Checkbox
-                                    className={styles.oneshotSettingsSeparator}
-                                    checked={useSemanticRanker}
-                                    label="Use semantic ranker for retrieval"
-                                    onChange={onUseSemanticRankerChange}
-                                />
-                                <Checkbox
-                                    className={styles.oneshotSettingsSeparator}
-                                    checked={useSemanticCaptions}
-                                    label="Use query-contextual summaries instead of whole documents"
-                                    onChange={onUseSemanticCaptionsChange}
-                                    disabled={!useSemanticRanker}
-                                /> */}
                             </Panel>
                     </PivotItem>
                     <PivotItem
@@ -810,20 +812,20 @@ const OneShot = () => {
                                 <Stack enableScopedSelectors tokens={outerStackTokens}>
                                     <Stack enableScopedSelectors  tokens={innerStackTokens}>
                                         <Stack.Item grow styles={stackItemStyles}>
-                                        <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>&nbsp;
-                                        <Label>Index Type</Label>
-                                        &nbsp;
-                                        <Dropdown
-                                            selectedKey={selectedindexTypeItem ? selectedindexTypeItem.key : undefined}
-                                            onChange={onIndexChange}
-                                            defaultSelectedKey="pinecone"
-                                            placeholder="Select an Index Type"
-                                            options={indexTypeOptions}
-                                            disabled={false}
-                                            styles={dropdownStyles}
-                                        />
-                                        &nbsp;
-                                        <Dropdown
+                                            <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>&nbsp;
+                                            <Label>Index Type</Label>
+                                            &nbsp;
+                                            <Dropdown
+                                                selectedKey={selectedindexTypeItem ? selectedindexTypeItem.key : undefined}
+                                                onChange={onIndexChange}
+                                                defaultSelectedKey="pinecone"
+                                                placeholder="Select an Index Type"
+                                                options={indexTypeOptions}
+                                                disabled={false}
+                                                styles={dropdownStyles}
+                                            />
+                                            &nbsp;
+                                            <Dropdown
                                                 selectedKeys={selectedKeys}
                                                 // eslint-disable-next-line react/jsx-no-bind
                                                 onChange={onFilteredOptionChange}
@@ -832,6 +834,20 @@ const OneShot = () => {
                                                 options={filteredOptions}
                                                 styles={dropdownStyles}
                                             />
+                                            &nbsp;
+                                            <Label>LLM Model</Label>
+                                            &nbsp;
+                                            <Dropdown
+                                                selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                                                onChange={onEmbeddingChange}
+                                                defaultSelectedKey="azureopenai"
+                                                placeholder="Select an LLM Model"
+                                                options={embeddingOptions}
+                                                disabled={false}
+                                                styles={dropdownStyles}
+                                            />
+                                        </Stack.Item>
+                                        <Stack.Item grow styles={stackItemStyles}>
                                         </Stack.Item>
                                     </Stack>
                                 </Stack>
@@ -849,14 +865,7 @@ const OneShot = () => {
                                         onSend={question => makeApiAgentRequest(question)}
                                     />
                                 </div>
-                                {/* {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
-                                <ExampleList onExampleClicked={onExampleClicked}
-                                EXAMPLES={
-                                    exampleList
-                                } /> */}
                                 <div className={styles.chatContainer}>
-                                {/* <div className={styles.example}>
-                                </div>   */}
                                 </div>    
                             </div>
                             <div className={styles.oneshotBottomSection}>
@@ -908,19 +917,6 @@ const OneShot = () => {
                                 isFooterAtBottom={true}
                             >
                                 <br/>
-                                {/* <div>
-                                        <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
-                                        <Dropdown
-                                            selectedKey={selectedItem ? selectedItem.key : undefined}
-                                            // eslint-disable-next-line react/jsx-no-bind
-                                            onChange={onChange}
-                                            placeholder="Select an PDF"
-                                            options={options}
-                                            styles={dropdownStyles}
-                                        />
-                                        &nbsp;
-                                        <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
-                                </div> */}
                                  <SpinButton
                                     className={styles.oneshotSettingsSeparator}
                                     label="Set the Temperature:"
@@ -974,26 +970,38 @@ const OneShot = () => {
                                 <Stack enableScopedSelectors tokens={outerStackTokens}>
                                     <Stack enableScopedSelectors  tokens={innerStackTokens}>
                                         <Stack.Item grow styles={stackItemStyles}>
-                                        <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>&nbsp;
-                                        <Label>Index Type</Label>
-                                        &nbsp;
-                                        <Dropdown
-                                            selectedKey={selectedindexTypeItem ? selectedindexTypeItem.key : undefined}
-                                            onChange={onIndexChange}
-                                            defaultSelectedKey="pinecone"
-                                            placeholder="Select an Index Type"
-                                            options={indexTypeOptions}
-                                            disabled={false}
-                                            styles={dropdownStyles}
-                                        />
-                                        &nbsp;
-                                        <Dropdown
+                                            <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>&nbsp;
+                                            <Label>Index Type</Label>
+                                            &nbsp;
+                                            <Dropdown
+                                                selectedKey={selectedindexTypeItem ? selectedindexTypeItem.key : undefined}
+                                                onChange={onIndexChange}
+                                                defaultSelectedKey="pinecone"
+                                                placeholder="Select an Index Type"
+                                                options={indexTypeOptions}
+                                                disabled={false}
+                                                styles={dropdownStyles}
+                                            />
+                                            &nbsp;
+                                            <Dropdown
                                                 selectedKeys={selectedTaskAgentKeys}
                                                 // eslint-disable-next-line react/jsx-no-bind
                                                 onChange={onFilteredTaskAgentOptionChange}
                                                 placeholder="Select Your Documents"
                                                 multiSelect={true}
                                                 options={filteredTaskAgentOptions}
+                                                styles={dropdownStyles}
+                                            />
+                                            &nbsp;
+                                            <Label>LLM Model</Label>
+                                            &nbsp;
+                                            <Dropdown
+                                                selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                                                onChange={onEmbeddingChange}
+                                                defaultSelectedKey="azureopenai"
+                                                placeholder="Select an LLM Model"
+                                                options={embeddingOptions}
+                                                disabled={false}
                                                 styles={dropdownStyles}
                                             />
                                         </Stack.Item>

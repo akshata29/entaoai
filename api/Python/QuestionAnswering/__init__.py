@@ -1,7 +1,7 @@
 import logging, json, os
 import azure.functions as func
 import openai
-from langchain.llms.openai import AzureOpenAI
+from langchain.llms.openai import AzureOpenAI, OpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 import os
 from langchain.vectorstores import Pinecone
@@ -33,26 +33,27 @@ PineconeKey = os.environ['PineconeKey']
 VsIndexName = os.environ['VsIndexName']
 SearchService = os.environ['SearchService']
 SearchKey = os.environ['SearchKey']
+OpenAiApiKey = os.environ['OpenAiApiKey']
 
 def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrides):
     logging.info("Calling FindAnswer Open AI")
-    openai.api_type = "azure"
-    openai.api_key = OpenAiKey
-    openai.api_version = OpenAiVersion
-    openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-
     answer = ''
-
-    # https://langchain.readthedocs.io/en/latest/modules/indexes/chain_examples/qa_with_sources.html
-
+    
     try:
         topK = overrides.get("top") or 5
         overrideChain = overrides.get("chainType") or 'stuff'
         temperature = overrides.get("temperature") or 0.3
         tokenLength = overrides.get('tokenLength') or 500
+        embeddingModelType = overrides.get('embeddingModelType') or 'azureopenai'
+
         logging.info("Search for Top " + str(topK) + " and chainType is " + str(overrideChain))
         thoughtPrompt = ''
-        if (approach == 'rtr'):
+
+        if (embeddingModelType == 'azureopenai'):
+            openai.api_type = "azure"
+            openai.api_key = OpenAiKey
+            openai.api_version = OpenAiVersion
+            openai.api_base = f"https://{OpenAiService}.openai.azure.com"
             llm = AzureOpenAI(deployment_name=OpenAiDavinci,
                     temperature=temperature,
                     openai_api_key=OpenAiKey,
@@ -62,7 +63,18 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
 
             logging.info("LLM Setup done")
             embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+        elif embeddingModelType == "openai":
+            openai.api_type = "open_ai"
+            openai.api_base = "https://api.openai.com/v1"
+            openai.api_version = '2020-11-07' 
+            openai.api_key = OpenAiApiKey
+            llm = OpenAI(temperature=temperature,
+                    openai_api_key=OpenAiApiKey,
+                    max_tokens=tokenLength)
+            embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
 
+
+        if (approach == 'rtr'):
             if (overrideChain == "stuff"):
                 template = """
                 Given the following extracted parts of a long document and a question, create a final answer. 
@@ -229,9 +241,6 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                 vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
                 docRetriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": topK})
                 logging.info("Pinecone Setup done")
-                #chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, k=topK,
-                #                                search_kwargs={"namespace": indexNs})
-                #chain = RetrievalQAWithSourcesChain(combine_documents_chain=qaChain, retriever=docRetriever, return_source_documents=True)
                 chain = RetrievalQA(combine_documents_chain=qaChain, retriever=docRetriever, return_source_documents=True)
                 llmAnswer = chain({"query": question}, return_only_outputs=True)
                 docs = llmAnswer['source_documents']
@@ -267,7 +276,7 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
                 try:
                     returnField = ["metadata", "content", "vector_score"]
                     vectorField = "content_vector"
-                    results = performRedisSearch(question, indexNs, topK, returnField, vectorField)
+                    results = performRedisSearch(question, indexNs, topK, returnField, vectorField, embeddingModelType)
                     docs = [
                             Document(page_content=result.content, metadata=json.loads(result.metadata))
                             for result in results.docs
