@@ -104,4 +104,4 @@ cssutils==1.0.2
 pathos==0.2.9
 pyodbc==4.0.35
 boto3==1.26.108
-chroma=0.3.21
+chroma==0.3.21
