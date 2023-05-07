@@ -1,9 +1,9 @@
 -- Docker build
-docker build --tag akshata13/chataskapi:v1.0.0 .
+docker build --tag akshata13/chataskapi:latest .
 
 -- Docker  Push
 docker login
-docker push akshata13/chataskapi:v1.0.0
+docker push akshata13/chataskapi:latest
 
 -- Docker Run
-docker run --env-file .dockerenv -p 7071:80 --name chataskapi -it akshata13/chataskapi:v1.0.0 
+docker run --env-file .dockerenv -p 7071:80 --name chataskapi -it akshata13/chataskapi:latest 

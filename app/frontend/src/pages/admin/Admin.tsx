@@ -99,11 +99,11 @@ const Admin = () => {
       {
         key: 'cogsearch',
         text: 'Cognitive Search'
-      },
-      {
-        key: 'chroma',
-        text: 'Chroma'
       }
+      // {
+      //   key: 'chroma',
+      //   text: 'Chroma'
+      // }
       // ,
       // {
       //   key: 'weaviate',

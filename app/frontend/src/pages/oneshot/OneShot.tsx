@@ -106,11 +106,11 @@ const OneShot = () => {
         {
           key: 'redis',
           text: 'Redis Stack'
-        },
-        {
-          key: 'chroma',
-          text: 'Chroma'
         }
+        // {
+        //   key: 'chroma',
+        //   text: 'Chroma'
+        // }
     ]
 
     const stackItemStyles: IStackItemStyles = {

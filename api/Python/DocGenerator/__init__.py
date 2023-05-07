@@ -28,10 +28,10 @@ from langchain.document_loaders import AzureBlobStorageContainerLoader
 from azure.storage.blob import BlobClient
 from azure.storage.blob import ContainerClient
 import boto3
-import chromadb
-from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
-from chromadb.config import Settings
-from langchain.vectorstores import Chroma
+#import chromadb
+#from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
+#from chromadb.config import Settings
+#from langchain.vectorstores import Chroma
 from sentence_transformers import SentenceTransformer
 from typing import List
 
@@ -59,12 +59,12 @@ OpenAiOrg = os.environ['OpenAiOrg']
 
 try:
     redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
-    chromaClient = chromadb.Client(Settings(
-            chroma_api_impl="rest",
-            chroma_server_host=ChromaUrl,
-            chroma_server_http_port=ChromaPort))
-    chromaClient.heartbeat()
-    logging.info("Successfully connected to Chroma DB. Collections found: %s",chromaClient.list_collections())
+    # chromaClient = chromadb.Client(Settings(
+    #         chroma_api_impl="rest",
+    #         chroma_server_host=ChromaUrl,
+    #         chroma_server_http_port=ChromaPort))
+    # chromaClient.heartbeat()
+    # logging.info("Successfully connected to Chroma DB. Collections found: %s",chromaClient.list_collections())
 except:
     logging.info("Chroma dn Redis not configured")
 
@@ -285,7 +285,7 @@ def storeIndex(indexType, docs, fileName, nameSpace, embeddingModelType):
         indexSections(fileName, nameSpace, docs)
     elif indexType == "chroma":
         logging.info("Chroma Client: " + str(docs))
-        Chroma.from_documents(docs, embeddings, collection_name=nameSpace, client=chromaClient, embedding_function=embeddings)
+        #Chroma.from_documents(docs, embeddings, collection_name=nameSpace, client=chromaClient, embedding_function=embeddings)
     elif indexType == 'milvus':
         milvus = Milvus(connection_args={"host": "127.0.0.1", "port": "19530"},
                         collection_name=VsIndexName, text_field="text", embedding_function=embeddings)
