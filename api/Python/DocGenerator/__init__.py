@@ -67,33 +67,6 @@ try:
     # logging.info("Successfully connected to Chroma DB. Collections found: %s",chromaClient.list_collections())
 except:
     logging.info("Chroma dn Redis not configured")
-
-class LocalHuggingFaceEmbeddings(Embeddings):
-    def __init__(self, model_id):
-        # Should use the GPU by default
-        self.model = SentenceTransformer(model_id)
-
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        """Embed a list of documents using a locally running
-           Hugging Face Sentence Transformer model
-        Args:
-            texts: The list of texts to embed.
-        Returns:
-            List of embeddings, one for each text.
-        """
-        embeddings = self.model.encode(texts)
-        return embeddings
-
-    def embed_query(self, text: str) -> List[float]:
-        """Embed a query using a locally running HF
-        Sentence transformer.
-        Args:
-            text: The text to embed.
-        Returns:
-            Embeddings for the text.
-        """
-        embedding = self.model.encode(text)
-        return list(map(float, embedding))
     
 def GetAllFiles(filesToProcess):
     files = []
@@ -203,7 +176,7 @@ def summarizeGenerateQa(docs, embeddingModelType):
         summary = summaryChain.run(docs)
         logging.info("Document Summary completed")
     except Exception as e:
-        logging.info(e)
+        logging.info("Exception during summary" + str(e))
         summary = 'No summary generated'
         pass
 
@@ -217,9 +190,10 @@ def summarizeGenerateQa(docs, embeddingModelType):
         qaPrompt = PromptTemplate(template=template, input_variables=["summaries"])
         qaChain = load_qa_with_sources_chain(llm, chain_type='stuff', prompt=qaPrompt)
         answer = qaChain({"input_documents": docs[:5], "question": ''}, return_only_outputs=True)
+        logging.info("Document QA completed")
         qa = answer['output_text'].replace('\nSample Questions: \n', '').replace('\nSample Questions:\n', '').replace('\n', '\\n')
     except Exception as e:
-        logging.info(e)
+        logging.info("Exception during QA" + str(e))
         qa = 'No Sample QA generated'
         pass
     #qa = qa.decode('utf8')
