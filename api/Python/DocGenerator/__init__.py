@@ -32,7 +32,7 @@ import boto3
 #from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
 #from chromadb.config import Settings
 #from langchain.vectorstores import Chroma
-from sentence_transformers import SentenceTransformer
+#from sentence_transformers import SentenceTransformer
 from typing import List
 
 OpenAiKey = os.environ['OpenAiKey']
@@ -55,7 +55,7 @@ AdminPassword = os.environ['AdminPassword'] or ''
 ChromaUrl = os.environ['ChromaUrl'] or ''
 ChromaPort = os.environ['ChromaPort'] or '8000'
 OpenAiApiKey = os.environ['OpenAiApiKey']
-OpenAiOrg = os.environ['OpenAiOrg']
+#OpenAiOrg = os.environ['OpenAiOrg']
 
 try:
     redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort

@@ -7,7 +7,6 @@
       "UploadPassword": "", // Upload Password that is used for uploading files
       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
       "OpenAiApiKey": "",
-      "OpenAiOrg": "",
       "OpenAiKey": "", // Open AI Key
       "OpenAiService": "", // Name of Open AI Service
       "OpenAiEndPoint": "", // FQDN of Open AI Service
