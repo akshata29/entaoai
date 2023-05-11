@@ -8,22 +8,7 @@ from langchain.prompts.prompt import PromptTemplate
 from langchain.chains import SQLDatabaseSequentialChain
 from langchain.chains import LLMChain
 from langchain.schema import AgentAction
-
-OpenAiKey = os.environ['OpenAiKey']
-OpenAiEndPoint = os.environ['OpenAiEndPoint']
-OpenAiVersion = os.environ['OpenAiVersion']
-OpenAiDavinci = os.environ['OpenAiDavinci']
-OpenAiEmbedding = os.environ['OpenAiEmbedding']
-OpenAiService = os.environ['OpenAiService']
-OpenAiDocStorName = os.environ['OpenAiDocStorName']
-OpenAiDocStorKey = os.environ['OpenAiDocStorKey']
-OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"
-OpenAiDocContainer = os.environ['OpenAiDocContainer']
-SynapseName = os.environ['SynapseName']
-SynapseUser = os.environ['SynapseUser']
-SynapsePassword = os.environ['SynapsePassword']
-SynapsePool = os.environ['SynapsePool']
-OpenAiApiKey = os.environ['OpenAiApiKey']
+from Utilities.envVars import *
 
 def FindSqlAnswer(topK, question, embeddingModelType, value):
     logging.info("Calling FindSqlAnswer Open AI")

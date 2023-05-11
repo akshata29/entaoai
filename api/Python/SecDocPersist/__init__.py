@@ -7,21 +7,7 @@ from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 import numpy as np
 from Utilities.redisIndex import createRedisIndex, chunkAndEmbed
 from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs
-
-OpenAiKey = os.environ['OpenAiKey']
-OpenAiEndPoint = os.environ['OpenAiEndPoint']
-OpenAiVersion = os.environ['OpenAiVersion']
-OpenAiDavinci = os.environ['OpenAiDavinci']
-OpenAiService = os.environ['OpenAiService']
-OpenAiDocStorName = os.environ['OpenAiDocStorName']
-OpenAiDocStorKey = os.environ['OpenAiDocStorKey']
-OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"
-SecDocContainer = os.environ['SecDocContainer']
-VsIndexName = os.environ['VsIndexName']
-RedisAddress = os.environ['RedisAddress']
-RedisPassword = os.environ['RedisPassword']
-OpenAiEmbedding = os.environ['OpenAiEmbedding']
-RedisPort = os.environ['RedisPort']
+from Utilities.envVars import *
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 

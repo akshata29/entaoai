@@ -13,6 +13,8 @@
       "OpenAiVersion": "2022-12-01",
       "OpenAiDavinci": "", // Deployment name of Davinci-003
       "OpenAiEmbedding": "", // Deployment name of Ada-003
+      "FormRecognizerEndPoint": "", // Form Recognizer Endpoint
+      "FormRecognizerKey": "",  // Form Recognizer Key
       "MaxTokens": 500, 
       "Temperature": 0.3,
       "OpenAiChat": "", // GPT 3.5 deployment name

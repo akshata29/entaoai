@@ -42,7 +42,20 @@ def getSasToken(connectionString, container, fileName):
        account_key=blobClient.credential.account_key,  permission="r", expiry=datetime.utcnow() + timedelta(hours=3)
     )
     return sasToken
-    
+
+def copyS3Blob(downloadPath, blobName, openAiBlobConnectionString, openAiBlobContainer):
+    with open(downloadPath, "wb") as file:
+        readBytes = file.read()
+    blobServiceClient = BlobServiceClient.from_connection_string(openAiBlobConnectionString)
+    blobClient = blobServiceClient.get_blob_client(container=openAiBlobContainer, blob=blobName)
+    blobClient.upload_blob(readBytes,overwrite=True)
+
+def copyBlob(blobConnectionString, blobContainer, blobName, openAiBlobConnectionString, openAiBlobContainer):
+    readBytes  = getBlob(blobConnectionString, blobContainer, blobName)
+    blobServiceClient = BlobServiceClient.from_connection_string(openAiBlobConnectionString)
+    blobClient = blobServiceClient.get_blob_client(container=openAiBlobContainer, blob=blobName)
+    blobClient.upload_blob(readBytes,overwrite=True)
+
 def uploadBlob(connectionString, container, fileName, fileContent, contentType):
     blobServiceClient = BlobServiceClient.from_connection_string(connectionString)
     blobClient = blobServiceClient.get_blob_client(container=container, blob=fileName)

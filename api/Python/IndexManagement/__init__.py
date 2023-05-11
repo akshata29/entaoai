@@ -31,25 +31,7 @@ from langchain.document_loaders import AzureBlobStorageContainerLoader
 from azure.storage.blob import BlobClient
 from azure.storage.blob import ContainerClient
 import boto3
-
-OpenAiKey = os.environ['OpenAiKey']
-OpenAiEndPoint = os.environ['OpenAiEndPoint']
-OpenAiVersion = os.environ['OpenAiVersion']
-OpenAiDavinci = os.environ['OpenAiDavinci']
-OpenAiService = os.environ['OpenAiService']
-OpenAiDocStorName = os.environ['OpenAiDocStorName']
-OpenAiDocStorKey = os.environ['OpenAiDocStorKey']
-OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"
-OpenAiDocContainer = os.environ['OpenAiDocContainer']
-PineconeEnv = os.environ['PineconeEnv']
-PineconeKey = os.environ['PineconeKey']
-VsIndexName = os.environ['VsIndexName']
-RedisAddress = os.environ['RedisAddress']
-RedisPassword = os.environ['RedisPassword']
-OpenAiEmbedding = os.environ['OpenAiEmbedding']
-RedisPort = os.environ['RedisPort']
-UploadPassword = os.environ['UploadPassword'] or ''
-AdminPassword = os.environ['AdminPassword'] or ''
+from Utilities.envVars import *
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 

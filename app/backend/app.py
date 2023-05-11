@@ -182,6 +182,7 @@ def processDoc():
     existingIndex=request.json["existingIndex"]
     existingIndexNs=request.json["existingIndexNs"]
     embeddingModelType=request.json["embeddingModelType"]
+    textSplitter=request.json["textSplitter"]
     postBody=request.json["postBody"]
    
     try:
@@ -190,7 +191,8 @@ def processDoc():
 
         data = postBody
         params = {'indexType': indexType, "indexName": indexName, "multiple": multiple , "loadType": loadType,
-                  "existingIndex": existingIndex, "existingIndexNs": existingIndexNs, "embeddingModelType": embeddingModelType}
+                  "existingIndex": existingIndex, "existingIndexNs": existingIndexNs, "embeddingModelType": embeddingModelType,
+                  "textSplitter": textSplitter}
         resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
         jsonDict = json.loads(resp.text)
         #return json.dumps(jsonDict)
@@ -328,7 +330,9 @@ def uploadBinaryFile():
 # Serve content files from blob storage from within the app to keep the example self-contained. 
 # *** NOTE *** this assumes that the content files are public, or at least that all users of the app
 # can access all the files. This is also slow and memory hungry.
-@app.route("/content/<path>")
+#@app.route("/content/<path>")
+@app.route('/content/', defaults={'path': '<path>'})
+@app.route('/content/<path:path>')
 def content_file(path):
     url = os.environ.get("BLOB_CONNECTION_STRING")
     containerName = os.environ.get("BLOB_CONTAINER_NAME")

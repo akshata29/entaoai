@@ -72,6 +72,27 @@ const Upload = () => {
     const [missingUploadPassword, setMissingUploadPassword] = useState(false)
     const [uploadError, setUploadError] = useState(false)
 
+    const [selectedTextSplitterItem, setSelectedTextSplitterItem] = useState<IDropdownOption>();
+
+    const textSplitterOptions = [
+      {
+        key: 'recursive',
+        text: 'Recursive Character Text Splitter'
+      },
+      {
+        key: 'tiktoken',
+        text: 'Tik Token'
+      },
+      {
+        key: 'nltk',
+        text: 'NLTK Text Splitter'
+      },
+      {
+        key: 'formrecognizer',
+        text: 'Form Recognizer'
+      }
+    ]
+
     const connectors = [
       { key: 's3file', text: 'Amazon S3 File'},
       { key: 's3Container', text: 'Amazon S3 Container'},
@@ -330,7 +351,7 @@ const Upload = () => {
           blobConnectionString, blobContainer, blobPrefix, blobName,
           s3Bucket, s3Key, s3AccessKey, s3SecretKey, s3Prefix,
           existingIndex ? "true" : "false", existingIndex ? indexNs : '',
-          String(selectedEmbeddingItem?.key))
+          String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key))
           .then((response:string) => {
             if (response == "Success") {
               setUploadText("Completed Successfully.  You can now search for your document.")
@@ -407,7 +428,7 @@ const Upload = () => {
               processPage, blobConnectionString,
               blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
               s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '',
-              String(selectedEmbeddingItem?.key))
+              String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key))
               .then((response) => {
                 if (response == "Success") {
                   setUploadText("Completed Successfully.  You can now search for your document.")
@@ -511,7 +532,7 @@ const Upload = () => {
                 '', blobConnectionString,
                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
                 s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '',
-                String(selectedEmbeddingItem?.key))  
+                String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key))  
                 .then((response) => {
                   if (response == "Success") {
                     setUploadText("Completed Successfully.  You can now search for your document.")
@@ -590,6 +611,10 @@ const Upload = () => {
       setSelectedEmbeddingItem(item);
     };
 
+    const onTextSplitterChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedTextSplitterItem(item);
+    };
+
     const onChangeIndexName = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
         setIndexName(newValue || '');
     };
@@ -656,6 +681,7 @@ const Upload = () => {
       setSelectedConnector(connectors[0])
       refreshBlob(options[0].key as string)
       setSelectedEmbeddingItem(embeddingOptions[0])
+      setSelectedTextSplitterItem(textSplitterOptions[0])
     }, [])
 
     return (
@@ -702,6 +728,19 @@ const Upload = () => {
                       options={optionsPdf}
                       styles={dropdownStyles}
                   />) : (<></>)}
+                </Stack.Item>
+                <Stack.Item grow styles={stackItemStyles}>
+                <Label>Chunk Document using :</Label>
+                  &nbsp;
+                  <Dropdown
+                      selectedKey={selectedTextSplitterItem ? selectedTextSplitterItem.key : undefined}
+                      onChange={onTextSplitterChange}
+                      defaultSelectedKey="azureopenai"
+                      placeholder="Select text splitter"
+                      options={textSplitterOptions}
+                      disabled={false}
+                      styles={dropdownStyles}
+                  />
                 </Stack.Item>
               </Stack>
             </Stack>

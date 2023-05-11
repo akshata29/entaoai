@@ -21,24 +21,7 @@ from langchain.docstore.document import Document
 import tiktoken
 from typing import Mapping
 from langchain.chains.question_answering import load_qa_chain
-
-
-OpenAiKey = os.environ['OpenAiKey']
-OpenAiEndPoint = os.environ['OpenAiEndPoint']
-OpenAiVersion = os.environ['OpenAiVersion']
-OpenAiDavinci = os.environ['OpenAiDavinci']
-OpenAiEmbedding = os.environ['OpenAiEmbedding']
-OpenAiService = os.environ['OpenAiService']
-OpenAiDocStorName = os.environ['OpenAiDocStorName']
-OpenAiDocStorKey = os.environ['OpenAiDocStorKey']
-OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"
-OpenAiDocContainer = os.environ['OpenAiDocContainer']
-PineconeEnv = os.environ['PineconeEnv']
-PineconeKey = os.environ['PineconeKey']
-VsIndexName = os.environ['VsIndexName']
-RedisAddress = os.environ['RedisAddress']
-RedisPassword = os.environ['RedisPassword']
-RedisPort = os.environ['RedisPort']
+from Utilities.envVars import *
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution

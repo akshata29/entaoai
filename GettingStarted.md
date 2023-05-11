@@ -68,8 +68,10 @@ Verify http://localhost:5000 to confirm the App is running locally.
       8. Setup AZURE_WEBAPP_NAME secret in your forked repository as the name of your Azure App Service
       9. Setup DOCKER_HUB_USERNAME and DOCKER_HUB_ACCESS_TOKEN secret in your forked repository as the name of you docker user name and access token (Optional)
       10. **Note** You can disable the Docker Api and Docker App Actions if it's not required.
-      11. Verify the [Configuration](./Configuration.md) settings are properly configured in Azure Function App and Azure App Service
+      11. Verify the [Configuration](./Configuration.md) settings are properly configured in Azure Function App and Azure App Service.  THe default Upload and Admin password are P@ssw0rd.   Make sure the right keys are configured for the set of the functionality.
    3. Successful execution of both workflow will deploy the Python API and Azure App Services (UI application)
+
+**Note** - To debug and troubleshoot issues after the deployment, you can view the log in Live Metrics in application insights or enable running the Logs for the specific Azure Function.
 
 2. Alternatively deploy the following services manually
    1. [OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal).   Please be aware of the model & region availability documented [here].  Once the service is created, deploy the model for gpt35-turbo(chat), text-davinci-003 (davinci) and text-ada-embedding-002.

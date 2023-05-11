@@ -8,13 +8,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import tempfile
 import uuid
 from langchain.document_loaders import UnstructuredFileLoader
-
-OpenAiKey = os.environ['OpenAiKey']
-OpenAiEndPoint = os.environ['OpenAiEndPoint']
-OpenAiVersion = os.environ['OpenAiVersion']
-OpenAiDavinci = os.environ['OpenAiDavinci']
-OpenAiService = os.environ['OpenAiService']
-OpenAiApiKey = os.environ['OpenAiApiKey']
+from Utilities.envVars import *
 
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:

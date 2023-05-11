@@ -15,6 +15,7 @@
     },
     "variables": {
 		"langSvcName": "[concat(parameters('prefix'), 'lang')]",
+        "frSvcName": "[concat(parameters('prefix'), 'fr')]",
         "speechSvcName": "[concat(parameters('prefix'), 'speech')]",
 		"aoaiSvcName": "[concat(parameters('prefix'), 'aoai')]",
 		"appInsightName": "[concat(parameters('prefix'), 'aisg')]",
@@ -34,7 +35,7 @@
             "name": "[variables('langSvcName')]",
             "location": "[parameters('location')]",
             "sku": {
-                "name": "F0"
+                "name": "S"
             },
             "kind": "TextAnalytics",
             "identity": {
@@ -43,6 +44,29 @@
             "properties": {
                 "apiProperties": {},
                 "customSubDomainName": "[variables('langSvcName')]",
+                "networkAcls": {
+                    "defaultAction": "Allow",
+                    "virtualNetworkRules": [],
+                    "ipRules": []
+                },
+                "publicNetworkAccess": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2022-12-01",
+            "name": "[variables('frSvcName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "S0"
+            },
+            "kind": "FormRecognizer",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "apiProperties": {},
+                "customSubDomainName": "[variables('frSvcName')]",
                 "networkAcls": {
                     "defaultAction": "Allow",
                     "virtualNetworkRules": [],
@@ -616,11 +640,19 @@
 						},
                         {
                             "name": "UploadPassword",
-                            "value": ""
+                            "value": "P@ssw0rd"
                         },
                         {
                             "name": "AdminPassword",
-                            "value": ""
+                            "value": "P@ssw0rd"
+                        },
+                        {
+                            "name": "ChromaUrl",
+                            "value": "Dummy"
+                        },
+                        {
+                            "name": "ChromaPort",
+                            "value": "Dummy"
                         },
 						{
 						  "name": "MaxTokens",
@@ -654,6 +686,14 @@
 						  "name": "OpenAiEmbedding",
 						  "value": "text-embedding-ada-002"
 						},
+                        {
+                            "name": "FormRecognizerEndPoint",
+                            "value": "[concat('https://', variables('frSvcName'), '.cognitiveservices.azure.com/')]"
+                        },
+                        {
+                            "name": "FormRecognizerKey",
+                            "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('frSvcName')), '2022-12-01').key1]"
+                        },
 						{
 						  "name": "OpenAiEndPoint",
 						  "value": "[concat('https://', variables('aoaiSvcName'), '.openai.azure.com/')]"
@@ -662,6 +702,10 @@
 						  "name": "OpenAiKey",
 						  "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName')), '2022-12-01').key1]"
 						},
+                        {
+                            "name": "OpenAiApiKey",
+                            "value": "Dummy"
+                        },                        
 						{
 						  "name": "OpenAiService",
 						  "value": "[variables('aoaiSvcName')]"

@@ -17,23 +17,7 @@ from langchain.docstore.document import Document
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
 from langchain.prompts import load_prompt
-
-OpenAiKey = os.environ['OpenAiKey']
-OpenAiEndPoint = os.environ['OpenAiEndPoint']
-OpenAiVersion = os.environ['OpenAiVersion']
-OpenAiDavinci = os.environ['OpenAiDavinci']
-OpenAiEmbedding = os.environ['OpenAiEmbedding']
-OpenAiService = os.environ['OpenAiService']
-OpenAiDocStorName = os.environ['OpenAiDocStorName']
-OpenAiDocStorKey = os.environ['OpenAiDocStorKey']
-OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"
-OpenAiDocContainer = os.environ['OpenAiDocContainer']
-PineconeEnv = os.environ['PineconeEnv']
-PineconeKey = os.environ['PineconeKey']
-VsIndexName = os.environ['VsIndexName']
-SearchService = os.environ['SearchService']
-SearchKey = os.environ['SearchKey']
-OpenAiApiKey = os.environ['OpenAiApiKey']
+from Utilities.envVars import *
 
 def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrides):
     logging.info("Calling FindAnswer Open AI")
@@ -365,6 +349,7 @@ def FindAnswer(chainType, question, indexType, value, indexNs, approach, overrid
 
     except Exception as e:
       logging.info("Error in FindAnswer Open AI : " + str(e))
+      return {"data_points": "", "answer": "Exception during finding answers - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
 
     #return answer
 

@@ -2,8 +2,10 @@ from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from typing import List
 import re
+from langchain.docstore.document import Document
+import logging
 
-def chunk_paragraphs(paragraphs: List[str], max_words: int = 100) -> List[str]:
+def chunk_paragraphs(paragraphs: List[str], fullPath:str,  max_words: int = 300) -> List[Document]:
     """
     Chunk a list of paragraphs into chunks
     of approximately equal word count.
@@ -34,9 +36,18 @@ def chunk_paragraphs(paragraphs: List[str], max_words: int = 100) -> List[str]:
                 chunks[-1].append(p)
     # Create a list of strings from the list of lists of paragraphs
     chunks = [" ".join([list(c.keys())[0] for c in chunk]) for chunk in chunks]
-    return chunks
 
-def analyze_layout(data: bytes, endpoint: str, key: str) -> List[str]:
+    logging.info(f"Number of chunks: {len(chunks)}")
+
+    docs = [
+            Document(page_content=result)
+            for result in chunks
+        ]
+    for doc in docs:
+        doc.metadata['source'] = fullPath
+    return docs
+
+def analyze_layout(data: bytes, fullpath:str, endpoint: str, key: str) -> List[Document]:
     """
     Analyze a document with the layout model.
 
@@ -57,13 +68,15 @@ def analyze_layout(data: bytes, endpoint: str, key: str) -> List[str]:
     # Get the results and extract the paragraphs
     # (title, section headings, and body)
     result = poller.result()
+    
     paragraphs = [
         p.content
         for p in result.paragraphs
-        if p.role in ["Title", "sectionHeading", None]
+        if p.role in ["Title", "SectionHeading", "PageNumber", "PageFooter", "PageHeader", None]
     ]
     # Chunk the paragraphs (max word count = 100)
-    paragraphs = chunk_paragraphs(paragraphs)
+    logging.info(f"Number of paragraphs: {len(paragraphs)}")
+    paragraphs = chunk_paragraphs(paragraphs, fullpath)
 
     return paragraphs
 

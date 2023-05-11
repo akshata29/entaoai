@@ -1,8 +1,6 @@
 import logging, json, os
 import azure.functions as func
-
-UploadPassword = os.environ['UploadPassword'] or ''
-AdminPassword = os.environ['AdminPassword'] or ''
+from Utilities.envVars import *
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')

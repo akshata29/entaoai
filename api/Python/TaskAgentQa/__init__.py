@@ -16,24 +16,9 @@ from langchain.llms import BaseLLM
 from langchain.chains.base import Chain
 from langchain.agents import ZeroShotAgent, Tool, AgentExecutor
 from langchain.vectorstores.base import VectorStore
-from langchain.chat_models import AzureChatOpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
+from Utilities.envVars import *
 
-OpenAiKey = os.environ['OpenAiKey']
-OpenAiEndPoint = os.environ['OpenAiEndPoint']
-OpenAiVersion = os.environ['OpenAiVersion']
-OpenAiDavinci = os.environ['OpenAiDavinci']
-OpenAiChat = os.environ['OpenAiChat']
-OpenAiEmbedding = os.environ['OpenAiEmbedding']
-OpenAiService = os.environ['OpenAiService']
-OpenAiDocStorName = os.environ['OpenAiDocStorName']
-OpenAiDocStorKey = os.environ['OpenAiDocStorKey']
-OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"
-OpenAiDocContainer = os.environ['OpenAiDocContainer']
-PineconeEnv = os.environ['PineconeEnv']
-PineconeKey = os.environ['PineconeKey']
-VsIndexName = os.environ['VsIndexName']
-SearchService = os.environ['SearchService']
-SearchKey = os.environ['SearchKey']
 taskNamespace = "AgiTask"
 
 class TaskCreationChain(LLMChain):
@@ -332,9 +317,17 @@ def FindAnswer(question, overrides):
         tokenLength = overrides.get('tokenLength') or 500
         indexes = json.loads(json.dumps(overrides.get('indexes')))
         indexType = overrides.get('indexType')
+        embeddingModelType = overrides.get('embeddingModelType') or 'azureopenai'
         logging.info("Search for Top " + str(topK) + " and chainType is " + str(overrideChain))
-        llm = AzureChatOpenAI(
-                openai_api_base=OpenAiEndPoint,
+
+        if (embeddingModelType == 'azureopenai'):
+            openai.api_type = "azure"
+            openai.api_key = OpenAiKey
+            openai.api_version = OpenAiVersion
+            openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+
+            llm = AzureChatOpenAI(
+                openai_api_base="https://{OpenAiService}.openai.azure.com",
                 openai_api_version="2023-03-15-preview",
                 deployment_name=OpenAiChat,
                 temperature=0,
@@ -342,8 +335,18 @@ def FindAnswer(question, overrides):
                 openai_api_type="azure",
                 max_tokens=1000)
 
-        logging.info("LLM Setup done")
-        embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+            embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+            logging.info("Azure Open AI LLM Setup done")
+        elif embeddingModelType == "openai":
+            openai.api_type = "open_ai"
+            openai.api_base = "https://api.openai.com/v1"
+            openai.api_version = '2020-11-07' 
+            openai.api_key = OpenAiApiKey
+            llm = ChatOpenAI(temperature=temperature,
+                    openai_api_key=OpenAiApiKey,
+                    max_tokens=1000)
+            embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
+            logging.info("Open AI LLM Setup done")
 
         if indexType == "pinecone":
             vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexes[0]['indexNs'])
@@ -397,12 +400,32 @@ def FindAnswer(question, overrides):
 
         finalPrompt = followupQaPromptTemplate.format(answer=finalAnswer)
         try:
-            completion = openai.Completion.create(
-                engine=OpenAiDavinci,
-                prompt=finalPrompt,
-                temperature=temperature,
-                max_tokens=tokenLength,
-                n=1)
+            if (embeddingModelType == 'azureopenai'):
+                openai.api_type = "azure"
+                openai.api_key = OpenAiKey
+                openai.api_version = OpenAiVersion
+                openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+
+                completion = openai.Completion.create(
+                    engine=OpenAiDavinci,
+                    prompt=finalPrompt,
+                    temperature=temperature,
+                    max_tokens=tokenLength,
+                    n=1)
+                logging.info("Azure Open AI LLM Setup done")
+            elif embeddingModelType == "openai":
+                openai.api_type = "open_ai"
+                openai.api_base = "https://api.openai.com/v1"
+                openai.api_version = '2020-11-07' 
+                openai.api_key = OpenAiApiKey
+                completion = openai.Completion.create(
+                    engine="text-davinci-003",
+                    prompt=finalPrompt,
+                    temperature=temperature,
+                    max_tokens=tokenLength,
+                    n=1)
+                logging.info("OpenAI LLM Setup done")
+
             nextQuestions = completion.choices[0].text
         except Exception as e:
             logging.error(e)

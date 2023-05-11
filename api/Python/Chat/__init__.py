@@ -18,26 +18,7 @@ from langchain import LLMChain, PromptTemplate
 from langchain.chains import RetrievalQAWithSourcesChain, VectorDBQAWithSourcesChain
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
-
-OpenAiKey = os.environ['OpenAiKey']
-OpenAiEndPoint = os.environ['OpenAiEndPoint']
-OpenAiVersion = os.environ['OpenAiVersion']
-OpenAiDavinci = os.environ['OpenAiDavinci']
-OpenAiService = os.environ['OpenAiService']
-OpenAiDocStorName = os.environ['OpenAiDocStorName']
-OpenAiDocStorKey = os.environ['OpenAiDocStorKey']
-OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"
-OpenAiDocContainer = os.environ['OpenAiDocContainer']
-PineconeEnv = os.environ['PineconeEnv']
-PineconeKey = os.environ['PineconeKey']
-VsIndexName = os.environ['VsIndexName']
-OpenAiChat = os.environ['OpenAiChat']
-OpenAiEmbedding = os.environ['OpenAiEmbedding']
-OpenAiEmbedding = os.environ['OpenAiEmbedding']
-SearchService = os.environ['SearchService']
-SearchKey = os.environ['SearchKey']
-OpenAiApiKey = os.environ['OpenAiApiKey']
-
+from Utilities.envVars import *
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -326,8 +307,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
         
     except Exception as e:
         logging.info(e)
-
-    return {"data_points": "", "answer": "", "thoughts": "", "sources": '', "nextQuestions": '', "error": ""}
+        return {"data_points": "", "answer": "Error : " + str(e), "thoughts": "",
+                "sources": '', "nextQuestions": '', "error": str(e)}
 
 def GetAnswer(history, approach, overrides, indexNs, indexType, question, indexName):
     logging.info("Getting Answer")

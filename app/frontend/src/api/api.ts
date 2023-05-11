@@ -275,7 +275,8 @@ export async function uploadBinaryFile(formData:any, indexName:string) : Promise
 export async function processDoc(indexType: string, loadType : string, multiple: string, indexName : string, files: any,
   blobConnectionString : string, blobContainer : string, blobPrefix : string, blobName : string,
   s3Bucket : string, s3Key : string, s3AccessKey : string, s3SecretKey : string, s3Prefix : string,
-  existingIndex : string, existingIndexNs: string, embeddingModelType: string) : Promise<string> {
+  existingIndex : string, existingIndexNs: string, embeddingModelType: string,
+  textSplitter:string) : Promise<string> {
   const response = await fetch('/processDoc', {
     method: "POST",
     headers: {
@@ -289,6 +290,7 @@ export async function processDoc(indexType: string, loadType : string, multiple:
       existingIndex:existingIndex,
       existingIndexNs:existingIndexNs,
       embeddingModelType:embeddingModelType,
+      textSplitter:textSplitter,
       postBody: {
         values: [
           {
