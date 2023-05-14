@@ -4,6 +4,7 @@ anyio==3.6.2
 argilla==1.4.0
 async-timeout==4.0.2
 attrs==22.2.0
+azure-ai-formrecognizer==3.2.1
 azure-common==1.1.28
 azure-core==1.26.3
 azure-identity==1.12.0
