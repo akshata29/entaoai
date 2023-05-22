@@ -61,7 +61,8 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
       url = os.environ['DOCGENERATOR_URL']
 
       data = postBody
-      params = {'indexType': indexType, "indexName": indexName, "multiple": multiple , "loadType": loadType}
+      params = {"indexType": indexType, "indexName": indexName, "multiple": multiple, "loadType": loadType,
+                "existingIndex": "false", "existingIndexNs": "", "embeddingModelType": "openai", "textSplitter": "recursive"}
       logging.info("Call Doc Generator")
       resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
       logging.info("Doc Generator Response")
