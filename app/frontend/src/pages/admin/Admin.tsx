@@ -64,15 +64,15 @@ const Admin = () => {
     
     const stackStyles: IStackStyles = {
       root: {
-        background: DefaultPalette.white,
+        // background: DefaultPalette.white,
         height: 250,
       },
     };
     const stackItemStyles: IStackItemStyles = {
       root: {
         alignItems: 'left',
-        background: DefaultPalette.white,
-        color: DefaultPalette.white,
+        // background: DefaultPalette.white,
+        // color: DefaultPalette.white,
         display: 'flex',
         justifyContent: 'left',
       },
@@ -99,6 +99,10 @@ const Admin = () => {
       {
         key: 'cogsearch',
         text: 'Cognitive Search'
+      },
+      {
+        key: 'cogsearchvs',
+        text: 'Cognitive Search Vector Store'
       }
       // {
       //   key: 'chroma',

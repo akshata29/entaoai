@@ -12,6 +12,7 @@ from langchain.llms.openai import OpenAI, AzureOpenAI
 from langchain.chains.summarize import load_summarize_chain
 from langchain.chains import AnalyzeDocumentChain
 from Utilities.envVars import *
+from Utilities.cogSearch import performCogSearch
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 
@@ -39,33 +40,65 @@ def SecSearch(indexType, indexName,  question, top, embeddingModelType):
             
         logging.info("LLM Setup done")
 
-        results = performRedisSearch(question, indexName, int(top), [], 'content_vector', embeddingModelType)
-        contentPdf = pd.DataFrame(list(map(lambda x: {'cik' : x.cik, 'company': x.company, 'filingType': x.filing_type, 
-                                         'filingDate': x.filing_date, 'reportPeriod': x.period_of_report,
-                                          'sic': x.sic, 'incState': x.state_of_inc, 'stateLoc': x.state_location,
-                                            'fiscalYearEnd': x.fiscal_year_end, 'filingHtmlIndex': x.filing_html_index,
-                                            'htmLink': x.htm_filing_link, 'completeFilingLink': x.complete_text_filing_link,
-                                            'content': x.content, 'contentSummary': '',
-                                            'filename': x.filename, 'vector_score': x.vector_score}, results.docs)))
-        contentPdf = contentPdf.sort_values(by=['vector_score'], ascending=False)
-        contentPdf = contentPdf.reset_index(drop=True)
-        contentPdf = contentPdf.drop(columns=['vector_score'])
-        summaryChain = load_summarize_chain(llm, chain_type="stuff")
-        summarizeDocumentChain = AnalyzeDocumentChain(combine_docs_chain=summaryChain)
-        logging.info("Calling Summarize")
-        for index, row in contentPdf.iterrows():
-            summary = summarizeDocumentChain.run(row['content'])
-            #contentDoc = [Document(page_content=row['content'], metadata={"source": row['filename']})]
-            #summary = summaryChain.run(contentDoc)
-            row['contentSummary'] = summary
-
-        return  json.loads((contentPdf.to_json(orient='records')))
+        if (indexType == 'redis'):
+            results = performRedisSearch(question, indexName, int(top), [], 'content_vector', embeddingModelType)
+            contentPdf = pd.DataFrame(list(map(lambda x: {'cik' : x.cik, 'company': x.company, 'filingType': x.filing_type, 
+                                            'filingDate': x.filing_date, 'reportPeriod': x.period_of_report,
+                                            'sic': x.sic, 'incState': x.state_of_inc, 'stateLoc': x.state_location,
+                                                'fiscalYearEnd': x.fiscal_year_end, 'filingHtmlIndex': x.filing_html_index,
+                                                'htmLink': x.htm_filing_link, 'completeFilingLink': x.complete_text_filing_link,
+                                                'content': x.content, 'contentSummary': '',
+                                                'filename': x.filename, 'vector_score': x.vector_score}, results.docs)))
+            contentPdf = contentPdf.sort_values(by=['vector_score'], ascending=False)
+            contentPdf = contentPdf.reset_index(drop=True)
+            contentPdf = contentPdf.drop(columns=['vector_score'])
+            summaryChain = load_summarize_chain(llm, chain_type="stuff")
+            summarizeDocumentChain = AnalyzeDocumentChain(combine_docs_chain=summaryChain)
+            logging.info("Calling Summarize")
+            for index, row in contentPdf.iterrows():
+                summary = summarizeDocumentChain.run(row['content'])
+                #contentDoc = [Document(page_content=row['content'], metadata={"source": row['filename']})]
+                #summary = summaryChain.run(contentDoc)
+                row['contentSummary'] = summary
+            return  json.loads((contentPdf.to_json(orient='records')))
+        elif (indexType == 'cogsearchvs'):
+            results = performCogSearch(indexType, embeddingModelType, question, indexName, int(top), returnFields=["id",
+                     "cik", "company", "filing_type", "filing_date", "period_of_report", "sic", 
+                     "state_of_inc", "state_location", "fiscal_year_end", "filing_html_index", "htm_filing_link",
+                     "complete_text_filing_link", "filename", "content", "sourcefile"] )
+            contentPdf = pd.DataFrame(list(map(lambda x: {'cik' : x['cik'], 'company': x['company'], 'filingType': x['filing_type'], 
+                                'filingDate': x['filing_date'], 'reportPeriod': x['period_of_report'],
+                                'sic': x['sic'], 'incState': x['state_of_inc'], 'stateLoc': x['state_location'],
+                                'fiscalYearEnd': x['fiscal_year_end'], 'filingHtmlIndex': x['filing_html_index'],
+                                'htmLink': x['htm_filing_link'], 'completeFilingLink': x['complete_text_filing_link'],
+                                'content': x['content'], 'contentSummary': '',
+                                'filename': x['filename']}, results)))
+            summaryChain = load_summarize_chain(llm, chain_type="stuff")
+            summarizeDocumentChain = AnalyzeDocumentChain(combine_docs_chain=summaryChain)
+            logging.info("Calling Summarize")
+            for index, row in contentPdf.iterrows():
+                summary = summarizeDocumentChain.run(row['content'])
+                row['contentSummary'] = summary
+            return  json.loads((contentPdf.to_json(orient='records')))
     except Exception as e:
       logging.error(e)
-      return func.HttpResponse(
-            "Error getting files",
-            status_code=500
-      )
+      return [{
+            "cik": "",
+            "company": "Exception Occurred",
+            "completeFilingLink": "",
+            "content": str(e),
+            "contentSummary": str(e),
+            "filename": "",
+            "filingDate": "",
+            "filingHtmlIndex": "",
+            "filingType": "",
+            "fiscalYearEnd": "",
+            "htmLink": "",
+            "incState": "",
+            "reportPeriod": "",
+            "sic": "",
+            "stateLoc": ""
+        }]
 
 def TransformValue(indexType, indexName, question, top, embeddingModelType, record):
     logging.info("Calling Transform Value")

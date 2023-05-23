@@ -2,14 +2,34 @@ import logging, json, os
 import azure.functions as func
 import openai
 import os
-from redis.commands.search.field import VectorField, TagField, TextField
-from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 import numpy as np
-from Utilities.redisIndex import createRedisIndex, chunkAndEmbed
 from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs
 from Utilities.envVars import *
-
-redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+from azure.search.documents.indexes.models import (  
+    SearchIndex,  
+    SearchField,  
+    SearchFieldDataType,  
+    SimpleField,  
+    SearchableField,  
+    SearchIndex,  
+    SemanticConfiguration,  
+    PrioritizedFields,  
+    SemanticField,  
+    SearchField,  
+    SemanticSettings,  
+    VectorSearch,  
+    VectorSearchAlgorithmConfiguration,  
+)
+from azure.search.documents.models import Vector 
+from azure.search.documents.indexes import SearchIndexClient
+from azure.search.documents.indexes.models import *
+from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential 
+from Utilities.envVars import *
+from Utilities.cogSearch import indexSections
+import tiktoken
+from Utilities.embeddings import generateEmbeddings
+from itertools import islice
 
 def GetAllFiles():
     # Get all files in the container from Azure Blob Storage
@@ -30,15 +50,188 @@ def GetAllFiles():
     logging.info(f"Found {len(files)} files in the container")
     return files
 
-def PersistSecDocs(indexType, indexName,  value):
+def createSearchIndex(indexType, indexName):
+    indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            credential=AzureKeyCredential(SearchKey))
+    if indexName not in indexClient.list_index_names():
+        if indexType == "cogsearchvs":
+            index = SearchIndex(
+                name=indexName,
+                fields=[
+                            SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                            SimpleField(name="cik", type=SearchFieldDataType.String),
+                            SimpleField(name="company", type=SearchFieldDataType.String),
+                            SimpleField(name="filing_type", type=SearchFieldDataType.String),
+                            SimpleField(name="filing_date", type=SearchFieldDataType.String),
+                            SimpleField(name="period_of_report", type=SearchFieldDataType.String),
+                            SimpleField(name="sic", type=SearchFieldDataType.String),
+                            SimpleField(name="state_of_inc", type=SearchFieldDataType.String),
+                            SimpleField(name="state_location", type=SearchFieldDataType.String),
+                            SimpleField(name="fiscal_year_end", type=SearchFieldDataType.String),
+                            SimpleField(name="filing_html_index", type=SearchFieldDataType.String),
+                            SimpleField(name="htm_filing_link", type=SearchFieldDataType.String),
+                            SimpleField(name="complete_text_filing_link", type=SearchFieldDataType.String),
+                            SimpleField(name="filename", type=SearchFieldDataType.String),
+                            SimpleField(name="metadata", type=SearchFieldDataType.String),
+                            SearchableField(name="content", type=SearchFieldDataType.String,
+                                            searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                            SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                                        searchable=True, dimensions=1536, vector_search_configuration="vectorConfig"),
+                            SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
+                ],
+                vector_search = VectorSearch(
+                    algorithm_configurations=[
+                        VectorSearchAlgorithmConfiguration(
+                            name="vectorConfig",
+                            kind="hnsw",
+                            hnsw_parameters={
+                                "m": 4,
+                                "efConstruction": 400,
+                                "efSearch": 500,
+                                "metric": "cosine"
+                            }
+                        )
+                    ]
+                ),
+                semantic_settings=SemanticSettings(
+                    configurations=[SemanticConfiguration(
+                        name='semanticConfig',
+                        prioritized_fields=PrioritizedFields(
+                            title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+            )
+        elif indexType == "cogsearch":
+            index = SearchIndex(
+                name=indexName,
+                fields=[
+                            SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                            SimpleField(name="cik", type=SearchFieldDataType.String),
+                            SimpleField(name="company", type=SearchFieldDataType.String),
+                            SimpleField(name="filing_type", type=SearchFieldDataType.String),
+                            SimpleField(name="filing_date", type=SearchFieldDataType.String),
+                            SimpleField(name="period_of_report", type=SearchFieldDataType.String),
+                            SimpleField(name="sic", type=SearchFieldDataType.String),
+                            SimpleField(name="state_of_inc", type=SearchFieldDataType.String),
+                            SimpleField(name="state_location", type=SearchFieldDataType.String),
+                            SimpleField(name="fiscal_year_end", type=SearchFieldDataType.String),
+                            SimpleField(name="filing_html_index", type=SearchFieldDataType.String),
+                            SimpleField(name="htm_filing_link", type=SearchFieldDataType.String),
+                            SimpleField(name="complete_text_filing_link", type=SearchFieldDataType.String),
+                            SimpleField(name="filename", type=SearchFieldDataType.String),
+                            SimpleField(name="metadata", type=SearchFieldDataType.String),
+                            SearchableField(name="content", type=SearchFieldDataType.String,
+                                            searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                            SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
+                ],
+                semantic_settings=SemanticSettings(
+                    configurations=[SemanticConfiguration(
+                        name='semanticConfig',
+                        prioritized_fields=PrioritizedFields(
+                            title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+            )
+
+        try:
+            print(f"Creating {indexName} search index")
+            indexClient.create_index(index)
+        except Exception as e:
+            print(e)
+    else:
+        logging.info(f"Search index {indexName} already exists")
+
+def batched(iterable, n):
+    """Batch data into tuples of length n. The last batch may be shorter."""
+    # batched('ABCDEFG', 3) --> ABC DEF G
+    if n < 1:
+        raise ValueError('n must be at least one')
+    it = iter(iterable)
+    while (batch := tuple(islice(it, n))):
+        yield batch
+
+def chunkedTokens(text, encoding_name, chunk_length):
+    encoding = tiktoken.get_encoding(encoding_name)
+    tokens = encoding.encode(text)
+    chunks_iterator = batched(tokens, chunk_length)
+    yield from chunks_iterator
+
+def getChunkedText(text, encoding_name="cl100k_base", max_tokens=1500):
+    chunked_text = []
+    encoding = tiktoken.get_encoding(encoding_name)
+    for chunk in chunkedTokens(text, encoding_name=encoding_name, chunk_length=max_tokens):
+        chunked_text.append(encoding.decode(chunk))
+    return chunked_text
+
+def chunkAndEmbed(embeddingModelType, indexType, indexName, secDoc, fullPath):
+    encoding = tiktoken.get_encoding("cl100k_base")
+    fullData = []
+    text = secDoc['item_1'] + secDoc['item_1A'] + secDoc['item_7'] + secDoc['item_7A']
+    text = text.replace("\n", " ")
+    length = len(encoding.encode(text))
+
+    if indexType == "cogsearchvs":
+        if length > 1500:
+            k=0
+            chunkedText = getChunkedText(text, encoding_name="cl100k_base", max_tokens=1500)
+            logging.info(f"Total chunks: {len(chunkedText)}")
+            for chunk in chunkedText:
+                secCommonData = {
+                    "id": f"{fullPath}-{k}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_").replace(",", "_").replace("&", "_"),
+                    "cik": secDoc['cik'],
+                    "company": secDoc['company'],
+                    "filing_type": secDoc['filing_type'],
+                    "filing_date": secDoc['filing_date'],
+                    "period_of_report": secDoc['period_of_report'],
+                    "sic": secDoc['sic'],
+                    "state_of_inc": secDoc['state_of_inc'],
+                    "state_location": secDoc['state_location'],
+                    "fiscal_year_end": secDoc['fiscal_year_end'],
+                    "filing_html_index": secDoc['filing_html_index'],
+                    "htm_filing_link": secDoc['htm_filing_link'],
+                    "complete_text_filing_link": secDoc['complete_text_filing_link'],
+                    "filename": secDoc['filename'],
+                    "content": chunk,
+                    "contentVector": None,
+                    "metadata" : json.dumps({"cik": secDoc['cik'], "source": secDoc['filename'], "filingType": secDoc['filing_type'], "reportDate": secDoc['period_of_report']}),
+                    "sourcefile": fullPath
+                }
+                secCommonData['contentVector'] = generateEmbeddings(embeddingModelType, chunk)
+                fullData.append(secCommonData)
+                k=k+1
+        else:
+            logging.info(f"Process full text with text {text}")
+            secCommonData = {
+                    "id": f"{fullPath}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_").replace(",", "_").replace("&", "_"),
+                    "cik": secDoc['cik'],
+                    "company": secDoc['company'],
+                    "filing_type": secDoc['filing_type'],
+                    "filing_date": secDoc['filing_date'],
+                    "period_of_report": secDoc['period_of_report'],
+                    "sic": secDoc['sic'],
+                    "state_of_inc": secDoc['state_of_inc'],
+                    "state_location": secDoc['state_location'],
+                    "fiscal_year_end": secDoc['fiscal_year_end'],
+                    "filing_html_index": secDoc['filing_html_index'],
+                    "htm_filing_link": secDoc['htm_filing_link'],
+                    "complete_text_filing_link": secDoc['complete_text_filing_link'],
+                    "filename": secDoc['filename'],
+                    "content": text,
+                    "contentVector": None,
+                    "metadata" : json.dumps({"cik": secDoc['cik'], "source": secDoc['filename'], "filingType": secDoc['filing_type'], "reportDate": secDoc['period_of_report']}),
+                    "sourcefile": fullPath
+                }
+            secCommonData['contentVector'] = generateEmbeddings(embeddingModelType, text)
+            fullData.append(secCommonData)
+
+        searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
+                                    index_name=indexName,
+                                    credential=AzureKeyCredential(SearchKey))
+        results = searchClient.upload_documents(fullData)
+        succeeded = sum([1 for r in results if r.succeeded])
+        logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+
+    return None
+
+def PersistSecDocs(embeddingModelType, indexType, indexName,  value):
     logging.info("Embedding text")
     try:
-        logging.info("Loading OpenAI")
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-      
         filesData = GetAllFiles()
         filesData = list(filter(lambda x : x['embedded'] == "false", filesData))
         logging.info(filesData)
@@ -48,31 +241,7 @@ def PersistSecDocs(indexType, indexName,  value):
         for file in filesData:
             fileName = file['filename']
             readBytes = getBlob(OpenAiDocConnStr, SecDocContainer, fileName)
-            # downloadPath = os.path.join(tempfile.gettempdir(), fileName)
-            # os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
-            # try:
-            #     with open(downloadPath, "wb") as file:
-            #         file.write(readBytes)
-            # except Exception as e:
-            #     logging.error(e)
-
-            # logging.info("File created " + downloadPath)
-            secDoc = json.loads(readBytes.decode("utf-8"))
-            distanceMetrics = ("COSINE")
-            cik = TextField(name="cik")
-            company = TextField(name="company")
-            filing_type = TextField(name="filing_type")
-            filing_date = TextField(name="filing_date")
-            period_of_report = TextField(name="period_of_report")
-            sic = TextField(name="sic")
-            state_of_inc = TextField(name="state_of_inc")
-            state_location = TextField(name="state_location")
-            fiscal_year_end = TextField(name="fiscal_year_end")
-            filing_html_index = TextField(name="filing_html_index")
-            htm_filing_link = TextField(name="htm_filing_link")
-            complete_text_filing_link = TextField(name="complete_text_filing_link")
-            filename = TextField(name="filename")
-            metadata = TextField(name="metadata")
+            secDoc = json.loads(readBytes.decode("utf-8"))           
             # For now we will combine Item 1, 1A, 7, 7A into a single field "content"
             # item_1 = TextField(name="item_1")
             # item_1A = TextField(name="item_1A")
@@ -105,25 +274,15 @@ def PersistSecDocs(indexType, indexName,  value):
             #          item_9A, item_9B, item_10, item_11, item_12, item_13, item_14, item_15, item1Embedding,
             #          item1AEmbedding, item7Embedding, item7AEmbedding, item8Embedding]
             
-            content = TextField(name="content")
-            contentEmbedding = VectorField("content_vector", "HNSW", { "TYPE": "FLOAT32", "DIM": 1536, "DISTANCE_METRIC": distanceMetrics, "INITIAL_CAP": 3155})
-            fields = [cik, company, filing_type, filing_date, period_of_report, sic, state_of_inc, state_location, 
-                    fiscal_year_end, filing_html_index, htm_filing_link, complete_text_filing_link, filename,
-                    content, contentEmbedding, metadata]
-            logging.info("Create index")
-            redisClient = createRedisIndex(fields, indexName)
-            logging.info("Index created")
-            logging.info("Embedding")
-            chunkAndEmbed(redisClient, indexName, secDoc, OpenAiEmbedding)
-            logging.info("Embedding complete")
-            #redisConnection = Redis(redis_url=redisUrl, index_name=uResultNs.hex, embedding_function=embeddings)
-            #Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=uResultNs.hex)
-            #logging.info("Upsert metadata")
-            metadata = {'embedded': 'true', 'indexType': indexType, "indexName": indexName}
-            upsertMetadata(OpenAiDocConnStr, SecDocContainer, fileName, metadata)
-            #metadata = {'summary': summary, 'qa': qa}
-            #upsertMetadata(fileName, metadata)
-            #logging.info("Sleeping")
+            if indexType == "cogsearchvs":
+                logging.info("Create index")
+                createSearchIndex(indexType, indexName)
+                logging.info("Index created")
+                logging.info("Embedding")
+                chunkAndEmbed(embeddingModelType, indexType, indexName, secDoc, os.path.basename(fileName))
+                logging.info("Embedding complete")
+                metadata = {'embedded': 'true', 'indexType': indexType, "indexName": indexName}
+                upsertMetadata(OpenAiDocConnStr, SecDocContainer, fileName, metadata)
         return "Success"
     except Exception as e:
       logging.error(e)
@@ -132,7 +291,7 @@ def PersistSecDocs(indexType, indexName,  value):
             status_code=500
       )
 
-def TransformValue(indexType, indexName, record):
+def TransformValue(embeddingModelType, indexType, indexName, record):
     logging.info("Calling Transform Value")
     try:
         recordId = record['recordId']
@@ -168,7 +327,7 @@ def TransformValue(indexType, indexName, record):
         # Getting the items from the values/data/text
         value = data['text']
 
-        summaryResponse = PersistSecDocs(indexType, indexName, value)
+        summaryResponse = PersistSecDocs(embeddingModelType, indexType, indexName, value)
         return ({
             "recordId": recordId,
             "data": {
@@ -183,7 +342,7 @@ def TransformValue(indexType, indexName, record):
             "errors": [ { "message": "Could not complete operation for record." }   ]
             })
 
-def ComposeResponse(indexType, indexName, jsonData):
+def ComposeResponse(embeddingModelType, indexType, indexName, jsonData):
     values = json.loads(jsonData)['values']
 
     logging.info("Calling Compose Response")
@@ -192,7 +351,7 @@ def ComposeResponse(indexType, indexName, jsonData):
     results["values"] = []
 
     for value in values:
-        outputRecord = TransformValue(indexType, indexName, value)
+        outputRecord = TransformValue(embeddingModelType, indexType, indexName, value)
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
@@ -210,6 +369,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     try:
         indexType = req.params.get('indexType')
         indexName = req.params.get('indexName')
+        embeddingModelType = req.params.get('embeddingModelType')
         body = json.dumps(req.get_json())
     except ValueError:
         return func.HttpResponse(
@@ -218,7 +378,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         )
 
     if body:
-        result = ComposeResponse(indexType, indexName, body)
+        result = ComposeResponse(embeddingModelType, indexType, indexName, body)
         return func.HttpResponse(result, mimetype="application/json")
     else:
         return func.HttpResponse(

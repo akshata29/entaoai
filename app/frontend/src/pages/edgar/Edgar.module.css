@@ -1,18 +1,18 @@
-.oneshotContainer {
+.edgarContainer {
     display: flex;
     flex: 1;
     flex-direction: column;
     align-items: center;
 }
 
-.oneshotTopSection {
+.edgarTopSection {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
 }
 
-.oneshotBottomSection {
+.edgarBottomSection {
     padding-left: 30px;
     padding-right: 30px;
     flex: 1;
@@ -20,39 +20,39 @@
     margin-top: 20px;
 }
 
-.oneshotTitle {
+.edgarTitle {
     font-size: 2rem;
     font-weight: 600;
     margin-top: 40px;
 }
 
 @media only screen and (max-width: 800px) {
-    .oneshotTitle {
+    .edgarTitle {
         font-size: 3rem;
         font-weight: 600;
         margin-top: 0;
     }
 }
 
-.oneshotQuestionInput {
+.edgarQuestionInput {
     max-width: 800px;
     width: 100%;
     padding-left: 10px;
     padding-right: 10px;
 }
 
-.oneshotAnswerContainer {
+.edgarAnswerContainer {
     width: 100%;
     padding-left: 15px;
     padding-right: 15px;
 }
 
-.oneshotAnalysisPanel {
+.edgarAnalysisPanel {
     width: 600px;
     margin-left: 20px;
 }
 
-.oneshotSettingsSeparator {
+.edgarSettingsSeparator {
     margin-top: 15px;
 }
 

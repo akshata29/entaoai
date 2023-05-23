@@ -46,6 +46,16 @@ const Edgar = () => {
     const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
+    const [chainTypeOptions, setChainTypeOptions] = useState<any>([])
+    const [selectedChain, setSelectedChain] = useState<IDropdownOption>();
+    const [retrieveCount, setRetrieveCount] = useState<number>(3);
+
+    const chainType = [
+        { key: 'stuff', text: 'Stuff'},
+        { key: 'map_rerank', text: 'Map ReRank' },
+        { key: 'map_reduce', text: 'Map Reduce' },
+        { key: 'refine', text: 'Refine'},
+    ]
 
     const embeddingOptions = [
             {
@@ -61,6 +71,14 @@ const Edgar = () => {
             //   text: 'Local Embedding'
             // }
     ]
+
+    const onChainChange = (event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedChain(item);
+    };
+
+    const onRetrieveCountChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
+        setRetrieveCount(parseInt(newValue || "3"));
+    };
 
     const onEmbeddingChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
       setSelectedEmbeddingItem(item);
@@ -127,7 +145,7 @@ const Edgar = () => {
         setActiveAnalysisPanelTab(undefined);
 
         try {
-            const result = await secSearch('redis', 'secdocs', question, "10", String(selectedEmbeddingItem?.key));
+            const result = await secSearch('cogsearchvs', 'secdocs', question, String(retrieveCount), String(selectedEmbeddingItem?.key));
             
             const itemsResponse: Item[] = [];
             console.log(result.values[0].data.text);
@@ -162,6 +180,8 @@ const Edgar = () => {
 
     useEffect(() => {
         setSelectedEmbeddingItem(embeddingOptions[0])
+        setChainTypeOptions(chainType)
+        setSelectedChain(chainType[0])
     }, []);
 
     return (
@@ -170,9 +190,9 @@ const Edgar = () => {
                 <div className={styles.commandsContainer}>
                         <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                 </div>
-                <div className={styles.oneshotTopSection}>
-                    <h1 className={styles.oneshotTitle}>Ask your financial data</h1>
-                    <div className={styles.oneshotQuestionInput}>
+                <div className={styles.edgarTopSection}>
+                    <h1 className={styles.edgarTitle}>Ask your financial data</h1>
+                    <div className={styles.edgarQuestionInput}>
                         <QuestionInput
                             placeholder="Ask me anything"
                             disabled={isLoading}
@@ -180,7 +200,7 @@ const Edgar = () => {
                         />
                     </div>
                 </div>
-                <div className={styles.oneshotBottomSection}>
+                <div className={styles.edgarBottomSection}>
                     {isLoading && <Spinner label="Generating answer" />}
                     {!isLoading && !error && (
                         <div>
@@ -199,13 +219,13 @@ const Edgar = () => {
                         </div>
                     )}
                     {error ? (
-                        <div className={styles.oneshotAnswerContainer}>
+                        <div className={styles.edgarAnswerContainer}>
                             <AnswerError error={error.toString()} onRetry={() => makeApiRequest(lastQuestionRef.current)} />
                         </div>
                     ) : null}
                     {activeAnalysisPanelTab && answer && (
                         <AnalysisPanel
-                            className={styles.oneshotAnalysisPanel}
+                            className={styles.edgarAnalysisPanel}
                             activeCitation={activeCitation}
                             onActiveTabChanged={x => onToggleTab(x)}
                             citationHeight="600px"
@@ -233,6 +253,24 @@ const Edgar = () => {
                         placeholder="Select an LLM Model"
                         options={embeddingOptions}
                         disabled={false}
+                        styles={dropdownStyles}
+                    />
+                    <br/>
+                    <SpinButton
+                        className={styles.edgarSettingsSeparator}
+                        label="Retrieve this many documents from search:"
+                        min={1}
+                        max={10}
+                        defaultValue={retrieveCount.toString()}
+                        onChange={onRetrieveCountChange}
+                    />
+                    <br/>
+                    <Dropdown 
+                        label="Chain Type"
+                        onChange={onChainChange}
+                        selectedKey={selectedChain ? selectedChain.key : 'stuff'}
+                        options={chainTypeOptions}
+                        defaultSelectedKey={'stuff'}
                         styles={dropdownStyles}
                     />
                 </div>

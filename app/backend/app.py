@@ -66,9 +66,25 @@ def askAgent():
         #return json.dumps(jsonDict)
         return jsonify(jsonDict)
     except Exception as e:
-        logging.exception("Exception in /ask")
+        logging.exception("Exception in /askAgent")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/smartAgent", methods=["POST"])
+def smartAgent():
+    postBody=request.json["postBody"]
+ 
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("SMARTAGENT_URL")
+
+        data = postBody
+        resp = requests.post(url, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /smartAgent")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/askTaskAgent", methods=["POST"])
 def askTaskAgent():
     postBody=request.json["postBody"]
@@ -201,6 +217,49 @@ def processDoc():
         logging.exception("Exception in /processDoc")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/convertCode", methods=["POST"])
+def convertCode():
+    inputLanguage=request.json["inputLanguage"]
+    outputLanguage=request.json["outputLanguage"]
+    modelName=request.json["modelName"]
+    embeddingModelType=request.json["embeddingModelType"]
+    postBody=request.json["postBody"]
+   
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("CONVERTCODE_URL")
+
+        data = postBody
+        params = {'inputLanguage': inputLanguage, "outputLanguage": outputLanguage, "modelName": modelName , 
+                  "embeddingModelType": embeddingModelType}
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /convertCode")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/promptGuru", methods=["POST"])
+def promptGuru():
+    task=request.json["task"]
+    modelName=request.json["modelName"]
+    embeddingModelType=request.json["embeddingModelType"]
+    postBody=request.json["postBody"]
+   
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("PROMPTGURU_URL")
+
+        data = postBody
+        params = {'task': task, "modelName": modelName , 
+                  "embeddingModelType": embeddingModelType}
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /promptGuru")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/verifyPassword", methods=["POST"])
 def verifyPassword():
     passType=request.json["passType"]

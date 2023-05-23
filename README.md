@@ -25,6 +25,10 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 * 5/03/2023 - Password required for Upload and introduced Admin page starting with Index Management
 * 5/07/2023 - Option available to select either Azure OpenAI or OpenAI.  For OpenAI ensure you have `OpenAiApiKey` in Azure Functions settings.  For Azure OpenAI you will need `OpenAiKey`, `OpenAiService` and `OpenAiEndPoint` Endpoint settings.  You can also select that option for Chat/Question/SQL Nlp/Speech Analytics and other features (from developer settings page).
 * 5/10/2023 - Add the options on how document should be chunked.  If you want to use the Form Recognizer, ensure the Form recognizer resource is created and the appropriate application settings `FormRecognizerKey` and `FormRecognizerEndPoint` are configured.
+* 5/15/2023 - Add the option to use "Cognitive Search" as Vector store for storing the index.  Azure Cognitive Search offers pure vector search and hybrid retrieval – as well as a sophisticated re-ranking system powered by Bing in a single integrated solution. Sign-up at (https://aka.ms/VectorSearchSignUp). Support uploading WORD documents.
+* 5/17/2023 - Change the edgar source to Cognitive search vector store instead of Redis.
+* 5/21/2023 - Add Developer Tools section - Experimental code conversion and Prompt guru.
+* 5/22/2023 - Initial version of "Smart Agent" that gives you flexibility to talk to all documents uploaded in the solution.  It also allow you to talk to SQL Database Scenario.  As more features are added, agent will keep on building upon that (for instance talk to CSV/Excel or Tabular data)
   
 ## Test Website
 
@@ -55,7 +59,10 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 * [Revolutionize your Enterprise Data with ChatGPT: Next-gen Apps w/ Azure OpenAI and Cognitive Search](https://aka.ms/entgptsearchblog)
 * [Azure Cognitive Search](https://learn.microsoft.com/azure/search/search-what-is-azure-search)
 * [Azure OpenAI Service](https://learn.microsoft.com/azure/cognitive-services/openai/overview)
-
+* [Redis Search](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-redis-modules#redisearch)
+* [Pinecone](https://www.pinecone.io/learn/pinecone-v2/)
+* [Cognitive Search Vector Store](https://aka.ms/VectorSearchSignUp)
+  
 ### Note
 
 >Adapted from the Azure OpenAI Search repo at [OpenAI-CogSearch](https://github.com/Azure-Samples/azure-search-openai-demo/) and [Call Center Analytics](https://github.com/amulchapla/AI-Powered-Call-Center-Intelligence)

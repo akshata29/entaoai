@@ -139,8 +139,8 @@ def summarizeGenerateQa(indexType, value, indexNs):
 
     return qa, summary
 
-def FindAnswer(question, indexType, value, indexNs):
-    logging.info("Calling FindAnswer Open AI")
+def QaSummaryAnswer(question, indexType, value, indexNs):
+    logging.info("Calling QaSummaryAnswer Open AI")
     openai.api_type = "azure"
     openai.api_key = OpenAiKey
     openai.api_version = OpenAiVersion
@@ -191,7 +191,7 @@ def FindAnswer(question, indexType, value, indexNs):
           answer = "{'answer': 'TBD'}"
 
     except Exception as e:
-      logging.info("Error in FindAnswer Open AI : " + str(e))
+      logging.info("Error in QaSummaryAnswer Open AI : " + str(e))
       return {"answer": "Working on fixing Implementation - Error : " + str(e) }
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:

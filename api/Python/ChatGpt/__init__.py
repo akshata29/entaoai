@@ -295,8 +295,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             except Exception as e:
                 return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "",
                         "sources": '', "nextQuestions": '', "error": str(e)}
-        elif indexType == "cogsearch":
-            r = performCogSearch(q, indexNs, topK)
+        elif indexType == "cogsearch" or indexType == "cogsearchvs":
+            r = performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
             if r == None:
                     docs = [Document(page_content="No results found")]
             else :
@@ -332,9 +332,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 "sources": '', "nextQuestions": '', "error": str(e)}
 
 def GetAnswer(history, approach, overrides, indexNs, indexType):
-    logging.info("Getting Answer")
+    logging.info("Getting ChatGpt Answer")
     try:
-      logging.info("Loading OpenAI")
       if (approach == 'rrr'):
         r = GetRrrAnswer(history, approach, overrides, indexNs, indexType)
       else:

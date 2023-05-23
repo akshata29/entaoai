@@ -5,9 +5,24 @@ from azure.core.credentials import AzureKeyCredential
 import os
 import logging
 from azure.search.documents.models import QueryType
-
-SearchService = os.environ['SearchService']
-SearchKey = os.environ['SearchKey']
+from Utilities.embeddings import generateEmbeddings
+from azure.search.documents.indexes.models import (  
+    SearchIndex,  
+    SearchField,  
+    SearchFieldDataType,  
+    SimpleField,  
+    SearchableField,  
+    SearchIndex,  
+    SemanticConfiguration,  
+    PrioritizedFields,  
+    SemanticField,  
+    SearchField,  
+    SemanticSettings,  
+    VectorSearch,  
+    VectorSearchAlgorithmConfiguration,  
+)
+from azure.search.documents.models import Vector  
+from Utilities.envVars import *
 
 def deleteSearchIndex(indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
@@ -18,56 +33,89 @@ def deleteSearchIndex(indexName):
     else:
         logging.info(f"Search index {indexName} does not exist")
         
-def createSearchIndex(indexName):
+def createSearchIndex(indexType, indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
             credential=AzureKeyCredential(SearchKey))
     if indexName not in indexClient.list_index_names():
-        index = SearchIndex(
-            name=indexName,
-            fields=[
-                        SimpleField(name="id", type="Edm.String", key=True),
-                        SearchableField(name="content", type="Edm.String", analyzer_name="en.microsoft"),
-                        #SimpleField(name="sourcepage", type="Edm.String", filterable=True, facetable=True),
-                        SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
-                        #SimpleField(name="totalpages", type="Edm.String", filterable=True, facetable=True),
-                        #SimpleField(name="title", type="Edm.String", filterable=True, facetable=True)
-                    ],
-            semantic_settings=SemanticSettings(
-                configurations=[SemanticConfiguration(
-                    name='default',
-                    prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
-        )
+        if indexType == "cogsearchvs":
+            index = SearchIndex(
+                name=indexName,
+                fields=[
+                            SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                            SearchableField(name="content", type=SearchFieldDataType.String,
+                                            searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                            SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                                        searchable=True, dimensions=1536, vector_search_configuration="vectorConfig"),
+                            SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
+                ],
+                vector_search = VectorSearch(
+                    algorithm_configurations=[
+                        VectorSearchAlgorithmConfiguration(
+                            name="vectorConfig",
+                            kind="hnsw",
+                            hnsw_parameters={
+                                "m": 4,
+                                "efConstruction": 400,
+                                "efSearch": 500,
+                                "metric": "cosine"
+                            }
+                        )
+                    ]
+                ),
+                semantic_settings=SemanticSettings(
+                    configurations=[SemanticConfiguration(
+                        name='semanticConfig',
+                        prioritized_fields=PrioritizedFields(
+                            title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+            )
+        elif indexType == "cogsearch":
+            index = SearchIndex(
+                name=indexName,
+                fields=[
+                            SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                            SearchableField(name="content", type=SearchFieldDataType.String,
+                                            searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                            SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
+                ],
+                semantic_settings=SemanticSettings(
+                    configurations=[SemanticConfiguration(
+                        name='semanticConfig',
+                        prioritized_fields=PrioritizedFields(
+                            title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+            )
+
         try:
-            logging.info(f"Creating {indexName} search index")
+            print(f"Creating {indexName} search index")
             indexClient.create_index(index)
         except Exception as e:
-            logging.info(e)
+            print(e)
     else:
         logging.info(f"Search index {indexName} already exists")
 
-def createSections(fileName, docs):
+def createSections(indexType, embeddingModelType, fileName, docs):
     counter = 1
-    for i in docs:
-        # yield {
-        #     "id": f"{fileName}-{counter}".replace(".", "_").replace(" ", "_"),
-        #     "content": i.page_content,
-        #     "sourcepage": str(i.metadata["page_number"]),
-        #     "totalpages": str(i.metadata["total_pages"]),
-        #     "sourcefile": fileName,
-        #     "title":i.metadata["title"]
-        # }
-        yield {
-            "id": f"{fileName}-{counter}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_"),
-            "content": i.page_content,
-            "sourcefile": fileName
-        }
-        counter += 1
+    if indexType == "cogsearchvs":
+        for i in docs:
+            yield {
+                "id": f"{fileName}-{counter}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_").replace(",", "_").replace("&", "_"),
+                "content": i.page_content,
+                "contentVector": generateEmbeddings(embeddingModelType, i.page_content),
+                "sourcefile": os.path.basename(fileName)
+            }
+            counter += 1
+    elif indexType == "cogsearch":
+        for i in docs:
+            yield {
+                "id": f"{fileName}-{counter}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_").replace(",", "_").replace("&", "_"),
+                "content": i.page_content,
+                "sourcefile": os.path.basename(fileName)
+            }
+            counter += 1
 
-def indexSections(fileName, indexName, docs):
+def indexSections(indexType, embeddingModelType, fileName, indexName, docs):
 
     logging.info("Total docs: " + str(len(docs)))
-    sections = createSections(fileName, docs)
+    sections = createSections(indexType, embeddingModelType, fileName, docs)
     logging.info(f"Indexing sections from '{fileName}' into search index '{indexName}'")
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
                                     index_name=indexName,
@@ -95,20 +143,38 @@ def indexSections(fileName, indexName, docs):
         succeeded = sum([1 for r in results if r.succeeded])
         logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
 
-def performCogSearch(question, indexName, k):
+def performCogSearch(indexType, embeddingModelType, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
         index_name=indexName,
         credential=AzureKeyCredential(SearchKey))
     try:
-        #r = searchClient.search(question, filter=None, top=k)
-        r = searchClient.search(question, 
-                            filter=None,
-                            query_type=QueryType.SEMANTIC, 
-                            query_language="en-us", 
-                            query_speller="lexicon", 
-                            semantic_configuration_name="default", 
-                            top=k, 
-                            query_caption="extractive|highlight-false")
+        if indexType == "cogsearchvs":
+            r = searchClient.search(  
+                search_text="",  
+                vector=Vector(value=generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector"),  
+                select=returnFields,
+                semantic_configuration_name="semanticConfig"
+            )
+        elif indexType == "cogsearch":
+            #r = searchClient.search(question, filter=None, top=k)
+            try:
+                r = searchClient.search(question, 
+                                    filter=None,
+                                    query_type=QueryType.SEMANTIC, 
+                                    query_language="en-us", 
+                                    query_speller="lexicon", 
+                                    semantic_configuration_name="semanticConfig", 
+                                    top=k, 
+                                    query_caption="extractive|highlight-false")
+            except Exception as e:
+                 r = searchClient.search(question, 
+                                filter=None,
+                                query_type=QueryType.SEMANTIC, 
+                                query_language="en-us", 
+                                query_speller="lexicon", 
+                                semantic_configuration_name="default", 
+                                top=k, 
+                                query_caption="extractive|highlight-false")
         return r
     except Exception as e:
         logging.info(e)

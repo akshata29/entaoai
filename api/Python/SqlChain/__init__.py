@@ -10,8 +10,8 @@ from langchain.chains import LLMChain
 from langchain.schema import AgentAction
 from Utilities.envVars import *
 
-def FindSqlAnswer(topK, question, embeddingModelType, value):
-    logging.info("Calling FindSqlAnswer Open AI")
+def SqlChainAnswer(topK, question, embeddingModelType, value):
+    logging.info("Calling SqlChainAnswer Open AI")
     answer = ''
 
     try:
@@ -97,8 +97,8 @@ def FindSqlAnswer(topK, question, embeddingModelType, value):
     
         #return {"data_points": [], "answer": answer['result'], "thoughts": answer['intermediate_steps'], "error": ""}
     except Exception as e:
-        logging.info("Error in FindSqlAnswer Open AI : " + str(e))
-        return {"data_points": [], "answer": '', "thoughts": '', "error": str(e)}
+        logging.info("Error in SqlChainAnswer Open AI : " + str(e))
+        return {"data_points": [], "answer": "Error in SqlChainAnswer Open AI : " + str(e), "thoughts": '', "error": str(e)}
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -181,7 +181,7 @@ def TransformValue(topK, question, embeddingModelType, record):
         # Getting the items from the values/data/text
         value = data['text']
 
-        answer = FindSqlAnswer(topK, question, embeddingModelType, value)
+        answer = SqlChainAnswer(topK, question, embeddingModelType, value)
         return ({
             "recordId": recordId,
             "data": answer

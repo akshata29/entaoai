@@ -1,6 +1,6 @@
 # Features
 
-* Upload (PDF/Text Documents as well as Webpages).  **New** - Connectors support.  Connect to your data directly from the Azure Container or a specific file.   You can also connect to AWS S3 Bucket & key.
+* Upload (PDF/Text Documents as well as Webpages).  **New** - Connectors support.  Connect to your data directly from the Azure Container or a specific file.   You can also connect to AWS S3 Bucket & key.  Integration with AWS S3 using AWS Lambda, Event grid and Azure Data factory.  Added support to upload to existing index and support document chunk process using different technique including Azure Form Recognizer.
 ![Upload](/assets/Upload.png)
 * Chat - Chat to your document - ChatGpt
 ![ChatGpt](/assets/ChatGpt.png)
@@ -22,6 +22,10 @@
 ![Edgar](/assets/Edgar.png)
 * Developer Settings - Developer configurations and settings that can be configured for your dataset
 ![Developer](/assets/Developer.png)
+* Tools to enhance developer productivity and experimental capabilities. Currently features available to convert the code and generate prompt for your use-case and scenarios.
+![Developer Tools](/assets/DeveloperTools.png)
+* Adminstration capabilities to manage your dataset, index, and other settings
+![Admin](/assets/Admin.png)
 * Explores various options to help users evaluate the trustworthiness of responses with citations, tracking of source content, etc.
 ![Thoughts](/assets/Thoughts.png)
 * Shows possible approaches for data preparation, prompt construction, and orchestration of interaction between model (ChatGPT) and retriever

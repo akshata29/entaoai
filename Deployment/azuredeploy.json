@@ -482,9 +482,21 @@
                             
                         },
                         {
+                            "name": "SMARTAGENT_URL",
+                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SmartAgent?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+                        },
+                        {
                             "name": "TASKAGENTQA_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/TaskAgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
                             
+                        },
+                        {
+                            "name": "CONVERTCODE_URL",
+                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ConvertCode?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+                        },
+                        {
+                            "name": "PROMPTGURU_URL",
+                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/PromptGuru?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
                         },
 						{
 						  "name": "AGENTQA_URL",

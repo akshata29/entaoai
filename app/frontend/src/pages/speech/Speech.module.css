@@ -1,18 +1,18 @@
-.oneshotContainer {
+.speechContainer {
     display: flex;
     flex: 1;
     flex-direction: column;
     align-items: center;
 }
 
-.oneshotTopSection {
+.speechTopSection {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
 }
 
-.oneshotBottomSection {
+.speechBottomSection {
     padding-left: 30px;
     padding-right: 30px;
     flex: 1;
@@ -20,39 +20,39 @@
     margin-top: 20px;
 }
 
-.oneshotTitle {
+.speechTitle {
     font-size: 2rem;
     font-weight: 600;
     margin-top: 40px;
 }
 
 @media only screen and (max-width: 800px) {
-    .oneshotTitle {
+    .speechTitle {
         font-size: 3rem;
         font-weight: 600;
         margin-top: 0;
     }
 }
 
-.oneshotQuestionInput {
+.speechQuestionInput {
     max-width: 800px;
     width: 100%;
     padding-left: 10px;
     padding-right: 10px;
 }
 
-.oneshotAnswerContainer {
+.speechAnswerContainer {
     width: 100%;
     padding-left: 15px;
     padding-right: 15px;
 }
 
-.oneshotAnalysisPanel {
+.speechAnalysisPanel {
     width: 600px;
     margin-left: 20px;
 }
 
-.oneshotSettingsSeparator {
+.speechSettingsSeparator {
     margin-top: 15px;
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import { TextField, PrimaryButton, Label, DefaultPalette, Stack, IStackStyles, IStackTokens } from "@fluentui/react";
 import { Checkbox,Panel, DefaultButton,  SpinButton } from "@fluentui/react";
 
@@ -221,9 +221,13 @@ const Speech = () => {
         let promptName = 'RealTimeSpeechPrompt'
     
         if (promptType?.key == 'custom') {
-          const summary = await summarizer(request, customParsePrompt, String(promptType?.key), '', 'inline', 
-          String(selectedChain?.key), String(selectedEmbeddingItem?.key))
-          setGptPromptSummary(summary)
+          await summarizer(request, customParsePrompt, String(promptType?.key), '', 'inline', 
+          String(selectedChain?.key), String(selectedEmbeddingItem?.key)).then((response) => {
+            setGptPromptSummary(response)
+          }).catch((error) => {
+            console.log(error)
+            setGptPromptSummary(error)
+          })
         } else if (promptType?.key == 'summaryNotes') {
           promptName = 'RtsSummaryNotesPrompt'
         } else if (promptType?.key == 'participants') {
@@ -247,6 +251,26 @@ const Speech = () => {
             String(selectedChain?.key), String(selectedEmbeddingItem?.key))
             setGptPromptSummary(summary)
         }
+
+        // const url = "https://dataaioaics.openai.azure.com/openai/deployments/davinci/completions?api-version=2022-12-01" 
+
+        // const headers = { 'Content-Type': 'application/json', 'api-key': "8b08d4ba474545c8a93a09847e7298db" }
+
+        // const params = {
+        //   prompt: "This is some random text. and some garbage stuff. I am trying to see if this works. tl;dr",
+        //   max_tokens: 1000,
+        //   temperature: 1,
+        // }
+
+        // axios
+        //   .post(url, params, { headers: headers })
+        //   .then((response: { data: { choices: { text: SetStateAction<string | undefined>; }[]; }; }) => {
+        //     setGptPromptSummary(response.data.choices[0].text)
+        //   })
+        //   .catch((error: string) => {
+        //     setGptPromptSummary('FATAL_ERROR amc: ' + error)
+        //     console.log(error)
+        //   })
     }
 
     const setPromptTypes = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
@@ -363,10 +387,10 @@ const Speech = () => {
     return (
         <div >
             <div >
-                <div className={styles.oneshotTopSection}>
-                    <h1 className={styles.oneshotTitle}>Real-time Speech Analytics</h1>
+                <div className={styles.speechTopSection}>
+                    <h1 className={styles.speechTitle}>Real-time Speech Analytics</h1>
                 </div>
-                <div className={styles.oneshotBottomSection}>
+                <div className={styles.speechBottomSection}>
                     <div className={styles.commandsContainer}>
                         <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                     </div>
@@ -480,7 +504,7 @@ const Speech = () => {
                         </div>
                         <br/>
                         <SpinButton
-                          className={styles.oneshotSettingsSeparator}
+                          className={styles.speechSettingsSeparator}
                           label="Set the Temperature:"
                           min={0.0}
                           max={1.0}
@@ -488,7 +512,7 @@ const Speech = () => {
                           onChange={onTemperatureChange}
                         />
                         <SpinButton
-                            className={styles.oneshotSettingsSeparator}
+                            className={styles.speechSettingsSeparator}
                             label="Max Length (Tokens):"
                             min={0}
                             max={4000}

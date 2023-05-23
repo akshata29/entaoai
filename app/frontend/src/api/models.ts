@@ -1,8 +1,37 @@
+import { atom } from 'jotai';
+
 export const enum Approaches {
     RetrieveThenRead = "rtr",
     ReadRetrieveRead = "rrr",
     ReadDecomposeAsk = "rda"
 }
+
+
+export type ChatMessage = {
+    id: string; // Guid
+    type: string; // "message" | "bot" | "user"
+    sessionId: string ; // Guid
+    tokens: number; // Number of tokens in the message
+    timestamp: string; // ISO 8601
+    content: string;
+    indexType: string; // "pinecone" || "cogsearch" || "cogsearchvs"
+    indexName: string; 
+    indexId: string; // Guid
+    llmModel: string; // "openai" || "azureopenai"
+    chainType: string // "stuff" || "refine" || "mapreduce"
+};
+
+export type ChatSession = {
+    id: string; // Guid
+    sessionId: string ; // Guid
+    feature: string; // "chat" || "ask" || "sql" || "chat3"
+    tokenUsed: number; // Number of tokens in the message
+    name: string;
+    timestamp: string; // ISO 8601
+    messages: ChatMessage[];
+};
+
+export const chatSessionsAtom = atom<ChatSession[]>([]);
 
 export type AskRequestOverrides = {
     semanticRanker?: boolean;

@@ -51,6 +51,37 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
 
 }
 
+export async function promptGuru(task: string, modelName:string, embeddingModelType: string): Promise<AskResponse> {
+  const response = await fetch('/promptGuru', {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+          task: task,
+          modelName:modelName,
+          embeddingModelType:embeddingModelType,
+          postBody: {
+            values: [
+              {
+                recordId: 0,
+                data: {
+                  text: '',
+                }
+              }
+            ]
+          }
+      })
+  });
+
+  const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse.values[0].data
+
+}
+
 export async function askAgentApi(options: AskRequest): Promise<AskResponse> {
   const response = await fetch('/askAgent', {
       method: "POST",
@@ -77,6 +108,42 @@ export async function askAgentApi(options: AskRequest): Promise<AskResponse> {
                       prompt_template_prefix: options.overrides?.promptTemplatePrefix,
                       prompt_template_suffix: options.overrides?.promptTemplateSuffix,
                       exclude_category: options.overrides?.excludeCategory,
+                      chainType: options.overrides?.chainType,
+                      tokenLength: options.overrides?.tokenLength,
+                      embeddingModelType: options.overrides?.embeddingModelType,
+                  }
+                }
+              }
+            ]
+          }
+      })
+  });
+
+  const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse.values[0].data
+
+}
+export async function smartAgent(options: AskRequest): Promise<AskResponse> {
+  const response = await fetch('/smartAgent', {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+          postBody: {
+            values: [
+              {
+                recordId: 0,
+                data: {
+                  text: '',
+                  question: options.question,
+                  approach: options.approach,
+                  overrides: {
+                      top: options.overrides?.top,
+                      temperature: options.overrides?.temperature,
                       chainType: options.overrides?.chainType,
                       tokenLength: options.overrides?.tokenLength,
                       embeddingModelType: options.overrides?.embeddingModelType,
@@ -329,6 +396,38 @@ export async function processDoc(indexType: string, loadType : string, multiple:
   // return "Success";
 }
 
+export async function convertCode(inputLanguage:string, outputLanguage:string, 
+  inputCode:string, modelName:string, embeddingModelType: string) : Promise<string> {
+  const response = await fetch('/convertCode', {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      inputLanguage:inputLanguage,
+      outputLanguage: outputLanguage,
+      modelName:modelName,
+      embeddingModelType:embeddingModelType,
+      postBody: {
+        values: [
+          {
+            recordId: 0,
+            data: {
+              text: inputCode
+            }
+          }
+        ]
+      }
+    })
+  });
+
+  const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse.values[0].data.answer
+}
+
 export async function indexManagement(indexType:string, indexName:string, blobName:string, indexNs:string,
   operation:string) : Promise<string> {
   const response = await fetch('/indexManagement', {
@@ -410,7 +509,7 @@ export async function chatJsApi(question: string, history: never[], indexNs: str
 
 export async function secSearch(indexType: string,  indexName: string, question:string, top: string, 
   embeddingModelType:string): Promise<any> {
-  const response = await fetch('/secsearch' , {
+  const response = await fetch('/secSearch' , {
       method: "POST",
       headers: {
           "Content-Type": "application/json"

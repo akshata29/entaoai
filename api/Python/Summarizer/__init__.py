@@ -10,7 +10,6 @@ import uuid
 from langchain.document_loaders import UnstructuredFileLoader
 from Utilities.envVars import *
 
-
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
     if hasattr(context, 'retry_context'):

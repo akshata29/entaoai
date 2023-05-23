@@ -72,6 +72,16 @@ const Layout = () => {
                                     Sql NLP
                                 </NavLink>
                             </li>
+                            <li className={styles.headerNavLeftMargin}>
+                                <NavLink to="/smartagent" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    Smart Agent
+                                </NavLink>
+                            </li>
+                            <li className={styles.headerNavLeftMargin}>
+                                <NavLink to="/developer" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    Developer Tools
+                                </NavLink>
+                            </li>
                             { showSpeech && (
                                 <li className={styles.headerNavLeftMargin}>
                                     <NavLink to="/speech" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>

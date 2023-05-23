@@ -1,18 +1,18 @@
-.oneshotContainer {
-    display: flex;
+.sqlAgentContainer {
+    /* display: flex; */
     flex: 1;
     flex-direction: column;
     align-items: center;
 }
 
-.oneshotTopSection {
+.sqlAgentTopSection {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
 }
 
-.oneshotBottomSection {
+.sqlAgentBottomSection {
     display: flex;
     flex: 1;
     flex-wrap: wrap;
@@ -22,14 +22,14 @@
     margin-top: 10px;
 }
 
-.oneshotTitle {
+.sqlAgentTitle {
     font-size: 1rem;
     font-weight: 600;
     margin-top: 1px;
 }
 
 @media only screen and (max-width: 800px) {
-    .oneshotTitle {
+    .sqlAgentTitle {
         font-size: 3rem;
         font-weight: 600;
         margin-top: 0;
@@ -54,26 +54,26 @@
     flex-wrap: wrap;
 }
 
-.oneshotQuestionInput {
+.sqlAgentQuestionInput {
     max-width: 800px;
     width: 100%;
     padding-left: 5px;
     padding-right: 5px;
 }
 
-.oneshotAnswerContainer {
+.sqlAgentAnswerContainer {
     max-width: 800px;
     width: 100%;
     padding-left: 10px;
     padding-right: 10px;
 }
 
-.oneshotAnalysisPanel {
+.sqlAgentAnalysisPanel {
     width: 600px;
     margin-left: 20px;
 }
 
-.oneshotSettingsSeparator {
+.sqlAgentSettingsSeparator {
     margin-top: 15px;
 }
 

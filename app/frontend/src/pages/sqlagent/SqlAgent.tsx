@@ -359,26 +359,26 @@ const SqlAgent = () => {
 
     return (
         <div className={styles.root}>
-            <div className={styles.oneshotContainer}>
-            <Pivot aria-label="Chat">
+            <div className={styles.sqlAgentContainer}>
+                <Pivot aria-label="Chat">
                     <PivotItem
                         headerText="Agent"
                         headerButtonProps={{
                         'data-order': 1,
                         }}
                     >
-                    <div className={styles.oneshotTopSection}>
+                    <div className={styles.sqlAgentTopSection}>
                         <div className={styles.commandsContainer}>
                             <ClearChatButton className={styles.settingsButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                             <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                         </div>
                         <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
-                        <h1 className={styles.oneshotTitle}>Ask your SQL</h1>
+                        <h1 className={styles.sqlAgentTitle}>Ask your SQL</h1>
                         <div className={styles.example}>
                             <p className={styles.exampleText}><b>Scenario</b> : {summary}</p>
                         </div>
                         <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
-                        <div className={styles.oneshotQuestionInput}>
+                        <div className={styles.sqlAgentQuestionInput}>
                             <QuestionInput
                                 placeholder="Ask me anything"
                                 disabled={isLoading}
@@ -392,11 +392,11 @@ const SqlAgent = () => {
                                 exampleList
                         } />
                     </div>
-                    <div className={styles.oneshotBottomSection}>
+                    <div className={styles.sqlAgentBottomSection}>
                         {isLoading && <Spinner label="Generating answer" />}
                         {!isLoading && answer && !error && (
                             <div>
-                                <div className={styles.oneshotAnswerContainer}>
+                                <div className={styles.sqlAgentAnswerContainer}>
                                     <Stack horizontal horizontalAlign="space-between">
                                         <Pivot aria-label="Chat">
                                             <PivotItem
@@ -460,13 +460,13 @@ const SqlAgent = () => {
                             </div>
                         )}
                         {error ? (
-                            <div className={styles.oneshotAnswerContainer}>
+                            <div className={styles.sqlAgentAnswerContainer}>
                                 <AnswerError error={error.toString()} onRetry={() => makeApiRequest(lastQuestionRef.current)} />
                             </div>
                         ) : null}
                         {activeAnalysisPanelTab && answer && (
                             <AnalysisPanel
-                                className={styles.oneshotAnalysisPanel}
+                                className={styles.sqlAgentAnalysisPanel}
                                 activeCitation={activeCitation}
                                 onActiveTabChanged={x => onToggleTab(x)}
                                 citationHeight="600px"
@@ -483,18 +483,18 @@ const SqlAgent = () => {
                         'data-order': 2,
                         }}
                     >
-                        <div className={styles.oneshotTopSection}>
+                        <div className={styles.sqlAgentTopSection}>
                             <div className={styles.commandsContainer}>
                                 <ClearChatButton className={styles.settingsButton} onClick={clearChainChat} disabled={!lastQuestionChainRef.current || isLoading} />
                                 <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                             </div>
                             <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
-                            <h1 className={styles.oneshotTitle}>Ask your SQL</h1>
+                            <h1 className={styles.sqlAgentTitle}>Ask your SQL</h1>
                             <div className={styles.example}>
                                 <p className={styles.exampleText}><b>Scenario</b> : {summary}</p>
                             </div>
                             <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
-                            <div className={styles.oneshotQuestionInput}>
+                            <div className={styles.sqlAgentQuestionInput}>
                                 <QuestionInput
                                     placeholder="Ask me anything"
                                     disabled={isLoading}
@@ -515,11 +515,11 @@ const SqlAgent = () => {
                                     exampleList
                                 } />
                         </div>
-                        <div className={styles.oneshotBottomSection}>
+                        <div className={styles.sqlAgentBottomSection}>
                             {isLoading && <Spinner label="Generating answer" />}
                             {!isLoading && answerChain && !errorChain && (
                                 <div>
-                                    <div className={styles.oneshotAnswerContainer}>
+                                    <div className={styles.sqlAgentAnswerContainer}>
                                         <Stack horizontal horizontalAlign="space-between">
                                         <Pivot aria-label="Chat">
                                             <PivotItem
@@ -583,13 +583,13 @@ const SqlAgent = () => {
                                 </div>
                             )}
                             {errorChain ? (
-                                <div className={styles.oneshotAnswerContainer}>
+                                <div className={styles.sqlAgentAnswerContainer}>
                                     <AnswerError error={errorChain.toString()} onRetry={() => makeApiChainRequest(lastQuestionChainRef.current)} />
                                 </div>
                             ) : null}
                             {activeAnalysisPanelTab && answerChain && (
                                 <AnalysisPanel
-                                    className={styles.oneshotAnalysisPanel}
+                                    className={styles.sqlAgentAnalysisPanel}
                                     activeCitation={activeCitation}
                                     onActiveTabChanged={x => onToggleTab(x)}
                                     citationHeight="600px"
@@ -624,7 +624,7 @@ const SqlAgent = () => {
                     </div>
                     <br/>
                     <SpinButton
-                        className={styles.oneshotSettingsSeparator}
+                        className={styles.sqlAgentSettingsSeparator}
                         label="Retrieve this many documents from search:"
                         min={1}
                         max={100}
@@ -632,7 +632,7 @@ const SqlAgent = () => {
                         onChange={onRetrieveCountChange}
                     />
                     <SpinButton
-                        className={styles.oneshotSettingsSeparator}
+                        className={styles.sqlAgentSettingsSeparator}
                         label="Set the Temperature:"
                         min={0.0}
                         max={1.0}
@@ -640,7 +640,7 @@ const SqlAgent = () => {
                         onChange={onTemperatureChange}
                     />
                     <SpinButton
-                        className={styles.oneshotSettingsSeparator}
+                        className={styles.sqlAgentSettingsSeparator}
                         label="Max Length (Tokens):"
                         min={0}
                         max={4000}

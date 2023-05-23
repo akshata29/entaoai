@@ -18,6 +18,7 @@ from langchain.agents import ZeroShotAgent, Tool, AgentExecutor
 from langchain.vectorstores.base import VectorStore
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from Utilities.envVars import *
+from langchain.vectorstores.redis import Redis
 
 taskNamespace = "AgiTask"
 
@@ -301,8 +302,8 @@ def addTool(vectorDb, indexType, llm, overrideChain, indexName, returnDirect):
             )
         return tool
 
-def FindAnswer(question, overrides):
-    logging.info("Calling FindAnswer Open AI")
+def TaskAgentQaAnswer(question, overrides):
+    logging.info("Calling TaskAgentQaAnswer Open AI")
     openai.api_type = "azure"
     openai.api_key = OpenAiKey
     openai.api_version = OpenAiVersion
@@ -351,7 +352,8 @@ def FindAnswer(question, overrides):
         if indexType == "pinecone":
             vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexes[0]['indexNs'])
         elif indexType == "redis":
-            vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexes[0]['indexNs'])
+            redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+            vectorDb = Redis.from_existing_index(index_name=indexes[0]['indexNs'], embedding=embeddings, redis_url=redisUrl)
 
         tools = []
         for index in indexes:
@@ -438,8 +440,8 @@ def FindAnswer(question, overrides):
         return {"data_points": [], "answer": finalAnswer, "thoughts": action, "sources": sources, "nextQuestions":nextQuestions, "error": ""}
 
     except Exception as e:
-        logging.info("Error in FindAnswer Open AI : " + str(e))
-        return {"data_points": [], "answer": 'Exception occurred', "thoughts": '', "sources": '', "nextQuestions":'', "error": str(e)}
+        logging.info("Error in TaskAgentQaAnswer Open AI : " + str(e))
+        return {"data_points": [], "answer": 'Exception occurred :' + str(e), "thoughts": '', "sources": '', "nextQuestions":'', "error": str(e)}
 
     #return answer
 
@@ -527,7 +529,7 @@ def TransformValue(record):
         overrides = data['overrides']
         question = data['question']
 
-        answer = FindAnswer(question, overrides)
+        answer = TaskAgentQaAnswer(question, overrides)
         return ({
             "recordId": recordId,
             "data": answer

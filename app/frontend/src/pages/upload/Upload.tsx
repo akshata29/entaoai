@@ -108,15 +108,12 @@ const Upload = () => {
     
     const stackStyles: IStackStyles = {
       root: {
-        background: DefaultPalette.white,
         height: 250,
       },
     };
     const stackItemStyles: IStackItemStyles = {
       root: {
         alignItems: 'left',
-        background: DefaultPalette.white,
-        color: DefaultPalette.white,
         display: 'flex',
         justifyContent: 'left',
       },
@@ -158,6 +155,10 @@ const Upload = () => {
       {
         key: 'cogsearch',
         text: 'Cognitive Search'
+      },
+      {
+        key: 'cogsearchvs',
+        text: 'Cognitive Search Vector Store'
       }
       // {
       //   key: 'chroma',
@@ -175,6 +176,7 @@ const Upload = () => {
         maxSize: 100000000,
         accept: {
           'application/pdf': ['.pdf'],
+          'application/word': ['.doc', '.docx'],
           'text/plain': ['.txt']
         },
         onDrop: acceptedFiles => {
@@ -766,10 +768,10 @@ const Upload = () => {
                 <div className={styles.commandsContainer}>
                 </div>
                 <div>
-                    <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF/text file</h2>
+                    <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF/text/Word Document file</h2>
                     <h2 {...getRootProps({ className: 'dropzone' })}>
                         <input {...getInputProps()} />
-                            Drop PDF/text file here or click to upload. (Max file size 100 MB)
+                            Drop PDF/text/Word Document file here or click to upload. (Max file size 100 MB)
                     </h2>
                     {files.length ? (
                         <Card>

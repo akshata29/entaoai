@@ -1,8 +1,93 @@
+.developerToolsContainer {
+    /* display: flex; */
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+}
+
+.developerToolsTopSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.developerToolsBottomSection {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.developerToolsTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1px;
+}
+
+@media only screen and (max-width: 800px) {
+    .developerToolsTitle {
+        font-size: 3rem;
+        font-weight: 600;
+        margin-top: 0;
+    }
+}
+
+.answerContainer {
+    padding: 20px;
+    background: rgb(249, 249, 249);
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.14), 0px 0px 2px rgba(0, 0, 0, 0.12);
+    outline: transparent solid 1px;
+    width: 700px;
+}
+
+.answerText {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.developerToolsQuestionInput {
+    max-width: 800px;
+    width: 100%;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.developerToolsAnswerContainer {
+    max-width: 800px;
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.developerToolsAnalysisPanel {
+    width: 600px;
+    margin-left: 20px;
+}
+
+.developerToolsSettingsSeparator {
+    margin-top: 15px;
+}
+
+.settingsButton {
+    align-self: flex-end;
+    margin-right: 20px;
+    margin-top: 20px;
+}
+
 .container {
     flex: 1;
     display: flex;
     flex-direction: column;
-    margin-top: 5px;
+    margin-top: 20px;
 }
 
 .chatRoot {
@@ -12,7 +97,7 @@
 
 .chatContainer {
     flex: 1;
-    /* display: flex; */
+    display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
@@ -25,19 +110,19 @@
     justify-content: center;
     align-items: center;
     max-height: 1024px;
-    padding-top: 20px;
+    padding-top: 60px;
 }
 
 .chatEmptyStateTitle {
     font-size: 2rem;
     font-weight: 600;
     margin-top: 0;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
 }
 
 .chatEmptyStateSubtitle {
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 @media only screen and (max-height: 780px) {
@@ -106,15 +191,13 @@
 
 .commandsContainer {
     display: flex;
-    align-self: flex-end;
+    align-self: flex-start;
 }
 
 .commandButton {
     margin-right: 20px;
     margin-bottom: 20px;
-    font-size: 14px;
 }
-
 .example {
     word-break: break-word;
     background: #dbdbdb;
@@ -134,7 +217,6 @@
 .exampleText {
     margin: 0;
     font-size: 12px;
-    width: 850px;
+    width: 750px;
     height: 120px;
-    /* width: 100%; */
 }

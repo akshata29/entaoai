@@ -16,11 +16,12 @@ from langchain.schema import (
     AgentFinish,
 )
 from Utilities.envVars import *
+from langchain.vectorstores.redis import Redis
 
-def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, returnDirect):
+def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, returnDirect, topK):
     if indexType == "pinecone":
         vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
-        index = RetrievalQA.from_chain_type(llm=llm, chain_type=overrideChain, retriever=vectorDb.as_retriever())
+        index = RetrievalQA.from_chain_type(llm=llm, chain_type=overrideChain, retriever=vectorDb.as_retriever(search_kwargs={"k": topK}))
         tool = Tool(
                 name = indexName,
                 func=index.run,
@@ -29,8 +30,9 @@ def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, retur
             )
         return tool
     elif indexType == "redis":
-        vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
-        index = RetrievalQA.from_chain_type(llm=llm, chain_type=overrideChain, retriever=vectorDb.as_retriever())
+        redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+        vectorDb = Redis.from_existing_index(index_name=indexNs, embedding=embeddings, redis_url=redisUrl)
+        index = RetrievalQA.from_chain_type(llm=llm, chain_type=overrideChain, retriever=vectorDb.as_retriever(search_kwargs={"k": topK}))
         tool = Tool(
                 name = indexName,
                 func=index.run,
@@ -39,8 +41,8 @@ def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, retur
             )
         return tool
 
-def FindAnswer(question, overrides):
-    logging.info("Calling FindAnswer Open AI")
+def AgentQaAnswer(question, overrides):
+    logging.info("Calling AgentQaAnswer Open AI")
    
     answer = ''
     try:
@@ -85,10 +87,10 @@ def FindAnswer(question, overrides):
             indexNs = index['indexNs']
             indexName = index['indexName']
             returnDirect = bool(index['returnDirect'])
-            tool = addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, returnDirect)
+            tool = addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, returnDirect, topK)
             tools.append(tool)
 
-        logging.info("Pinecone Setup done")
+        logging.info("Index Setup done")
         agent = initialize_agent(tools, llm, agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION, 
                     verbose=False, return_intermediate_steps=True, early_stopping_method="generate")
         answer = agent({"input":question})
@@ -139,8 +141,8 @@ def FindAnswer(question, overrides):
         return {"data_points": [], "answer": answer['output'].replace("Answer: ", ''), "thoughts": answer['intermediate_steps'], "sources": sources, "nextQuestions":nextQuestions, "error": ""}
 
     except Exception as e:
-        logging.info("Error in FindAnswer Open AI : " + str(e))
-        return {"data_points": [], "answer": 'Exception Occured', "thoughts": '', "sources": '', "nextQuestions":'', "error": str(e)}
+        logging.info("Error in AgentQaAnswer Open AI : " + str(e))
+        return {"data_points": [], "answer": 'Exception Occured :' + str(e), "thoughts": '', "sources": '', "nextQuestions":'', "error": str(e)}
 
     #return answer
 
@@ -228,7 +230,7 @@ def TransformValue(record):
         overrides = data['overrides']
         question = data['question']
 
-        answer = FindAnswer(question, overrides)
+        answer = AgentQaAnswer(question, overrides)
         return ({
             "recordId": recordId,
             "data": answer

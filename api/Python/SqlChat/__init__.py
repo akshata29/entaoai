@@ -9,8 +9,8 @@ from langchain.sql_database import SQLDatabase
 from langchain.schema import AgentAction
 from Utilities.envVars import *
 
-def FindSqlAnswer(topK, question, embeddingModelType, value):
-    logging.info("Calling FindSqlAnswer Open AI")
+def SqlAgentAnswer(topK, question, embeddingModelType, value):
+    logging.info("Calling SqlAgentAnswer Open AI")
     answer = ''
     os.environ['OPENAI_API_KEY'] = OpenAiKey
 
@@ -108,8 +108,8 @@ def FindSqlAnswer(topK, question, embeddingModelType, value):
         return {"data_points": [], "answer": answer['output'], "thoughts": intermediateSteps, 
                 "toolInput": toolInput, "observation": observation, "error": ""}
     except Exception as e:
-        logging.info("Error in FindSqlAnswer Open AI : " + str(e))
-        return {"data_points": [], "answer": '', "thoughts": '', "error": str(e)}
+        logging.info("Error in SqlAgentAnswer Open AI : " + str(e))
+        return {"data_points": [], "answer": "Error in SqlAgentAnswer Open AI : " + str(e), "thoughts": '', "error": str(e)}
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -192,7 +192,7 @@ def TransformValue(topK, question, embeddingModelType, record):
         # Getting the items from the values/data/text
         value = data['text']
 
-        answer = FindSqlAnswer(topK, question, embeddingModelType, value)
+        answer = SqlAgentAnswer(topK, question, embeddingModelType, value)
         return ({
             "recordId": recordId,
             "data": answer

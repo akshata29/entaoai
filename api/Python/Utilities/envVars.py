@@ -47,6 +47,16 @@ try:
     else:
         RedisPort = ""
 
+    if "SearchKey" in os.environ: 
+        SearchKey = os.environ['SearchKey']
+    else:
+        SearchKey = ""
+
+    if "SearchService" in os.environ: 
+        SearchService = os.environ['SearchService']
+    else:
+        SearchService = ""
+
     OpenAiEmbedding = os.environ['OpenAiEmbedding']
     UploadPassword = os.environ['UploadPassword'] or ''
     AdminPassword = os.environ['AdminPassword'] or ''

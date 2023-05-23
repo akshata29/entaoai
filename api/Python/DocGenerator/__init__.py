@@ -20,11 +20,12 @@ from langchain.document_loaders import PDFMinerLoader
 import time
 from langchain.vectorstores.redis import Redis
 from langchain.document_loaders import WebBaseLoader
+from langchain.document_loaders import UnstructuredWordDocumentLoader
 from langchain.chains.summarize import load_summarize_chain
 from langchain.prompts import PromptTemplate
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs, getSasToken, getFullPath, copyBlob, copyS3Blob
-from Utilities.cogSearch import createSearchIndex, createSections, indexSections
+from Utilities.azureBlob import upsertMetadata, getBlob, getFullPath, copyBlob, copyS3Blob
+from Utilities.cogSearch import createSearchIndex, indexSections
 from Utilities.formrecognizer import analyze_layout, chunk_paragraphs
 from langchain.document_loaders import AzureBlobStorageFileLoader
 from langchain.document_loaders import AzureBlobStorageContainerLoader
@@ -195,7 +196,11 @@ def blobLoad(blobConnectionString, blobContainer, blobName):
         logging.error(e)
 
     logging.info("File created " + downloadPath)
-    loader = PDFMinerLoader(downloadPath)
+    if (blobName.endswith(".pdf")):
+        loader = PDFMinerLoader(downloadPath)
+    elif (blobName.endswith(".docx") or blobName.endswith(".doc")):
+        loader = UnstructuredWordDocumentLoader(downloadPath)
+
     #loader = UnstructuredFileLoader(downloadPath)
     rawDocs = loader.load()
 
@@ -239,9 +244,9 @@ def storeIndex(indexType, docs, fileName, nameSpace, embeddingModelType):
         Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=nameSpace)
     elif indexType == "redis":
         Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=nameSpace)
-    elif indexType == "cogsearch":
-        createSearchIndex(nameSpace)
-        indexSections(fileName, nameSpace, docs)
+    elif indexType == "cogsearch" or indexType == "cogsearchvs":
+        createSearchIndex(indexType, nameSpace)
+        indexSections(indexType, embeddingModelType, fileName, nameSpace, docs)
     elif indexType == "chroma":
         logging.info("Chroma Client: " + str(docs))
         #Chroma.from_documents(docs, embeddings, collection_name=nameSpace, client=chromaClient, embedding_function=embeddings)
