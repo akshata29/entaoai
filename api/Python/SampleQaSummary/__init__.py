@@ -1,13 +1,13 @@
 import logging, json, os
 import azure.functions as func
 import openai
-from langchain.llms.openai import OpenAI, AzureOpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chains.summarize import load_summarize_chain
 import os
 from langchain.vectorstores import Pinecone
 import pinecone
-from langchain.chains import VectorDBQAWithSourcesChain
+from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import RegexParser
@@ -22,6 +22,8 @@ import tiktoken
 from typing import Mapping
 from langchain.chains.question_answering import load_qa_chain
 from Utilities.envVars import *
+from Utilities.cogSearch import performCogSearch
+from Utilities.azureBlob import upsertMetadata, getAllBlobs
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
@@ -70,129 +72,133 @@ def performRedisSearch(question, indexName, k):
 
     return documents
 
-def summarizeGenerateQa(indexType, value, indexNs):
-    openai.api_type = "azure"
-    openai.api_key = OpenAiKey
-    openai.api_version = OpenAiVersion
-    openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+def summarizeGenerateQa(indexType, indexNs, embeddingModelType, requestType, chainType, value):
+    if (embeddingModelType == 'azureopenai'):
+        openai.api_type = "azure"
+        openai.api_key = OpenAiKey
+        openai.api_version = OpenAiVersion
+        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-    llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                temperature=os.environ['Temperature'] or 0.3,
+        llm = AzureChatOpenAI(
+                openai_api_base=openai.api_base,
+                openai_api_version="2023-03-15-preview",
+                deployment_name=OpenAiChat,
+                temperature=0,
                 openai_api_key=OpenAiKey,
-                max_tokens=1024,
-                batch_size=10)
+                openai_api_type="azure",
+                max_tokens=400)
+
+        embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+        logging.info("LLM Setup done")
+    elif embeddingModelType == "openai":
+        openai.api_type = "open_ai"
+        openai.api_base = "https://api.openai.com/v1"
+        openai.api_version = '2020-11-07' 
+        openai.api_key = OpenAiApiKey
+        llm = ChatOpenAI(temperature=0,
+            openai_api_key=OpenAiApiKey,
+            model_name="gpt-3.5-turbo",
+            max_tokens=400)
+        embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
     
-    embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+    qaTemplate = """Use the following portion of a long document.
+        {context}
+        Question: {question}
+        """
+
+    qaPrompt = PromptTemplate(
+        template=qaTemplate, input_variables=["context", "question"]
+    )
+
+    combinePromptTemplate = """Given the following extracted parts of a long document and a question, recommend between 1-5 sample questions.
+
+    QUESTION: {question}
+    =========
+    {summaries}
+    =========
+    """
+    combinePrompt = PromptTemplate(
+        template=combinePromptTemplate, input_variables=["summaries", "question"]
+    )
+    qaChain = load_qa_with_sources_chain(llm,
+        chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
+    qa = ""
+    summary = ""
 
     if indexType == 'pinecone':
         vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
+        docRetriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": 10})
+        logging.info("Pinecone Setup done for indexName : " + indexNs)
+        
         logging.info("Pinecone Setup done")
-        try:
-            qaTemplate = """Use the following portion of a long document.
-                {context}
-                Question: {question}
-                """
+        if (requestType == "qa"):
+            try:
+                chain = RetrievalQAWithSourcesChain(combine_documents_chain=qaChain, retriever=docRetriever, 
+                                                    return_source_documents=True)
+                answer = chain({"question": 'Generate 1-5 sample questions'}, return_only_outputs=True)
+                qa = answer['answer'].replace('\Generate 1-5 sample questions:\n', '').replace('\nSample Questions:\n', '').replace('\n', '\\n')
+            except Exception as e:
+                logging.info(e)
 
-            qaPrompt = PromptTemplate(
-                template=qaTemplate, input_variables=["context", "question"]
-            )
-
-            combinePromptTemplate = """Given the following extracted parts of a long document and a question, recommend between 1-5 sample questions.
-
-            QUESTION: {question}
-            =========
-            {summaries}
-            =========
-            """
-            combinePrompt = PromptTemplate(
-                template=combinePromptTemplate, input_variables=["summaries", "question"]
-            )
-            qaChain = load_qa_with_sources_chain(llm,
-                chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
+        if (requestType == "summary"):
+            try:
+                summaryChain = load_summarize_chain(llm, chain_type="map_reduce")
+                rawDocs = vectorDb.similarity_search('*', k=10, namespace=indexNs)
+                summary = summaryChain.run(rawDocs)
+            except Exception as e:
+                logging.info(e)
                 
-            chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, 
-                                                search_kwargs={"namespace": indexNs})
-            answer = chain({"question": 'Generate 1-5 sample questions'}, return_only_outputs=True)
-            qa = answer['answer'].replace('\Generate 1-5 sample questions:\n', '').replace('\nSample Questions:\n', '').replace('\n', '\\n')
-            #logging.info(qa)
-        except Exception as e:
-            logging.info(e)
-
-        try:
-            summaryChain = load_summarize_chain(llm, chain_type="map_reduce")
-            rawDocs = vectorDb.similarity_search('*', k=1000, namespace=indexNs)
-            summary = summaryChain.run(rawDocs)
-            #logging.info(summary)
-        except Exception as e:
-            logging.info(e)
     elif indexType == "redis":
         try:
             docs = performRedisSearch('question', indexNs, 10)
-            answer = qaChain({"input_documents": docs, "question": 'question'}, return_only_outputs=True)
-            logging.info(answer)
-            return {"answer": answer['output_text']}
+            if (requestType == "qa"):
+                answer = qaChain({"input_documents": docs, "question": 'question'}, return_only_outputs=True)
+                qa = answer['output_text']
+            if (requestType == "summary"):
+                summaryChain = load_summarize_chain(llm, chain_type="map_reduce")
+                summary = summaryChain.run(docs)
         except Exception as e:
             return {"answer": "Working on fixing Redis Implementation - Error : " + str(e) }
+        
+    elif indexType == "cogsearch" or indexType == "cogsearchvs":
+        r = performCogSearch(indexType, embeddingModelType, "*", indexNs, 10)
+        if r == None:
+            docs = [Document(page_content="No results found")]
+        else :
+            docs = [
+                Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
+                for doc in r
+                ]
+        rawDocs=[]
+        for doc in docs:
+            rawDocs.append(doc.page_content)
+        if (requestType == "qa"):
+            answer = qaChain({"input_documents": docs, "question": 'question'}, return_only_outputs=True)
+            qa = answer['output_text']
+        if (requestType == "summary"):
+            summaryChain = load_summarize_chain(llm, chain_type="map_reduce")
+            summary = summaryChain.run(docs)
 
     elif indexType == 'milvus':
         answer = "{'answer': 'TBD'}"
 
-    return qa, summary
-
-def QaSummaryAnswer(question, indexType, value, indexNs):
-    logging.info("Calling QaSummaryAnswer Open AI")
-    openai.api_type = "azure"
-    openai.api_key = OpenAiKey
-    openai.api_version = OpenAiVersion
-    openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-
-    answer = ''
-
-    # https://langchain.readthedocs.io/en/latest/modules/indexes/chain_examples/qa_with_sources.html
-
+    if (requestType == "qa"):
+        metadata = {'qa': qa.replace("-", "_")}
+    elif (requestType == "summary"):
+        metadata = {'summary': summary.replace("-", "_"), 'qa': qa.replace("-", "_")}
+    
     try:
-      llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                temperature=0,
-                openai_api_key=OpenAiKey,
-                max_tokens=1024,
-                batch_size=10)
+        blobList = getAllBlobs(OpenAiDocConnStr, OpenAiDocContainer)
+        for blob in blobList:
+            try:
+                if (blob.metadata['namespace'] == indexNs):
+                    upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, blob.name, metadata)
+            except:
+                continue
+    except:
+        pass
 
-      logging.info("LLM Setup done")
-      embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
-      template = """Given the following extracted parts of a long document, Generate 5 questions..
-            Give me that without numbering.
-
-            =========
-            {summaries}
-            =========
-            """
-      qaPrompt = PromptTemplate(template=template, input_variables=["summaries"])
-      qaChain = load_qa_with_sources_chain(llm, chain_type='stuff', prompt=qaPrompt)
-
-
-      if indexType == 'pinecone':
-        vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
-        logging.info("Pinecone Setup done")
-        chain = VectorDBQAWithSourcesChain(combine_documents_chain=qaChain, vectorstore=vectorDb, 
-                                         search_kwargs={"namespace": indexNs})
-        answer = chain({"question": question}, return_only_outputs=True)
-        return {"answer": answer['answer'].replace('\nSample Questions:\n', '')}
-        logging.info(answer)
-      elif indexType == "redis":
-        try:
-             docs = performRedisSearch(question, indexNs, 10)
-             answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-             logging.info(answer)
-             return {"answer": answer['output_text']}
-        except Exception as e:
-            return {"answer": "Working on fixing Redis Implementation - Error : " + str(e) }
-
-      elif indexType == 'milvus':
-          answer = "{'answer': 'TBD'}"
-
-    except Exception as e:
-      logging.info("Error in QaSummaryAnswer Open AI : " + str(e))
-      return {"answer": "Working on fixing Implementation - Error : " + str(e) }
+    return qa, summary
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -207,6 +213,9 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     try:
         indexType = req.params.get('indexType')
         indexNs = req.params.get('indexNs')
+        requestType = req.params.get('requestType')
+        chainType=req.params.get("chainType")
+        embeddingModelType=req.params.get("embeddingModelType")
         logging.info("Input parameters : " + " " + indexType)
         body = json.dumps(req.get_json())
     except ValueError:
@@ -220,7 +229,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             api_key=PineconeKey,  # find at app.pinecone.io
             environment=PineconeEnv  # next to api key in console
         )
-        result = ComposeResponse(indexType, body, indexNs)
+        result = ComposeResponse(indexType, indexNs, embeddingModelType, requestType, chainType, body)
         return func.HttpResponse(result, mimetype="application/json")
     else:
         return func.HttpResponse(
@@ -228,7 +237,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
              status_code=400
         )
 
-def ComposeResponse(indexType, jsonData, indexNs):
+def ComposeResponse(indexType, indexNs, embeddingModelType, requestType, chainType, jsonData):
     values = json.loads(jsonData)['values']
 
     logging.info("Calling Compose Response")
@@ -237,12 +246,12 @@ def ComposeResponse(indexType, jsonData, indexNs):
     results["values"] = []
 
     for value in values:
-        outputRecord = TransformValue(indexType, value, indexNs)
+        outputRecord = TransformValue(indexType, indexNs, embeddingModelType, requestType, chainType, value)
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
 
-def TransformValue(indexType, record, indexNs):
+def TransformValue(indexType, indexNs, embeddingModelType, requestType, chainType, record):
     logging.info("Calling Transform Value")
     try:
         recordId = record['recordId']
@@ -278,7 +287,7 @@ def TransformValue(indexType, record, indexNs):
         # Getting the items from the values/data/text
         value = data['text']
 
-        qa, summary = summarizeGenerateQa(indexType, value, indexNs)
+        qa, summary = summarizeGenerateQa(indexType, indexNs, embeddingModelType, requestType, chainType, value)
         return ({
             "recordId": recordId,
             "qa": qa,

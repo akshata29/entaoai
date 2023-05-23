@@ -125,6 +125,30 @@ def chat():
         logging.exception("Exception in /chat")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/summaryAndQa", methods=["POST"])
+def summaryAndQa():
+    indexType=request.json["indexType"]
+    indexNs=request.json["indexNs"]
+    embeddingModelType=request.json["embeddingModelType"]
+    requestType=request.json["requestType"]
+    chainType=request.json["chainType"]
+    postBody=request.json["postBody"]
+    
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("SUMMARYQA_URL")
+
+        data = postBody
+        params = {'indexType': indexType, "indexNs": indexNs, 'embeddingModelType': embeddingModelType, "requestType": requestType,
+                  'chainType': chainType  }
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /summaryAndQa")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/chat3", methods=["POST"])
 def chat3():
     indexType=request.json["indexType"]

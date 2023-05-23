@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "ms-azuretools.vscode-azurefunctions",
-    "ms-python.python"
+    "ms-python.python",
+    "github.copilot-chat"
   ]
 }
