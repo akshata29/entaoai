@@ -13,6 +13,8 @@ from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.prompts import PromptTemplate
 from Utilities.envVars import *
+from langchain.agents import create_csv_agent
+from Utilities.azureBlob import getLocalBlob, getFullPath
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -323,7 +325,14 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
                 "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", '').replace('- ', ''), 
                 "nextQuestions": nextQuestions.replace('Next Questions:', '').replace('- ', ''), "error": ""}
-
+        elif indexType == "csv":
+                downloadPath = getLocalBlob(OpenAiDocConnStr, OpenAiDocContainer, '', indexNs)
+                agent = create_csv_agent(llmChat, downloadPath, verbose=True)
+                answer = agent.run(q)
+                sources = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, os.path.basename(downloadPath))
+                return {"data_points": '', "answer": answer, 
+                            "thoughts": '',
+                                "sources": sources, "nextQuestions": '', "error": ""}
         elif indexType == 'milvus':
             answer = "{'answer': 'TBD', 'sources': ''}"
             return answer

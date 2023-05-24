@@ -18,6 +18,8 @@ from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
 from langchain.prompts import load_prompt
 from Utilities.envVars import *
+from langchain.agents import create_csv_agent
+from Utilities.azureBlob import getLocalBlob, getFullPath
 
 def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides):
     logging.info("Calling QaAnswer Open AI")
@@ -348,6 +350,16 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                                 "sources": sources, "nextQuestions": nextQuestions, "error": ""}
                 except Exception as e:
                     return {"data_points": "", "answer": "Working on fixing Cognitive Search Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
+            elif indexType == "csv":
+                downloadPath = getLocalBlob(OpenAiDocConnStr, OpenAiDocContainer, '', indexNs)
+                agent = create_csv_agent(llm, downloadPath, verbose=True)
+                answer = agent.run(question)
+                sources = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, os.path.basename(downloadPath))
+                return {"data_points": '', "answer": answer, 
+                            "thoughts": '',
+                                "sources": sources, "nextQuestions": '', "error": ""}
+
+
             elif indexType == 'milvus':
                 answer = "{'answer': 'TBD', 'sources': ''}"
                 return answer

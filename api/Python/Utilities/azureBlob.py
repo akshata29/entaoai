@@ -1,6 +1,7 @@
 from azure.storage.blob import BlobServiceClient, ContentSettings, generate_blob_sas
 from datetime import datetime, timedelta
 import logging
+import tempfile, os
 
 def upsertMetadata(connectionString, container, fileName, metadata):
     try:
@@ -34,6 +35,30 @@ def getFullPath(connectionString, container, fileName):
     blobServiceClient = BlobServiceClient.from_connection_string(connectionString)
     blobClient = blobServiceClient.get_blob_client(container=container, blob=fileName)
     return blobClient.url
+
+def getLocalBlob(connectionString, container, fileName, indexNs):
+    if (indexNs != None):
+        blobList = getAllBlobs(connectionString, container)
+        for file in blobList:
+            if file.metadata["embedded"] == "true":
+                namespace = file.metadata["namespace"]
+                if namespace == indexNs:
+                    fileName = file.name
+                    break
+    downloadPath = os.path.join(tempfile.gettempdir(), fileName)
+    if (os.path.exists(downloadPath)):
+        logging.info("File already exists " + downloadPath)
+        return downloadPath
+    readBytes  = getBlob(connectionString, container, fileName)
+    os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+    try:
+        with open(downloadPath, "wb") as file:
+            file.write(readBytes)
+    except Exception as e:
+        logging.error(e)
+
+    logging.info("File created " + downloadPath)
+    return downloadPath
 
 def getSasToken(connectionString, container, fileName):
     blobServiceClient = BlobServiceClient.from_connection_string(connectionString)

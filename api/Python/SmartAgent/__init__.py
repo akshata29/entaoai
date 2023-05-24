@@ -17,7 +17,7 @@ from langchain.schema import (
 )
 from Utilities.envVars import *
 from langchain.vectorstores.redis import Redis
-from Utilities.azureBlob import getAllBlobs
+from Utilities.azureBlob import getAllBlobs, getLocalBlob
 from langchain.retrievers import AzureCognitiveSearchRetriever
 from Utilities.cogSearchRetriever import CognitiveSearchRetriever
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
@@ -26,8 +26,9 @@ from langchain.agents import create_sql_agent
 from langchain.agents import ConversationalChatAgent, AgentExecutor, Tool
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.utilities import BingSearchAPIWrapper
+from langchain.agents import create_csv_agent
 
-def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, returnDirect, topK):
+def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, returnDirect, topK, fileName):
     if indexType == "pinecone":
         vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
         index = RetrievalQA.from_chain_type(llm=llm, chain_type=overrideChain, retriever=vectorDb.as_retriever(search_kwargs={"k": topK}))
@@ -63,6 +64,18 @@ def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, retur
                 return_direct=returnDirect
             )
         return tool
+    elif indexType == "csv":
+        localFile = getLocalBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName, None)
+        agent = create_csv_agent(llm, localFile, verbose=True)
+        tool = Tool(
+                name = indexName,
+                func=agent.run,
+                description="useful for when you need to answer questions on data that is stored in CSV about " + indexName + ". Input should be a fully formed question.",
+                return_direct=returnDirect
+            )
+        return tool
+
+
 
 def SmartAgent(question, overrides):
     logging.info("Calling SmartAgent Open AI")
@@ -222,7 +235,7 @@ def SmartAgent(question, overrides):
                 fileData = {"indexName": indexName, "indexNs": indexNs, "indexType": indexType, "returnDirect": True}
                 if (fileData not in files): #and (indexType != 'cogsearch'):
                     files.append(fileData)
-                    tool = addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, True, topK)
+                    tool = addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, True, topK, file.name)
                     tools.append(tool)
         # Add the Search(Bing) Tool
         tools.append(

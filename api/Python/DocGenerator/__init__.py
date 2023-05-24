@@ -316,6 +316,11 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                             docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey)
                         logging.info("Docs " + str(len(docs)))
                         storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
+                    elif fileName.endswith('.csv'):
+                        # for CSV, all we want to do is set the metadata
+                        # so that we can use the appropriate CSV/Pandas/Spark agent for QA and Chat
+                        # and/or the Smart Agent
+                        logging.info("Processing CSV File")
                     else:
                         try:
                             logging.info("Embedding Non-text file")
@@ -343,16 +348,22 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                             upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType})
                             errorMessage = str(e)
                             return errorMessage
-                    logging.info("Perform Summarization and QA")
-                    qa, summary = summarizeGenerateQa(docs, embeddingModelType)
-                    logging.info("Upsert metadata")
-                    metadata = {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName.replace("-", "_")}
-                    upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
-                    try:
-                        metadata = {'summary': summary.replace("-", "_"), 'qa': qa.replace("-", "_")}
+                    if not(fileName.endswith('.csv')):
+                        logging.info("Perform Summarization and QA")
+                        qa, summary = summarizeGenerateQa(docs, embeddingModelType)
+                        logging.info("Upsert metadata")
+                        metadata = {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, "indexName": indexName.replace("-", "_")}
                         upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
-                    except:
-                        pass
+                        try:
+                            metadata = {'summary': summary.replace("-", "_"), 'qa': qa.replace("-", "_")}
+                            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                        except:
+                            pass
+                    elif fileName.endswith('.csv'):
+                        logging.info("Upsert metadata")
+                        metadata = {'embedded': 'true', 'namespace': indexGuId, 'indexType': "csv", "indexName": indexName.replace("-", "_"),
+                                    'summary': 'No Summary', 'qa': 'No QA'}
+                        upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
                     logging.info("Sleeping")
                     time.sleep(5)
                 return "Success"
