@@ -183,6 +183,9 @@ const SmartAgent = () => {
         setTokenLength(parseInt(newValue || "1000"));
     };
 
+    const onExampleClicked = (example: string) => {
+        makeApiAgentRequest(example);
+    };
     const onShowCitation = (citation: string) => {
         if (citation.indexOf('http') > -1 || citation.indexOf('https') > -1) {
             window.open(citation.replace('/content/', ''), '_blank');
@@ -209,14 +212,56 @@ const SmartAgent = () => {
         setSelectedChain(item);
     };
 
+    const documentSummaryAndQa = async () => {
+        const sampleQuestion = []
+        const  questionList = [] 
+        questionList.push("Should I create one or multiple Purview accounts and why?")
+        questionList.push("Which shippers can ship the orders?")
+        questionList.push("What is the difference between Serverless and Dedicated Pool")
+        questionList.push("How many customers did placed an order")
+        questionList.push("For the year 1996 give me subtotals for each order")
+        questionList.push("What is context learning and three type of the approach?")
+        questionList.push("How many orders were placed in 1998")
+        questionList.push("What are the best practices to write secure code?")
+        questionList.push("How does copy data tool work in Azure Synapse?")
+        questionList.push("How can developers prevent evil input?")
+        questionList.push("What are the features of ChatGPT + Enterprise Data")
+        questionList.push("What vectorstore are supported by ChatGPT + Enterprise Data?")
+        questionList.push("What are the list of the features and updates released in ChatGPT + Enterprise Data?")
+        questionList.push("List of the Products that are above average price, also show average price for each product")
+        questionList.push("What is the purpose of integrate hub in Synapse")
+        questionList.push("How is the weather in Chicago tomorrow?")
+        questionList.push("Give me rundown on top news for today")
+        questionList.push("What are the top stories in the world today?")
+        questionList.push("Which stocks are the movers and shakers today?")
+
+        const shuffled = questionList.sort(() => 0.5 - Math.random());
+        const selectedQuestion = shuffled.slice(0, 5);
+
+        for (const item of selectedQuestion) {
+            if ((item != '')) {
+                sampleQuestion.push({
+                    text: item,
+                    value: item,
+                })
+            } 
+        }
+        const generatedExamples: ExampleModel[] = sampleQuestion
+        setExampleList(generatedExamples)
+
+        setAgentSummary("This sample shows how we can build Agents that uses set of tools and then get the answer.  The goal is that regardless of the information that we" +
+        " have stored here (Cognitive Search, Cognitive Search Vector Store, Pinecone, Redis or any other document store) or processing the data" + 
+        " that is in CSV format (and using CSV Agent or Pandas Agent) or retrieving information from Database (SQL Agent), the Agent can" +
+        " answer the question correctly using the right tool.  Beyond the data that is stored in here, the Agent can also use the tool" + 
+        " to find the current event and information from the web (using Bing Search Agent) and then answer the question.")
+    }
 
     useEffect(() => {
         setChainTypeOptions(chainType)
         setSelectedChain(chainType[0])
-        setAgentSummary("This sample shows how Agents uses an LLM to determine which actions to take and in what order." + 
-        " An action can either be using a tool and observing its output, or returning to the user.  Agent will go against all" + 
-        " documents that are uploaded here including the SQL database.")
         setSelectedEmbeddingItem(embeddingOptions[0])
+        documentSummaryAndQa()
+
     }, [])
 
     const clearAgentChat = () => {
@@ -278,6 +323,10 @@ const SmartAgent = () => {
                                 />
                             </div>
                             <div className={styles.chatContainer}>
+                                <ExampleList onExampleClicked={onExampleClicked}
+                                    EXAMPLES={
+                                        exampleList
+                                } />
                             </div>    
                         </div>
                         <div className={styles.oneshotBottomSection}>

@@ -19,11 +19,13 @@ from Utilities.envVars import *
 from langchain.vectorstores.redis import Redis
 from Utilities.azureBlob import getAllBlobs
 from langchain.retrievers import AzureCognitiveSearchRetriever
+from Utilities.cogSearchRetriever import CognitiveSearchRetriever
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.sql_database import SQLDatabase
 from langchain.agents import create_sql_agent
 from langchain.agents import ConversationalChatAgent, AgentExecutor, Tool
 from langchain.memory import ConversationBufferWindowMemory
+from langchain.utilities import BingSearchAPIWrapper
 
 def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, returnDirect, topK):
     if indexType == "pinecone":
@@ -48,10 +50,11 @@ def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, retur
             )
         return tool
     elif indexType == "cogsearch":
-        retriever = AzureCognitiveSearchRetriever(content_key="content",
+        retriever = CognitiveSearchRetriever(content_key="content",
                                                   service_name=SearchService,
                                                   api_key=SearchKey,
-                                                  index_name=indexNs)
+                                                  index_name=indexNs,
+                                                  topK=topK)
         index = RetrievalQA.from_chain_type(llm=llm, chain_type=overrideChain, retriever=retriever)
         tool = Tool(
                 name = indexName,
@@ -87,6 +90,39 @@ def SmartAgent(question, overrides):
         If the question does not seem related to the database, just return "I don't know" as the answer.
         If you cannot find a way to answer the question, just return the best answer you can find after trying at least three times."""
 
+    SqlFormatInstructions = """
+
+        ## Use the following format:
+
+        Question: the input question you must answer. 
+        Thought: you should always think about what to do. 
+        Action: the action to take, should be one of [{tool_names}]. 
+        Action Input: the input to the action. 
+        Observation: the result of the action. 
+        ... (this Thought/Action/Action Input/Observation can repeat N times)
+        Thought: I now know the final answer. 
+        Final Answer: the final answer to the original input question. 
+
+        Example of Final Answer:
+        <=== Beginning of example
+
+        Action: query_sql_db
+        Action Input: SELECT TOP (10) [death] FROM covidtracking WHERE state = 'TX' AND date LIKE '2020%'
+        Observation: [(27437.0,), (27088.0,), (26762.0,), (26521.0,), (26472.0,), (26421.0,), (26408.0,)]
+        Thought:I now know the final answer
+        Final Answer: There were 27437 people who died of covid in Texas in 2020.
+
+        Explanation:
+        I queried the `covidtracking` table for the `death` column where the state is 'TX' and the date starts with '2020'. The query returned a list of tuples with the number of deaths for each day in 2020. To answer the question, I took the sum of all the deaths in the list, which is 27437. 
+        I used the following query
+
+        ```sql
+        SELECT [death] FROM covidtracking WHERE state = 'TX' AND date LIKE '2020%'"
+        ```
+        ===> End of Example
+
+        """
+    
     customChatPrefix = """
         # Instructions
         ## On your profile and general capabilities:
@@ -133,6 +169,8 @@ def SmartAgent(question, overrides):
 
     answer = ''
     try:
+        os.environ['BING_SUBSCRIPTION_KEY'] = BingKey
+        os.environ['BING_SEARCH_URL'] = BingUrl
         topK = overrides.get("top") or 5
         overrideChain = overrides.get("chainType") or 'stuff'
         temperature = overrides.get("temperature") or 0.3
@@ -174,6 +212,8 @@ def SmartAgent(question, overrides):
         blobList = getAllBlobs(OpenAiDocConnStr, OpenAiDocContainer)
         files = []
         tools = []
+        # Get List of all the files that we have stored in our DOcument Store
+        # For each file, find the IndexType, IndexName and add that to the tool
         for file in blobList:
             if file.metadata["embedded"] == "true":
                 indexName = file.metadata["indexName"]
@@ -184,7 +224,16 @@ def SmartAgent(question, overrides):
                     files.append(fileData)
                     tool = addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, True, topK)
                     tools.append(tool)
-        
+        # Add the Search(Bing) Tool
+        tools.append(
+            Tool(
+                name = "Current events and news",
+                func=BingSearchAPIWrapper(k=topK).run,
+                description='useful to get current events information like weather, news, sports results, current movies.\n'
+            )
+        )
+
+        # Add the SQL Database Tool
         toolkit = SQLDatabaseToolkit(db=db, llm=llm)
         logging.info("Toolkit Setup done")
         agentExecutor = create_sql_agent(
@@ -192,31 +241,33 @@ def SmartAgent(question, overrides):
                 toolkit=toolkit,
                 verbose=True,
                 prefix=SqlPrefix, 
+                format_instructions = SqlFormatInstructions,
                 top_k=topK,
         )
 
         sqlTool = Tool(
                 name = "Sql Agent",
                 func=agentExecutor.run,
-                description="useful for when you need to answer questions about " + "SQL and Database" + ". Input should be a fully formed question.",
+                description="useful for when you need to answer questions about database and the information that is stored in the SQL Server. Input should be a fully formed question.",
                 return_direct=True
         )
         tools.append(sqlTool)
         
+
         logging.info("Document Setup done")
-        # agent = ConversationalChatAgent.from_llm_and_tools(llm=llm, tools=tools, system_message=customChatPrefix, human_message=customChatSuffix)
+        agent = ConversationalChatAgent.from_llm_and_tools(llm=llm, tools=tools, system_message=customChatPrefix, human_message=customChatSuffix)
         memory = ConversationBufferWindowMemory(memory_key="chat_history", return_messages=True, k=10)
-        # agentChain = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, memory=memory)
-        # answer = agentChain({"input":question})
+        agentChain = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, memory=memory)
+        answer = agentChain({"input":question})
         
-        agent = initialize_agent(tools, llm, agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION, 
-                     verbose=False, return_intermediate_steps=True, early_stopping_method="generate")
-        answer = agent({"input":question})
-        action = answer['intermediate_steps']
-        sources = ''
-        for a, data in action:
-            sources = a.tool
-            break;
+        # agent = initialize_agent(tools, llm, agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION, 
+        #              verbose=False, return_intermediate_steps=True, early_stopping_method="generate", memory=memory)
+        # answer = agent._call({"input":question})
+        # action = answer['intermediate_steps']
+        # sources = ''
+        # for a, data in action:
+        #     sources = a.tool
+        #     break;
         
         followupQaPromptTemplate = """Generate three very brief follow-up questions from the answer {answer} that the user would likely ask next.
         Use double angle brackets to reference the questions, e.g. <Is there a more details on that?>.
@@ -256,8 +307,8 @@ def SmartAgent(question, overrides):
             logging.error(e)
             nextQuestions =  ''
     
-        #return {"data_points": [], "answer": answer['output'].replace("Answer: ", ''), "thoughts": '', "sources": '', "nextQuestions":nextQuestions, "error": ""}
-        return {"data_points": [], "answer": answer['output'].replace("Answer: ", ''), "thoughts": answer['intermediate_steps'], "sources": sources, "nextQuestions":nextQuestions, "error": ""}
+        return {"data_points": [], "answer": answer['output'].replace("Answer: ", ''), "thoughts": '', "sources": '', "nextQuestions":nextQuestions, "error": ""}
+        #return {"data_points": [], "answer": answer['output'].replace("Answer: ", ''), "thoughts": answer['intermediate_steps'], "sources": sources, "nextQuestions":nextQuestions, "error": ""}
 
     except Exception as e:
         logging.info("Error in SmartAgent Open AI : " + str(e))

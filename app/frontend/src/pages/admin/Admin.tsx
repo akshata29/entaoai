@@ -258,7 +258,7 @@ const Admin = () => {
                 <Stack.Item grow styles={stackItemStyles}>
                   <Label>Admin Password:</Label>&nbsp;
                   <TextField onChange={onAdminPassword}
-                      errorMessage={!missingAdminPassword ? '' : "Note - Upload Password is required for Upload Functionality"}/>
+                      errorMessage={!missingAdminPassword ? '' : "Note - Admin Password is required for Admin Functionality"}/>
                 </Stack.Item>
               </Stack>
             </Stack>

@@ -122,8 +122,8 @@ def summarizeGenerateQa(indexType, indexNs, embeddingModelType, requestType, cha
     )
     qaChain = load_qa_with_sources_chain(llm,
         chain_type="map_reduce", question_prompt=qaPrompt, combine_prompt=combinePrompt)
-    qa = ""
-    summary = ""
+    qa = "No Sample QA Generated"
+    summary = "No Summary Generated"
 
     if indexType == 'pinecone':
         vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)

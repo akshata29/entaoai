@@ -32,6 +32,8 @@
       "OpenAiDocContainer": "", // Storage Container
       "SearchService":"", // Search Service 
       "SearchKey":"", // Search Key
+      "BingUrl": "https://api.bing.microsoft.com/v7.0/search",
+      "BingKey": "",  
       "SecDocContainer": "",// Storage Container for storing SEC documents
       "SynapseName": "", // Name of your database for SQL NLP
       "SynapsePool": "", // Name of SQL Pool or the database

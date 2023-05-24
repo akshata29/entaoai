@@ -466,7 +466,7 @@ const OneShot = () => {
                     key:blob.namespace,
                     iType:blob.indexType,
                     summary:blob.summary,
-                    qa:blob.qa
+                    qa:blob.qa == null ? '' : blob.qa
             })
           }
         }

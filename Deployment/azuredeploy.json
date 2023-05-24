@@ -15,6 +15,7 @@
     },
     "variables": {
 		"langSvcName": "[concat(parameters('prefix'), 'lang')]",
+        "bingSvcName": "[concat(parameters('prefix'), 'bing')]",
         "frSvcName": "[concat(parameters('prefix'), 'fr')]",
         "speechSvcName": "[concat(parameters('prefix'), 'speech')]",
 		"aoaiSvcName": "[concat(parameters('prefix'), 'aoai')]",
@@ -50,6 +51,19 @@
                     "ipRules": []
                 },
                 "publicNetworkAccess": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Bing/accounts",
+            "apiVersion": "2020-06-10",
+            "name": "[variables('bingSvcName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "S1"
+            },
+            "kind": "Bing.Search.v7",
+            "properties": {
+                "apiProperties": {}
             }
         },
         {
@@ -583,6 +597,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
 				"[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]",
+                "[resourceId('Microsoft.CognitiveServices/accounts', variables('bingsvcName'))]",
 				"[resourceId('Microsoft.Search/searchServices', variables('searchSvcName'))]",
 				"[resourceId('Microsoft.Sql/servers', variables('sqlSrvName'))]",
 				"[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
@@ -650,6 +665,14 @@
 						  "name": "FUNCTIONS_WORKER_RUNTIME",
 						  "value": "python"
 						},
+                        {
+                            "name": "BingUrl",
+                            "value": "https://api.bing.microsoft.com/v7.0/search"
+                        },
+                        {
+                            "name": "BingKey",
+                            "value": "[listKeys(resourceId('Microsoft.Bing/accounts', variables('bingsvcName')), '2022-12-01').key1]"
+                        },
                         {
                             "name": "UploadPassword",
                             "value": "P@ssw0rd"

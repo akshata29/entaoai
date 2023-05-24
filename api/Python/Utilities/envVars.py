@@ -57,6 +57,16 @@ try:
     else:
         SearchService = ""
 
+    if "BingUrl" in os.environ: 
+        BingUrl = os.environ['BingUrl']
+    else:
+        BingUrl = ""
+
+    if "BingKey" in os.environ: 
+        BingKey = os.environ['BingKey']
+    else:
+        BingKey = ""
+
     OpenAiEmbedding = os.environ['OpenAiEmbedding']
     UploadPassword = os.environ['UploadPassword'] or ''
     AdminPassword = os.environ['AdminPassword'] or ''
