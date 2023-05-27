@@ -304,11 +304,6 @@ def addTool(vectorDb, indexType, llm, overrideChain, indexName, returnDirect):
 
 def TaskAgentQaAnswer(question, overrides):
     logging.info("Calling TaskAgentQaAnswer Open AI")
-    openai.api_type = "azure"
-    openai.api_key = OpenAiKey
-    openai.api_version = OpenAiVersion
-    openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-
     answer = ''
 
     try:

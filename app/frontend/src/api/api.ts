@@ -339,6 +339,20 @@ export async function uploadBinaryFile(formData:any, indexName:string) : Promise
   return "Success";
 }
 
+export async function uploadSummaryBinaryFile(formData:any) : Promise<string> {
+  const response = await fetch('/uploadSummaryBinaryFile', {
+    method: "POST",
+    body: formData
+  });
+
+  const result = await response.json();
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return "Success";
+}
+
+
 export async function processDoc(indexType: string, loadType : string, multiple: string, indexName : string, files: any,
   blobConnectionString : string, blobContainer : string, blobPrefix : string, blobName : string,
   s3Bucket : string, s3Key : string, s3AccessKey : string, s3SecretKey : string, s3Prefix : string,
@@ -394,6 +408,42 @@ export async function processDoc(indexType: string, loadType : string, multiple:
   // }
   
   // return "Success";
+}
+
+export async function processSummary(loadType : string, multiple: string, files: any,
+  embeddingModelType: string, chainType:string) : Promise<AskResponse> {
+  const response = await fetch('/processSummary', {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      multiple: multiple,
+      loadType:loadType,
+      embeddingModelType:embeddingModelType,
+      chainType:chainType,
+      postBody: {
+        values: [
+          {
+            recordId: 0,
+            data: {
+              text: files,
+            }
+          }
+        ]
+      }
+    })
+  });
+  const parsedResponse: ChatResponse = await response.json();
+  return parsedResponse.values[0].data;
+  // if (response.status > 299 || !response.ok) {
+  //     return "Error";
+  // } else {
+  //   if (parsedResponse.values[0].data.error) {
+  //     return parsedResponse.values[0].data.error;
+  //   }
+  //   return parsedResponse.values[0].data.answer;
+  // }
 }
 
 export async function convertCode(inputLanguage:string, outputLanguage:string, 

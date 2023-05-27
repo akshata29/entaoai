@@ -30,6 +30,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 * 5/21/2023 - Add Developer Tools section - Experimental code conversion and Prompt guru.
 * 5/22/2023 - Initial version of "Smart Agent" that gives you flexibility to talk to all documents uploaded in the solution.  It also allow you to talk to SQL Database Scenario.  As more features are added, agent will keep on building upon that (for instance talk to CSV/Excel or Tabular data)
 * 5/24/2023 - Add feature to upload CSV files and CSV Agent to answer/chat questions on the tabular data.  Smart Agent also supports answering questions on CSV data.
+* 5/26/2023 - Add Summarization feature to summarize the document either using stuff, mapreduce or refine summarization.
   
 ## Test Website
 

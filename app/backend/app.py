@@ -241,6 +241,27 @@ def processDoc():
         logging.exception("Exception in /processDoc")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/processSummary", methods=["POST"])
+def processSummary():
+    multiple=request.json["multiple"]
+    loadType=request.json["loadType"]
+    embeddingModelType=request.json["embeddingModelType"]
+    chainType=request.json["chainType"]
+    postBody=request.json["postBody"]
+   
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("PROCESSSUMMARY_URL")
+
+        data = postBody
+        params = { "multiple": multiple , "loadType": loadType, "embeddingModelType": embeddingModelType, "chainType": chainType}
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /processSummary")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/convertCode", methods=["POST"])
 def convertCode():
     inputLanguage=request.json["inputLanguage"]
@@ -408,6 +429,29 @@ def uploadBinaryFile():
         return jsonify({'message': 'File uploaded successfully'}), 200
     except Exception as e:
         logging.exception("Exception in /uploadBinaryFile")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/uploadSummaryBinaryFile", methods=["POST"])
+def uploadSummaryBinaryFile():
+   
+    try:
+        if 'file' not in request.files:
+            return jsonify({'message': 'No file in request'}), 400
+        
+        file = request.files['file']
+        fileName = file.filename
+        blobName = os.path.basename(fileName)
+
+        url = os.environ.get("BLOB_CONNECTION_STRING")
+        summaryContainerName = os.environ.get("BLOB_SUMMARY_CONTAINER_NAME")
+        blobServiceClient = BlobServiceClient.from_connection_string(url)
+        containerClient = blobServiceClient.get_container_client(summaryContainerName)
+        blobClient = containerClient.get_blob_client(blobName)
+        #blob_client.upload_blob(bytes_data,overwrite=True, content_settings=ContentSettings(content_type=content_type))
+        blobClient.upload_blob(file.read(), overwrite=True)
+        return jsonify({'message': 'File uploaded successfully'}), 200
+    except Exception as e:
+        logging.exception("Exception in /uploadSummaryBinaryFile")
         return jsonify({"error": str(e)}), 500
 
 # Serve content files from blob storage from within the app to keep the example self-contained. 

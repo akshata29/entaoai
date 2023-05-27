@@ -57,7 +57,7 @@
             "type": "Microsoft.Bing/accounts",
             "apiVersion": "2020-06-10",
             "name": "[variables('bingSvcName')]",
-            "location": "[parameters('location')]",
+            "location": "global",
             "sku": {
                 "name": "S1"
             },
@@ -482,6 +482,10 @@
 						  "name": "BLOB_CONTAINER_NAME",
 						  "value": "chatpdf"
 						},
+                        {
+                            "name": "BLOB_SUMMARY_CONTAINER_NAME",
+                            "value": "summary"
+                        },
 						{
 						  "name": "ENABLE_ORYX_BUILD",
 						  "value": "True"
@@ -705,6 +709,10 @@
 						  "name": "OpenAiDocContainer",
 						  "value": "chatpdf"
 						},
+                        {
+                            "name": "OpenAiSummaryContainer",
+                            "value": "summary"
+                        },
                         {
                             "name": "OpenAiDocStorConnString",
                             "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value)]"
@@ -1245,6 +1253,23 @@
             "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
             "apiVersion": "2022-09-01",
             "name": "[concat(variables('storageName'), '/default/chatpdf')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2022-09-01",
+            "name": "[concat(variables('storageName'), '/default/summary')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"

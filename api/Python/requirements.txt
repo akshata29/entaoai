@@ -41,6 +41,7 @@ huggingface-hub==0.12.0
 idna==3.4
 importlib-metadata==6.0.0
 isodate==0.6.1
+#jq==1.4.1
 joblib==1.2.0
 langchain==0.0.177
 loguru==0.6.0
