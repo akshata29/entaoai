@@ -62,9 +62,7 @@
                 "name": "S1"
             },
             "kind": "Bing.Search.v7",
-            "properties": {
-                "apiProperties": {}
-            }
+            "properties": {}
         },
         {
             "type": "Microsoft.CognitiveServices/accounts",
@@ -601,7 +599,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
 				"[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]",
-                "[resourceId('Microsoft.CognitiveServices/accounts', variables('bingsvcName'))]",
+                "[resourceId('Microsoft.Bing/accounts', variables('bingsvcName'))]",
 				"[resourceId('Microsoft.Search/searchServices', variables('searchSvcName'))]",
 				"[resourceId('Microsoft.Sql/servers', variables('sqlSrvName'))]",
 				"[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
@@ -675,7 +673,7 @@
                         },
                         {
                             "name": "BingKey",
-                            "value": "[listKeys(resourceId('Microsoft.Bing/accounts', variables('bingsvcName')), '2022-12-01').key1]"
+                            "value": "[listKeys(resourceId('Microsoft.Bing/accounts', variables('bingsvcName')), '2020-06-10').key1]"
                         },
                         {
                             "name": "UploadPassword",
