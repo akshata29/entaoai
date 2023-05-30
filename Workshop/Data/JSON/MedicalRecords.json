@@ -1,0 +1,112 @@
+{
+  "patient": {
+    "name": "John Doe",
+    "date_of_birth": "1980-05-15",
+    "gender": "Male",
+    "address": "123 Main Street, Cityville, USA"
+  },
+  "visit_date": "2023-05-01",
+  "chief_complaint": "Patient presents with severe pain in the lower back",
+  "medical_history": {
+    "comorbidities": [
+      "Hypertension",
+      "Type 2 Diabetes"
+    ],
+    "allergies": [
+      {
+        "name": "Penicillin",
+        "reaction": "Hives"
+      },
+      {
+        "name": "Peanuts",
+        "reaction": "Anaphylaxis"
+      }
+    ],
+    "previous_surgeries": [
+      {
+        "name": "Appendectomy",
+        "date": "2005-08-20",
+        "complications": "None"
+      },
+      {
+        "name": "Knee arthroscopy",
+        "date": "2014-05-12",
+        "complications": "Infection"
+      }
+    ]
+   
+  },
+  "examination_findings": {
+    "vital_signs": {
+      "temperature": "37.5°C",
+      "blood_pressure": "140/90 mmHg",
+      "heart_rate": "80 bpm",
+      "respiratory_rate": "16 breaths per minute"
+    },
+    "physical_examination": {
+      "back": "Tenderness and limited range of motion in the lumbar region"
+    },
+    "neurological_examination": {
+      "motor_functions": "Normal",
+      "sensory_functions": "Normal",
+      "reflexes": "Diminished at the knees and ankles"
+    }
+  },
+  "diagnosis": {
+    "primary_diagnosis": {
+      "code": "M54.5",
+      "description": "Low back pain"
+    },
+    "secondary_diagnosis": [
+      {
+        "code": "I10",
+        "description": "Essential (primary) hypertension"
+      },
+      {
+        "code": "E11.9",
+        "description": "Type 2 diabetes mellitus without complications"
+      }
+    ],
+    "differential_diagnosis": [
+      {
+        "name": "Kidney stones",
+        "probability": "0.2"
+      },
+      {
+        "name": "Urinary tract infection",
+        "probability": "0.1"
+      }
+    ]
+  },
+  "treatment_plan": {
+    "medications": [
+      {
+        "name": "Ibuprofen",
+        "dosage": "400 mg",
+        "frequency": "Every 6 hours",
+        "duration": "7 days"
+      },
+      {
+        "name": "Metformin",
+        "dosage": "1000 mg",
+        "frequency": "Twice daily",
+        "duration": "Ongoing"
+      }
+      
+    ],
+    "physical_therapy": {
+      "exercises": [
+        "Lower back stretches",
+        "Core strengthening exercises"
+      ],
+      "frequency": "Twice weekly",
+      "duration": "4 weeks"
+    },
+    "referrals": [
+      {
+        "specialty": "Orthopedics",
+        "reason": "Further evaluation of back pain"
+      }
+    ]
+  }
+}
