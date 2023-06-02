@@ -70,10 +70,35 @@ Verify http://localhost:5000 to confirm the App is running locally.
       10. **Note** You can disable the Docker Api and Docker App Actions if it's not required.
       11. Verify the [Configuration](./Configuration.md) settings are properly configured in Azure Function App and Azure App Service.  THe default Upload and Admin password are P@ssw0rd.   Make sure the right keys are configured for the set of the functionality.
    3. Successful execution of both workflow will deploy the Python API and Azure App Services (UI application)
+   4. **NOTE** In case if you have [FTP disabled](./assets/DisabledFTP.png) due to policy on your subscription, you need to manually add following configuration and changes to YAML github action as deploy with Publish Profile will not work.
+      1. Download Azure CLI from [here](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest), run az login to login with your Azure credentials.
+      2. Select your subscription using az account set --subscription <subscription_name>
+      3. Create Azure app registration and grant contributor access to Function app using az ad sp create-for-rbac --name "chatpdf" --role contributor --scopes /subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Web/sites/<function-app-name> --sdk-auth
+         1. Replace {subscription-id}, {resource-group}, {app-name} and {function-app-name} with the names of your subscription, resource group, Web app and Azure function app.
+      4. Update Azure app registration and grant contributor access to Web app using az ad sp create-for-rbac --name "chatpdf" --role contributor --scopes /subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Web/sites/<app-name> --sdk-auth
+      5. The command should output a JSON object similar to this:
+      6. {
+            "clientId": "<GUID>",
+            "clientSecret": "<GUID>",
+            "subscriptionId": "<GUID>",
+            "tenantId": "<GUID>",
+            "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
+            "resourceManagerEndpointUrl": "https://management.azure.com/",
+            "activeDirectoryGraphResourceId": "https://graph.windows.net/",
+            "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
+            "galleryEndpointUrl": "https://gallery.azure.com/",
+            "managementEndpointUrl": "https://management.core.windows.net/"
+         }
+      7. Copy and paste the json response from above Azure CLI to your GitHub Repository > Settings > Secrets > Add a new secret > AZURE_RBAC_CREDENTIALS
+      8. Replace pythonapi.yml file (stored in chatpdf/.github/workflows directory) with the content from [here](./Deployment/pythonapi.yml)
+      9. Trigger the workflow manually and verify the deployment is successful.
+      10. Replace backendapp.yml file (stored in chatpdf/.github/workflows directory) with the content from [here](./Deployment/backendapp.yml)
+      11. Trigger the workflow manually and verify the deployment is successful.
+
 
 **Note** - To debug and troubleshoot issues after the deployment, you can view the log in Live Metrics in application insights or enable running the Logs for the specific Azure Function.
 
-2. Alternatively deploy the following services manually
+1. Alternatively deploy the following services manually
    1. [OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal).   Please be aware of the model & region availability documented [here].  Once the service is created, deploy the model for gpt35-turbo(chat), text-davinci-003 (davinci) and text-ada-embedding-002.
 (https://learn.microsoft.com/en-us/azure/cognitive-services/openai/concepts/models#model-summary-table-and-region-availability)
    1. [Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal) and a container (chatpdf)

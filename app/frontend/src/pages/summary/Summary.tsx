@@ -305,7 +305,7 @@ const Summary = () => {
               </Stack.Item>
             </Stack>
             <Stack.Item grow={2} styles={stackItemStyles}>
-              <Label>Summary</Label>
+              <Label>Summary&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</Label>
               {/* <TextField style={{ resize: 'none', width: '750px', height: '500px' }} disabled={false} multiline={true}/> */}
               <textarea
                     style={{ resize: 'none', width: '100%', height: '500px' }}
@@ -313,8 +313,9 @@ const Summary = () => {
                     disabled={false}
               />
             </Stack.Item>
+            <br/>
             <Stack.Item grow={2} styles={stackItemStyles}>
-              <Label>Intermediate Steps</Label>
+              <Label>Summary List</Label>
               <textarea
                     style={{ resize: 'none', width: '100%', height: '500px' }}
                     value={intermediateStepsText}
