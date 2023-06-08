@@ -15,14 +15,13 @@ def SqlAgentAnswer(topK, question, embeddingModelType, value):
     os.environ['OPENAI_API_KEY'] = OpenAiKey
 
     try:
-        synapseConnectionString = "Driver={{ODBC Driver 17 for SQL Server}};Server=tcp:{};" \
-                      "Database={};Uid={};Pwd={};Encrypt=yes;TrustServerCertificate=no;" \
-                      "Connection Timeout=30;".format(SynapseName, SynapsePool, SynapseUser, SynapsePassword)
-        params = urllib.parse.quote_plus(synapseConnectionString)
-        sqlConnectionString = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
-        db = SQLDatabase.from_uri(sqlConnectionString)
+        endpoint = endpoint
+        connection_string = connection_string
+        client = CosmosClient.from_connection_string(connection_string)
+        database_name = database_name
+        db = client.get_database_client(database_name)
 
-        # SqlPrefix = """You are an agent designed to interact with SQL database systems.
+        # SqlPrefix = """You are an agent designed to interact with NoSql database systems (Azure Cosmos DB).
         # Given an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
         # Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most {top_k} results using SELECT TOP in SQL Server syntax.
         # You can order the results by a relevant column to return the most interesting examples in the database.
@@ -36,7 +35,7 @@ def SqlAgentAnswer(topK, question, embeddingModelType, value):
         # If the question does not seem related to the database, just return "I don't know" as the answer.        
         # """ 
 
-        SqlPrefix = """You are an agent designed to interact with a SQL database.
+        SqlPrefix = """You are an agent designed to interact with NoSql database systems (Azure Cosmos DB).
         Given an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
         Always limit your query to at most {top_k} results using the SELECT TOP in SQL Server syntax.
         You can order the results by a relevant column to return the most interesting examples in the database.
