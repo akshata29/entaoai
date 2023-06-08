@@ -39,6 +39,9 @@
       "SynapsePool": "", // Name of SQL Pool or the database
       "SynapseUser": "", // User name for SQL NLP
       "SynapsePassword": "", // User name for SQL Password
+      "endpoint": "https://chat-nosql.documents.azure.com:443/",
+      "connection_string": "https://chat-nosql.documents.azure.com:443/;AccountKey=RJldZD68XeFmRoKFQzcdq5Zmo9xVwifLiUAN71zkqLp1ZY2wy1u4WRNB3m0P3c804st8jWoLGR2SACDb1R5ESw==;",
+      "database_name": "chatPDF",
       "RealTimeSpeechPrompt": "\"\"\"Write a concise summary of the following: \r\n \r\n{text}\"\"\"",
       "RealTimeSpeechPromptIv": "text",
       "RtsInsurancePrompt": "\"\"\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. Where the accident happened?\n4. How did the accident happen?\n5. What was the weather like when the accident happened?\n6. What is customer's phone number?\n7. Was the airbag deployed when accident happened? \r\n \r\n{text}\"\"\"",
