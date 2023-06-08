@@ -5,5 +5,19 @@
         "State location": "WA",
         "State of Inc": "WA",
         "Fiscal Year End": "0630"
+    },
+    "320193": {
+        "Company Name": "Apple Inc.",
+        "SIC": "3571",
+        "State location": "CA",
+        "State of Inc": "CA",
+        "Fiscal Year End": "0930"
+    },
+    "1318605": {
+        "Company Name": "Tesla, Inc.",
+        "SIC": "3711",
+        "State location": "CA",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
     }
 }

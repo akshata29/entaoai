@@ -27,6 +27,11 @@ try:
     else:
         SecDocContainer = ""
 
+    if "FmpKey" in os.environ: 
+        FmpKey = os.getenv('FmpKey')
+    else:
+        FmpKey = ""
+
     if "PineconeEnv" in os.environ: 
         PineconeEnv = os.getenv('PineconeEnv')
     else:

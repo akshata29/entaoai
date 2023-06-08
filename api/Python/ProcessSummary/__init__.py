@@ -96,7 +96,7 @@ def summarizeDoc(docs, chainType, embeddingModelType):
         llm = AzureOpenAI(deployment_name=OpenAiDavinci,
                 temperature=os.environ['Temperature'] or 0.3,
                 openai_api_key=OpenAiKey,
-                max_tokens=512,
+                max_tokens=1000,
                 batch_size=10)
     elif embeddingModelType == "openai":
         openai.api_type = "open_ai"
@@ -106,7 +106,7 @@ def summarizeDoc(docs, chainType, embeddingModelType):
         llm = OpenAI(temperature=os.environ['Temperature'] or 0.3,
                 openai_api_key=OpenAiApiKey,
                 verbose=True,
-                max_tokens=512)
+                max_tokens=1000)
     elif embeddingModelType == "local":
         return "Local not supported"
 

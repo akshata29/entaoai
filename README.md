@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 6/7/2023 - Add OpenAI Playground in Developer Tools and initial version of building the CoPilot (for now with Notebook, but eventually will be moved as CoPilot feature).  Add the script, recording and example for Real-time Speech analytics use-case.  More to be added soon.
 * 5/27/2023 - Add Workshop content in the form of the notebooks that can be leveraged to learn/execute the scenarios.  You can find the notebooks in the [Workshop](Workshop) folder.  Details about workshop content is available [here](READMEWORKSHOP.md).
 * 5/26/2023 - Add Summarization feature to summarize the document either using stuff, mapreduce or refine summarization.  To use this feature (on existing deployment) ensure you add the `OpenAiSummaryContainer` configuration to Function app and `BLOB_SUMMARY_CONTAINER_NAME` configuration to Azure App Service (Ensure that the value you enter is the same as the container name in Azure storage and that you have created the container).  You also need to add `PROCESSSUMMARY_URL` configuration to Azure App Service (Ensure that the value you enter is the same as the Azure Function URL).
 * 5/24/2023 - Add feature to upload CSV files and CSV Agent to answer/chat questions on the tabular data.  Smart Agent also supports answering questions on CSV data.
@@ -68,4 +69,4 @@ The repo provides a way to upload your own data so it's ready to try end to end.
   
 ### Note
 
->Adapted from the Azure OpenAI Search repo at [OpenAI-CogSearch](https://github.com/Azure-Samples/azure-search-openai-demo/) and [Call Center Analytics](https://github.com/amulchapla/AI-Powered-Call-Center-Intelligence)
+>Adapted from the Azure OpenAI Search repo at [OpenAI-CogSearch](https://github.com/Azure-Samples/azure-search-openai-demo/),  [Call Center Analytics](https://github.com/amulchapla/AI-Powered-Call-Center-Intelligence) and [Edgar Crawler](https://github.com/nlpaueb/edgar-crawler)

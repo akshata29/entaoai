@@ -72,11 +72,31 @@ def createSearchIndex(indexType, indexName):
                             SimpleField(name="htm_filing_link", type=SearchFieldDataType.String),
                             SimpleField(name="complete_text_filing_link", type=SearchFieldDataType.String),
                             SimpleField(name="filename", type=SearchFieldDataType.String),
+                            SimpleField(name="item_1", type=SearchFieldDataType.String),
+                            SimpleField(name="item_1A", type=SearchFieldDataType.String),
+                            SimpleField(name="item_1B", type=SearchFieldDataType.String),
+                            SimpleField(name="item_2", type=SearchFieldDataType.String),
+                            SimpleField(name="item_3", type=SearchFieldDataType.String),
+                            SimpleField(name="item_4", type=SearchFieldDataType.String),
+                            SimpleField(name="item_5", type=SearchFieldDataType.String),
+                            SimpleField(name="item_6", type=SearchFieldDataType.String),
+                            SimpleField(name="item_7", type=SearchFieldDataType.String),
+                            SimpleField(name="item_7A", type=SearchFieldDataType.String),
+                            SimpleField(name="item_8", type=SearchFieldDataType.String),
+                            SimpleField(name="item_9", type=SearchFieldDataType.String),
+                            SimpleField(name="item_9A", type=SearchFieldDataType.String),
+                            SimpleField(name="item_9B", type=SearchFieldDataType.String),
+                            SimpleField(name="item_10", type=SearchFieldDataType.String),
+                            SimpleField(name="item_11", type=SearchFieldDataType.String),
+                            SimpleField(name="item_12", type=SearchFieldDataType.String),
+                            SimpleField(name="item_13", type=SearchFieldDataType.String),
+                            SimpleField(name="item_14", type=SearchFieldDataType.String),
+                            SimpleField(name="item_15", type=SearchFieldDataType.String),
                             SimpleField(name="metadata", type=SearchFieldDataType.String),
                             SearchableField(name="content", type=SearchFieldDataType.String,
                                             searchable=True, retrievable=True, analyzer_name="en.microsoft"),
-                            SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                                        searchable=True, dimensions=1536, vector_search_configuration="vectorConfig"),
+                            # SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                            #             searchable=True, dimensions=1536, vector_search_configuration="vectorConfig"),
                             SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
                 ],
                 vector_search = VectorSearch(
@@ -117,6 +137,26 @@ def createSearchIndex(indexType, indexName):
                             SimpleField(name="htm_filing_link", type=SearchFieldDataType.String),
                             SimpleField(name="complete_text_filing_link", type=SearchFieldDataType.String),
                             SimpleField(name="filename", type=SearchFieldDataType.String),
+                            SimpleField(name="item_1", type=SearchFieldDataType.String),
+                            SimpleField(name="item_1A", type=SearchFieldDataType.String),
+                            SimpleField(name="item_1B", type=SearchFieldDataType.String),
+                            SimpleField(name="item_2", type=SearchFieldDataType.String),
+                            SimpleField(name="item_3", type=SearchFieldDataType.String),
+                            SimpleField(name="item_4", type=SearchFieldDataType.String),
+                            SimpleField(name="item_5", type=SearchFieldDataType.String),
+                            SimpleField(name="item_6", type=SearchFieldDataType.String),
+                            SimpleField(name="item_7", type=SearchFieldDataType.String),
+                            SimpleField(name="item_7A", type=SearchFieldDataType.String),
+                            SimpleField(name="item_8", type=SearchFieldDataType.String),
+                            SimpleField(name="item_9", type=SearchFieldDataType.String),
+                            SimpleField(name="item_9A", type=SearchFieldDataType.String),
+                            SimpleField(name="item_9B", type=SearchFieldDataType.String),
+                            SimpleField(name="item_10", type=SearchFieldDataType.String),
+                            SimpleField(name="item_11", type=SearchFieldDataType.String),
+                            SimpleField(name="item_12", type=SearchFieldDataType.String),
+                            SimpleField(name="item_13", type=SearchFieldDataType.String),
+                            SimpleField(name="item_14", type=SearchFieldDataType.String),
+                            SimpleField(name="item_15", type=SearchFieldDataType.String),
                             SimpleField(name="metadata", type=SearchFieldDataType.String),
                             SearchableField(name="content", type=SearchFieldDataType.String,
                                             searchable=True, retrievable=True, analyzer_name="en.microsoft"),
@@ -164,61 +204,104 @@ def chunkAndEmbed(embeddingModelType, indexType, indexName, secDoc, fullPath):
     fullData = []
     text = secDoc['item_1'] + secDoc['item_1A'] + secDoc['item_7'] + secDoc['item_7A']
     text = text.replace("\n", " ")
-    length = len(encoding.encode(text))
+    # Since we are not embedding, let's not worry about the length of the text
+    # length = len(encoding.encode(text))
 
     if indexType == "cogsearchvs":
-        if length > 1500:
-            k=0
-            chunkedText = getChunkedText(text, encoding_name="cl100k_base", max_tokens=1500)
-            logging.info(f"Total chunks: {len(chunkedText)}")
-            for chunk in chunkedText:
-                secCommonData = {
-                    "id": f"{fullPath}-{k}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_").replace(",", "_").replace("&", "_"),
-                    "cik": secDoc['cik'],
-                    "company": secDoc['company'],
-                    "filing_type": secDoc['filing_type'],
-                    "filing_date": secDoc['filing_date'],
-                    "period_of_report": secDoc['period_of_report'],
-                    "sic": secDoc['sic'],
-                    "state_of_inc": secDoc['state_of_inc'],
-                    "state_location": secDoc['state_location'],
-                    "fiscal_year_end": secDoc['fiscal_year_end'],
-                    "filing_html_index": secDoc['filing_html_index'],
-                    "htm_filing_link": secDoc['htm_filing_link'],
-                    "complete_text_filing_link": secDoc['complete_text_filing_link'],
-                    "filename": secDoc['filename'],
-                    "content": chunk,
-                    "contentVector": None,
-                    "metadata" : json.dumps({"cik": secDoc['cik'], "source": secDoc['filename'], "filingType": secDoc['filing_type'], "reportDate": secDoc['period_of_report']}),
-                    "sourcefile": fullPath
-                }
-                secCommonData['contentVector'] = generateEmbeddings(embeddingModelType, chunk)
-                fullData.append(secCommonData)
-                k=k+1
-        else:
-            logging.info(f"Process full text with text {text}")
-            secCommonData = {
-                    "id": f"{fullPath}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_").replace(",", "_").replace("&", "_"),
-                    "cik": secDoc['cik'],
-                    "company": secDoc['company'],
-                    "filing_type": secDoc['filing_type'],
-                    "filing_date": secDoc['filing_date'],
-                    "period_of_report": secDoc['period_of_report'],
-                    "sic": secDoc['sic'],
-                    "state_of_inc": secDoc['state_of_inc'],
-                    "state_location": secDoc['state_location'],
-                    "fiscal_year_end": secDoc['fiscal_year_end'],
-                    "filing_html_index": secDoc['filing_html_index'],
-                    "htm_filing_link": secDoc['htm_filing_link'],
-                    "complete_text_filing_link": secDoc['complete_text_filing_link'],
-                    "filename": secDoc['filename'],
-                    "content": text,
-                    "contentVector": None,
-                    "metadata" : json.dumps({"cik": secDoc['cik'], "source": secDoc['filename'], "filingType": secDoc['filing_type'], "reportDate": secDoc['period_of_report']}),
-                    "sourcefile": fullPath
-                }
-            secCommonData['contentVector'] = generateEmbeddings(embeddingModelType, text)
-            fullData.append(secCommonData)
+        # if length > 1500:
+        #     k=0
+        #     chunkedText = getChunkedText(text, encoding_name="cl100k_base", max_tokens=1500)
+        #     logging.info(f"Total chunks: {len(chunkedText)}")
+        #     for chunk in chunkedText:
+        #         secCommonData = {
+        #             "id": f"{fullPath}-{k}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_").replace(",", "_").replace("&", "_"),
+        #             "cik": secDoc['cik'],
+        #             "company": secDoc['company'],
+        #             "filing_type": secDoc['filing_type'],
+        #             "filing_date": secDoc['filing_date'],
+        #             "period_of_report": secDoc['period_of_report'],
+        #             "sic": secDoc['sic'],
+        #             "state_of_inc": secDoc['state_of_inc'],
+        #             "state_location": secDoc['state_location'],
+        #             "fiscal_year_end": secDoc['fiscal_year_end'],
+        #             "filing_html_index": secDoc['filing_html_index'],
+        #             "htm_filing_link": secDoc['htm_filing_link'],
+        #             "complete_text_filing_link": secDoc['complete_text_filing_link'],
+        #             "filename": secDoc['filename'],
+        #             "item_1": secDoc['item_1'],
+        #             "item_1A": secDoc['item_1A'],
+        #             "item_1B": secDoc['item_1B'],
+        #             "item_2": secDoc['item_2'],
+        #             "item_3": secDoc['item_3'],
+        #             "item_4": secDoc['item_4'],
+        #             "item_5": secDoc['item_5'],
+        #             "item_6": secDoc['item_6'],
+        #             "item_7": secDoc['item_7'],
+        #             "item_7A": secDoc['item_7A'],
+        #             "item_8": secDoc['item_8'],
+        #             "item_9": secDoc['item_9'],
+        #             "item_9A": secDoc['item_9A'],
+        #             "item_9B": secDoc['item_9B'],
+        #             "item_10": secDoc['item_10'],
+        #             "item_11": secDoc['item_11'],
+        #             "item_12": secDoc['item_12'],
+        #             "item_13": secDoc['item_13'],
+        #             "item_14": secDoc['item_14'],
+        #             "item_15": secDoc['item_15'],
+        #             "content": chunk,
+        #             #"contentVector": [],
+        #             "metadata" : json.dumps({"cik": secDoc['cik'], "source": secDoc['filename'], "filingType": secDoc['filing_type'], "reportDate": secDoc['period_of_report']}),
+        #             "sourcefile": fullPath
+        #         }
+        #         # Comment for now on not generating embeddings
+        #         #secCommonData['contentVector'] = generateEmbeddings(embeddingModelType, chunk)
+        #         fullData.append(secCommonData)
+        #         k=k+1
+        # else:
+        #logging.info(f"Process full text with text {text}")
+        secCommonData = {
+                "id": f"{fullPath}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_").replace(",", "_").replace("&", "_"),
+                "cik": secDoc['cik'],
+                "company": secDoc['company'],
+                "filing_type": secDoc['filing_type'],
+                "filing_date": secDoc['filing_date'],
+                "period_of_report": secDoc['period_of_report'],
+                "sic": secDoc['sic'],
+                "state_of_inc": secDoc['state_of_inc'],
+                "state_location": secDoc['state_location'],
+                "fiscal_year_end": secDoc['fiscal_year_end'],
+                "filing_html_index": secDoc['filing_html_index'],
+                "htm_filing_link": secDoc['htm_filing_link'],
+                "complete_text_filing_link": secDoc['complete_text_filing_link'],
+                "filename": secDoc['filename'],
+                "item_1": secDoc['item_1'],
+                "item_1A": secDoc['item_1A'],
+                "item_1B": secDoc['item_1B'],
+                "item_2": secDoc['item_2'],
+                "item_3": secDoc['item_3'],
+                "item_4": secDoc['item_4'],
+                "item_5": secDoc['item_5'],
+                "item_6": secDoc['item_6'],
+                "item_7": secDoc['item_7'],
+                "item_7A": secDoc['item_7A'],
+                "item_8": secDoc['item_8'],
+                "item_9": secDoc['item_9'],
+                "item_9A": secDoc['item_9A'],
+                "item_9B": secDoc['item_9B'],
+                "item_10": secDoc['item_10'],
+                "item_11": secDoc['item_11'],
+                "item_12": secDoc['item_12'],
+                "item_13": secDoc['item_13'],
+                "item_14": secDoc['item_14'],
+                "item_15": secDoc['item_15'],
+                "content": text,
+                #"contentVector": [],
+                "metadata" : json.dumps({"cik": secDoc['cik'], "source": secDoc['filename'], "filingType": secDoc['filing_type'], "reportDate": secDoc['period_of_report']}),
+                "sourcefile": fullPath
+            }
+        # Comment for now on not generating embeddings
+        #secCommonData['contentVector'] = generateEmbeddings(embeddingModelType, text)
+        fullData.append(secCommonData)
 
         searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
                                     index_name=indexName,

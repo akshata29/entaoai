@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { TextField, Stack, Spinner } from "@fluentui/react";
+import { TextField, Stack, Spinner, IStackStyles, IStackTokens } from "@fluentui/react";
 import { PrimaryButton } from "@fluentui/react";
 import { githubLight } from '@uiw/codemirror-theme-github';
 import { Label } from '@fluentui/react/lib/Label';
@@ -13,15 +13,31 @@ import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 import { ClearChatButton } from "../../components/ClearChatButton";
 
-import { convertCode, AskResponse, getSpeechApi, promptGuru } from "../../api";
+import { convertCode, AskResponse, getSpeechApi, promptGuru, summarizer, AskRequest, Approaches } from "../../api";
 import { ExampleList, ExampleModel } from "../../components/Example";
-import { IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
+import { IStackItemStyles } from '@fluentui/react/lib/Stack';
 
 import { StreamLanguage } from '@codemirror/language';
 import { go } from '@codemirror/legacy-modes/mode/go';
 import CodeMirror from '@uiw/react-codemirror';
 
 var audio = new Audio();
+
+const stackStyles: IStackStyles = {
+    root: {
+      //background: DefaultPalette.white,
+    },
+};
+
+const itemStyles: React.CSSProperties = {
+    alignItems: 'center',
+    //background: DefaultPalette.white,
+    //color: DefaultPalette.white,
+    display: 'flex',
+    justifyContent: 'center',
+};
+
+const stackTokens: IStackTokens = { childrenGap: 5 };
 
 const DeveloperTools = () => {
     const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
@@ -48,6 +64,8 @@ const DeveloperTools = () => {
     const [error, setError] = useState<unknown>();
     const [answer, setAnswer] = useState<[AskResponse, string | null]>();
     const [exampleList, setExampleList] = useState<ExampleModel[]>([{text:'', value: ''}]);
+    const [gptPrompt, setGptPrompt] = useState('');
+    const [gptSummary, setGptSummary] = useState('');
 
 
     const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
@@ -190,6 +208,31 @@ const DeveloperTools = () => {
     const onToggleTab = (tab: AnalysisPanelTabs) => {
     };
 
+    const gptCompletion = async () => {
+        const requestText = JSON.stringify(gptPrompt)
+    
+        setGptSummary('')
+    
+        const request: AskRequest = {
+            question: '',
+            approach: Approaches.RetrieveThenRead,
+            overrides: {
+                temperature: 0,
+                chainType: "map_reduce",
+                tokenLength: 500,
+            }
+        };
+
+        await summarizer(request, requestText, 'custom', '', 'inline', 
+          "map_reduce", String(selectedEmbeddingItem?.key)).then((response) => {
+            setGptSummary(response)
+          }).catch((error) => {
+            console.log(error)
+            setGptSummary(error)
+        }
+        )
+    }
+
     const handleTranslate = async () => {
         const maxCodeLength = selectedModelItem?.key === 'gpt35' ? 6000 : 12000;
         
@@ -276,6 +319,9 @@ const DeveloperTools = () => {
         setIsSpeaking(false);
     };
 
+    const promptChange = (ev: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
+        setGptPrompt(newValue || '')
+    }
     const makePromptApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
 
@@ -541,6 +587,84 @@ const DeveloperTools = () => {
                                     </div>
                                 ) : null}
                             </div>
+                        </div>
+                    </PivotItem>
+                    <PivotItem
+                        headerText="OpenAI Playground"
+                        headerButtonProps={{
+                        'data-order': 3,
+                        }}
+                    >
+                        <div className={styles.developerToolsTopSection}>
+                            <br/>
+                            <div className={styles.commandsContainer}>
+                                &nbsp;&nbsp;<Label>LLM</Label>
+                                &nbsp;
+                                <Dropdown
+                                    selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                                    onChange={onEmbeddingChange}
+                                    defaultSelectedKey="azureopenai"
+                                    placeholder="Select an LLM Model"
+                                    options={embeddingOptions}
+                                    disabled={false}
+                                    styles={dropdownStyles}
+                                />
+                                &nbsp;
+                                <Label>Model</Label>
+                                &nbsp;
+                                <Dropdown
+                                    selectedKey={selectedModelItem ? selectedModelItem.key : undefined}
+                                    onChange={onModelChange}
+                                    defaultSelectedKey="gpt35"
+                                    placeholder="Select an Model"
+                                    options={modelOptions}
+                                    disabled={false}
+                                    styles={dropdownStyles}
+                                />                               
+                            </div>
+                            <br/>
+                            <h1 className={styles.developerToolsTitle}>OpenAI Playground</h1>
+                            <br/>
+                            <Stack enableScopedSelectors tokens={stackTokens}>
+                                <Stack enableScopedSelectors horizontal horizontalAlign="start" styles={stackStyles}>
+                                    <span style={itemStyles}>
+                                        <TextField 
+                                            multiline
+                                            styles={{root: {width: '600px', height: '500px'}}}
+                                            label="Prompt"
+                                            value={gptPrompt}
+                                            rows={25}
+                                            onChange={promptChange}
+                                        />
+                                        {/* <textarea
+                                            style={{ resize: 'none', width: '100%', height: '500px' }}
+                                            value={gptPrompt}
+                                            onChange={(e) => {
+                                                setGptPrompt(e.target.value);
+                                                }}
+                                        /> */}
+                                    </span>
+                                    <span style={itemStyles}>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                    </span>
+                                    <span style={itemStyles}>
+                                        <TextField 
+                                            multiline
+                                            styles={{root: {width: '700px', height: '500px'}}}
+                                            label="OpenAI Summary"
+                                            readOnly
+                                            value={gptSummary}
+                                            rows={25}
+                                        />
+                                        {/* <textarea
+                                            style={{ resize: 'none', width: '100%', height: '500px' }}
+                                            value={gptSummary}
+                                        /> */}
+                                    </span>
+                                </Stack>
+                            </Stack>
+                            <PrimaryButton text={isLoading ? 'Completion...' : 'Completion'}
+                                        disabled={isLoading} onClick={gptCompletion} />
                         </div>
                     </PivotItem>
                 </Pivot>

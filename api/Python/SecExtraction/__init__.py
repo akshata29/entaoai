@@ -973,14 +973,6 @@ def downloadIndices(
 		
 def EdgarIngestion(indexType, indexNs, value):
     try:
-        logging.info("Loading OpenAI")
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-        uResultNs = uuid.uuid4()
-        logging.info("Index will be created as " + uResultNs.hex)
-
         """
         The main method iterates all over the tsv index files that are generated
         and calls a crawler method for each one of them.
@@ -1025,7 +1017,7 @@ def EdgarIngestion(indexType, indexNs, value):
                     tsv_filenames.append(filepath)
 
         logging.info(tsv_filenames)
-            # Get the indices that are specific to your needs
+        # Get the indices that are specific to your needs
         df = getSpecificIndicies(
                 tsv_filenames=tsv_filenames,
                 filing_types=config['filing_types'],
@@ -1090,9 +1082,9 @@ def EdgarIngestion(indexType, indexNs, value):
             logging.info("Extracted the data")
             jsonFileName = f'{series["filename"].split(".")[0]}.json'
             logging.info("Json file name is " + jsonFileName)
-            uploadBlob(OpenAiDocConnStr, SecDocContainer, jsonFileName, json.dumps(extractedItems), "application/json")
+            uploadBlob(OpenAiDocConnStr, SecDocContainer, series['CIK'] + '\\' + jsonFileName, json.dumps(extractedItems), "application/json")
             metadata = {'embedded': 'false'}
-            upsertMetadata(OpenAiDocConnStr, SecDocContainer, jsonFileName, metadata)
+            upsertMetadata(OpenAiDocConnStr, SecDocContainer, series['CIK'] + '\\' + jsonFileName, metadata)
             #extractedFilings.append(extractedItems)
 
         # extraction = ExtractItems(

@@ -103,6 +103,129 @@ def createSearchIndex(SearchService, SearchKey, indexName):
     else:
         print(f"Search index {indexName} already exists")
 
+def createEarningCallIndex(SearchService, SearchKey, indexName):
+    indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            credential=AzureKeyCredential(SearchKey))
+    if indexName not in indexClient.list_index_names():
+        index = SearchIndex(
+            name=indexName,
+            fields=[
+                        SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                        SearchableField(name="symbol", type=SearchFieldDataType.String, sortable=True,
+                                        searchable=True, retrievable=True, filterable=True, facetable=True, analyzer_name="en.microsoft"),
+                        SearchableField(name="quarter", type=SearchFieldDataType.String, sortable=True,
+                                        searchable=True, retrievable=True, filterable=True, facetable=True, analyzer_name="en.microsoft"),
+                        SearchableField(name="year", type=SearchFieldDataType.String, sortable=True,
+                                        searchable=True, retrievable=True, filterable=True, facetable=True, analyzer_name="en.microsoft"),
+                        SimpleField(name="calldate", type="Edm.String", retrievable=True),
+                        SearchableField(name="content", type=SearchFieldDataType.String,
+                                        searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                        SimpleField(name="inserteddate", type="Edm.String", searchable=True, retrievable=True,),
+            ],
+            semantic_settings=SemanticSettings(
+                configurations=[SemanticConfiguration(
+                    name='semanticConfig',
+                    prioritized_fields=PrioritizedFields(
+                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+        )
+
+        try:
+            print(f"Creating {indexName} search index")
+            indexClient.create_index(index)
+        except Exception as e:
+            print(e)
+    else:
+        print(f"Search index {indexName} already exists")
+
+def createPressReleaseIndex(SearchService, SearchKey, indexName):
+    indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            credential=AzureKeyCredential(SearchKey))
+    if indexName not in indexClient.list_index_names():
+        index = SearchIndex(
+            name=indexName,
+            fields=[
+                        SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                        SearchableField(name="symbol", type=SearchFieldDataType.String, sortable=True,
+                                        searchable=True, retrievable=True, filterable=True, facetable=True, analyzer_name="en.microsoft"),
+                        SimpleField(name="releasedate", type="Edm.String", retrievable=True),
+                        SearchableField(name="title", type=SearchFieldDataType.String,
+                                        searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                        SearchableField(name="content", type=SearchFieldDataType.String,
+                                        searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                        SimpleField(name="inserteddate", type="Edm.String", searchable=True, retrievable=True,),
+            ],
+            semantic_settings=SemanticSettings(
+                configurations=[SemanticConfiguration(
+                    name='semanticConfig',
+                    prioritized_fields=PrioritizedFields(
+                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+        )
+
+        try:
+            print(f"Creating {indexName} search index")
+            indexClient.create_index(index)
+        except Exception as e:
+            print(e)
+    else:
+        print(f"Search index {indexName} already exists")
+
+def createStockNewsIndex(SearchService, SearchKey, indexName):
+    indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            credential=AzureKeyCredential(SearchKey))
+    if indexName not in indexClient.list_index_names():
+        index = SearchIndex(
+            name=indexName,
+            fields=[
+                        SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                        SearchableField(name="symbol", type=SearchFieldDataType.String, sortable=True,
+                                        searchable=True, retrievable=True, filterable=True, facetable=True, analyzer_name="en.microsoft"),
+                        SimpleField(name="publisheddate", type="Edm.String", retrievable=True),
+                        SearchableField(name="title", type=SearchFieldDataType.String,
+                                        searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                        SimpleField(name="image", type="Edm.String", retrievable=True),
+                        SearchableField(name="site", type=SearchFieldDataType.String,
+                                        searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                        SearchableField(name="content", type=SearchFieldDataType.String,
+                                        searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                        SimpleField(name="url", type="Edm.String", retrievable=True),
+                        SimpleField(name="inserteddate", type="Edm.String", searchable=True, retrievable=True,),
+            ],
+            semantic_settings=SemanticSettings(
+                configurations=[SemanticConfiguration(
+                    name='semanticConfig',
+                    prioritized_fields=PrioritizedFields(
+                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+        )
+
+        try:
+            print(f"Creating {indexName} search index")
+            indexClient.create_index(index)
+        except Exception as e:
+            print(e)
+    else:
+        print(f"Search index {indexName} already exists")
+
+def indexDocs(SearchService, SearchKey, indexName, docs):
+    print("Total docs: " + str(len(docs)))
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
+                                    index_name=indexName,
+                                    credential=AzureKeyCredential(SearchKey))
+    i = 0
+    batch = []
+    for s in docs:
+        batch.append(s)
+        i += 1
+        if i % 1000 == 0:
+            results = searchClient.upload_documents(documents=batch)
+            succeeded = sum([1 for r in results if r.succeeded])
+            print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+            batch = []
+
+    if len(batch) > 0:
+        results = searchClient.upload_documents(documents=batch)
+        succeeded = sum([1 for r in results if r.succeeded])
+        print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+
 def createSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, fileName, docs):
     counter = 1
     for i in docs:

@@ -1,0 +1,41 @@
+Use this prompt to generate a standard summary of the conversation text. No customization is done therefore GPT provides a general summary of the text -> Tl;dr
+
+Generates customized conversation summary focused on the business details relevant to customer’s use case -> """
+You are an assistant helping to summarize phone call 
+conversation based on call transcript.
+Use this format, replacing text in brackets with the result. 
+Do not include the brackets in the output:
+Summary: [Call summary that includes accident details, 
+location, car make model, damage details, PII information 
+and next steps]
+"""
+
+Extract custom business insights listed in the input prompt. Provide response in plain text 
+format. -> Extract the following from the phone conversation. Do not 
+include brackets in the output:
+1. Main reason of the conversation:
+2. Sentiment of the customer:
+3. Accident location:
+4. How did the accident happen:
+5. Weather when the accident happened:
+6. Airbag deployed <yes/no/not mentioned>:
+7. Police called to the scene <yes/no/not mentioned>:
+8. Did customer take any pictures of accident scene 
+<yes/no/not mentioned>
+
+Extract custom business insights listed in the input prompt. Explicitly instructs GPT to provide response JSON format using the key provided in the request prompt. -> Extract the following from the phone conversation. Answer 
+in JSON machine-readable format, using the keys provided 
+below. Format the output as JSON object called "results". 
+Pretty print the JSON and make sure that is properly closed 
+at the end.
+1. Main reason of the conversation (key: reason)
+2. Sentiment of the customer (key: sentiment)
+3. Accident location (key: accident_location)
+4. How did the accident happen ((key: how_happened)
+5. Weather when the accident happened (key: weather)
+6. Airbag deployed <yes/no/not mentioned>: (key: 
+airbag_deployed)
+7. Police called to the scene <yes/no/not mentioned> (key: 
+police_called)
+8. Did customer take any pictures of accident scene 
+<yes/no/not mentioned> (key: pictures_taken)
