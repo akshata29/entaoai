@@ -172,7 +172,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
         llmChat = AzureChatOpenAI(
                     openai_api_base=baseUrl,
-                    openai_api_version="2023-03-15-preview",
+                    openai_api_version=OpenAiVersion,
                     deployment_name=OpenAiChat,
                     temperature=temperature,
                     openai_api_key=OpenAiKey,

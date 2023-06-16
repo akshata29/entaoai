@@ -12,15 +12,20 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
+import { QuestionListButton } from "../../components/QuestionListButton/QuestionListButton";
 import { ClearChatButton } from "../../components/ClearChatButton";
 import { Pivot, PivotItem } from '@fluentui/react';
 import { IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
 import { DefaultPalette } from '@fluentui/react/lib/Styling';
+import { DetailsList, DetailsListLayoutMode, SelectionMode, ConstrainMode } from '@fluentui/react/lib/DetailsList';
+import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
+import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 
 var audio = new Audio();
 
 const OneShot = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
+    const [isQuestionPanelOpen, setIsQuestionPanelOpen] = useState(false);
     const [approach, setApproach] = useState<Approaches>(Approaches.RetrieveThenRead);
     const [promptTemplate, setPromptTemplate] = useState<string>("");
     const [promptTemplatePrefix, setPromptTemplatePrefix] = useState<string>("");
@@ -82,6 +87,30 @@ const OneShot = () => {
     const [selectedTaskAgentText, setSelectedTaskAgentText] = useState<string[]>([]);
     const [selectedTaskAgentIndexes, setSelectedTaskAgentIndexes] = useState<{ indexNs: string; indexName: any; returnDirect: string; }[]>([]);
     const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
+    const [questionList, setQuestionList] = useState<any[]>();
+
+    const classNames = mergeStyleSets({
+        header: {
+          margin: 0,
+        },
+        row: {
+          flex: '0 0 auto',
+        },
+        focusZone: {
+          height: '100%',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+        },
+        selectionZone: {
+          height: '100%',
+          overflow: 'hidden',
+        },
+      });
+
+    const focusZoneProps = {
+        className: classNames.focusZone,
+        'data-is-scrollable': 'true',
+    } as React.HTMLAttributes<HTMLElement>;
 
     const embeddingOptions = [
         {
@@ -111,6 +140,15 @@ const OneShot = () => {
         //   key: 'chroma',
         //   text: 'Chroma'
         // }
+    ]
+
+    const questionListColumn = [
+        {
+          key: 'question',
+          name: 'Question',
+          fieldName: 'question',
+          minWidth: 100, maxWidth: 200, isResizable: true
+        }
     ]
 
     const stackItemStyles: IStackItemStyles = {
@@ -569,6 +607,19 @@ const OneShot = () => {
         setSelectedindexTypeItem(indexTypeOptions[0])
         refreshFilteredBlob(indexTypeOptions[0].key)
         setSelectedEmbeddingItem(embeddingOptions[0])
+
+        // const sampleQuestionList = []
+        // sampleQuestionList.push({
+        //     question: 'What is Azure OpenAI',
+        // });
+        // for (let i = 0; i < 200; i++) {
+        //     sampleQuestionList.push({
+        //       question: 'Item ' + i,
+        //     });
+        // }
+        
+        // setQuestionList(sampleQuestionList)
+
     }, [])
 
     const approaches: IChoiceGroupOption[] = [
@@ -578,6 +629,11 @@ const OneShot = () => {
         }
     ];
 
+    const onQuestionClicked = (questionFromList: any) => {
+        //console.log(questionFromList.question)
+        makeApiRequest(questionFromList.question);
+    }
+    
     const clearChat = () => {
         lastQuestionRef.current = "";
         error && setError(undefined);
@@ -624,6 +680,7 @@ const OneShot = () => {
                                 <div className={styles.commandsContainer}>
                                     <ClearChatButton className={styles.settingsButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                                     <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                                    {/* <QuestionListButton className={styles.settingsButton} onClick={() => setIsQuestionPanelOpen(!isQuestionPanelOpen)} /> */}
                                     <div className={styles.settingsButton}>{selectedItem ? 
                                             "Document Name : "  + selectedItem.text : undefined}</div>
                                 </div>
@@ -684,6 +741,36 @@ const OneShot = () => {
                                     />
                                 )}
                             </div>
+
+                            {/* <Panel
+                                headerText="List of Questions for KB"
+                                isOpen={isQuestionPanelOpen}
+                                isBlocking={false}
+                                onDismiss={() => setIsQuestionPanelOpen(false)}
+                                closeButtonAriaLabel="Close"
+                                onRenderFooterContent={() => <DefaultButton onClick={() => setIsQuestionPanelOpen(false)}>Close</DefaultButton>}
+                                isFooterAtBottom={true}
+                            >
+                                <br/>
+                                <Label>Double Click the question from the KB to get the cached answer</Label>
+                                <div>
+                                    <DetailsList
+                                        compact={true}
+                                        items={questionList || []}
+                                        columns={questionListColumn}
+                                        selectionMode={SelectionMode.none}
+                                        getKey={(item: any) => item.key}
+                                        setKey="none"
+                                        constrainMode={ConstrainMode.unconstrained}
+                                        onItemInvoked={(item:any) => onQuestionClicked(item)}
+                                        focusZoneProps={focusZoneProps}
+                                        layoutMode={DetailsListLayoutMode.justified}
+                                        ariaLabelForSelectionColumn="Toggle selection"
+                                        checkButtonAriaLabel="select row"
+                                    />
+                                </div>
+                                <br/>
+                            </Panel> */}
 
                             <Panel
                                 headerText="Configure answer generation"

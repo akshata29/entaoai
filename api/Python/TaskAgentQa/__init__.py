@@ -324,7 +324,7 @@ def TaskAgentQaAnswer(question, overrides):
 
             llm = AzureChatOpenAI(
                 openai_api_base="https://{OpenAiService}.openai.azure.com",
-                openai_api_version="2023-03-15-preview",
+                openai_api_version=OpenAiVersion,
                 deployment_name=OpenAiChat,
                 temperature=0,
                 openai_api_key=OpenAiKey,

@@ -201,7 +201,7 @@ def SmartAgent(question, overrides):
 
             llm = AzureChatOpenAI(
                     openai_api_base=openai.api_base,
-                    openai_api_version="2023-03-15-preview",
+                    openai_api_version=OpenAiVersion,
                     deployment_name=OpenAiChat,
                     temperature=temperature,
                     openai_api_key=OpenAiKey,

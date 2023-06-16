@@ -276,3 +276,87 @@ def performCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, Sear
         print(e)
 
     return None
+
+def performCogVectorSearch(embedValue, embedField, SearchService, SearchKey, indexName, k, returnFields=["id", "content", "sourcefile"] ):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    try:
+        r = searchClient.search(  
+            search_text="",  
+            vector=Vector(value=embedValue, k=k, fields=embedField),  
+            select=returnFields,
+            semantic_configuration_name="semanticConfig",
+            include_total_count=True
+        )
+        return r
+    except Exception as e:
+        print(e)
+
+    return None
+
+def createKbSearchIndex(SearchService, SearchKey, indexName):
+    indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            credential=AzureKeyCredential(SearchKey))
+    if indexName not in indexClient.list_index_names():
+        index = SearchIndex(
+            name=indexName,
+            fields=[
+                        SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                        SearchableField(name="question", type=SearchFieldDataType.String,
+                                        searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                        SimpleField(name="indexType", type="Edm.String", searchable=True, retrievable=True, filterable=True, facetable=False),
+                        SimpleField(name="indexName", type="Edm.String", searchable=True, retrievable=True, filterable=True, facetable=False),
+                        SearchField(name="vectorQuestion", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                                    searchable=True, dimensions=1536, vector_search_configuration="vectorConfig"),
+                        SimpleField(name="answer", type="Edm.String", filterable=False, facetable=False),
+            ],
+            vector_search = VectorSearch(
+                algorithm_configurations=[
+                    VectorSearchAlgorithmConfiguration(
+                        name="vectorConfig",
+                        kind="hnsw",
+                        hnsw_parameters={
+                            "m": 4,
+                            "efConstruction": 400,
+                            "efSearch": 500,
+                            "metric": "cosine"
+                        }
+                    )
+                ]
+            ),
+            semantic_settings=SemanticSettings(
+                configurations=[SemanticConfiguration(
+                    name='semanticConfig',
+                    prioritized_fields=PrioritizedFields(
+                        title_field=None, prioritized_content_fields=[SemanticField(field_name='question')]))])
+        )
+
+        try:
+            print(f"Creating {indexName} search index")
+            indexClient.create_index(index)
+        except Exception as e:
+            print(e)
+    else:
+        print(f"Search index {indexName} already exists")
+
+def performKbCogVectorSearch(embedValue, embedField, SearchService, SearchKey, indexType, indexName, kbIndexName, k, returnFields=["id", "content", "sourcefile"] ):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=kbIndexName,
+        credential=AzureKeyCredential(SearchKey))
+    
+    try:
+        createKbSearchIndex(SearchService, SearchKey, kbIndexName)
+        r = searchClient.search(  
+            search_text="",
+            vector=Vector(value=embedValue, k=k, fields=embedField),  
+            filter="indexType eq '" + indexType + "' and indexName eq '" + indexName + "'",
+            select=returnFields,
+            semantic_configuration_name="semanticConfig",
+            include_total_count=True
+        )
+        return r
+    except Exception as e:
+        print(e)
+
+    return None

@@ -30,6 +30,7 @@
       "OpenAiDocStorKey": "", // Storage doc
       "OpenAiDocStorConnString": "", // Storage connection string
       "OpenAiDocContainer": "", // Storage Container
+      "KbIndexName" : "aoaikb",
       "SearchService":"", // Search Service 
       "SearchKey":"", // Search Key
       "BingUrl": "https://api.bing.microsoft.com/v7.0/search",

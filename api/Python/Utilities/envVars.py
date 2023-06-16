@@ -12,6 +12,11 @@ try:
     OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"
     OpenAiDocContainer = os.environ['OpenAiDocContainer']
 
+    if "KbIndexName" in os.environ: 
+        KbIndexName = os.environ['KbIndexName']
+    else:
+        KbIndexName = "aoaikb"
+
     if "OpenAiSummaryContainer" in os.environ: 
         OpenAiSummaryContainer = os.environ['OpenAiSummaryContainer']
     else:
