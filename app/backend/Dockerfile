@@ -8,6 +8,7 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
 WORKDIR /home/site/wwwroot
 
 COPY requirements.txt /
+COPY azure_search_documents-11.4.0b4-py3-none-any.whl /
 RUN pip install -r /requirements.txt
 
 COPY . /home/site/wwwroot
