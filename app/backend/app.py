@@ -16,6 +16,8 @@ from azure.ai.textanalytics import (
     ExtractKeyPhrasesAction,
 )
 import azure.cognitiveservices.speech as speechsdk
+from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential
 
 load_dotenv()
 app = Flask(__name__)
@@ -356,6 +358,41 @@ def refreshIndex():
         logging.exception("Exception in /refreshIndex")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/refreshQuestions", methods=["POST"])
+def refreshQuestions():
+   
+    kbIndexName = os.environ.get("KBINDEXNAME")
+    SearchService = os.environ.get("SEARCHSERVICE")
+    SearchKey = os.environ.get("SEARCHKEY")
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=kbIndexName,
+        credential=AzureKeyCredential(SearchKey))
+    
+    indexType=request.json["indexType"]
+    indexName=request.json["indexName"]
+
+    try:
+        r = searchClient.search(  
+            search_text="",
+            filter="indexType eq '" + indexType + "' and indexName eq '" + indexName + "'",
+            select=["question"],
+            include_total_count=True
+        )
+        questionsList = []
+        for question in r:
+            try:
+                questionsList.append({
+                    "question": question['question'],
+                })
+            except Exception as e:
+                pass
+
+        #jsonDict = json.dumps(blobJson)
+        return jsonify({"values" : questionsList})
+    except Exception as e:
+        logging.exception("Exception in /refreshQuestions")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/indexManagement", methods=["POST"])
 def indexManagement():
    
@@ -473,7 +510,7 @@ def content_file(path):
     return blob.readall(), 200, {"Content-Type": mime_type, "Content-Disposition": f"inline; filename={path}"}
     
 
-@app.route("/secsearch", methods=["POST"])
+@app.route("/secSearch", methods=["POST"])
 def secsearch():
     indexType=request.json["indexType"]
     indexName=request.json["indexName"]

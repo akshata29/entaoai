@@ -50,7 +50,6 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
     return parsedResponse.values[0].data
 
 }
-
 export async function promptGuru(task: string, modelName:string, embeddingModelType: string): Promise<AskResponse> {
   const response = await fetch('/promptGuru', {
       method: "POST",
@@ -81,7 +80,6 @@ export async function promptGuru(task: string, modelName:string, embeddingModelT
   return parsedResponse.values[0].data
 
 }
-
 export async function askAgentApi(options: AskRequest): Promise<AskResponse> {
   const response = await fetch('/askAgent', {
       method: "POST",
@@ -162,7 +160,6 @@ export async function smartAgent(options: AskRequest): Promise<AskResponse> {
   return parsedResponse.values[0].data
 
 }
-
 export async function askTaskAgentApi(options: AskRequest): Promise<AskResponse> {
   const response = await fetch('/askTaskAgent', {
       method: "POST",
@@ -207,7 +204,6 @@ export async function askTaskAgentApi(options: AskRequest): Promise<AskResponse>
   return parsedResponse.values[0].data
 
 }
-
 export async function chatGptApi(options: ChatRequest, indexNs: string, indexType:string): Promise<AskResponse> {
     const response = await fetch('/chat' , {
         method: "POST",
@@ -289,7 +285,6 @@ export async function chatGpt3Api(question: string, options: ChatRequest, indexN
   }
   return parsedResponse.values[0].data;
 }
-
 export async function refreshIndex() : Promise<any> {
   
   const response = await fetch('/refreshIndex', {
@@ -305,7 +300,35 @@ export async function refreshIndex() : Promise<any> {
   }
   return result;
 }
+export async function refreshQuestions(indexType:string, indexName: string) : Promise<any> {
+  
+  const response = await fetch('/refreshQuestions' , {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      indexType:indexType,
+      indexName:indexName,
+      postBody: {
+        values: [
+          {
+            recordId: 0,
+            data: {
+              text: ''
+            }
+          }
+        ]
+      }
+    })
+  });
 
+  const result = await response.json();
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return result;
+}
 export async function uploadFile(fileName:string, fileContent:any, contentType:string) : Promise<string> {
   
   const response = await fetch('/uploadFile', {
@@ -338,7 +361,6 @@ export async function uploadBinaryFile(formData:any, indexName:string) : Promise
   }
   return "Success";
 }
-
 export async function uploadSummaryBinaryFile(formData:any) : Promise<string> {
   const response = await fetch('/uploadSummaryBinaryFile', {
     method: "POST",
@@ -351,8 +373,6 @@ export async function uploadSummaryBinaryFile(formData:any) : Promise<string> {
   }
   return "Success";
 }
-
-
 export async function processDoc(indexType: string, loadType : string, multiple: string, indexName : string, files: any,
   blobConnectionString : string, blobContainer : string, blobPrefix : string, blobName : string,
   s3Bucket : string, s3Key : string, s3AccessKey : string, s3SecretKey : string, s3Prefix : string,
@@ -409,7 +429,6 @@ export async function processDoc(indexType: string, loadType : string, multiple:
   
   // return "Success";
 }
-
 export async function processSummary(loadType : string, multiple: string, files: any,
   embeddingModelType: string, chainType:string) : Promise<AskResponse> {
   const response = await fetch('/processSummary', {
@@ -445,7 +464,6 @@ export async function processSummary(loadType : string, multiple: string, files:
   //   return parsedResponse.values[0].data.answer;
   // }
 }
-
 export async function convertCode(inputLanguage:string, outputLanguage:string, 
   inputCode:string, modelName:string, embeddingModelType: string) : Promise<string> {
   const response = await fetch('/convertCode', {
@@ -477,7 +495,6 @@ export async function convertCode(inputLanguage:string, outputLanguage:string,
   }
   return parsedResponse.values[0].data.answer
 }
-
 export async function indexManagement(indexType:string, indexName:string, blobName:string, indexNs:string,
   operation:string) : Promise<string> {
   const response = await fetch('/indexManagement', {
@@ -519,7 +536,6 @@ export async function indexManagement(indexType:string, indexName:string, blobNa
   
   // return "Success";
 }
-
 export async function chatJsApi(question: string, history: never[], indexNs: string, indexType:string): Promise<AskResponse> { 
   const response = {
     answer: "Success",
@@ -556,7 +572,6 @@ export async function chatJsApi(question: string, history: never[], indexNs: str
 
   // return followUpRes["text"]
 }
-
 export async function secSearch(indexType: string,  indexName: string, question:string, top: string, 
   embeddingModelType:string): Promise<any> {
   const response = await fetch('/secSearch' , {
@@ -589,7 +604,6 @@ export async function secSearch(indexType: string,  indexName: string, question:
   }
   return result;
 }
-
 export async function sqlChat(question:string, top: number, embeddingModelType: string): Promise<SqlResponse> {
   const response = await fetch('/sqlChat' , {
       method: "POST",
@@ -618,7 +632,6 @@ export async function sqlChat(question:string, top: number, embeddingModelType: 
   }
   return parsedResponse.values[0].data
 }
-
 export async function sqlChain(question:string, top: number, embeddingModelType:string): Promise<SqlResponse> {
     const response = await fetch('/sqlChain' , {
         method: "POST",
@@ -648,7 +661,6 @@ export async function sqlChain(question:string, top: number, embeddingModelType:
   }
   return parsedResponse.values[0].data
 }
-
 export async function verifyPassword(passType:string, password: string): Promise<string> {
   const response = await fetch('/verifyPassword' , {
       method: "POST",
@@ -669,17 +681,17 @@ export async function verifyPassword(passType:string, password: string): Promise
           ]
         }
       })
-});
+  });
 
-const parsedResponse: ChatResponse = await response.json();
-  if (response.status > 299 || !response.ok) {
-      return "Error";
-  } else {
-    if (parsedResponse.values[0].data.error) {
-      return parsedResponse.values[0].data.error;
+  const parsedResponse: ChatResponse = await response.json();
+    if (response.status > 299 || !response.ok) {
+        return "Error";
+    } else {
+      if (parsedResponse.values[0].data.error) {
+        return parsedResponse.values[0].data.error;
+      }
+      return 'Success';
     }
-    return 'Success';
-  }
 }
 
 export async function getSpeechToken(): Promise<SpeechTokenResponse> {

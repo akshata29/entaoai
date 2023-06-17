@@ -4,7 +4,7 @@ import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinne
 import styles from "./OneShot.module.css";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
-import { askApi, askAgentApi, askTaskAgentApi, Approaches, AskResponse, AskRequest, refreshIndex, getSpeechApi, summaryAndQa } from "../../api";
+import { askApi, askAgentApi, askTaskAgentApi, Approaches, AskResponse, AskRequest, refreshIndex, getSpeechApi, summaryAndQa, refreshQuestions } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
@@ -18,7 +18,6 @@ import { Pivot, PivotItem } from '@fluentui/react';
 import { IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
 import { DefaultPalette } from '@fluentui/react/lib/Styling';
 import { DetailsList, DetailsListLayoutMode, SelectionMode, ConstrainMode } from '@fluentui/react/lib/DetailsList';
-import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
 import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 
 var audio = new Audio();
@@ -540,6 +539,35 @@ const OneShot = () => {
         setIndexMapping(uniqIndexType)
     }
 
+    const refreshQuestionList = async () => {
+        let questionList
+        if (selectedIndex == undefined) {
+            questionList = await refreshQuestions(selectedIndexes[0].indexName, selectedIndexes[0].indexNs)
+        }
+        else 
+            questionList = await refreshQuestions(String(selectedIndex), String(selectedItem?.key))
+        
+        const sampleQuestionList = []
+        for (const question of questionList.values) {
+            sampleQuestionList.push({
+                question: question.question,
+            });    
+        }
+        setQuestionList(sampleQuestionList)
+    }
+
+    const refreshQuestionsList = async (indexType:string, indexName:string) => {
+        const questionList = await  refreshQuestions(indexType, indexName)
+        
+        const sampleQuestionList = []
+        for (const question of questionList.values) {
+            sampleQuestionList.push({
+                question: question.question,
+            });    
+        }
+        setQuestionList(sampleQuestionList)
+    }
+
     const refreshSummary = async (requestType : string) => {
         try {
             const result = await summaryAndQa(String(selectedIndex), String(selectedItem?.key), String(selectedEmbeddingItem?.key), 
@@ -574,6 +602,8 @@ const OneShot = () => {
                 const generatedExamples: ExampleModel[] = sampleQuestion
                 setExampleList(generatedExamples)
                 setExampleLoading(false)
+
+                refreshQuestionsList(item.iType, item.key)
             }
         })
     };
@@ -602,24 +632,12 @@ const OneShot = () => {
 
     useEffect(() => {
         refreshBlob()
+        refreshQuestionList()
         setChainTypeOptions(chainType)
         setSelectedChain(chainType[0])
         setSelectedindexTypeItem(indexTypeOptions[0])
         refreshFilteredBlob(indexTypeOptions[0].key)
         setSelectedEmbeddingItem(embeddingOptions[0])
-
-        // const sampleQuestionList = []
-        // sampleQuestionList.push({
-        //     question: 'What is Azure OpenAI',
-        // });
-        // for (let i = 0; i < 200; i++) {
-        //     sampleQuestionList.push({
-        //       question: 'Item ' + i,
-        //     });
-        // }
-        
-        // setQuestionList(sampleQuestionList)
-
     }, [])
 
     const approaches: IChoiceGroupOption[] = [
@@ -630,7 +648,6 @@ const OneShot = () => {
     ];
 
     const onQuestionClicked = (questionFromList: any) => {
-        //console.log(questionFromList.question)
         makeApiRequest(questionFromList.question);
     }
     
@@ -680,7 +697,7 @@ const OneShot = () => {
                                 <div className={styles.commandsContainer}>
                                     <ClearChatButton className={styles.settingsButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                                     <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
-                                    {/* <QuestionListButton className={styles.settingsButton} onClick={() => setIsQuestionPanelOpen(!isQuestionPanelOpen)} /> */}
+                                    <QuestionListButton className={styles.settingsButton} onClick={() => setIsQuestionPanelOpen(!isQuestionPanelOpen)} />
                                     <div className={styles.settingsButton}>{selectedItem ? 
                                             "Document Name : "  + selectedItem.text : undefined}</div>
                                 </div>
@@ -742,7 +759,7 @@ const OneShot = () => {
                                 )}
                             </div>
 
-                            {/* <Panel
+                            <Panel
                                 headerText="List of Questions for KB"
                                 isOpen={isQuestionPanelOpen}
                                 isBlocking={false}
@@ -770,7 +787,8 @@ const OneShot = () => {
                                     />
                                 </div>
                                 <br/>
-                            </Panel> */}
+                                <DefaultButton onClick={refreshQuestionList}>Refresh Question</DefaultButton>
+                            </Panel>
 
                             <Panel
                                 headerText="Configure answer generation"

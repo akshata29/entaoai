@@ -30,6 +30,7 @@ export default defineConfig({
             "/promptGuru": "http://127.0.0.1:5000",
             "/processSummary": "http://127.0.0.1:5000",
             "/refreshIndex": "http://127.0.0.1:5000",
+            "/refreshQuestions": "http://127.0.0.1:5000",
             "/secSearch": "http://127.0.0.1:5000",
             "/smartAgent": "http://127.0.0.1:5000",
             "/sqlChat": "http://127.0.0.1:5000",

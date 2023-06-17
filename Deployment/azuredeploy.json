@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "prefix": {
-            "type": "String"
+            "type": "string"
         },
 		"location": {
             "type": "string",
@@ -313,8 +313,10 @@
                     "version": "0301"
                 },
                 "scaleSettings": {
-                    "scaleType": "Standard"
-                }
+                    "scaleType": "Standard",
+                    "capacity": 20
+                },
+                "raiPolicyName": "Microsoft.Default"
             }
         },
         {
@@ -331,8 +333,10 @@
                     "version": "1"
                 },
                 "scaleSettings": {
-                    "scaleType": "Standard"
-                }
+                    "scaleType": "Standard",
+                    "capacity": 20
+                },
+                "raiPolicyName": "Microsoft.Default"
             }
         },
         {
@@ -346,11 +350,13 @@
                 "model": {
                     "format": "OpenAI",
                     "name": "text-embedding-ada-002",
-                    "version": "1"
+                    "version": "2"
                 },
                 "scaleSettings": {
-                    "scaleType": "Standard"
-                }
+                    "scaleType": "Standard",
+                    "capacity": 20
+                },
+                "raiPolicyName": "Microsoft.Default"
             }
         },
         {
@@ -522,7 +528,6 @@
                         {
                             "name": "INDEXMANAGEMENT_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/IndexManagement?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                            
                         },
 						{
 						  "name": "CHAT3_URL",
@@ -575,6 +580,18 @@
                         {
                             "name": "SUMMARIZER_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Summarizer?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+                        },
+                        {
+                            "name": "SEARCHKEY",
+                            "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
+                        },
+                        {
+                            "name": "SEARCHSERVICE",
+                            "value": "[variables('searchSvcName')]"
+                        },
+                        {
+                            "name": "KBINDEXNAME",
+                            "value": "aoaikb"
                         }
 					]
                 },
@@ -922,7 +939,11 @@
 						{
 						  "name": "OpenAiQuestionPrompt",
 						  "value": "'\"'\"'\"Please reply to the question using only the information present in the text above. If you can't find it, reply 'Not in the text'.\nQuestion: _QUESTION_\nAnswer:'\"'\"'\""
-						}
+						},
+                        {
+                            "name": "KbIndexName",
+                            "value": "aoaikb"
+                        }
 					]
                 },
                 "scmSiteAlsoStopped": false,
