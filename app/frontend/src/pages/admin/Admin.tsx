@@ -14,7 +14,9 @@ import { Label } from '@fluentui/react/lib/Label';
 import { Stack, IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
 import { DefaultPalette, EdgeChromiumHighContrastSelector } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
-import { verifyPassword, refreshIndex, AskResponse, indexManagement } from "../../api";
+import { verifyPassword, refreshIndex, refreshIndexQuestions, indexManagement, kbQuestionManagement } from "../../api";
+import { DetailsList, DetailsListLayoutMode, SelectionMode, Selection, IObjectWithKey } from '@fluentui/react/lib/DetailsList';
+import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
 
 import styles from "./Admin.module.css";
 
@@ -37,6 +39,7 @@ const Admin = () => {
     const [loading, setLoading] = useState(false)
 
     const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
+    const [selectedIndexNsItem, setSelectedIndexNsItem] = useState<IDropdownOption>();
     const [selectedIndexType, setSelectedIndexType] = useState<IDropdownOption>();
 
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
@@ -56,7 +59,18 @@ const Admin = () => {
     const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; name:string; indexName:string; 
       summary:string; qa:string; embedded:boolean}[]>();
     const [options, setOptions] = useState<any>([])
+    const [optionsNs, setOptionsNs] = useState<any>([])
+    const [questionList, setQuestionList] = useState<any[]>();
+    const [filteredQuestionList, setFilteredQuestionList] = useState<any[]>();
+    const [selectedQuestion, setSelectedQuestion] = useState<any[]>([])
 
+
+    const selection = new Selection({
+      onSelectionChanged: () => {
+        const selectedItems = selection.getSelection();
+        setSelectedQuestion(selectedItems)
+      },
+    });
 
     const labelStyles: Partial<IStyleSet<ILabelStyles>> = {
       root: { marginTop: 10 },
@@ -77,6 +91,33 @@ const Admin = () => {
         justifyContent: 'left',
       },
     };
+
+    const questionListColumn = [
+      {
+        key: 'id',
+        name: 'Id',
+        fieldName: 'id',
+        minWidth: 130, maxWidth: 250, isResizable: false
+      },
+      {
+        key: 'indexType',
+        name: 'Index Type',
+        fieldName: 'indexType',
+        minWidth: 70, maxWidth: 100, isResizable: false
+      },
+      {
+        key: 'indexName',
+        name: 'Index Namespace',
+        fieldName: 'indexName',
+        minWidth: 100, maxWidth: 200, isResizable: false
+      },
+      {
+        key: 'question',
+        name: 'Question',
+        fieldName: 'question',
+        minWidth: 100, maxWidth: 200, isResizable: true
+      }
+    ]
 
     const bStyles = buttonStyles();
 
@@ -114,7 +155,6 @@ const Admin = () => {
       //   text: 'Weaviate'
       // }
     ]
-
     const refreshBlob = async (indexT: string) => {
       const files = []
       const indexType = []
@@ -161,7 +201,46 @@ const Admin = () => {
       }
       setIndexMapping(uniqIndexType)
     }
+    const onDeleteKbQuestion = async () => {
+      if (adminPassword == '') {
+        setMissingAdminPassword(true)
+        return
+      }
+      await verifyPassword("admin", adminPassword)
+        .then(async (verifyResponse:string) => {
+          if (verifyResponse == "Success") {
+            setUploadText("Password verified")
+            setLoading(true)
+            setUploadText('Deleting your KB Questions...')
 
+            const documentsToDelete = []
+            for (const item of selectedQuestion) {
+              documentsToDelete.push({
+                "id" : item.id
+              })
+            }
+
+            await kbQuestionManagement(documentsToDelete)  
+              .then((response:string) => {
+                  setUploadText("KB Questions Deleted Successfully")
+                  setLoading(false)
+                  setSelectedIndexType(indexOptions[0])
+                  refreshIndexNs('pinecone')
+                })
+              .catch((error : string) => {
+                setUploadText(error)
+                setLoading(false)
+              })
+          }
+          else {
+            setUploadText(verifyResponse)
+          }
+      })
+      .catch((error : string) => {
+          setUploadText(error)
+          setLoading(false)
+      })
+    }
     const onDeleteIndex = async () => {
       if (adminPassword == '') {
         setMissingAdminPassword(true)
@@ -200,7 +279,6 @@ const Admin = () => {
           setLoading(false)
       })
     }
-
     const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
       setSelectedItem(item);
       const defaultKey = item?.key
@@ -231,9 +309,50 @@ const Admin = () => {
       }
     };
 
+    const refreshIndexNs = async (indexT: string) => {
+      const indexNames = []
+      const retrievedQuestionList = []
+  
+      const questions = await refreshIndexQuestions(indexT)       
+      for (const question of questions.values) {
+          indexNames.push({
+            text: question.indexName,
+            key: question.indexName
+          })
+          retrievedQuestionList.push({
+                  indexName:question.indexName,
+                  indexType:question.indexType,
+                  id:question.id,
+                  question:question.question,                  
+          })
+      }
+      var uniqIndexNames = indexNames.filter((v,i,a)=>a.findIndex(v2=>(v2.key===v.key))===i)
+      setOptionsNs(uniqIndexNames)
+      const defaultKey = uniqIndexNames[0].key
+      setSelectedIndexNsItem(uniqIndexNames[0])
+      setQuestionList(retrievedQuestionList)
+
+      var uniqQuestionList = retrievedQuestionList.filter(question => question.indexName == defaultKey)
+      setFilteredQuestionList(uniqQuestionList)
+    }
+
+    const onIndexNsChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedIndexNsItem(item);
+      const defaultKey = item?.key
+      var uniqQuestionList = questionList?.filter(question => question.indexName == defaultKey)
+      setFilteredQuestionList(uniqQuestionList)
+      setSelectedQuestion([])
+    };
+
     const onIndexTypeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
       setSelectedIndexType(item);
       refreshBlob(String(item?.key))
+    };
+
+    const onKbIndexTypeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedIndexType(item);
+      setSelectedQuestion([])
+      refreshIndexNs(String(item?.key))
     };
 
     const onAdminPassword = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
@@ -249,6 +368,7 @@ const Admin = () => {
     useEffect(() => {
       setSelectedIndexType(indexOptions[0])
       refreshBlob("pinecone")
+      refreshIndexNs("pinecone")
     }, [])
 
     return (
@@ -311,6 +431,58 @@ const Admin = () => {
                     </Stack.Item>
                     <Stack.Item grow>
                       <PrimaryButton text="Delete Index" onClick={onDeleteIndex}  />
+                        <h2 className={styles.chatEmptyStateSubtitle}>
+                          <TextField disabled={true} label={uploadText} />
+                        </h2>
+                    </Stack.Item>
+                  </Stack>
+                </Stack>
+              </PivotItem>
+              <PivotItem headerText="KnowledgeBase Management">
+                <Stack enableScopedSelectors tokens={outerStackTokens}>
+                  <Stack enableScopedSelectors styles={stackStyles} tokens={innerStackTokens}>
+                    <Stack.Item grow={2} styles={stackItemStyles}>
+                      <Label>Index Type</Label>
+                      &nbsp;
+                      <Dropdown
+                          selectedKey={selectedIndexType ? selectedIndexType.key : undefined}
+                          onChange={onKbIndexTypeChange}
+                          defaultSelectedKey="pinecone"
+                          placeholder="Select an Index Type"
+                          options={indexOptions}
+                          disabled={false}
+                          styles={dropdownStyles}
+                      />
+                      &nbsp;
+                      <Dropdown
+                          selectedKey={selectedIndexNsItem ? selectedIndexNsItem.key : undefined}
+                          // eslint-disable-next-line react/jsx-no-bind
+                          onChange={onIndexNsChange}
+                          placeholder="Select an Index Ns"
+                          options={optionsNs}
+                          styles={dropdownStyles}
+                      />
+                    </Stack.Item>
+                    <Stack.Item grow>
+                      <div>
+                          <MarqueeSelection selection={selection}>
+                            <DetailsList
+                                compact={true}
+                                items={filteredQuestionList || []}
+                                columns={questionListColumn}
+                                selectionMode={SelectionMode.multiple}
+                                getKey={(item: any) => item.key}
+                                selection={selection}
+                                selectionPreservedOnEmptyClick={true}
+                                layoutMode={DetailsListLayoutMode.justified}
+                                ariaLabelForSelectionColumn="Toggle selection"
+                                checkButtonAriaLabel="select row"
+                            />
+                          </MarqueeSelection>
+                      </div>
+                    </Stack.Item>
+                    <Stack.Item grow>
+                      <PrimaryButton text="Delete KB Entries" onClick={onDeleteKbQuestion}  />
                         <h2 className={styles.chatEmptyStateSubtitle}>
                           <TextField disabled={true} label={uploadText} />
                         </h2>

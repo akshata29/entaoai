@@ -539,6 +539,11 @@ const OneShot = () => {
         setIndexMapping(uniqIndexType)
     }
 
+    const clickRefreshQuestions = async () => {
+        setIsQuestionPanelOpen(!isQuestionPanelOpen)
+        await refreshQuestionList()
+    }
+
     const refreshQuestionList = async () => {
         let questionList
         if (selectedIndex == undefined) {
@@ -556,17 +561,17 @@ const OneShot = () => {
         setQuestionList(sampleQuestionList)
     }
 
-    const refreshQuestionsList = async (indexType:string, indexName:string) => {
-        const questionList = await  refreshQuestions(indexType, indexName)
+    // const refreshQuestionsList = async (indexType:string, indexName:string) => {
+    //     const questionList = await  refreshQuestions(indexType, indexName)
         
-        const sampleQuestionList = []
-        for (const question of questionList.values) {
-            sampleQuestionList.push({
-                question: question.question,
-            });    
-        }
-        setQuestionList(sampleQuestionList)
-    }
+    //     const sampleQuestionList = []
+    //     for (const question of questionList.values) {
+    //         sampleQuestionList.push({
+    //             question: question.question,
+    //         });    
+    //     }
+    //     setQuestionList(sampleQuestionList)
+    // }
 
     const refreshSummary = async (requestType : string) => {
         try {
@@ -603,7 +608,7 @@ const OneShot = () => {
                 setExampleList(generatedExamples)
                 setExampleLoading(false)
 
-                refreshQuestionsList(item.iType, item.key)
+                //refreshQuestionsList(item.iType, item.key)
             }
         })
     };
@@ -632,7 +637,6 @@ const OneShot = () => {
 
     useEffect(() => {
         refreshBlob()
-        refreshQuestionList()
         setChainTypeOptions(chainType)
         setSelectedChain(chainType[0])
         setSelectedindexTypeItem(indexTypeOptions[0])
@@ -697,7 +701,7 @@ const OneShot = () => {
                                 <div className={styles.commandsContainer}>
                                     <ClearChatButton className={styles.settingsButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                                     <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
-                                    <QuestionListButton className={styles.settingsButton} onClick={() => setIsQuestionPanelOpen(!isQuestionPanelOpen)} />
+                                    <QuestionListButton className={styles.settingsButton} onClick={() => clickRefreshQuestions()} />
                                     <div className={styles.settingsButton}>{selectedItem ? 
                                             "Document Name : "  + selectedItem.text : undefined}</div>
                                 </div>

@@ -329,6 +329,65 @@ export async function refreshQuestions(indexType:string, indexName: string) : Pr
   }
   return result;
 }
+
+export async function refreshIndexQuestions(indexType:string) : Promise<any> {
+  
+  const response = await fetch('/refreshIndexQuestions' , {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      indexType:indexType,
+      postBody: {
+        values: [
+          {
+            recordId: 0,
+            data: {
+              text: ''
+            }
+          }
+        ]
+      }
+    })
+  });
+
+  const result = await response.json();
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return result;
+}
+
+export async function kbQuestionManagement(documentsToDelete:any) : Promise<any> {
+  
+  const response = await fetch('/kbQuestionManagement' , {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      documentsToDelete:documentsToDelete,
+      postBody: {
+        values: [
+          {
+            recordId: 0,
+            data: {
+              text: ''
+            }
+          }
+        ]
+      }
+    })
+  });
+
+  const result = await response.json();
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return result;
+}
+
 export async function uploadFile(fileName:string, fileContent:any, contentType:string) : Promise<string> {
   
   const response = await fetch('/uploadFile', {
