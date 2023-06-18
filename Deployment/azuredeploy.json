@@ -313,10 +313,25 @@
                     "version": "0301"
                 },
                 "scaleSettings": {
-                    "scaleType": "Standard",
-                    "capacity": 20
+                    "scaleType": "Standard"
                 },
                 "raiPolicyName": "Microsoft.Default"
+            }
+        },      
+        {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "2020-10-01",
+            "kind": "AzurePowerShell",
+            "name": "Wait5s",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
+            ],
+            "properties": {
+                "azPowerShellVersion": "9.7",
+                "scriptContent": "start-sleep -Seconds 5",
+                "cleanupPreference": "Always",
+                "retentionInterval": "PT1H"
             }
         },
         {
@@ -324,7 +339,7 @@
             "apiVersion": "2022-12-01",
             "name": "[concat(variables('aoaiSvcName'), '/davinci')]",
             "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
+                "[resourceId('Microsoft.Resources/deploymentScripts','Wait5s')]"
             ],
             "properties": {
                 "model": {
@@ -333,10 +348,25 @@
                     "version": "1"
                 },
                 "scaleSettings": {
-                    "scaleType": "Standard",
-                    "capacity": 20
+                    "scaleType": "Standard"
                 },
                 "raiPolicyName": "Microsoft.Default"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "2020-10-01",
+            "kind": "AzurePowerShell",
+            "name": "Wait10s",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
+            ],
+            "properties": {
+                "azPowerShellVersion": "9.7",
+                "scriptContent": "start-sleep -Seconds 10",
+                "cleanupPreference": "Always",
+                "retentionInterval": "PT1H"
             }
         },
         {
@@ -344,7 +374,7 @@
             "apiVersion": "2022-12-01",
             "name": "[concat(variables('aoaiSvcName'), '/text-embedding-ada-002')]",
             "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
+                "[resourceId('Microsoft.Resources/deploymentScripts','Wait10s')]"
             ],
             "properties": {
                 "model": {
@@ -353,8 +383,7 @@
                     "version": "2"
                 },
                 "scaleSettings": {
-                    "scaleType": "Standard",
-                    "capacity": 20
+                    "scaleType": "Standard"
                 },
                 "raiPolicyName": "Microsoft.Default"
             }
