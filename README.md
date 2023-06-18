@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 6/18/2023 - Add the admin page supporting Knowledge base management.
 * 6/17/2023 - Added "Question List" button for Ask a question feature to display the list of all the questions that are in the Knowledge base.  Following three properties `SEARCHSERVICE`, `SEARCHKEY` and `KBINDEXNAME` (default value of aoaikb) needs to be added to Azure App Service to enable "Question List" button feature.
 * 6/16/2023 - Add the feature to use Azure Cognitive Search as Vector store for storing the cached Knowledge base.  The questions that are not in KB are sent to LLM model to find the answer via OAI, or else it is responded back from the Cached Datastore.  New Property `KbIndexName` needs to be added to Azure Function app.  Added the Notebook to test out the feature as part of the workshop. TODO : Add the feature to add the question to KB from the chat interface (and make it session based). A feature further to "regenerate" answer from LLM (instead of cached answer) will be added soon.  
 * 6/7/2023 - Add OpenAI Playground in Developer Tools and initial version of building the CoPilot (for now with Notebook, but eventually will be moved as CoPilot feature).  Add the script, recording and example for Real-time Speech analytics use-case.  More to be added soon.
