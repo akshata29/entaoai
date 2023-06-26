@@ -563,12 +563,12 @@ def content_file(path):
     url = os.environ.get("BLOB_CONNECTION_STRING")
     containerName = os.environ.get("BLOB_CONTAINER_NAME")
     blobClient = BlobServiceClient.from_connection_string(url)
-    logging.info(f"Getting blob {path}")
+    logging.info(f"Getting blob {path.strip()} from container {containerName}")
     blobContainer = blobClient.get_container_client(container=containerName)
-    blob = blobContainer.get_blob_client(path).download_blob()
+    blob = blobContainer.get_blob_client(path.strip()).download_blob()
     mime_type = blob.properties["content_settings"]["content_type"]
     if mime_type == "application/octet-stream":
-        mime_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+        mime_type = mimetypes.guess_type(path.strip())[0] or "application/octet-stream"
     return blob.readall(), 200, {"Content-Type": mime_type, "Content-Disposition": f"inline; filename={path}"}
     
 

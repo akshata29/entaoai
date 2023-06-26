@@ -363,7 +363,7 @@ const ChatGpt = () => {
 
     const onShowCitation = (citation: string, index: number) => {
         if (citation.indexOf('http') > -1 || citation.indexOf('https') > -1) {
-            window.open(citation.replace('/content/', ''), '_blank');
+            window.open(citation.replace('/content/', '').trim(), '_blank');
         } else {
             if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab && selectedAnswer === index) {
                 setActiveAnalysisPanelTab(undefined);
