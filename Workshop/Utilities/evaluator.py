@@ -392,3 +392,21 @@ def indexEvaluatorDataSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiAp
         results = searchClient.upload_documents(documents=batch)
         succeeded = sum([1 for r in results if r.succeeded])
         print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+
+def getEvaluatorResult(SearchService, SearchKey, indexName, documentId):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    
+    try:
+        r = searchClient.search(  
+            search_text="",
+            filter="documentId eq '" + documentId + "'",
+            semantic_configuration_name="semanticConfig",
+            include_total_count=True
+        )
+        return r
+    except Exception as e:
+        print(e)
+
+    return None
