@@ -38,6 +38,7 @@ class CognitiveSearchVsRetriever(BaseRetriever, BaseModel):
     overlap : str = "100"
     documentId : str = ""
     embeddingModelType : str = "azureopenai"
+    openAiEmbedding : str = "text-embedding-ada-002"
     openAiService : str = ""
     openAiKey : str = ""
     openAiVersion : str = ""
@@ -61,7 +62,7 @@ class CognitiveSearchVsRetriever(BaseRetriever, BaseModel):
             openai.api_base = f"https://{self.openAiService}.openai.azure.com"
 
             response = openai.Embedding.create(
-                input=text, engine="text-embedding-ada-002")
+                input=text, engine=self.openAiEmbedding)
             embeddings = response['data'][0]['embedding']
 
         elif self.embeddingModelType == "openai":

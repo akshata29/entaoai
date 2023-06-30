@@ -24,7 +24,7 @@ import openai
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 # Function to generate embeddings for title and content fields, also used for query embeddings
-def generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, text):
+def generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, text):
     if (embeddingModelType == 'azureopenai'):
         baseUrl = f"https://{OpenAiService}.openai.azure.com"
         openai.api_type = "azure"
@@ -33,7 +33,7 @@ def generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, em
         openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
         response = openai.Embedding.create(
-            input=text, engine="text-embedding-ada-002")
+            input=text, engine=OpenAiEmbedding)
         embeddings = response['data'][0]['embedding']
 
     elif embeddingModelType == "openai":
@@ -348,7 +348,7 @@ def createEvaluatorDataSearchIndex(SearchService, SearchKey, indexName):
     else:
         print(f"Search index {indexName} already exists")
 
-def createEvaluatorDataSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, fileName, 
+def createEvaluatorDataSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, fileName, 
                             docs, splitMethod, chunkSize, overlap, model, modelType, documentId):
     counter = 1
 
@@ -362,16 +362,16 @@ def createEvaluatorDataSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiA
             "model": model,
             "modelType": modelType,
             "content": i.page_content,
-            "contentVector": generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, i.page_content),
+            "contentVector": generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, i.page_content),
             "sourceFile": os.path.basename(fileName)
         }
         counter += 1
 
 def indexEvaluatorDataSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, 
-                           embeddingModelType, fileName, indexName, docs,
+                           embeddingModelType, OpenAiEmbedding, fileName, indexName, docs,
                            splitMethod, chunkSize, overlap, model, modelType, documentId):
     print("Total docs: " + str(len(docs)))
-    sections = createEvaluatorDataSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, 
+    sections = createEvaluatorDataSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding,
                                        fileName, docs, splitMethod, chunkSize, overlap, model, modelType, documentId)
     print(f"Indexing sections from '{fileName}' into search index '{indexName}'")
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",

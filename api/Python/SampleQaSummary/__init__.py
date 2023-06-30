@@ -22,7 +22,7 @@ import tiktoken
 from typing import Mapping
 from langchain.chains.question_answering import load_qa_chain
 from Utilities.envVars import *
-from Utilities.cogSearch import performCogSearch
+from Utilities.cogSearch import performSummaryQaCogSearch
 from Utilities.azureBlob import upsertMetadata, getAllBlobs
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
@@ -161,7 +161,7 @@ def summarizeGenerateQa(indexType, indexNs, embeddingModelType, requestType, cha
             return {"answer": "Working on fixing Redis Implementation - Error : " + str(e) }
         
     elif indexType == "cogsearch" or indexType == "cogsearchvs":
-        r = performCogSearch(indexType, embeddingModelType, "*", indexNs, 10)
+        r = performSummaryQaCogSearch(indexType, embeddingModelType, "*", indexNs, 10)
         if r == None:
             docs = [Document(page_content="No results found")]
         else :
@@ -172,6 +172,9 @@ def summarizeGenerateQa(indexType, indexNs, embeddingModelType, requestType, cha
         rawDocs=[]
         for doc in docs:
             rawDocs.append(doc.page_content)
+
+        logging.info("rawDocs : " + str(rawDocs))
+
         if (requestType == "qa"):
             answer = qaChain({"input_documents": docs, "question": 'question'}, return_only_outputs=True)
             qa = answer['output_text']
@@ -183,9 +186,9 @@ def summarizeGenerateQa(indexType, indexNs, embeddingModelType, requestType, cha
         answer = "{'answer': 'TBD'}"
 
     if (requestType == "qa"):
-        metadata = {'qa': qa.replace("-", "_")}
+        metadata = {'qa': qa.replace("-", "_").strip()}
     elif (requestType == "summary"):
-        metadata = {'summary': summary.replace("-", "_"), 'qa': qa.replace("-", "_")}
+        metadata = {'summary': summary.replace("-", "_")}
     
     try:
         blobList = getAllBlobs(OpenAiDocConnStr, OpenAiDocContainer)

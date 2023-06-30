@@ -914,8 +914,8 @@ const OneShot = () => {
                                     onChange={onEnableAutoSpeakAnswersChange}
                                 />
                                 <br/>
-                                <DefaultButton onClick={() => refreshSummary('summary')}>Regenerate Summary</DefaultButton>
-                                <DefaultButton onClick={() => refreshSummary('qa')}>Regenerate Qa</DefaultButton>
+                                {/* <DefaultButton onClick={() => refreshSummary('summary')}>Regenerate Summary</DefaultButton>
+                                <DefaultButton onClick={() => refreshSummary('qa')}>Regenerate Qa</DefaultButton> */}
                             </Panel>
                     </PivotItem>
                     <PivotItem

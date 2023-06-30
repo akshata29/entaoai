@@ -10,6 +10,22 @@ location, car make model, damage details, PII information
 and next steps]
 """
 
+Ask Specific questions
+Was there any PII data?
+was the date of birth Shared?
+Create a table with all the PII data name in the first column and the actual data shared by the customer in the second column
+Did the caller mention anything about the bumper of car?
+What part of the car was damaged?
+How fast was the motorcycle driving when it bumped into the car?
+Was the car an electric vehicle?
+Did the caller mention anything about the airbags being deployed?
+Were the police mentioned in the call?
+Did the accident occur on a weekday?
+What greetings were used?
+How efficient was the conversation?
+Would the customer recommend our company to his friends after this call?
+
+
 Extract custom business insights listed in the input prompt. Provide response in plain text 
 format. -> Extract the following from the phone conversation. Do not 
 include brackets in the output:
@@ -39,3 +55,5 @@ airbag_deployed)
 police_called)
 8. Did customer take any pictures of accident scene 
 <yes/no/not mentioned> (key: pictures_taken)
+
+Convert the transcript in "Hindi" and ask above question again in English

@@ -13,7 +13,7 @@ def generateEmbeddings(embeddingModelType, text):
         openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
         response = openai.Embedding.create(
-            input=text, engine="text-embedding-ada-002")
+            input=text, engine=OpenAiEmbedding)
         embeddings = response['data'][0]['embedding']
 
     elif embeddingModelType == "openai":

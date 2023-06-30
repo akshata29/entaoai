@@ -54,6 +54,14 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ![Azure Services](/assets/AskChat.png)
 
+## QA over your data with Cache
+
+![QA Cache](/assets/QACache.png)
+
+## QA LLM Evaluation
+
+![QA LLM Evaluation](/assets/Auto%20Evaluator.png)
+
 ## Getting Started
 
 [Get Started](GettingStarted.md)
