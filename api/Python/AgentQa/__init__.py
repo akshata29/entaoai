@@ -68,7 +68,7 @@ def AgentQaAnswer(question, overrides):
                     max_tokens=tokenLength,
                     batch_size=10)
 
-            embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+            embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
             logging.info("Azure OpenAI LLM Setup done")
         elif embeddingModelType == "openai":
             openai.api_type = "open_ai"

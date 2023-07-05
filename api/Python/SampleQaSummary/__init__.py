@@ -88,7 +88,7 @@ def summarizeGenerateQa(indexType, indexNs, embeddingModelType, requestType, cha
                 openai_api_type="azure",
                 max_tokens=400)
 
-        embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+        embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
         logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
         openai.api_type = "open_ai"

@@ -114,7 +114,7 @@ def createSections(indexType, embeddingModelType, fileName, docs):
             }
             counter += 1
 
-def indexSections(indexType, embeddingModelType, embeddingModelName, fileName, indexName, docs):
+def indexSections(indexType, embeddingModelType, fileName, indexName, docs):
 
     logging.info("Total docs: " + str(len(docs)))
     sections = createSections(indexType, embeddingModelType, fileName, docs)

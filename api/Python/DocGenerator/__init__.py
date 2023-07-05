@@ -224,7 +224,7 @@ def storeIndex(indexType, docs, fileName, nameSpace, embeddingModelType):
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
         openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-        embeddings = OpenAIEmbeddings(model=OpenAiEmbedding,
+        embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding,
                 chunk_size=1,
                 openai_api_key=OpenAiKey)
     elif embeddingModelType == "openai":
