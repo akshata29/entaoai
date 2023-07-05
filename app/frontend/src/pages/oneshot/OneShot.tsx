@@ -773,7 +773,7 @@ const OneShot = () => {
                                 isFooterAtBottom={true}
                             >
                                 <br/>
-                                <Label>Double Click the question from the KB to get the cached answer</Label>
+                                <Label>Click the question from the KB to get the cached answer</Label>
                                 <div>
                                     <DetailsList
                                         compact={true}
@@ -783,7 +783,7 @@ const OneShot = () => {
                                         getKey={(item: any) => item.key}
                                         setKey="none"
                                         constrainMode={ConstrainMode.unconstrained}
-                                        onItemInvoked={(item:any) => onQuestionClicked(item)}
+                                        onActiveItemChanged={(item:any) => onQuestionClicked(item)}
                                         focusZoneProps={focusZoneProps}
                                         layoutMode={DetailsListLayoutMode.justified}
                                         ariaLabelForSelectionColumn="Toggle selection"

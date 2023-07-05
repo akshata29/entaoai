@@ -1,5 +1,7 @@
 AzureWebJobsStorage=UseDevelopmentStorage=true
 AzureWebJobs.HttpTrigger1.Disabled=false
+AdminPassword=P@ssw0rd
+UploadPassword=P@ssw0rd
 OpenAiKey=
 OpenAiService=dataaioaics
 OpenAiEndPoint=https://dataaioaics.openai.azure.com/
@@ -9,12 +11,18 @@ OpenAiEmbedding=text-embedding-ada-002
 MaxTokens=500
 Temperature=0.3
 OpenAiChat=chat
+FormRecognizerEndPoint=https://.cognitiveservices.azure.com/
+FormRecognizerKey=
 PineconeKey=key
 PineconeEnv=env
 VsIndexName=oaiembed
 RedisPassword=Password
 RedisAddress=
 RedisPort=6379
+CosmosEndpoint=https://.documents.azure.com:443/
+CosmosKey=
+CosmosDatabase=aoai
+CosmosContainer=chatgpt
 OpenAiDocStorName=dataaiopenaistor
 OpenAiDocStorKey=
 OpenAiDocContainer=chatpdf

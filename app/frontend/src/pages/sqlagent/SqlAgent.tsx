@@ -7,7 +7,7 @@ import styles from "./SqlAgent.module.css";
 import { Pivot, PivotItem } from '@fluentui/react';
 import { SparkleFilled } from "@fluentui/react-icons";
 
-import { sqlChat, AskResponse, sqlChain, getSpeechApi } from "../../api";
+import { sqlChat, AskResponse, sqlChain, getSpeechApi, sqlVisual } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
@@ -21,9 +21,6 @@ var audio = new Audio();
 
 const SqlAgent = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
-    const [promptTemplate, setPromptTemplate] = useState<string>("");
-    const [promptTemplatePrefix, setPromptTemplatePrefix] = useState<string>("");
-    const [promptTemplateSuffix, setPromptTemplateSuffix] = useState<string>("");
     const [retrieveCount, setRetrieveCount] = useState<number>(10);
     const [temperature, setTemperature] = useState<number>(0.3);
     const [tokenLength, setTokenLength] = useState<number>(500);
@@ -32,15 +29,16 @@ const SqlAgent = () => {
 
     const lastQuestionRef = useRef<string>("");
     const lastQuestionChainRef = useRef<string>("");
+    const lastQuestionVisualRef = useRef<string>("");
     const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<unknown>();
-    //const [answer, setAnswer] = useState<AskResponse>();
     const [answer, setAnswer] = useState<[AskResponse, string | null]>();
     const [errorChain, setErrorChain] = useState<unknown>();
-    //const [answerChain, setAnswerChain] = useState<AskResponse>();
     const [answerChain, setAnswerChain] = useState<[AskResponse, string | null]>();
+    const [errorVisual, setErrorVisual] = useState<unknown>();
+    const [answerVisual, setAnswerVisual] = useState<[AskResponse, string | null]>();
     const [useAutoSpeakAnswers, setUseAutoSpeakAnswers] = useState<boolean>(false);
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
 
@@ -49,7 +47,6 @@ const SqlAgent = () => {
 
     const [exampleList, setExampleList] = useState<ExampleModel[]>([{text:'', value: ''}]);
     const [summary, setSummary] = useState<string>();
-    const [qa, setQa] = useState<string>('');
     const [sqlQuery, setSqlQuery] = useState<string>('');
     const [sqlData, setSqlData] = useState<Record<string, string | boolean | number>[]>([]);
     const [exampleLoading, setExampleLoading] = useState(false)
@@ -87,6 +84,8 @@ const SqlAgent = () => {
                 speechAnswer = answer && answer[0].answer;
             else if (answerType == "Chain")
                 speechAnswer = answerChain && answerChain[0].answer;
+            else if (answerType == "Visual")
+                speechAnswer = answerVisual && answerVisual[0].answer;
 
             const speechUrl = await getSpeechApi(speechAnswer || '');
             if (speechUrl === null) {
@@ -244,21 +243,66 @@ const SqlAgent = () => {
         }
     };
 
+    const makeApiVisualRequest = async (question: string) => {
+        lastQuestionVisualRef.current = question;
+
+        errorVisual&& setErrorVisual(undefined);
+        setIsLoading(true);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+
+        try {
+            const result = await sqlVisual(question, retrieveCount, String(selectedEmbeddingItem?.key));
+            setSqlQuery(result.toolInput? result.toolInput : '');
+            const dataTable: Record<string, string | boolean | number>[] = []
+            result.observation?.slice(1, -1).split('), (').forEach(function(el){
+                const columns = el.split(',');
+                let rowValues = ''
+                var item: any = {}
+                for (var i = 0; i < columns.length; i++) {
+                    const colName = "col" + String(i)
+                    var char = columns[i][0]
+                    let colValue = columns[i];
+                    if (char == '(') {
+                        colValue = columns[i].slice(1);
+                    } else if (char == "),") {
+                        colValue = columns[i].slice(0, -1);
+                    } else {
+                        colValue = columns[i];
+                    }
+
+                    if (colValue.trim() == "," || colValue.trim() == "" || colValue.trim() == ")," || colValue.trim() == ")")
+                    {
+                    } else {
+                        colValue = colValue.trim().replace(")", "").replace("Decimal(", "")
+                        colValue = colValue.replace("'", "").replace("'", "").replace(")", "")
+                        item[colName] = colValue
+                    }
+                }
+                dataTable.push(item) 
+            });
+
+            setSqlData(dataTable);
+            setAnswerVisual([result, null]);
+            if(useAutoSpeakAnswers) {
+                const speechUrl = await getSpeechApi(result.answer);
+                setAnswerVisual([result, speechUrl]);
+                startSynthesis("Visual", speechUrl);
+            }
+            if (result.error) {
+                setErrorVisual(result.error);
+            }
+        } catch (e) {
+            setErrorVisual(e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const onEnableAutoSpeakAnswersChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
         setUseAutoSpeakAnswers(!!checked);
     };
 
-    const onPromptTemplateChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-        setPromptTemplate(newValue || "");
-    };
-
-    const onPromptTemplatePrefixChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-        setPromptTemplatePrefix(newValue || "");
-    };
-
-    const onPromptTemplateSuffixChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-        setPromptTemplateSuffix(newValue || "");
-    };
 
     const onRetrieveCountChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
         setRetrieveCount(parseInt(newValue || "3"));
@@ -278,6 +322,10 @@ const SqlAgent = () => {
 
     const onExampleChainClicked = (example: string) => {
         makeApiChainRequest(example);
+    };
+
+    const onExampleVisualClicked = (example: string) => {
+        makeApiVisualRequest(example);
     };
 
     const onToggleTab = (tab: AnalysisPanelTabs) => {
@@ -350,6 +398,14 @@ const SqlAgent = () => {
         setActiveCitation(undefined);
         setActiveAnalysisPanelTab(undefined);
         setAnswerChain(undefined);
+    };
+
+    const clearVisualChat = () => {
+        lastQuestionVisualRef.current = "";
+        errorVisual && setErrorVisual(undefined);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+        setAnswerVisual(undefined);
     };
 
     useEffect(() => {
@@ -600,6 +656,120 @@ const SqlAgent = () => {
                             )}
                         </div>
                     </PivotItem>
+                    {/* <PivotItem
+                        headerText="SQL Visual"
+                        headerButtonProps={{
+                        'data-order': 3,
+                        }}
+                    >
+                        <div className={styles.sqlAgentTopSection}>
+                            <div className={styles.commandsContainer}>
+                                <ClearChatButton className={styles.settingsButton} onClick={clearVisualChat} disabled={!lastQuestionVisualRef.current || isLoading} />
+                                <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                            </div>
+                            <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
+                            <h1 className={styles.sqlAgentTitle}>Ask your SQL</h1>
+                            <div className={styles.example}>
+                                <p className={styles.exampleText}><b>Scenario</b> : {summary}</p>
+                            </div>
+                            <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
+                            <div className={styles.sqlAgentQuestionInput}>
+                                <QuestionInput
+                                    placeholder="Ask me anything"
+                                    disabled={isLoading}
+                                    updateQuestion={lastQuestionVisualRef.current}
+                                    onSend={question => makeApiVisualRequest(question)}
+                                />
+                            </div>
+                            {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                            <ExampleList onExampleClicked={onExampleVisualClicked}
+                                EXAMPLES={
+                                    exampleList
+                                } />
+                        </div>
+                        <div className={styles.sqlAgentBottomSection}>
+                            {isLoading && <Spinner label="Generating answer" />}
+                            {!isLoading && answerVisual && !errorVisual && (
+                                <div>
+                                    <div className={styles.sqlAgentAnswerContainer}>
+                                        <Stack horizontal horizontalAlign="space-between">
+                                        <Pivot aria-label="Chat">
+                                            <PivotItem
+                                                headerText="Answer"
+                                                headerButtonProps={{
+                                                'data-order': 1,
+                                                }}
+                                            >
+                                                <Answer
+                                                    answer={answerVisual[0]}
+                                                    isSpeaking = {isSpeaking}
+                                                    onCitationClicked={x => onShowCitation(x)}
+                                                    onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
+                                                    onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
+                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis("Visual", answerVisual[1])}
+                                                />
+                                            </PivotItem>
+                                            <PivotItem
+                                                headerText="SQL Query"
+                                                headerButtonProps={{
+                                                'data-order': 2,
+                                                }}
+                                            >
+                                                <Stack className={`${styles.answerContainer}`} verticalAlign="space-between">
+                                                    <Stack.Item>
+                                                        <Stack horizontal horizontalAlign="space-between">
+                                                            <Sparkle28Filled primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Answer logo" />
+                                                        </Stack>
+                                                    </Stack.Item>
+                                                    <Stack.Item>
+                                                        <div className={styles.answerText}>
+                                                            <SqlViewer content={getSqlViewerContent(lastQuestionVisualRef.current)} />
+                                                        </div>
+                                                    </Stack.Item>
+                                                </Stack>
+                                            </PivotItem>
+                                            <PivotItem
+                                                headerText="SQL Data"
+                                                headerButtonProps={{
+                                                'data-order': 3,
+                                                }}
+                                            >
+                                                <Stack className={`${styles.answerContainer}`} verticalAlign="space-between">
+                                                    <Stack.Item>
+                                                        <Stack horizontal horizontalAlign="space-between">
+                                                            <Sparkle28Filled primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Answer logo" />
+                                                        </Stack>
+                                                    </Stack.Item>
+                                                    <Stack.Item>
+                                                        <div className={styles.answerText}>
+                                                            <DataTable data={sqlData} />
+                                                        </div>
+                                                    </Stack.Item>
+                                                </Stack>
+
+                                            </PivotItem>
+                                        </Pivot>
+                                        </Stack>                               
+                                    </div>
+                                </div>
+                            )}
+                            {errorVisual ? (
+                                <div className={styles.sqlAgentAnswerContainer}>
+                                    <AnswerError error={errorVisual.toString()} onRetry={() => makeApiVisualRequest(lastQuestionVisualRef.current)} />
+                                </div>
+                            ) : null}
+                            {activeAnalysisPanelTab && answerVisual && (
+                                <AnalysisPanel
+                                    className={styles.sqlAgentAnalysisPanel}
+                                    activeCitation={activeCitation}
+                                    onActiveTabChanged={x => onToggleTab(x)}
+                                    citationHeight="600px"
+                                    answer={answerVisual[0]}
+                                    activeTab={activeAnalysisPanelTab}
+                                />
+                            )}
+                        </div>
+                    </PivotItem> */}
                 </Pivot>
                 <Panel
                     headerText="Configure SQL NLP"
@@ -625,7 +795,7 @@ const SqlAgent = () => {
                     <br/>
                     <SpinButton
                         className={styles.sqlAgentSettingsSeparator}
-                        label="Retrieve this many documents from search:"
+                        label="Retrieve this many rows from DB:"
                         min={1}
                         max={100}
                         defaultValue={retrieveCount.toString()}

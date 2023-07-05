@@ -27,9 +27,86 @@
 		"aspName": "[concat(parameters('prefix'), 'asp')]",
 		"backendName": "[concat(parameters('prefix'), 'app')]",
 		"funcAppName": "[concat(parameters('prefix'), 'func')]",
-		"funcAppId": "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
+		"funcAppId": "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]",
+        "cosmosDbName": "[concat(parameters('prefix'), 'cosmos')]",
+        "cosmosDb": "aoai",
+        "cosmosContainer": "chatgpt"
 	},
     "resources": [
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "apiVersion": "2022-08-15",
+            "name": "[variables('cosmosDbName')]",
+            "location": "[parameters('location')]",
+            "kind": "GlobalDocumentDB",
+            "properties": {
+              "consistencyPolicy": {
+                "defaultConsistencyLevel": "Session"
+              },
+              "databaseAccountOfferType": "Standard",
+              "enableFreeTier": false,
+              "locations": [
+                {
+                  "failoverPriority": 0,
+                  "isZoneRedundant": false,
+                  "locationName": "[parameters('location')]"
+                }
+              ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+            "apiVersion": "2022-08-15",
+            "name": "[variables('cosmosDb')]",
+            "properties": {
+              "resource": {
+                "id": "[variables('cosmosDb')]"
+              }
+            },
+            "dependsOn": [
+              "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+            "apiVersion": "2022-08-15",
+            "name": "[variables('cosmosContainer')]",
+            "properties": {
+              "resource": {
+                "id": "[variables('cosmosContainer')]",
+                "partitionKey": {
+                  "paths": [
+                    "/sessionId"
+                  ],
+                  "kind": "Hash",
+                  "version": 2
+                },
+                "indexingPolicy": {
+                  "indexingMode": "Consistent",
+                  "automatic": true,
+                  "includedPaths": [
+                    {
+                      "path": "/sessionId/?"
+                    },
+                    {
+                      "path": "/type/?"
+                    }
+                  ],
+                  "excludedPaths": [
+                    {
+                      "path": "/*"
+                    }
+                  ]
+                }
+              },
+              "options": {
+                "throughput": 400
+              }
+            },
+            "dependsOn": [
+              "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosDbName'), variables('cosmosDb'))]"
+            ]
+        },
         {
             "type": "Microsoft.CognitiveServices/accounts",
             "apiVersion": "2022-12-01",
@@ -582,6 +659,10 @@
 						  "name": "SQLCHAIN_URL",
 						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChain?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
 						},
+                        {
+                            "name": "SQLVISUAL_URL",
+                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlVisual?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
+                        },
 						{
 						  "name": "SQLCHAT_URL",
 						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
@@ -621,6 +702,22 @@
                         {
                             "name": "KBINDEXNAME",
                             "value": "aoaikb"
+                        },
+                        {
+                            "name": "COSMOSENDPOINT",
+                            "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
+                        },
+                        {
+                            "name": "COSMOSKEY",
+                            "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
+                        },
+                        {
+                            "name": "COSMOSDATABASE",
+                            "value": "[variables('cosmosDb')]"
+                        },
+                        {
+                            "name": "COSMOSCONTAINER",
+                            "value": "[variables('cosmosContainer')]"
                         }
 					]
                 },
@@ -861,6 +958,22 @@
 						  "name": "VsIndexName",
 						  "value": "dummy"
 						},
+                        {
+                            "name": "CosmosEndpoint",
+                            "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
+                        },
+                        {
+                            "name": "CosmosKey",
+                            "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
+                        },
+                        {
+                            "name": "CosmosDatabase",
+                            "value": "[variables('cosmosDb')]"
+                        },
+                        {
+                            "name": "CosmosContainer",
+                            "value": "[variables('cosmosContainer')]"
+                        },
 						{
 						  "name": "WEBSITE_CONTENTSHARE",
 						  "value": "[toLower(variables('funcAppName'))]"

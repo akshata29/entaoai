@@ -18,6 +18,7 @@ from azure.ai.textanalytics import (
 import azure.cognitiveservices.speech as speechsdk
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
+from azure.cosmos import CosmosClient, PartitionKey
 
 load_dotenv()
 app = Flask(__name__)
@@ -127,6 +128,72 @@ def chat():
         logging.exception("Exception in /chat")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/getAllIndexSessions", methods=["POST"])
+def getAllIndexSessions():
+    indexType=request.json["indexType"]
+    indexNs=request.json["indexNs"]
+    feature=request.json["feature"]
+    type=request.json["type"]
+    
+    try:
+        CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
+        CosmosKey = os.environ.get("COSMOSKEY")
+        CosmosDb = os.environ.get("COSMOSDATABASE")
+        CosmosContainer = os.environ.get("COSMOSCONTAINER")
+
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
+        cosmosKey = PartitionKey(path="/sessionId")
+        cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
+
+        cosmosQuery = "SELECT c.sessionId, c.name FROM c WHERE c.type = @type and c.feature = @feature and c.indexType = @indexType and c.indexId = @indexNs"
+        params = [dict(name="@type", value=type), 
+                  dict(name="@feature", value=feature), 
+                  dict(name="@indexType", value=indexType), 
+                  dict(name="@indexNs", value=indexNs)]
+        results = cosmosContainer.query_items(query=cosmosQuery, parameters=params, enable_cross_partition_query=True)
+        items = [item for item in results]
+        #output = json.dumps(items, indent=True)
+        return jsonify(items)
+    except Exception as e:
+        logging.exception("Exception in /getAllIndexSessions")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/getIndexSession", methods=["POST"])
+def getIndexSession():
+    indexType=request.json["indexType"]
+    indexNs=request.json["indexNs"]
+    sessionName=request.json["sessionName"]
+    
+    try:
+        CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
+        CosmosKey = os.environ.get("COSMOSKEY")
+        CosmosDb = os.environ.get("COSMOSDATABASE")
+        CosmosContainer = os.environ.get("COSMOSCONTAINER")
+
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
+        cosmosKey = PartitionKey(path="/sessionId")
+        cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
+
+        cosmosQuery = "SELECT c.sessionId FROM c WHERE c.name = @sessionName and c.indexType = @indexType and c.indexId = @indexNs"
+        params = [dict(name="@sessionName", value=sessionName), 
+                  dict(name="@indexType", value=indexType), 
+                  dict(name="@indexNs", value=indexNs)]
+        results = cosmosContainer.query_items(query=cosmosQuery, parameters=params, enable_cross_partition_query=True,
+                                              max_item_count=1)
+        sessions = [item for item in results]
+        sessionId = sessions[0]["sessionId"]
+        cosmosQuery = "SELECT c.role, c.content FROM c WHERE c.sessionId = @sessionId and c.type = 'Message' ORDER by c._ts ASC"
+        params = [dict(name="@sessionId", value=sessionId)]
+        results = cosmosContainer.query_items(query=cosmosQuery, parameters=params, enable_cross_partition_query=True)
+        items = [item for item in results]
+        #output = json.dumps(items, indent=True)
+        return jsonify(items)
+    except Exception as e:
+        logging.exception("Exception in /getIndexSession")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/summaryAndQa", methods=["POST"])
 def summaryAndQa():
     indexType=request.json["indexType"]
@@ -213,6 +280,26 @@ def sqlChain():
         return jsonify(jsonDict)
     except Exception as e:
         logging.exception("Exception in /sqlChain")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/sqlVisual", methods=["POST"])
+def sqlVisual():
+    question=request.json["question"]
+    top=request.json["top"]
+    embeddingModelType=request.json["embeddingModelType"]
+    postBody=request.json["postBody"]
+
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("SQLVISUAL_URL")
+
+        data = postBody
+        params = {'question': question, 'topK': top, 'embeddingModelType': embeddingModelType }
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /sqlVisual")
         return jsonify({"error": str(e)}), 500
     
 @app.route("/processDoc", methods=["POST"])

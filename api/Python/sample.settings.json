@@ -3,8 +3,8 @@
     "Values": {
       "FUNCTIONS_WORKER_RUNTIME": "python",
       "DOCGENERATOR_URL": "http://localhost:7071/api/DocGenerator?code=",
-      "AdminPassword": "", // Admin Password that is used for protected pages
-      "UploadPassword": "", // Upload Password that is used for uploading files
+      "AdminPassword": "P@ssw0rd", // Admin Password that is used for protected pages
+      "UploadPassword": "P@ssw0rd", // Upload Password that is used for uploading files
       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
       "OpenAiApiKey": "", // OpenAI Key
       "OpenAiKey": "", // Azure Open AI Key
@@ -17,6 +17,10 @@
       "FormRecognizerKey": "",  // Form Recognizer Key
       "MaxTokens": 500, 
       "Temperature": 0.3,
+      "CosmosEndpoint":"https://<>.documents.azure.com:443/",
+      "CosmosKey":"",
+      "CosmosDatabase":"aoai",
+      "CosmosContainer":"chatgpt",
       "OpenAiChat": "", // GPT 3.5 deployment name
       "PineconeKey": "", // Pinecone key
       "PineconeEnv": "", // Pinecone Env

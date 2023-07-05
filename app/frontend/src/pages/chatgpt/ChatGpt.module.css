@@ -53,12 +53,12 @@
 
 .chatMessageStream {
     flex-grow: 1;
-    max-height: 1024px;
-    max-width: 1028px;
+    /* max-height: 1024px;
+    max-width: 1028px; */
     width: 100%;
     overflow-y: auto;
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: 15%;
+    padding-right: 15%;
     display: flex;
     flex-direction: column;
 }
@@ -67,11 +67,11 @@
     margin-bottom: 20px;
     max-width: 80%;
     display: flex;
-    min-width: 500px;
+    /* min-width: 500px; */
 }
 
 .chatMessageGptMinWidth {
-    max-width: 500px;
+    /* max-width: 500px; */
     margin-bottom: 20px;
 }
 
@@ -81,19 +81,20 @@
     flex: 0 0 100px;
     padding-top: 12px;
     padding-bottom: 24px;
-    padding-left: 24px;
-    padding-right: 24px;
     width: 100%;
-    max-width: 1028px;
+    padding-left: 15%;
+    padding-right: 15%; 
+    /*max-width: 1028px; */
     background: #f2f2f2;
 }
 
 .chatAnalysisPanel {
     flex: 1;
     overflow-y: auto;
-    max-height: 89vh;
-    margin-left: 20px;
-    margin-right: 20px;
+    /* max-height: 89vh; */
+    margin-left: 1%;
+    margin-right: 1%;
+    max-width: 30%;
 }
 
 .chatSettingsSeparator {

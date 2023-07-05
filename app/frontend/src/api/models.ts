@@ -9,26 +9,29 @@ export const enum Approaches {
 
 export type ChatMessage = {
     id: string; // Guid
-    type: string; // "message" | "bot" | "user"
-    sessionId: string ; // Guid
+    type: string; // "Message"
+    role: string; // "User" || "Assistant"
+    sessionId: string ; // Guid (same as ChatSession.id)
     tokens: number; // Number of tokens in the message
     timestamp: string; // ISO 8601
     content: string;
+};
+
+export type ChatSession = {
+    id: string; // Guid
+    type: string; // "Session"
+    sessionId: string ; // Guid
+    feature: string; // "chat" || "ask" || "sql" || "chat3"
+    tokenUsed: number; // Number of tokens in all the message
+    name: string;
+    timestamp: string; // ISO 8601
     indexType: string; // "pinecone" || "cogsearch" || "cogsearchvs"
     indexName: string; 
     indexId: string; // Guid
     llmModel: string; // "openai" || "azureopenai"
     chainType: string // "stuff" || "refine" || "mapreduce"
-};
-
-export type ChatSession = {
-    id: string; // Guid
-    sessionId: string ; // Guid
-    feature: string; // "chat" || "ask" || "sql" || "chat3"
-    tokenUsed: number; // Number of tokens in the message
-    name: string;
-    timestamp: string; // ISO 8601
-    messages: ChatMessage[];
+    embeddingModelType: string; // "azureopenai" || "openai"
+    messages?: ChatMessage[];
 };
 
 export const chatSessionsAtom = atom<ChatSession[]>([]);
@@ -49,6 +52,9 @@ export type AskRequestOverrides = {
     indexes?: any;
     autoSpeakAnswers?: boolean;
     embeddingModelType?: string;
+    firstSession?: boolean;
+    session?: string;
+    sessionId?: string;
 };
 
 export type AskRequest = {

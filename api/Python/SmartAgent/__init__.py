@@ -236,7 +236,8 @@ def SmartAgent(question, overrides):
                 if (fileData not in files): #and (indexType != 'cogsearch'):
                     files.append(fileData)
                     tool = addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, True, topK, file.name)
-                    tools.append(tool)
+                    if tool is not None:
+                        tools.append(tool)
         # Add the Search(Bing) Tool
         tools.append(
             Tool(
@@ -268,8 +269,8 @@ def SmartAgent(question, overrides):
         
 
         logging.info("Document Setup done")
-        agent = ConversationalChatAgent.from_llm_and_tools(llm=llm, tools=tools, system_message=customChatPrefix, human_message=customChatSuffix)
         memory = ConversationBufferWindowMemory(memory_key="chat_history", return_messages=True, k=10)
+        agent = ConversationalChatAgent.from_llm_and_tools(llm=llm, tools=tools, system_message=customChatPrefix, human_message=customChatSuffix)
         agentChain = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, memory=memory)
         answer = agentChain({"input":question})
         
