@@ -564,11 +564,10 @@ const ChatGpt = () => {
                                     getKey={(item: any) => item.key}
                                     setKey="none"
                                     //isHeaderVisible={false}
-                                    selectionPreservedOnEmptyClick={true}
                                     //constrainMode={ConstrainMode.unconstrained}
                                     onActiveItemChanged={(item:any) => onSessionClicked(item)}
                                     focusZoneProps={focusZoneProps}
-                                    layoutMode={DetailsListLayoutMode.justified}
+                                    layoutMode={DetailsListLayoutMode.fixedColumns}
                                     ariaLabelForSelectionColumn="Toggle selection"
                                     checkButtonAriaLabel="select row"
                                     //onRenderRow={onRenderColumnListRow}
