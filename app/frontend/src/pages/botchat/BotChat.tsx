@@ -169,7 +169,7 @@ const BotChat = () => {
             </div>
             <div className={styles.container}>
                 <div className={styles.commandsContainer}>
-                    <ClearChatButton className={styles.commandButton} onClick={clearChat} />
+                    <ClearChatButton className={styles.commandButton} onClick={clearChat} text="Clear chat" />
                 </div>
                 <div className={styles.chatRoot}>
                     <div className={styles.chatContainer}>

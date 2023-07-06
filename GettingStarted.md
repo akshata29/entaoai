@@ -17,6 +17,8 @@ Before to jumping to the Azure OpenAI API, this guide will show how to have acce
 * [Azure Functions Core tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools)
 * [Powershell 7+ (pwsh)](https://github.com/powershell/powershell) - For Windows users only. **Important**: Ensure you can run `pwsh.exe` from a PowerShell command. If this fails, you likely need to upgrade PowerShell.
 
+**Note** Pre-built docker Images are required only if you want to run the application in docker container.  You can skip this step if you want to run the application locally.  Do note that you need to provision all the services in Azure to run the application locally or in container.
+
 ### Pre-build docker Image - API
 
 Configure your `.env` as described in as described in [Configuration](Configuration.md).  You can alternatively, copy .dockerenv.example to .env from api\Python folder

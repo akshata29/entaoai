@@ -388,7 +388,7 @@ const DeveloperTools = () => {
                     >
                         <div className={styles.developerToolsTopSection}>
                             {/* <div className={styles.commandsContainer}>
-                                <ClearChatButton className={styles.settingsButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
+                                <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                                 <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                             </div> */}
                             <br/>

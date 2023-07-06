@@ -1,5 +1,12 @@
 name: Docker App
 
+env:
+  #AZURE_WEBAPP_NAME: dataaipdfchat  # set this to the name of your Azure Web App
+  PYTHON_VERSION: '3.9'              # set this to the Python version to use
+  NODE_VERSION: '16.x'                      # set this to the node version to use (e.g. '8.x', '10.x', '12.x')
+  AZURE_NODEJS_PACKAGE_PATH: 'app/frontend'       # set this to the path to your function app project, defaults to the repository root
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'app/backend'
+
 on:
   push:
     branches:
@@ -11,7 +18,40 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Setup Node ${{ env.NODE_VERSION }} Environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 'Resolve Project Dependencies Using Npm'
+        shell: bash # For Linux, use bash
+        run: |
+          pushd './${{ env.AZURE_NODEJS_PACKAGE_PATH }}'
+          export NODE_OPTIONS="--max_old_space_size=4096"
+          npm install
+          npm run build
+          popd
+
+      - name: Set up Python version
+        uses: actions/setup-python@v3.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Create and start virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+
+      - name: 'Resolve Project Dependencies Using Pip'
+        shell: bash
+        run: |
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          popd
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1

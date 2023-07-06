@@ -284,7 +284,7 @@ const SmartAgent = () => {
                         }}>
                         <div className={styles.oneshotTopSection}>
                             <div className={styles.commandsContainer}>
-                                <ClearChatButton className={styles.settingsButton} onClick={clearAgentChat} disabled={!lastAgentQuestionRef.current || isLoading} />
+                                <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearAgentChat} disabled={!lastAgentQuestionRef.current || isLoading} />
                                 <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                             </div>
                             <div className={styles.commandsContainer}>

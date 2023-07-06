@@ -425,7 +425,7 @@ const SqlAgent = () => {
                     >
                     <div className={styles.sqlAgentTopSection}>
                         <div className={styles.commandsContainer}>
-                            <ClearChatButton className={styles.settingsButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
+                            <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                             <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                         </div>
                         <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
@@ -541,7 +541,7 @@ const SqlAgent = () => {
                     >
                         <div className={styles.sqlAgentTopSection}>
                             <div className={styles.commandsContainer}>
-                                <ClearChatButton className={styles.settingsButton} onClick={clearChainChat} disabled={!lastQuestionChainRef.current || isLoading} />
+                                <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearChainChat} disabled={!lastQuestionChainRef.current || isLoading} />
                                 <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                             </div>
                             <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
@@ -664,7 +664,7 @@ const SqlAgent = () => {
                     >
                         <div className={styles.sqlAgentTopSection}>
                             <div className={styles.commandsContainer}>
-                                <ClearChatButton className={styles.settingsButton} onClick={clearVisualChat} disabled={!lastQuestionVisualRef.current || isLoading} />
+                                <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearVisualChat} disabled={!lastQuestionVisualRef.current || isLoading} />
                                 <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                             </div>
                             <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />

@@ -41,10 +41,11 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         )
 
     if body:
-        pinecone.init(
-            api_key=PineconeKey,  # find at app.pinecone.io
-            environment=PineconeEnv  # next to api key in console
-        )
+        if len(PineconeKey) > 10 and len(PineconeEnv) > 10:
+            pinecone.init(
+                api_key=PineconeKey,  # find at app.pinecone.io
+                environment=PineconeEnv  # next to api key in console
+            )
         result = ComposeResponse(body, indexNs, indexType)
         return func.HttpResponse(result, mimetype="application/json")
     else:
@@ -163,19 +164,26 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     firstSession = overrides.get('firstSession') or False
     sessionId = overrides.get('sessionId')
     logging.info("Search for Top " + str(topK))
-    cosmosClient = CosmosClient(url=CosmosEndpoint, credential=CosmosKey)
-    cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDatabase)
-    cosmosKey = PartitionKey(path="/sessionId")
-    cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
+    try:
+        cosmosClient = CosmosClient(url=CosmosEndpoint, credential=CosmosKey)
+        cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDatabase)
+        cosmosKey = PartitionKey(path="/sessionId")
+        cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
+    except Exception as e:
+        logging.info("Error connecting to CosmosDB: " + str(e))
+
     lastQuestion = history[-1]["user"]
     totalTokens = 0
 
     # If we are getting the new session, let's insert the data into CosmosDB
-    if firstSession:
-        sessionInfo = overrides.get('session') or ''
-        session = json.loads(sessionInfo)
-        cosmosContainer.upsert_item(session)
-        logging.info(session)
+    try:
+        if firstSession:
+            sessionInfo = overrides.get('session') or ''
+            session = json.loads(sessionInfo)
+            cosmosContainer.upsert_item(session)
+            logging.info(session)
+    except Exception as e:
+        logging.info("Error inserting session into CosmosDB: " + str(e))
 
 
     qaPromptTemplate = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
@@ -302,7 +310,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                         "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
                         "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", '').replace('- ', ''), 
                         "nextQuestions": nextQuestions.replace('Next Questions:', '').replace('- ', ''), "error": ""}
-                insertMessage(sessionId, "Message", "Assistant", totalTokens, cb.total_tokens, response, cosmosContainer)
+                try:
+                    insertMessage(sessionId, "Message", "Assistant", totalTokens, cb.total_tokens, response, cosmosContainer)
+                except Exception as e:
+                    logging.info("Error inserting message: " + str(e))
+
                 return response
         elif indexType == "redis":
             try:
@@ -329,7 +341,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                         "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
                         "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", '').replace('- ', ''), 
                         "nextQuestions": nextQuestions.replace('Next Questions:', '').replace('- ', ''), "error": ""}
-                    insertMessage(sessionId, "Message", "Assistant", totalTokens, cb.total_tokens, response, cosmosContainer)
+                    try:
+                        insertMessage(sessionId, "Message", "Assistant", totalTokens, cb.total_tokens, response, cosmosContainer)
+                    except Exception as e:
+                        logging.info("Error inserting message: " + str(e))
+
                     return response
             except Exception as e:
                 return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "",
@@ -361,7 +377,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                     "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
                     "sources": sources.replace("SOURCES:", '').replace("SOURCES", "").replace("Sources:", '').replace('- ', ''), 
                     "nextQuestions": nextQuestions.replace('Next Questions:', '').replace('- ', ''), "error": ""}
-                insertMessage(sessionId, "Message", "Assistant", totalTokens, cb.total_tokens, response, cosmosContainer)
+                try:
+                    insertMessage(sessionId, "Message", "Assistant", totalTokens, cb.total_tokens, response, cosmosContainer)
+                except Exception as e:
+                    logging.info("Error inserting message: " + str(e))
+
                 return response
         elif indexType == "csv":
                 downloadPath = getLocalBlob(OpenAiDocConnStr, OpenAiDocContainer, '', indexNs)
@@ -372,7 +392,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                     response = {"data_points": '', "answer": answer, 
                                 "thoughts": '',
                                     "sources": sources, "nextQuestions": '', "error": ""}
-                    insertMessage(sessionId, "Message", "Assistant", totalTokens, cb.total_tokens, response, cosmosContainer)
+                    try:
+                        insertMessage(sessionId, "Message", "Assistant", totalTokens, cb.total_tokens, response, cosmosContainer)
+                    except Exception as e:
+                        logging.info("Error inserting message: " + str(e))
+                        
                     return response
         elif indexType == 'milvus':
             answer = "{'answer': 'TBD', 'sources': ''}"

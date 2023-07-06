@@ -281,6 +281,42 @@ export async function getIndexSession(indexNs: string, indexType:string, session
       })
   });
 
+  const parsedResponse: any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse;
+}
+export async function deleteIndexSession(indexNs: string, indexType:string, sessionName:string): Promise<String> {
+  const response = await fetch('/deleteIndexSession' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        indexType:indexType,
+        indexNs: indexNs,
+        sessionName:sessionName
+      })
+  });
+
+  const parsedResponse: any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse;
+}
+export async function getIndexSessionDetail(sessionId: string): Promise<Any> {
+  const response = await fetch('/getIndexSessionDetail' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        sessionId:sessionId,
+      })
+  });
+
   const parsedResponse: Any = await response.json();
   if (response.status > 299 || !response.ok) {
       throw Error("Unknown error");

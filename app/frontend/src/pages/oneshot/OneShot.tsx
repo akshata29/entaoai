@@ -699,7 +699,7 @@ const OneShot = () => {
                     >
                             <div className={styles.oneshotTopSection}>
                                 <div className={styles.commandsContainer}>
-                                    <ClearChatButton className={styles.settingsButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
+                                    <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                                     <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                                     <QuestionListButton className={styles.settingsButton} onClick={() => clickRefreshQuestions()} />
                                     <div className={styles.settingsButton}>{selectedItem ? 
@@ -926,7 +926,7 @@ const OneShot = () => {
                     >
                             <div className={styles.oneshotTopSection}>
                                 <div className={styles.commandsContainer}>
-                                    <ClearChatButton className={styles.settingsButton} onClick={clearAgentChat} disabled={!lastAgentQuestionRef.current || isLoading} />
+                                    <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearAgentChat} disabled={!lastAgentQuestionRef.current || isLoading} />
                                     <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                                 </div>
                                 <div className={styles.commandsContainer}>
@@ -1084,7 +1084,7 @@ const OneShot = () => {
                     >
                             <div className={styles.oneshotTopSection}>
                                 <div className={styles.commandsContainer}>
-                                    <ClearChatButton className={styles.settingsButton} onClick={clearTaskAgentChat} disabled={!lastTaskAgentQuestionRef.current || isLoading} />
+                                    <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearTaskAgentChat} disabled={!lastTaskAgentQuestionRef.current || isLoading} />
                                     <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                                 </div>
                                 <div className={styles.commandsContainer}>

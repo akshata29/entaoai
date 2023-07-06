@@ -291,7 +291,7 @@ const Chat = () => {
             </div>
             <div className={styles.container}>
                 <div className={styles.commandsContainer}>
-                    <ClearChatButton className={styles.commandButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
+                    <ClearChatButton className={styles.commandButton} onClick={clearChat}  text="Clear chat" disabled={!lastQuestionRef.current || isLoading} />
                 </div>
                 <div className={styles.chatRoot}>
                     <div className={styles.chatContainer}>

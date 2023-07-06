@@ -7,13 +7,14 @@ interface Props {
     className?: string;
     onClick: () => void;
     disabled?: boolean;
+    text: string;
 }
 
-export const ClearChatButton = ({ className, disabled, onClick }: Props) => {
+export const ClearChatButton = ({ className, disabled, onClick, text }: Props) => {
     return (
         <div className={`${styles.container} ${className ?? ""} ${disabled && styles.disabled}`} onClick={onClick}>
             <Delete24Regular />
-            <Text>{"Clear chat"}</Text>
+            <Text>{text}</Text>
         </div>
     );
 };

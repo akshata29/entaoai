@@ -176,6 +176,37 @@ def getIndexSession():
         cosmosKey = PartitionKey(path="/sessionId")
         cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
 
+        cosmosQuery = "SELECT c.id, c.type, c.sessionId, c.name, c.chainType, \
+         c.feature, c.indexId, c.IndexType, c.IndexName, c.llmModel, \
+          c.timestamp, c.tokenUsed, c.embeddingModelType FROM c WHERE c.name = @sessionName and c.indexType = @indexType and c.indexId = @indexNs"
+        params = [dict(name="@sessionName", value=sessionName), 
+                  dict(name="@indexType", value=indexType), 
+                  dict(name="@indexNs", value=indexNs)]
+        results = cosmosContainer.query_items(query=cosmosQuery, parameters=params, enable_cross_partition_query=True,
+                                              max_item_count=1)
+        sessions = [item for item in results]
+        return jsonify(sessions)
+    except Exception as e:
+        logging.exception("Exception in /getIndexSession")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/deleteIndexSession", methods=["POST"])
+def deleteIndexSession():
+    indexType=request.json["indexType"]
+    indexNs=request.json["indexNs"]
+    sessionName=request.json["sessionName"]
+    
+    try:
+        CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
+        CosmosKey = os.environ.get("COSMOSKEY")
+        CosmosDb = os.environ.get("COSMOSDATABASE")
+        CosmosContainer = os.environ.get("COSMOSCONTAINER")
+
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
+        cosmosKey = PartitionKey(path="/sessionId")
+        cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
+
         cosmosQuery = "SELECT c.sessionId FROM c WHERE c.name = @sessionName and c.indexType = @indexType and c.indexId = @indexNs"
         params = [dict(name="@sessionName", value=sessionName), 
                   dict(name="@indexType", value=indexType), 
@@ -183,7 +214,38 @@ def getIndexSession():
         results = cosmosContainer.query_items(query=cosmosQuery, parameters=params, enable_cross_partition_query=True,
                                               max_item_count=1)
         sessions = [item for item in results]
-        sessionId = sessions[0]["sessionId"]
+        sessionData = json.loads(json.dumps(sessions))[0]
+        cosmosAllDocQuery = "SELECT * FROM c WHERE c.sessionId = @sessionId"
+        params = [dict(name="@sessionId", value=sessionData['sessionId'])]
+        allDocs = cosmosContainer.query_items(query=cosmosAllDocQuery, parameters=params, enable_cross_partition_query=True)
+        for i in allDocs:
+            cosmosContainer.delete_item(i, partition_key=i["sessionId"])
+        
+        #deleteQuery = "SELECT c._self FROM c WHERE c.sessionId = '" + sessionData['sessionId'] + "'"
+        #result = cosmosContainer.scripts.execute_stored_procedure(sproc="bulkDeleteSproc",params=[deleteQuery], partition_key=cosmosKey)
+        #print(result)
+        
+        #cosmosContainer.delete_all_items_by_partition_key(sessionData['sessionId'])
+        return jsonify(sessions)
+    except Exception as e:
+        logging.exception("Exception in /deleteIndexSession")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/getIndexSessionDetail", methods=["POST"])
+def getIndexSessionDetail():
+    sessionId=request.json["sessionId"]
+    
+    try:
+        CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
+        CosmosKey = os.environ.get("COSMOSKEY")
+        CosmosDb = os.environ.get("COSMOSDATABASE")
+        CosmosContainer = os.environ.get("COSMOSCONTAINER")
+
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
+        cosmosKey = PartitionKey(path="/sessionId")
+        cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
+
         cosmosQuery = "SELECT c.role, c.content FROM c WHERE c.sessionId = @sessionId and c.type = 'Message' ORDER by c._ts ASC"
         params = [dict(name="@sessionId", value=sessionId)]
         results = cosmosContainer.query_items(query=cosmosQuery, parameters=params, enable_cross_partition_query=True)
@@ -191,9 +253,8 @@ def getIndexSession():
         #output = json.dumps(items, indent=True)
         return jsonify(items)
     except Exception as e:
-        logging.exception("Exception in /getIndexSession")
+        logging.exception("Exception in /getIndexSessionDetail")
         return jsonify({"error": str(e)}), 500
-    
 @app.route("/summaryAndQa", methods=["POST"])
 def summaryAndQa():
     indexType=request.json["indexType"]
