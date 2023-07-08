@@ -1,0 +1,11 @@
+{
+  "scriptFile": "__init__.py",
+  "bindings": [
+    {
+      "name": "qaData",
+      "type": "activityTrigger",
+      "direction": "in"
+    }
+  ],
+  "disabled": false
+}

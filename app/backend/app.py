@@ -231,6 +231,36 @@ def deleteIndexSession():
         logging.exception("Exception in /deleteIndexSession")
         return jsonify({"error": str(e)}), 500
     
+@app.route("/renameIndexSession", methods=["POST"])
+def renameIndexSession():
+    oldSessionName=request.json["oldSessionName"]
+    newSessionName=request.json["newSessionName"]
+    
+    try:
+        CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
+        CosmosKey = os.environ.get("COSMOSKEY")
+        CosmosDb = os.environ.get("COSMOSDATABASE")
+        CosmosContainer = os.environ.get("COSMOSCONTAINER")
+
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
+        cosmosKey = PartitionKey(path="/sessionId")
+        cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
+
+        cosmosQuery = "SELECT * FROM c WHERE c.name = @sessionName and c.type = 'Session'"
+        params = [dict(name="@sessionName", value=oldSessionName)]
+        results = cosmosContainer.query_items(query=cosmosQuery, parameters=params, enable_cross_partition_query=True,
+                                              max_item_count=1)
+        sessions = [item for item in results]
+        sessionData = json.loads(json.dumps(sessions))[0]
+        #selfId = sessionData['_self']
+        sessionData['name'] = newSessionName
+        cosmosContainer.replace_item(item=sessionData, body=sessionData)
+        return jsonify(sessions)
+    except Exception as e:
+        logging.exception("Exception in /renameIndexSession")
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/getIndexSessionDetail", methods=["POST"])
 def getIndexSessionDetail():
     sessionId=request.json["sessionId"]
@@ -255,6 +285,7 @@ def getIndexSessionDetail():
     except Exception as e:
         logging.exception("Exception in /getIndexSessionDetail")
         return jsonify({"error": str(e)}), 500
+    
 @app.route("/summaryAndQa", methods=["POST"])
 def summaryAndQa():
     indexType=request.json["indexType"]
@@ -391,6 +422,30 @@ def processDoc():
         logging.exception("Exception in /processDoc")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/runEvaluation", methods=["POST"])
+def runEvaluation():
+    fileName=request.json["fileName"]
+    retrieverType=request.json["retrieverType"]
+    promptStyle=request.json["promptStyle"]
+    totalQuestions=request.json["totalQuestions"]
+    embeddingModelType=request.json["embeddingModelType"]
+    postBody=request.json["postBody"]
+   
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("RUNEVALUATION_URL")
+
+        data = postBody
+        params = {'fileName': fileName, "retrieverType": retrieverType, "promptStyle": promptStyle , "totalQuestions": totalQuestions,
+                  "embeddingModelType": embeddingModelType}
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /runEvaluation")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/processSummary", methods=["POST"])
 def processSummary():
     multiple=request.json["multiple"]
@@ -506,6 +561,150 @@ def refreshIndex():
         logging.exception("Exception in /refreshIndex")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/getDocumentList", methods=["GET"])
+def getDocumentList():
+   
+    try:
+        SearchService = os.environ.get("SEARCHSERVICE")
+        SearchKey = os.environ.get("SEARCHKEY")
+        searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name="evaluatordocument",
+        credential=AzureKeyCredential(SearchKey))
+        try:
+            r = searchClient.search(  
+                search_text="",
+                select=["documentId", "documentName", "sourceFile"],
+                include_total_count=True
+            )
+            documentList = []
+            for document in r:
+                try:
+                    documentList.append({
+                        "documentId": document['documentId'],
+                        "documentName": document['documentName'],
+                        "sourceFile": document['sourceFile']
+                    })
+                except Exception as e:
+                    pass
+            return jsonify({"values" : documentList})
+        except Exception as e:
+            logging.exception("Exception in /getDocumentList")
+            return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        logging.exception("Exception in /getDocumentList")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/getAllDocumentRuns", methods=["POST"])
+def getAllDocumentRuns():
+   
+    SearchService = os.environ.get("SEARCHSERVICE")
+    SearchKey = os.environ.get("SEARCHKEY")
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name="evaluatorrunresult",
+        credential=AzureKeyCredential(SearchKey))
+    
+    documentId=request.json["documentId"]
+
+    try:
+        r = searchClient.search(  
+            search_text="",
+            filter="documentId eq '" + documentId + "'",
+            select=["runId"],
+            include_total_count=True
+        )
+        documentRuns = []
+        for run in r:
+            try:
+                documentRuns.append({
+                    "runId": run['runId'],
+                })
+            except Exception as e:
+                pass
+
+        #jsonDict = json.dumps(blobJson)
+        return jsonify({"values" : documentRuns})
+    except Exception as e:
+        logging.exception("Exception in /getAllDocumentRuns")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/getEvaluationQaDataSet", methods=["POST"])
+def getEvaluationQaDataSet():
+   
+    SearchService = os.environ.get("SEARCHSERVICE")
+    SearchKey = os.environ.get("SEARCHKEY")
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name="evaluatorqadata",
+        credential=AzureKeyCredential(SearchKey))
+    
+    documentId=request.json["documentId"]
+
+    try:
+        r = searchClient.search(  
+            search_text="",
+            filter="documentId eq '" + documentId + "'",
+            select=["questionId", "question", "answer"],
+            include_total_count=True
+        )
+        documentQaSets = []
+        for qa in r:
+            try:
+                documentQaSets.append({
+                    "questionId": qa['questionId'],
+                    "question": qa['question'],
+                    "answer": qa['answer'],
+                })
+            except Exception as e:
+                pass
+
+        return jsonify({"values" : documentQaSets})
+    except Exception as e:
+        logging.exception("Exception in /getEvaluationQaDataSet")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/getEvaluationResults", methods=["POST"])
+def getEvaluationResults():
+   
+    SearchService = os.environ.get("SEARCHSERVICE")
+    SearchKey = os.environ.get("SEARCHKEY")
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name="evaluatorrunresult",
+        credential=AzureKeyCredential(SearchKey))
+    
+    documentId=request.json["documentId"]
+    runId=request.json["runId"]
+
+    try:
+        r = searchClient.search(  
+            search_text="",
+            filter="documentId eq '" + documentId + "' and runId eq '" + runId + "'",
+            select=["subRunId", "retrieverType", "promptStyle", "splitMethod", "chunkSize", "overlap", "question", "answer", "predictedAnswer", "answerScore", "retrievalScore", "latency"],
+            include_total_count=True
+        )
+        evaluationResults = []
+        for result in r:
+            try:
+                evaluationResults.append({
+                    "subRunId": result['subRunId'],
+                    "retrieverType": result['retrieverType'],
+                    "promptStyle": result['promptStyle'],
+                    "splitMethod": result['splitMethod'],
+                    "chunkSize": result['chunkSize'],
+                    "overlap": result['overlap'],
+                    "question": result['question'],
+                    "answer": result['answer'],
+                    "predictedAnswer": result['predictedAnswer'],
+                    "answerScore": result['answerScore'],
+                    "retrievalScore": result['retrievalScore'],
+                    "latency": result['latency'],
+                })
+            except Exception as e:
+                pass
+
+        return jsonify({"values" : evaluationResults})
+    except Exception as e:
+        logging.exception("Exception in /getEvaluationResults")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/refreshQuestions", methods=["POST"])
 def refreshQuestions():
    
@@ -677,7 +876,31 @@ def uploadBinaryFile():
     except Exception as e:
         logging.exception("Exception in /uploadBinaryFile")
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/uploadEvaluatorFile", methods=["POST"])
+def uploadEvaluatorFile():
+   
+    try:
+        if 'file' not in request.files:
+            return jsonify({'message': 'No file in request'}), 400
+        
+        file = request.files['file']
+        fileName = file.filename
+        blobName = os.path.basename(fileName)
 
+        url = os.environ.get("BLOB_CONNECTION_STRING")
+        containerName = os.environ.get("BLOB_EVALUATOR_CONTAINER_NAME")
+        blobServiceClient = BlobServiceClient.from_connection_string(url)
+        containerClient = blobServiceClient.get_container_client(containerName)
+        blobClient = containerClient.get_blob_client(blobName)
+        #blob_client.upload_blob(bytes_data,overwrite=True, content_settings=ContentSettings(content_type=content_type))
+        blobClient.upload_blob(file.read(), overwrite=True)
+        blobClient.set_blob_metadata(metadata={"processed": "false"})
+        return jsonify({'message': 'File uploaded successfully'}), 200
+    except Exception as e:
+        logging.exception("Exception in /uploadEvaluatorFile")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/uploadSummaryBinaryFile", methods=["POST"])
 def uploadSummaryBinaryFile():
    
@@ -719,7 +942,6 @@ def content_file(path):
         mime_type = mimetypes.guess_type(path.strip())[0] or "application/octet-stream"
     return blob.readall(), 200, {"Content-Type": mime_type, "Content-Disposition": f"inline; filename={path}"}
     
-
 @app.route("/secSearch", methods=["POST"])
 def secsearch():
     indexType=request.json["indexType"]

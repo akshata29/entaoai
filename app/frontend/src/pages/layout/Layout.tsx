@@ -87,6 +87,11 @@ const Layout = () => {
                                     Developer Tools
                                 </NavLink>
                             </li>
+                            <li className={styles.headerNavLeftMargin}>
+                                <NavLink to="/evaluator" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    Evaluator
+                                </NavLink>
+                            </li>
                             { showSpeech && (
                                 <li className={styles.headerNavLeftMargin}>
                                     <NavLink to="/speech" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>

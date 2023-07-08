@@ -26,6 +26,10 @@ export default defineConfig({
             "/content": "http://127.0.0.1:5000",
             "/convertCode": "http://127.0.0.1:5000",
             "/deleteIndexSession": "http://127.0.0.1:5000",
+            "/getAllDocumentRuns": "http://127.0.0.1:5000",
+            "/getDocumentList": "http://127.0.0.1:5000",
+            "/getEvaluationResults": "http://127.0.0.1:5000",
+            "/getEvaluationQaDataSet": "http://127.0.0.1:5000",
             "/getIndexSession": "http://127.0.0.1:5000",
             "/getIndexSessionDetail": "http://127.0.0.1:5000",
             "/getAllIndexSessions": "http://127.0.0.1:5000",
@@ -37,6 +41,8 @@ export default defineConfig({
             "/refreshIndex": "http://127.0.0.1:5000",
             "/refreshQuestions": "http://127.0.0.1:5000",
             "/refreshIndexQuestions": "http://127.0.0.1:5000",
+            "/renameIndexSession": "http://127.0.0.1:5000",
+            "/runEvaluation": "http://127.0.0.1:5000",
             "/secSearch": "http://127.0.0.1:5000",
             "/smartAgent": "http://127.0.0.1:5000",
             "/sqlChat": "http://127.0.0.1:5000",
@@ -49,6 +55,7 @@ export default defineConfig({
             "/textAnalytics": "http://127.0.0.1:5000",
             "/uploadFile": "http://127.0.0.1:5000",
             "/uploadBinaryFile": "http://127.0.0.1:5000",
+            "/uploadEvaluatorFile": "http://127.0.0.1:5000",
             "/uploadSummaryBinaryFile": "http://127.0.0.1:5000",
             "/verifyPassword": "http://127.0.0.1:5000"
         }

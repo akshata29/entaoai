@@ -10,7 +10,7 @@ import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
 import { chatGptApi, chatGpt3Api, Approaches, AskResponse, ChatRequest, ChatTurn, refreshIndex, getSpeechApi, 
-    getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession } from "../../api";
+    getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession, renameIndexSession } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { UserChatMessage } from "../../components/UserChatMessage";
@@ -25,6 +25,7 @@ import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
 import { Text } from "@fluentui/react";
 import { Delete24Regular } from "@fluentui/react-icons";
+import { RenameButton } from "../../components/RenameButton";
 
 var audio = new Audio();
 
@@ -74,6 +75,7 @@ const ChatGpt = () => {
 
     const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
     const [selectedItems, setSelectedItems] = useState<any[]>([]);
+    const [sessionName, setSessionName] = useState<string>('');
 
     const generateQuickGuid = () => {
         return Math.random().toString(36).substring(2, 15) +
@@ -137,7 +139,6 @@ const ChatGpt = () => {
         () =>
         new Selection({
             onSelectionChanged: () => {
-                console.log(selection.getSelection());
             setSelectedItems(selection.getSelection());
         },
         selectionMode: SelectionMode.single,
@@ -162,7 +163,7 @@ const ChatGpt = () => {
                     ariaLabelForSelectionColumn="Toggle selection"
                     checkButtonAriaLabel="select row"
                     selection={selection}
-                    selectionPreservedOnEmptyClick={true}
+                    selectionPreservedOnEmptyClick={false}
                  />
              </MarqueeSelection>
          ),
@@ -299,6 +300,7 @@ const ChatGpt = () => {
         setChatSession(null)
         setAnswers([]);
         setSelectedItems([])
+        setSessionName('');
     };
 
     const deleteSession = async () => {
@@ -317,6 +319,31 @@ const ChatGpt = () => {
                 clearChat();
         })
 
+    };
+
+    const renameSession = async () => {
+        const oldSessionName = String(selectedItems[0]?.['Session Name'])
+        if (oldSessionName === 'No Sessions found' || oldSessionName === "undefined") {
+            alert("Select valid session to rename")
+        }
+        await renameIndexSession(oldSessionName, sessionName)
+            .then(async (sessionResponse:any) => {
+                const defaultKey = selectedItem?.key
+                indexMapping?.findIndex((item) => {
+                    if (item.key == defaultKey) {
+                        getCosmosSession(item?.key, item?.iType)
+                    }
+                })
+                clearChat();
+        })
+    };
+
+    const onSessionNameChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
+        const oldSessionName = String(selectedItems[0]?.['Session Name'])
+        if (newValue === undefined || newValue === "") {
+            alert("Provide session name")
+        }
+        setSessionName(newValue || oldSessionName);
     };
 
     const clearChat3 = () => {
@@ -445,8 +472,6 @@ const ChatGpt = () => {
 
         const defaultKey = item?.key
         let indexType = 'pinecone'
-        clearChat();
-        selection.setAllSelected(false);
 
         indexMapping?.findIndex((item) => {
             if (item.key == defaultKey) {
@@ -476,7 +501,8 @@ const ChatGpt = () => {
 
     const onSessionClicked = async (sessionFromList: any) => {
         //makeApiRequest(sessionFromList.name);
-        const sessionName = sessionFromList["Session Name"] 
+        const sessionName = sessionFromList["Session Name"]
+        setSessionName(sessionName)
         if (sessionName != "No Session Found") {
             try {
                 await getIndexSession(String(selectedItem?.key), String(selectedIndex), sessionName)
@@ -631,6 +657,9 @@ const ChatGpt = () => {
                         <div className={styles.commandsContainer}>
                             <SessionButton className={styles.commandButton} onClick={clearChat} />
                             <ClearChatButton className={styles.commandButton} onClick={deleteSession}  text="Delete Session" disabled={false} />
+                            <RenameButton className={styles.commandButton}  onClick={renameSession}  text="Rename Session"/>
+                            <TextField className={styles.commandButton} value={sessionName} onChange={onSessionNameChange}
+                                styles={{root: {width: '200px'}}} />
                         </div>
                          <div className={styles.chatRoot}>
                             {detailsList}

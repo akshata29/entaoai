@@ -72,6 +72,11 @@ export type AskResponse = {
     nextQuestions?: string;
 };
 
+export type EvalRunResponse = {
+    statusUri: string;
+    error?: string;
+}
+
 export type SqlResponse = {
     answer: string;
     thoughts: string | null;
@@ -106,4 +111,13 @@ export type ChatRespValues = {
 
 export type ChatResponse = {
     values: ChatRespValues[];
+};
+
+export type EvalRespValues = {
+    recordId: number,
+    data: EvalRunResponse
+};
+
+export type EvalResponse = {
+    values: EvalRespValues[];
 };

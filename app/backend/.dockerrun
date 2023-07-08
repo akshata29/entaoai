@@ -1,9 +1,13 @@
+-- Run following from /app/frontend directory
+npm run build
+
+-- Run following from /app/backend directory
 -- Docker build
-docker build --tag akshata13/chataskapp:v1.0.0 .
+docker build --tag akshata13/chataskapp:latest .
 
 -- Docker  Push
 docker login
-docker push akshata13/chataskapp:v1.0.0
+docker push akshata13/chataskapp:latest
 
 -- Docker Run
-docker run --env-file .dockerenv --name chataskapp -it akshata13/chataskapp:v1.0.0
+docker run --env-file .dockerenv --name chataskapp -it akshata13/chataskapp:latest

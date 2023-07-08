@@ -596,6 +596,10 @@
                             "name": "BLOB_SUMMARY_CONTAINER_NAME",
                             "value": "summary"
                         },
+                        {
+                            "name": "BLOB_EVALUATOR_CONTAINER_NAME",
+                            "value": "evaluator"
+                        }
 						{
 						  "name": "ENABLE_ORYX_BUILD",
 						  "value": "True"
@@ -607,8 +611,11 @@
                         {
                             "name": "VERIFYPASS_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/VerifyPassword?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                            
                         },
+                        {
+                            "name":"RUNEVALUATION_URL",
+                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Evaluator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+                        }
                         {
                             "name": "SMARTAGENT_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SmartAgent?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
@@ -790,6 +797,10 @@
 						  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
 						  "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
 						},
+                        {
+                            "name": "AzureWebJobsFeatureFlags",
+                            "value": "EnableWorkerIndexing"
+                        },
 						{
 						  "name": "AzureWebJobsStorage",
 						  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"
@@ -853,6 +864,10 @@
                         {
                             "name": "OpenAiSummaryContainer",
                             "value": "summary"
+                        },
+                        {
+                            "name": "OpenAiEvaluatorContainer",
+                            "value": "evaluator"
                         },
                         {
                             "name": "OpenAiDocStorConnString",

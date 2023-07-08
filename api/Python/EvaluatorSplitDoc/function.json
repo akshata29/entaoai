@@ -1,0 +1,11 @@
+{
+  "scriptFile": "__init__.py",
+  "bindings": [
+    {
+      "name": "splitDocs",
+      "type": "activityTrigger",
+      "direction": "in"
+    }
+  ],
+  "disabled": false
+}

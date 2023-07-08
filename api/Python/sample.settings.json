@@ -2,6 +2,7 @@
     "IsEncrypted": false,
     "Values": {
       "FUNCTIONS_WORKER_RUNTIME": "python",
+      "AzureWebJobsFeatureFlags": "EnableWorkerIndexing",
       "DOCGENERATOR_URL": "http://localhost:7071/api/DocGenerator?code=",
       "AdminPassword": "P@ssw0rd", // Admin Password that is used for protected pages
       "UploadPassword": "P@ssw0rd", // Upload Password that is used for uploading files
@@ -34,6 +35,8 @@
       "OpenAiDocStorKey": "", // Storage doc
       "OpenAiDocStorConnString": "", // Storage connection string
       "OpenAiDocContainer": "", // Storage Container
+      "OpenAiSummaryContainer": "summary",
+      "OpenAiEvaluatorContainer": "evaluator",  
       "KbIndexName" : "aoaikb",
       "SearchService":"", // Search Service 
       "SearchKey":"", // Search Key

@@ -17,6 +17,11 @@ try:
     else:
         KbIndexName = "aoaikb"
 
+    if "OpenAiEvaluatorContainer" in os.environ: 
+        OpenAiEvaluatorContainer = os.environ['OpenAiEvaluatorContainer']
+    else:
+        OpenAiEvaluatorContainer = "evaluator"
+
     if "OpenAiSummaryContainer" in os.environ: 
         OpenAiSummaryContainer = os.environ['OpenAiSummaryContainer']
     else:

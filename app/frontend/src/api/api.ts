@@ -1,4 +1,5 @@
-import { AskRequest, AskResponse, ChatRequest, ChatResponse, SpeechTokenResponse, SqlResponse} from "./models";
+import { AskRequest, AskResponse, ChatRequest, ChatResponse, SpeechTokenResponse, SqlResponse,
+  EvalResponse } from "./models";
 import { PineconeStore } from "langchain/vectorstores";
 import { OpenAIEmbeddings } from 'langchain/embeddings'
 import { PineconeClient } from "@pinecone-database/pinecone";
@@ -306,6 +307,90 @@ export async function deleteIndexSession(indexNs: string, indexType:string, sess
   }
   return parsedResponse;
 }
+export async function getDocumentList(): Promise<Any> {
+  const response = await fetch('/getDocumentList' , {
+      method: "GET",
+      headers: {
+          "Content-Type": "application/json"
+      },
+  });
+
+  const parsedResponse: any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse;
+}
+export async function getAllDocumentRuns(documentId: string): Promise<Any> {
+  const response = await fetch('/getAllDocumentRuns' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        documentId:documentId,
+      })
+  });
+
+  const parsedResponse: any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse;
+}
+export async function getEvaluationQaDataSet(documentId: string): Promise<Any> {
+  const response = await fetch('/getEvaluationQaDataSet' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        documentId:documentId,
+      })
+  });
+
+  const parsedResponse: any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse;
+}
+export async function getEvaluationResults(documentId: string, runId:string): Promise<Any> {
+  const response = await fetch('/getEvaluationResults' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        documentId:documentId,
+        runId:runId
+      })
+  });
+
+  const parsedResponse: any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse;
+}
+export async function renameIndexSession(oldSessionName: string, newSessionName:string): Promise<String> {
+  const response = await fetch('/renameIndexSession' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        oldSessionName:oldSessionName,
+        newSessionName: newSessionName
+      })
+  });
+
+  const parsedResponse: any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse;
+}
 export async function getIndexSessionDetail(sessionId: string): Promise<Any> {
   const response = await fetch('/getIndexSessionDetail' , {
       method: "POST",
@@ -496,6 +581,18 @@ export async function uploadBinaryFile(formData:any, indexName:string) : Promise
   }
   return "Success";
 }
+export async function uploadEvaluatorFile(formData:any) : Promise<string> {
+  const response = await fetch('/uploadEvaluatorFile', {
+    method: "POST",
+    body: formData
+  });
+
+  const result = await response.json();
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return "Success";
+}
 export async function uploadSummaryBinaryFile(formData:any) : Promise<string> {
   const response = await fetch('/uploadSummaryBinaryFile', {
     method: "POST",
@@ -563,6 +660,40 @@ export async function processDoc(indexType: string, loadType : string, multiple:
   // }
   
   // return "Success";
+}
+export async function runEvaluation(overlap: string[], chunkSize : string[], splitMethod: string[], totalQuestions : string, model: string,
+  embeddingModelType : string, promptStyle : string, fileName : string, retrieverType : string) : Promise<string> {
+  const response = await fetch('/runEvaluation', {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      fileName:fileName,
+      retrieverType: retrieverType,
+      promptStyle:promptStyle,
+      totalQuestions:totalQuestions,
+      embeddingModelType:embeddingModelType,
+      postBody: {
+        values: [
+          {
+            recordId: 0,
+            data: {
+              splitMethods: splitMethod,
+              chunkSizes: chunkSize,
+              overlaps : overlap,
+            }
+          }
+        ]
+      }
+    })
+  });
+
+  const parsedResponse: EvalResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      return "Error";
+  }
+  return parsedResponse.values[0].data.statusUri
 }
 export async function processSummary(loadType : string, multiple: string, files: any,
   embeddingModelType: string, chainType:string) : Promise<AskResponse> {
