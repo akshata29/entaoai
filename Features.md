@@ -4,10 +4,16 @@
 ![Upload](/assets/Upload.png)
 * Chat - Chat to your document - ChatGpt
 ![ChatGpt](/assets/ChatGpt.png)
+* Ability to save the chat history and share it with others.  Chat history is session based and is stored in the underlying Azure CosmosDb
+![Chat History](/assets/ChatHistory.png)
 * Chat - Chat to your document - GPT 3
 ![Chat](/assets/Chat.png)
 * Q&A interfaces
 ![Ask](/assets/Ask.png)
+* Pattern to store the user's question and answer into Azure Search and build the Cached capability to improve the performance of the system.  This is a pattern that can be used for any other use-case as well.
+![Cached](/assets/Cached.png)
+* Summarization - Summarize your document and display the "summary of summary to the user"
+![Summarize](/assets/Summarize.png)
 * Agent QA - Agents use an LLM to determine which actions to take and in what order. An action can either be using a tool and observing its output, or returning to the user. Agent QA showcases how to retrieve information from one or more vectorstores.
 ![AgentQA](/assets/AgentQA.png)
 * SQL Agent - Talk to your databases using Natural language.  This use-case showcases how using the prompt engineering approach from Chain of Thought modelling we can make it scalable and further use LLM capability of generating SQL Code from Natural Language by providing the context without the need to know the DB schema before hand.
@@ -24,6 +30,9 @@
 ![Developer](/assets/Developer.png)
 * Tools to enhance developer productivity and experimental capabilities. Currently features available to convert the code and generate prompt for your use-case and scenarios.
 ![Developer Tools](/assets/DeveloperTools.png)
+* Evaluation - Evaluate your dataset and model performance.  Feature supporting running the evaluation as well as viewing the results.
+![RunEvaluation](/assets/RunEvaluation.png)
+![ViewEvaluation](/assets/ViewEvaluation.png)
 * Adminstration capabilities to manage your dataset, index, and other settings
 ![Admin](/assets/Admin.png)
 * Explores various options to help users evaluate the trustworthiness of responses with citations, tracking of source content, etc.

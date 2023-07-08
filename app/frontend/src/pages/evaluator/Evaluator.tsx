@@ -656,7 +656,7 @@ const Evaluator = () => {
                                     />
                                 </Stack.Item>
                                 <Stack.Item grow={2} styles={stackItemStyles}>
-                                    <Label>Upload Password:</Label>&nbsp;
+                                    <Label>Evaluator Password:</Label>&nbsp;
                                     <TextField onChange={onUploadPassword}
                                         errorMessage={!missingUploadPassword ? '' : "Note - Upload Password is required for Evaluation Functionality"}/>
                                 </Stack.Item>
