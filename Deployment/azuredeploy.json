@@ -579,19 +579,19 @@
                     "http20Enabled": false,
                     "functionAppScaleLimit": 0,
                     "minimumElasticInstanceCount": 0,
-					"appSettings": [
-						{
-						  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-						  "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
-						},
-						{
-						  "name": "BLOB_CONNECTION_STRING",
-						  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value)]"
-						},
-						{
-						  "name": "BLOB_CONTAINER_NAME",
-						  "value": "chatpdf"
-						},
+		    "appSettings": [
+			{
+			  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+			  "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
+			},
+			{
+			  "name": "BLOB_CONNECTION_STRING",
+			  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value)]"
+			},
+			{
+			  "name": "BLOB_CONTAINER_NAME",
+			  "value": "chatpdf"
+			},
                         {
                             "name": "BLOB_SUMMARY_CONTAINER_NAME",
                             "value": "summary"
@@ -599,15 +599,15 @@
                         {
                             "name": "BLOB_EVALUATOR_CONTAINER_NAME",
                             "value": "evaluator"
-                        }
-						{
-						  "name": "ENABLE_ORYX_BUILD",
-						  "value": "True"
-						},
-						{
-						  "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-						  "value": "True"
-						},
+                        },
+			{
+			  "name": "ENABLE_ORYX_BUILD",
+			  "value": "True"
+			},
+			{
+			  "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+			  "value": "True"
+			},
                         {
                             "name": "VERIFYPASS_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/VerifyPassword?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
@@ -615,7 +615,7 @@
                         {
                             "name":"RUNEVALUATION_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Evaluator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                        }
+                        },
                         {
                             "name": "SMARTAGENT_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SmartAgent?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
@@ -633,51 +633,51 @@
                             "name": "PROMPTGURU_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/PromptGuru?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
                         },
-						{
-						  "name": "AGENTQA_URL",
-						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/AgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-						  
-						},
+			{
+			  "name": "AGENTQA_URL",
+			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/AgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+			  
+			},
                         {
                             "name": "INDEXMANAGEMENT_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/IndexManagement?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
                         },
-						{
-						  "name": "CHAT3_URL",
-						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Chat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-						},
-						{
-						  "name": "CHAT_URL",
-						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ChatGpt?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-						},
-						{
-						  "name": "DOCGENERATOR_URL",
-						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/DocGenerator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-						},
-						{
-						  "name": "QA_URL",
-						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/QuestionAnswering?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-						},
-						{
-						  "name": "SECSEARCH_URL",
-						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecSearch?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-						},
-						{
-						  "name": "SQLCHAIN_URL",
-						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChain?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-						},
+			{
+			  "name": "CHAT3_URL",
+			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Chat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
+			},
+			{
+			  "name": "CHAT_URL",
+			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ChatGpt?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
+			},
+			{
+			  "name": "DOCGENERATOR_URL",
+			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/DocGenerator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
+			},
+			{
+			  "name": "QA_URL",
+			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/QuestionAnswering?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
+			},
+			{
+			  "name": "SECSEARCH_URL",
+			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecSearch?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
+			},
+			{
+			  "name": "SQLCHAIN_URL",
+			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChain?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
+			},
                         {
                             "name": "SQLVISUAL_URL",
                             "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlVisual?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
                         },
-						{
-						  "name": "SQLCHAT_URL",
-						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-						},
-						{
-						  "name": "SUMMARYQA_URL",
-						  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SampleQaSummary?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-						},
+			{
+			  "name": "SQLCHAT_URL",
+			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
+			},
+			{
+			  "name": "SUMMARYQA_URL",
+			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SampleQaSummary?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+			},
                         {
                             "name": "SPEECH_REGION",
                             "value": "[parameters('location')]"
@@ -726,7 +726,7 @@
                             "name": "COSMOSCONTAINER",
                             "value": "[variables('cosmosContainer')]"
                         }
-					]
+		]
                 },
                 "scmSiteAlsoStopped": false,
                 "clientAffinityEnabled": false,
@@ -748,12 +748,12 @@
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
-				"[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]",
+		"[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]",
                 "[resourceId('Microsoft.Bing/accounts', variables('bingsvcName'))]",
-				"[resourceId('Microsoft.Search/searchServices', variables('searchSvcName'))]",
-				"[resourceId('Microsoft.Sql/servers', variables('sqlSrvName'))]",
-				"[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
-				"[resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName'))]"
+		"[resourceId('Microsoft.Search/searchServices', variables('searchSvcName'))]",
+		"[resourceId('Microsoft.Sql/servers', variables('sqlSrvName'))]",
+		"[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+		"[resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName'))]"
             ],
             "tags": {
                 "azd-env-name": "[parameters('prefix')]",
@@ -792,35 +792,35 @@
                     "http20Enabled": false,
                     "functionAppScaleLimit": 0,
                     "minimumElasticInstanceCount": 0,
-					"appSettings": [
-						{
-						  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-						  "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
-						},
+		    "appSettings": [
+			{
+			  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+			  "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
+			},
                         {
                             "name": "AzureWebJobsFeatureFlags",
                             "value": "EnableWorkerIndexing"
                         },
-						{
-						  "name": "AzureWebJobsStorage",
-						  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"
-						},
-						{
-						  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-						  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"
-						},
-						{
-						  "name": "ENABLE_ORYX_BUILD",
-						  "value": "True"
-						},
-						{
-						  "name": "FUNCTIONS_EXTENSION_VERSION",
-						  "value": "~4"
-						},
-						{
-						  "name": "FUNCTIONS_WORKER_RUNTIME",
-						  "value": "python"
-						},
+			{
+			  "name": "AzureWebJobsStorage",
+			  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"
+			},
+			{
+			  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+			  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"
+			},
+			{
+			  "name": "ENABLE_ORYX_BUILD",
+			  "value": "True"
+			},
+			{
+			  "name": "FUNCTIONS_EXTENSION_VERSION",
+			  "value": "~4"
+			},
+			{
+			  "name": "FUNCTIONS_WORKER_RUNTIME",
+			  "value": "python"
+			},
                         {
                             "name": "BingUrl",
                             "value": "https://api.bing.microsoft.com/v7.0/search"
@@ -845,22 +845,22 @@
                             "name": "ChromaPort",
                             "value": "Dummy"
                         },
-						{
-						  "name": "MaxTokens",
-						  "value": "500"
-						},
-						{
-						  "name": "OpenAiChat",
-						  "value": "chat"
-						},
-						{
-						  "name": "OpenAiDavinci",
-						  "value": "davinci"
-						},
-						{
-						  "name": "OpenAiDocContainer",
-						  "value": "chatpdf"
-						},
+			{
+			  "name": "MaxTokens",
+			  "value": "500"
+			},
+			{
+			  "name": "OpenAiChat",
+			  "value": "chat"
+			},
+			{
+			  "name": "OpenAiDavinci",
+			  "value": "davinci"
+			},
+			{
+			  "name": "OpenAiDocContainer",
+			  "value": "chatpdf"
+			},
                         {
                             "name": "OpenAiSummaryContainer",
                             "value": "summary"
@@ -873,18 +873,18 @@
                             "name": "OpenAiDocStorConnString",
                             "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value)]"
                         },
-						{
-						  "name": "OpenAiDocStorKey",
-						  "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value]"
-						},
-						{
-						  "name": "OpenAiDocStorName",
-						  "value": "[variables('storageName')]"
-						},
-						{
-						  "name": "OpenAiEmbedding",
-						  "value": "text-embedding-ada-002"
-						},
+			{
+			  "name": "OpenAiDocStorKey",
+			  "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value]"
+			},
+			{
+			  "name": "OpenAiDocStorName",
+			  "value": "[variables('storageName')]"
+			},
+			{
+			  "name": "OpenAiEmbedding",
+			  "value": "text-embedding-ada-002"
+			},
                         {
                             "name": "FormRecognizerEndPoint",
                             "value": "[concat('https://', variables('frSvcName'), '.cognitiveservices.azure.com/')]"
@@ -893,86 +893,86 @@
                             "name": "FormRecognizerKey",
                             "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('frSvcName')), '2022-12-01').key1]"
                         },
-						{
-						  "name": "OpenAiEndPoint",
-						  "value": "[concat('https://', variables('aoaiSvcName'), '.openai.azure.com/')]"
-						},
-						{
-						  "name": "OpenAiKey",
-						  "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName')), '2022-12-01').key1]"
-						},
+			{
+			  "name": "OpenAiEndPoint",
+			  "value": "[concat('https://', variables('aoaiSvcName'), '.openai.azure.com/')]"
+			},
+			{
+			  "name": "OpenAiKey",
+			  "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName')), '2022-12-01').key1]"
+			},
                         {
                             "name": "OpenAiApiKey",
                             "value": "Dummy"
                         },                        
-						{
-						  "name": "OpenAiService",
-						  "value": "[variables('aoaiSvcName')]"
-						},
-						{
-						  "name": "OpenAiVersion",
-						  "value": "2022-12-01"
-						},
-						{
-						  "name": "PineconeEnv",
-						  "value": "env"
-						},
-						{
-						  "name": "PineconeKey",
-						  "value": "key"
-						},
-						{
-						  "name": "RedisAddress",
-						  "value": "http://localhost"
-						},
-						{
-						  "name": "RedisPassword",
-						  "value": "Password"
-						},
-						{
-						  "name": "RedisPort",
-						  "value": "6379"
-						},
-						{
-						  "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-						  "value": "1"
-						},
-						{
-						  "name": "SearchKey",
-						  "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
-						},
-						{
-						  "name": "SearchService",
-						  "value": "[variables('searchSvcName')]"
-						},
-						{
-						  "name": "SecDocContainer",
-						  "value": "secdoc"
-						},
-						{
-						  "name": "SynapseName",
-						  "value": "[concat(variables('sqlSrvName'), '.database.windows.net,1433')]"
-						},
-						{
-						  "name": "SynapsePassword",
-						  "value": "P@ssw0rd"
-						},
-						{
-						  "name": "SynapsePool",
-						  "value": "northwind"
-						},
-						{
-						  "name": "SynapseUser",
-						  "value": "azureadmin"
-						},
-						{
-						  "name": "Temperature",
-						  "value": "0.3"
-						},
-						{
-						  "name": "VsIndexName",
-						  "value": "dummy"
-						},
+			{
+			  "name": "OpenAiService",
+			  "value": "[variables('aoaiSvcName')]"
+			},
+			{
+			  "name": "OpenAiVersion",
+			  "value": "2022-12-01"
+			},
+			{
+			  "name": "PineconeEnv",
+			  "value": "env"
+			},
+			{
+			  "name": "PineconeKey",
+			  "value": "key"
+			},
+			{
+			  "name": "RedisAddress",
+			  "value": "http://localhost"
+			},
+			{
+			  "name": "RedisPassword",
+			  "value": "Password"
+			},
+			{
+			  "name": "RedisPort",
+			  "value": "6379"
+			},
+			{
+			  "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+			  "value": "1"
+			},
+			{
+			  "name": "SearchKey",
+			  "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
+			},
+			{
+			  "name": "SearchService",
+			  "value": "[variables('searchSvcName')]"
+			},
+			{
+			  "name": "SecDocContainer",
+			  "value": "secdoc"
+			},
+			{
+			  "name": "SynapseName",
+			  "value": "[concat(variables('sqlSrvName'), '.database.windows.net,1433')]"
+			},
+			{
+			  "name": "SynapsePassword",
+			  "value": "P@ssw0rd"
+			},
+			{
+			  "name": "SynapsePool",
+			  "value": "northwind"
+			},
+			{
+			  "name": "SynapseUser",
+			  "value": "azureadmin"
+			},
+			{
+			  "name": "Temperature",
+			  "value": "0.3"
+			},
+			{
+			  "name": "VsIndexName",
+			  "value": "dummy"
+			},
                         {
                             "name": "CosmosEndpoint",
                             "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
@@ -989,119 +989,119 @@
                             "name": "CosmosContainer",
                             "value": "[variables('cosmosContainer')]"
                         },
-						{
-						  "name": "WEBSITE_CONTENTSHARE",
-						  "value": "[toLower(variables('funcAppName'))]"
-						},
-						{
-						  "name": "RealTimeSpeechPrompt",
-						  "value": "'\"'\"'\"Write a concise summary of the following: \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RealTimeSpeechPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsBankingPrompt",
-						  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsBankingPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsCapMarketPrompt",
-						  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsCapMarketPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsComplexPrompt",
-						  "value": "'\"'\"'\"You must extract the following information from the phone conversation below: \n\n 1. Call reason (key: reason) \n 2. Cause of incident (key: cause) \n 3. Name of caller (key: caller) \n 4. Account number (key: account_id) \n 5. Follow-up Flag(key: followupind) \n 6. A short, yet detailed summary (key: summary) \n\n Make sure fields 1 to 4 are answered very short. Field 5 is a boolean flag which indicates whether the caller incident was resolved, 1 if follow up required, 0 if resolved.  Please answer in JSON machine-readable format, using the keys from above. Format the output as JSON object. Pretty print the JSON and make sure that is properly closed at the end. \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsComplexPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsFollowupPrompt",
-						  "value": "'\"'\"'\"Generate list of call follow up tasks from following text \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsFollowupPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsGeneralPrompt",
-						  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. What are the action items and follow-ups? \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsGeneralPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsHealthcarePrompt",
-						  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. What health condition was discussed? \n4. Was any medication mentioned in the conversation?\n5. Identify medical entities such as symptoms, medications, diagnosis from this conversaion. \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsHealthcarePromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsInsurancePrompt",
-						  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. Where the accident happened?\n4. How did the accident happen?\n5. What was the weather like when the accident happened?\n6. What is customer's phone number?\n7. Was the airbag deployed when accident happened? \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsParticipantsPrompt",
-						  "value": "'\"'\"'\"Extract list of call participants in list format from the following text \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsParticipantsPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsPharmacyPrompt",
-						  "value": "'\"'\"'\"Provide list of medications, dose, and form discussed in the following text \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsPharmacyPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsPiiPrompt",
-						  "value": "'\"'\"'\"List of all PII and named entities and what is overall sentiment of the conversation \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsPiiPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsSummaryNotesPrompt",
-						  "value": "'\"'\"'\"Generate detailed call summary notes in list format from the following text \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsSummaryNotesPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "RtsTopicsPrompt",
-						  "value": "'\"'\"'\"Generate list of topics discussed from text \r\n \r\n{text}'\"'\"'\""
-						},
-						{
-						  "name": "RtsTopicsPromptIv",
-						  "value": "text"
-						},
-						{
-						  "name": "OpenAiQuestionPrompt",
-						  "value": "'\"'\"'\"Please reply to the question using only the information present in the text above. If you can't find it, reply 'Not in the text'.\nQuestion: _QUESTION_\nAnswer:'\"'\"'\""
-						},
+			{
+			  "name": "WEBSITE_CONTENTSHARE",
+			  "value": "[toLower(variables('funcAppName'))]"
+			},
+			{
+			  "name": "RealTimeSpeechPrompt",
+			  "value": "'\"'\"'\"Write a concise summary of the following: \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RealTimeSpeechPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsBankingPrompt",
+			  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsBankingPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsCapMarketPrompt",
+			  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsCapMarketPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsComplexPrompt",
+			  "value": "'\"'\"'\"You must extract the following information from the phone conversation below: \n\n 1. Call reason (key: reason) \n 2. Cause of incident (key: cause) \n 3. Name of caller (key: caller) \n 4. Account number (key: account_id) \n 5. Follow-up Flag(key: followupind) \n 6. A short, yet detailed summary (key: summary) \n\n Make sure fields 1 to 4 are answered very short. Field 5 is a boolean flag which indicates whether the caller incident was resolved, 1 if follow up required, 0 if resolved.  Please answer in JSON machine-readable format, using the keys from above. Format the output as JSON object. Pretty print the JSON and make sure that is properly closed at the end. \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsComplexPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsFollowupPrompt",
+			  "value": "'\"'\"'\"Generate list of call follow up tasks from following text \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsFollowupPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsGeneralPrompt",
+			  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. What are the action items and follow-ups? \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsGeneralPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsHealthcarePrompt",
+			  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. What health condition was discussed? \n4. Was any medication mentioned in the conversation?\n5. Identify medical entities such as symptoms, medications, diagnosis from this conversaion. \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsHealthcarePromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsInsurancePrompt",
+			  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. Where the accident happened?\n4. How did the accident happen?\n5. What was the weather like when the accident happened?\n6. What is customer's phone number?\n7. Was the airbag deployed when accident happened? \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsParticipantsPrompt",
+			  "value": "'\"'\"'\"Extract list of call participants in list format from the following text \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsParticipantsPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsPharmacyPrompt",
+			  "value": "'\"'\"'\"Provide list of medications, dose, and form discussed in the following text \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsPharmacyPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsPiiPrompt",
+			  "value": "'\"'\"'\"List of all PII and named entities and what is overall sentiment of the conversation \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsPiiPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsSummaryNotesPrompt",
+			  "value": "'\"'\"'\"Generate detailed call summary notes in list format from the following text \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsSummaryNotesPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "RtsTopicsPrompt",
+			  "value": "'\"'\"'\"Generate list of topics discussed from text \r\n \r\n{text}'\"'\"'\""
+			},
+			{
+			  "name": "RtsTopicsPromptIv",
+			  "value": "text"
+			},
+			{
+			  "name": "OpenAiQuestionPrompt",
+			  "value": "'\"'\"'\"Please reply to the question using only the information present in the text above. If you can't find it, reply 'Not in the text'.\nQuestion: _QUESTION_\nAnswer:'\"'\"'\""
+			},
                         {
                             "name": "KbIndexName",
                             "value": "aoaikb"
                         }
-					]
+		]
                 },
                 "scmSiteAlsoStopped": false,
                 "clientAffinityEnabled": false,
