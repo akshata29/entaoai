@@ -14,20 +14,20 @@
         }
     },
     "variables": {
-		"langSvcName": "[concat(parameters('prefix'), 'lang')]",
+	"langSvcName": "[concat(parameters('prefix'), 'lang')]",
         "bingSvcName": "[concat(parameters('prefix'), 'bing')]",
         "frSvcName": "[concat(parameters('prefix'), 'fr')]",
         "speechSvcName": "[concat(parameters('prefix'), 'speech')]",
-		"aoaiSvcName": "[concat(parameters('prefix'), 'aoai')]",
-		"appInsightName": "[concat(parameters('prefix'), 'aisg')]",
-		"searchSvcName": "[concat(parameters('prefix'), 'azs')]",
-		"sqlSrvName": "[concat(parameters('prefix'), 'srv')]",
-		"funcStorageName": "[concat(parameters('prefix'), 'funcsa')]",
-		"storageName": "[concat(parameters('prefix'), 'stor')]",
-		"aspName": "[concat(parameters('prefix'), 'asp')]",
-		"backendName": "[concat(parameters('prefix'), 'app')]",
-		"funcAppName": "[concat(parameters('prefix'), 'func')]",
-		"funcAppId": "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]",
+	"aoaiSvcName": "[concat(parameters('prefix'), 'aoai')]",
+	"appInsightName": "[concat(parameters('prefix'), 'aisg')]",
+	"searchSvcName": "[concat(parameters('prefix'), 'azs')]",
+	"sqlSrvName": "[concat(parameters('prefix'), 'srv')]",
+	"funcStorageName": "[concat(parameters('prefix'), 'funcsa')]",
+	"storageName": "[concat(parameters('prefix'), 'stor')]",
+	"aspName": "[concat(parameters('prefix'), 'asp')]",
+	"backendName": "[concat(parameters('prefix'), 'app')]",
+	"funcAppName": "[concat(parameters('prefix'), 'func')]",
+	"funcAppId": "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]",
         "cosmosDbName": "[concat(parameters('prefix'), 'cosmos')]",
         "cosmosDb": "aoai",
         "cosmosContainer": "chatgpt"
@@ -57,7 +57,7 @@
         {
             "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
             "apiVersion": "2022-08-15",
-            "name": "[variables('cosmosDb')]",
+            "name": "[format('{0}/{1}', variables('cosmosDbName'), variables('cosmosDb'))]",
             "properties": {
               "resource": {
                 "id": "[variables('cosmosDb')]"
@@ -70,7 +70,7 @@
         {
             "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
             "apiVersion": "2022-08-15",
-            "name": "[variables('cosmosContainer')]",
+            "name": "[format('{0}/{1}/{2}', variables('cosmosDbName'), variables('cosmosDb'), variables('cosmosContainer'))]",
             "properties": {
               "resource": {
                 "id": "[variables('cosmosContainer')]",
