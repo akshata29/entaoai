@@ -492,8 +492,6 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
                 f"function {context.function_name} has been reached")
 
     try:
-        indexType = req.params.get('indexType')
-        indexNs = req.params.get('indexNs')
         body = json.dumps(req.get_json())
     except ValueError:
         return func.HttpResponse(
@@ -509,7 +507,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
         # Once we can get the Milvus index running in Azure, we can use this
 
-        result = ComposeResponse(indexType, indexNs, body)
+        result = ComposeResponse(body)
         return func.HttpResponse(result, mimetype="application/json")
     else:
         return func.HttpResponse(
@@ -517,7 +515,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
              status_code=400
         )
 
-def ComposeResponse(indexType, indexNs, jsonData):
+def ComposeResponse(jsonData):
     values = json.loads(jsonData)['values']
 
     logging.info("Calling Compose Response")
@@ -526,7 +524,7 @@ def ComposeResponse(indexType, indexNs, jsonData):
     results["values"] = []
 
     for value in values:
-        outputRecord = TransformValue(indexType, indexNs, value)
+        outputRecord = TransformValue(value)
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
@@ -971,7 +969,7 @@ def downloadIndices(
 		else:
 			break
 		
-def EdgarIngestion(indexType, indexNs, value):
+def EdgarIngestion(value):
     try:
         """
         The main method iterates all over the tsv index files that are generated
@@ -1114,7 +1112,7 @@ def EdgarIngestion(indexType, indexNs, value):
             status_code=500
       )
 
-def TransformValue(indexType, indexNs, record):
+def TransformValue(record):
     logging.info("Calling Transform Value")
     try:
         recordId = record['recordId']
@@ -1150,7 +1148,7 @@ def TransformValue(indexType, indexNs, record):
         # Getting the items from the values/data/text
         value = data['text']
 
-        summaryResponse = EdgarIngestion(indexType, indexNs, value)
+        summaryResponse = EdgarIngestion(value)
         return ({
             "recordId": recordId,
             "data": {

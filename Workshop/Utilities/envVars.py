@@ -135,5 +135,15 @@ try:
         SynapsePool = os.getenv('SynapsePool')
     else:
         SynapsePool = ""
+
+    if "SecExtractionUrl" in os.environ: 
+        SecExtractionUrl = os.getenv('SecExtractionUrl')
+    else:
+        SecExtractionUrl = "http://localhost:7071/api/SecExtraction?code="
+
+    if "SecDocPersistUrl" in os.environ: 
+        SecDocPersistUrl = os.getenv('SecDocPersistUrl')
+    else:
+        SecDocPersistUrl = "http://localhost:7071/api/SecDocPersist?code="
 except Exception as e:
     print("Error reading environment variables: " + str(e))

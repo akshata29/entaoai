@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 7/11/2023 - Functional PIB CoPilot in the form of the [notebook](./Workshop/10_PibCoPilot.ipynb).  UI will be added soon.
 * 7/8/2023 - Added the feature to Rename the session for ChatGPT.   Also added the UI for the Evaluator Tool.  This feature focuses on performing the LLM based evaluation on your document. It auto-generates the test dataset (with Question and Answers) and perform the grading on that document using different parameters and generates the evaluation results.  It is built on [Azure Durable Functions](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview?tabs=csharp-inproc) and is implemented using the [Function Chaining](https://learn.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-sequence?tabs=csharp) pattern. You will need to add `BLOB_EVALUATOR_CONTAINER_NAME` (ensure the same container name is created in storage account) and `RUNEVALUATION_URL`  (URL of the Durable function deployment) configuration in Azure Web App for existing deployment and if you want to use the Evaluator feature.  In the Azure function deployment add `AzureWebJobsFeatureFlags` (value EnableWorkerIndexing) and `OpenAiEvaluatorContainer` settings.
 * 7/5/2023 - Added the feature to Delete the session.  That feature requires the feature that is in [preview](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-delete-by-partition-key?tabs=python-example) and you will need to enable that on the CosmosDB account on your subscription.  Added simple try/catch block in case if you have not enabled/deployed the CosmosDB to continue chatGPT implementation.
 * 7/4/2023 - Initial version of storing "Sessions" for GPT3.5/ChatGpt interface.  Session and messages are stored/retrieved from CosmosDb.  Make sure you have CosmosDb service provisioned or create a new one (for existing deployment).  You will need to add `CosmosEndpoint`, `CosmosKey`, `CosmosDatabase` and `CosmosContainer` settings in both Azure Functions App and Web App. 
@@ -81,7 +82,11 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 * [Redis Search](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-redis-modules#redisearch)
 * [Pinecone](https://www.pinecone.io/learn/pinecone-v2/)
 * [Cognitive Search Vector Store](https://aka.ms/VectorSearchSignUp)
-  
+
+## Contributions
+
+We are open to contributions, whether it is in the form of new feature, update existing functionality or better documentation.  Please create a pull request and we will review and merge it.
+
 ### Note
 
->Adapted from the Azure OpenAI Search repo at [OpenAI-CogSearch](https://github.com/Azure-Samples/azure-search-openai-demo/),  [Call Center Analytics](https://github.com/amulchapla/AI-Powered-Call-Center-Intelligence), [Auto Evaluator](https://github.com/langchain-ai/auto-evaluator) and [Edgar Crawler](https://github.com/nlpaueb/edgar-crawler)
+>Adapted from the repo at [OpenAI-CogSearch](https://github.com/Azure-Samples/azure-search-openai-demo/),  [Call Center Analytics](https://github.com/amulchapla/AI-Powered-Call-Center-Intelligence), [Auto Evaluator](https://github.com/langchain-ai/auto-evaluator) and [Edgar Crawler](https://github.com/nlpaueb/edgar-crawler)

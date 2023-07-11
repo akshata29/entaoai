@@ -555,7 +555,7 @@ def cik_search(apikey: str, name: str) -> typing.Optional[typing.List[typing.Dic
     query_vars = {"apikey": apikey}
     return __return_json_v3(path=path, query_vars=query_vars)
 
-def company_profile(
+def companyProfile(
     apikey: str, symbol: str
 ) -> typing.Optional[typing.List[typing.Dict]]:
     """
@@ -570,7 +570,7 @@ def company_profile(
     query_vars = {"apikey": apikey}
     return __return_json_v3(path=path, query_vars=query_vars)
 
-def key_executives(
+def keyExecutives(
     apikey: str, symbol: str
 ) -> typing.Optional[typing.List[typing.Dict]]:
     """
@@ -1177,7 +1177,7 @@ def symbols_list(apikey: str) -> typing.Optional[typing.List[typing.Dict]]:
     query_vars = {"apikey": apikey}
     return __return_json_v3(path=path, query_vars=query_vars)
 
-def stock_news(
+def stockNews(
     apikey: str,
     tickers: typing.Union[str, typing.List] = "",
     limit: int = DEFAULT_LIMIT,
@@ -1212,7 +1212,7 @@ def earnings_surprises(
     query_vars = {"apikey": apikey}
     return __return_json_v3(path=path, query_vars=query_vars)
 
-def earning_call_transcript(
+def earningCallTranscript(
     apikey: str, symbol: str, year: int, quarter: int
 ) -> typing.Optional[typing.List[typing.Dict]]:
     """
@@ -1257,7 +1257,7 @@ def earning_call_transcripts_available_dates(
     query_vars = {"apikey": apikey, "symbol": symbol}
     return __return_json_v4(path=path, query_vars=query_vars)
 
-def sec_filings(
+def secFilings(
     apikey: str, symbol: str, filing_type: str = "", limit: int = DEFAULT_LIMIT
 ) -> typing.Optional[typing.List[typing.Dict]]:
     """
@@ -1273,7 +1273,7 @@ def sec_filings(
     query_vars = {"apikey": apikey, "type": filing_type, "limit": limit}
     return __return_json_v3(path=path, query_vars=query_vars)
 
-def press_releases(
+def pressReleases(
     apikey: str, symbol: str, limit: int = DEFAULT_LIMIT
 ) -> typing.Optional[typing.List[typing.Dict]]:
     """
