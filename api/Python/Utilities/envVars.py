@@ -108,8 +108,8 @@ try:
         CosmosContainer = ""
 
     OpenAiEmbedding = os.environ['OpenAiEmbedding']
-    UploadPassword = os.environ['UploadPassword'] or ''
-    AdminPassword = os.environ['AdminPassword'] or ''
+    UploadPassword = os.environ['UploadPassword'] or 'P@ssw0rd'
+    AdminPassword = os.environ['AdminPassword'] or 'P@ssw0rd'
 
     if "ChromaUrl" in os.environ: 
         ChromaUrl = os.environ['ChromaUrl']

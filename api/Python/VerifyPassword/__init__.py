@@ -96,9 +96,9 @@ def TransformValue(passType, password, record):
                             "error": "Success"
                         }
                     })
-    except:
+    except Exception as error:
         return (
             {
             "recordId": recordId,
-            "errors": [ { "message": "Could not complete operation for record." }   ]
+            "errors": [ { "message": "Could not complete operation for record." + str(error) }   ]
             })
