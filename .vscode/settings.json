@@ -9,6 +9,6 @@
         "node_modules{,/**}",
         ".vscode{,/**}"
     ],
-    "appService.defaultWebAppToDeploy": "/subscriptions/e2171f6d-2650-45e6-af7e-6d6e44ca92b1/resourceGroups/dataai/providers/Microsoft.Web/sites/dataaipdfchat",
-    "appService.deploySubpath": "app/backend",
+    "appService.defaultWebAppToDeploy": "/subscriptions/afa061ef-5d63-4e4f-99a7-b5027ec38eba/resourceGroups/fpdoaoai/providers/Microsoft.Web/sites/fpdoapp",
+    "appService.deploySubpath": "app\\backend",
 }

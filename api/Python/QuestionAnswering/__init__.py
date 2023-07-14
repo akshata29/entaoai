@@ -33,6 +33,8 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
         temperature = overrides.get("temperature") or 0.3
         tokenLength = overrides.get('tokenLength') or 500
         embeddingModelType = overrides.get('embeddingModelType') or 'azureopenai'
+        promptTemplate = overrides.get('promptTemplate') or ''
+        deploymentType = overrides.get('deploymentType') or 'gpt35'
 
         logging.info("Search for Top " + str(topK) + " and chainType is " + str(overrideChain))
         thoughtPrompt = ''
@@ -43,14 +45,25 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
             openai.api_version = OpenAiVersion
             openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-            llm = AzureChatOpenAI(
-                    openai_api_base=openai.api_base,
-                    openai_api_version=OpenAiVersion,
-                    deployment_name=OpenAiChat,
-                    temperature=temperature,
-                    openai_api_key=OpenAiKey,
-                    openai_api_type="azure",
-                    max_tokens=tokenLength)
+            if deploymentType == 'gpt35':
+                llm = AzureChatOpenAI(
+                        openai_api_base=openai.api_base,
+                        openai_api_version=OpenAiVersion,
+                        deployment_name=OpenAiChat,
+                        temperature=temperature,
+                        openai_api_key=OpenAiKey,
+                        openai_api_type="azure",
+                        max_tokens=tokenLength)
+            elif deploymentType == "gpt3516k":
+                llm = AzureChatOpenAI(
+                        openai_api_base=openai.api_base,
+                        openai_api_version=OpenAiVersion,
+                        deployment_name=OpenAiChat16k,
+                        temperature=temperature,
+                        openai_api_key=OpenAiKey,
+                        openai_api_type="azure",
+                        max_tokens=tokenLength)
+                
             embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
             logging.info("LLM Setup done")
         elif embeddingModelType == "openai":
@@ -67,31 +80,21 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
 
         if (approach == 'rtr'):
             if (overrideChain == "stuff"):
-                template = """
-                Given the following extracted parts of a long document and a question, create a final answer. 
-                If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
-                If the answer is not contained within the text below, say \"I don't know\".
+                if promptTemplate == '':
+                    template = """
+                        Given the following extracted parts of a long document and a question, create a final answer. 
+                        If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
+                        If the answer is not contained within the text below, say \"I don't know\".
 
-                QUESTION: {question}
-                =========
-                {summaries}
-                =========
-                """
-                #qaPrompt = load_prompt('lc://prompts/qa_with_sources/stuff/basic.json')
+                        {summaries}
+                        Question: {question}
+                    """
+                else:
+                    template = promptTemplate
+
                 qaPrompt = PromptTemplate(template=template, input_variables=["summaries", "question"])
-                #qaChain = load_qa_chain(llm, chain_type=overrideChain, prompt=qaPrompt)
                 qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, prompt=qaPrompt)
 
-                # followupTemplate = """
-                # Perform the following steps in a consecutive order Step 1, Step 2, Step 3, and Step 4. 
-                # Step 1 Generate 10 questions based on the {context}?. 
-                # Step 2 – Generate 5 more questions about "{context}" that do not repeat the above. 
-                # Step 3 – Generate 5 more questions about "{context}" that do not repeat the above. 
-                # Step 4 – Based on the above Steps 1,2,3 suggest a final list of questions avoiding duplicates or 
-                # semantically similar questions.
-                # Use double angle brackets to reference the questions, e.g. <>.
-                # ALWAYS return a "NEXT QUESTIONS" part in your answer.
-                # """
                 followupTemplate = """
                 Generate three very brief follow-up questions that the user would likely ask next.
                 Use double angle brackets to reference the questions, e.g. <>.
@@ -157,34 +160,39 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
             elif (overrideChain == "map_reduce"):
 
-                qaTemplate = """Use the following portion of a long document to see if any of the text is relevant to answer the question.
-                Return any relevant text.
-                {context}
-                Question: {question}
-                Relevant text, if any :"""
+                if promptTemplate == '':
+                    # qaTemplate = """Use the following portion of a long document to see if any of the text is relevant to answer the question.
+                    # Return any relevant text.
+                    # {context}
+                    # Question: {question}
+                    # Relevant text, if any :"""
 
-                qaPrompt = PromptTemplate(
-                    template=qaTemplate, input_variables=["context", "question"]
-                )
+                    # qaPrompt = PromptTemplate(
+                    #     template=qaTemplate, input_variables=["context", "question"]
+                    # )
 
-                combinePromptTemplate = """
-                    Given the following extracted parts of a long document and a question, create a final answer. 
-                    If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
-                    If the answer is not contained within the text below, say \"I don't know\".
+                    combinePromptTemplate = """
+                        Given the following extracted parts of a long document and a question, create a final answer. 
+                        If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
+                        If the answer is not contained within the text below, say \"I don't know\".
 
-                    QUESTION: {question}
-                    =========
-                    {summaries}
-                    =========
-                    """
+                        QUESTION: {question}
+                        =========
+                        {summaries}
+                        =========
+                        """
+                    qaPrompt = combinePromptTemplate
+                else:
+                    combinePromptTemplate = promptTemplate
+                    qaPrompt = promptTemplate
+
                 combinePrompt = PromptTemplate(
-                    template=combinePromptTemplate, input_variables=["summaries", "question"]
-                )
+                        template=combinePromptTemplate, input_variables=["summaries", "question"]
+                    )
 
                
-
-                #qaChain = load_qa_chain(llm, chain_type=overrideChain, question_prompt=qaPrompt, combine_prompt=combinePrompt)
-                qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, question_prompt=qaPrompt, combine_prompt=combinePrompt)
+                #qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, question_prompt=qaPrompt, combine_prompt=combinePrompt)
+                qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, combine_prompt=combinePrompt)
                 
                 followupTemplate = """
                 Generate three very brief follow-up questions that the user would likely ask next.
@@ -259,21 +267,25 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
                 followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
 
-            # Let's verify if the questions is already answered before and check our KB first before asking LLM
-            vectorQuestion = generateKbEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, OpenAiEmbedding, embeddingModelType, question)
+            try:
+                # Let's verify if the questions is already answered before and check our KB first before asking LLM
+                vectorQuestion = generateKbEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, OpenAiEmbedding, embeddingModelType, question)
 
-            # Let's perform the search on the KB first before asking the question to the model
-            kbSearch = performKbCogVectorSearch(vectorQuestion, 'vectorQuestion', SearchService, SearchKey, indexType, indexNs, KbIndexName, 1, ["id", "question", "indexType", "indexName", "answer"])
+                # Let's perform the search on the KB first before asking the question to the model
+                kbSearch = performKbCogVectorSearch(vectorQuestion, 'vectorQuestion', SearchService, SearchKey, indexType, indexNs, KbIndexName, 1, ["id", "question", "indexType", "indexName", "answer"])
 
-            logging.info("KB Search Count: " + str(kbSearch.get_count()))
+                logging.info("KB Search Count: " + str(kbSearch.get_count()))
 
-            if kbSearch.get_count() > 0:
-                for s in kbSearch:
-                    logging.info("Found answer from existing KB")
-                    if s['@search.score'] >= 0.95:
-                        #jsonAnswer = ast.literal_eval(json.dumps(s['answer']))
-                        jsonAnswer = json.loads(s['answer'])
-                        return jsonAnswer
+                if kbSearch.get_count() > 0:
+                    for s in kbSearch:
+                        if s['@search.score'] >= 0.95:
+                            logging.info("Found answer from existing KB with search score of " + str(s['@search.score']))
+                            #jsonAnswer = ast.literal_eval(json.dumps(s['answer']))
+                            jsonAnswer = json.loads(s['answer'])
+                            return jsonAnswer
+            except Exception as e:
+                logging.info("Error in KB Search: " + str(e))
+                pass
 
             kbData = []
             kbId = str(uuid.uuid4())
@@ -289,10 +301,8 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 for doc in docs:
                     rawDocs.append(doc.page_content)
                 
-                if overrideChain == "stuff" or overrideChain == "map_rerank":
+                if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
                     thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
-                elif overrideChain == "map_reduce":
-                    thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
                 elif overrideChain == "refine":
                     thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
                 
@@ -314,16 +324,20 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                         "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
                             "sources": sources, "nextQuestions": nextQuestions, "error": ""}
                 
-                kbData.append({
-                        "id": kbId,
-                        "question": question,
-                        "indexType": indexType,
-                        "indexName": indexNs,
-                        "vectorQuestion": vectorQuestion,
-                        "answer": json.dumps(outputFinalAnswer),
-                    })
-                
-                indexDocs(SearchService, SearchKey, KbIndexName, kbData)
+                try:
+                    kbData.append({
+                            "id": kbId,
+                            "question": question,
+                            "indexType": indexType,
+                            "indexName": indexNs,
+                            "vectorQuestion": vectorQuestion,
+                            "answer": json.dumps(outputFinalAnswer),
+                        })
+                    
+                    indexDocs(SearchService, SearchKey, KbIndexName, kbData)
+                except Exception as e:
+                    logging.info("Error in KB Indexing: " + str(e))
+                    pass
 
                 return outputFinalAnswer            
             elif indexType == "redis":
@@ -342,10 +356,8 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                     answer = answer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
                     modifiedAnswer = answer
 
-                    if overrideChain == "stuff" or overrideChain == "map_rerank":
+                    if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
                         thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
-                    elif overrideChain == "map_reduce":
-                        thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
                     elif overrideChain == "refine":
                         thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
                     
@@ -364,16 +376,20 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                             "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
                                 "sources": sources, "nextQuestions": nextQuestions, "error": ""}
                     
-                    kbData.append({
-                        "id": kbId,
-                        "question": question,
-                        "indexType": indexType,
-                        "indexName": indexNs,
-                        "vectorQuestion": vectorQuestion,
-                        "answer": json.dumps(outputFinalAnswer),
-                    })
+                    try:
+                        kbData.append({
+                            "id": kbId,
+                            "question": question,
+                            "indexType": indexType,
+                            "indexName": indexNs,
+                            "vectorQuestion": vectorQuestion,
+                            "answer": json.dumps(outputFinalAnswer),
+                        })
 
-                    indexDocs(SearchService, SearchKey, KbIndexName, kbData)
+                        indexDocs(SearchService, SearchKey, KbIndexName, kbData)
+                    except Exception as e:
+                        logging.info("Error in KB Indexing: " + str(e))
+                        pass
 
                     return outputFinalAnswer
                                 
@@ -397,10 +413,8 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                     answer = answer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
                     modifiedAnswer = answer
 
-                    if overrideChain == "stuff" or overrideChain == "map_rerank":
+                    if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
                         thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
-                    elif overrideChain == "map_reduce":
-                        thoughtPrompt = qaPrompt.format(question=question, context=rawDocs)
                     elif overrideChain == "refine":
                         thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
                     
@@ -419,16 +433,21 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                             "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
                                 "sources": sources, "nextQuestions": nextQuestions, "error": ""}
                     
-                    kbData.append({
-                        "id": kbId,
-                        "question": question,
-                        "indexType": indexType,
-                        "indexName": indexNs,
-                        "vectorQuestion": vectorQuestion,
-                        "answer": json.dumps(outputFinalAnswer),
-                    })
+                    try:
+                        kbData.append({
+                            "id": kbId,
+                            "question": question,
+                            "indexType": indexType,
+                            "indexName": indexNs,
+                            "vectorQuestion": vectorQuestion,
+                            "answer": json.dumps(outputFinalAnswer),
+                        })
 
-                    indexDocs(SearchService, SearchKey, KbIndexName, kbData)
+                        indexDocs(SearchService, SearchKey, KbIndexName, kbData)
+                    except Exception as e:
+                        logging.info("Error in KB Indexing: " + str(e))
+                        pass
+
                     return outputFinalAnswer
                 except Exception as e:
                     return {"data_points": "", "answer": "Working on fixing Cognitive Search Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}

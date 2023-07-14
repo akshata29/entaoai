@@ -47,7 +47,7 @@ def chunk_paragraphs(paragraphs: List[str], fullPath:str,  max_words: int = 300)
         doc.metadata['source'] = fullPath
     return docs
 
-def analyze_layout(data: bytes, fullpath:str, endpoint: str, key: str) -> List[Document]:
+def analyze_layout(data: bytes, fullpath:str, endpoint: str, key: str, chunkSize: int) -> List[Document]:
     """
     Analyze a document with the layout model.
 
@@ -76,7 +76,7 @@ def analyze_layout(data: bytes, fullpath:str, endpoint: str, key: str) -> List[D
     ]
     # Chunk the paragraphs (max word count = 100)
     logging.info(f"Number of paragraphs: {len(paragraphs)}")
-    paragraphs = chunk_paragraphs(paragraphs, fullpath)
+    paragraphs = chunk_paragraphs(paragraphs, fullpath, chunkSize)
 
     return paragraphs
 

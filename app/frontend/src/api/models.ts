@@ -55,6 +55,8 @@ export type AskRequestOverrides = {
     firstSession?: boolean;
     session?: string;
     sessionId?: string;
+    useInternet?: boolean;
+    deploymentType?: string;
 };
 
 export type AskRequest = {
@@ -120,4 +122,13 @@ export type EvalRespValues = {
 
 export type EvalResponse = {
     values: EvalRespValues[];
+};
+
+export type UserInfo = {
+    access_token: string;
+    expires_on: string;
+    id_token: string;
+    provider_name: string;
+    user_claims: any[];
+    user_id: string;
 };

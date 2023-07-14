@@ -22,6 +22,11 @@ try:
     else:
         OpenAiSummaryContainer = "summary"
 
+    if "OpenAiChat16k" in os.environ: 
+        OpenAiChat16k = os.getenv('OpenAiChat16k')
+    else:
+        OpenAiChat16k = "chat16k"
+
     if "SecDocContainer" in os.environ: 
         SecDocContainer = os.getenv('SecDocContainer')
     else:

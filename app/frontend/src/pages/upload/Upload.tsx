@@ -73,6 +73,11 @@ const Upload = () => {
     const [uploadError, setUploadError] = useState(false)
 
     const [selectedTextSplitterItem, setSelectedTextSplitterItem] = useState<IDropdownOption>();
+    const [selectedChunkSizeItem, setSelectedChunkSizeItem] = useState<IDropdownOption>();
+    const [selectedChunkOverlapItem, setSelectedChunkOverlapItem] = useState<IDropdownOption>();
+    const [selectedPromptTypeItem, setSelectedPromptTypeItem] = useState<IDropdownOption>();
+
+    const dropdownShortStyles: Partial<IDropdownStyles> = { dropdown: { width: 150 } };
 
     const textSplitterOptions = [
       {
@@ -90,6 +95,87 @@ const Upload = () => {
       {
         key: 'formrecognizer',
         text: 'Form Recognizer'
+      }
+    ]
+
+    const chunkSizeOptions = [
+      {
+        key: '500',
+        text: '500'
+      },
+      {
+        key: '1000',
+        text: '1000'
+      },
+      {
+        key: '1500',
+        text: '1500'
+      },
+      {
+        key: '2000',
+        text: '2000'
+      },
+      {
+        key: '5000',
+        text: '5000'
+      },
+      {
+        key: '8000',
+        text: '8000'
+      },
+      {
+        key: '10000',
+        text: '10000'
+      }
+    ]
+
+    const chunkOverlapOptions = [
+      {
+        key: '0',
+        text: '0'
+      },
+      {
+        key: '50',
+        text: '50'
+      },
+      {
+        key: '100',
+        text: '100'
+      },
+      {
+        key: '150',
+        text: '150'
+      },
+      {
+        key: '250',
+        text: '250'
+      },
+      {
+        key: '500',
+        text: '500'
+      },
+      {
+        key: '1000',
+        text: '1000'
+      }
+    ]
+
+    const promptTypeOptions = [
+      {
+        key: 'generic',
+        text: 'generic'
+      },
+      {
+        key: 'medical',
+        text: 'medical'
+      },
+      {
+        key: 'financial',
+        text: 'financial'
+      },
+      {
+        key: 'insurance',
+        text: 'insurance'
       }
     ]
 
@@ -111,6 +197,7 @@ const Upload = () => {
         height: 250,
       },
     };
+
     const stackItemStyles: IStackItemStyles = {
       root: {
         alignItems: 'left',
@@ -354,7 +441,9 @@ const Upload = () => {
           blobConnectionString, blobContainer, blobPrefix, blobName,
           s3Bucket, s3Key, s3AccessKey, s3SecretKey, s3Prefix,
           existingIndex ? "true" : "false", existingIndex ? indexNs : '',
-          String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key))
+          String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key),
+          selectedChunkSizeItem?.key, selectedChunkOverlapItem?.key,
+          String(selectedPromptTypeItem?.key))
           .then((response:string) => {
             if (response == "Success") {
               setUploadText("Completed Successfully.  You can now search for your document.")
@@ -431,7 +520,9 @@ const Upload = () => {
               processPage, blobConnectionString,
               blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
               s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '',
-              String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key))
+              String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key),
+              selectedChunkSizeItem?.key, selectedChunkOverlapItem?.key,
+              String(selectedPromptTypeItem?.key))
               .then((response) => {
                 if (response == "Success") {
                   setUploadText("Completed Successfully.  You can now search for your document.")
@@ -535,7 +626,9 @@ const Upload = () => {
                 '', blobConnectionString,
                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
                 s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '',
-                String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key))  
+                String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key),
+                selectedChunkSizeItem?.key, selectedChunkOverlapItem?.key,
+                String(selectedPromptTypeItem?.key))  
                 .then((response) => {
                   if (response == "Success") {
                     setUploadText("Completed Successfully.  You can now search for your document.")
@@ -618,6 +711,18 @@ const Upload = () => {
       setSelectedTextSplitterItem(item);
     };
 
+    const onChunkSizeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedChunkSizeItem(item);
+    };
+
+    const onPromptTypeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedPromptTypeItem(item);
+    };
+
+    const onChunkOverlapChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedChunkOverlapItem(item);
+    };
+
     const onChangeIndexName = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
         setIndexName(newValue || '');
     };
@@ -676,7 +781,7 @@ const Upload = () => {
     
     const onS3Prefix = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setS3Prefix(newValue || "");
-    };  
+    };
 
     useEffect(() => {
       setSelectedItem(options[0])
@@ -685,6 +790,9 @@ const Upload = () => {
       refreshBlob(options[0].key as string)
       setSelectedEmbeddingItem(embeddingOptions[0])
       setSelectedTextSplitterItem(textSplitterOptions[0])
+      setSelectedChunkOverlapItem(chunkOverlapOptions[0])
+      setSelectedChunkSizeItem(chunkSizeOptions[2])
+      setSelectedPromptTypeItem(promptTypeOptions[0])
     }, [])
 
     return (
@@ -733,17 +841,53 @@ const Upload = () => {
                   />) : (<></>)}
                 </Stack.Item>
                 <Stack.Item grow styles={stackItemStyles}>
-                <Label>Chunk Document using :</Label>
-                  &nbsp;
-                  <Dropdown
-                      selectedKey={selectedTextSplitterItem ? selectedTextSplitterItem.key : undefined}
-                      onChange={onTextSplitterChange}
-                      defaultSelectedKey="azureopenai"
-                      placeholder="Select text splitter"
-                      options={textSplitterOptions}
-                      disabled={false}
-                      styles={dropdownStyles}
-                  />
+                    <Label>Chunk Document using :</Label>
+                    &nbsp;
+                    <Dropdown
+                        selectedKey={selectedTextSplitterItem ? selectedTextSplitterItem.key : undefined}
+                        onChange={onTextSplitterChange}
+                        defaultSelectedKey="azureopenai"
+                        placeholder="Select text splitter"
+                        options={textSplitterOptions}
+                        disabled={false}
+                        styles={dropdownStyles}
+                    />
+                    &nbsp;
+                    <Label>Chunk Sizes :</Label>
+                    &nbsp;
+                    <Dropdown
+                        selectedKey={selectedChunkSizeItem?.key}
+                        onChange={onChunkSizeChange}
+                        //defaultSelectedKeys={['500']}
+                        placeholder="Select Chunk Size"
+                        options={chunkSizeOptions}
+                        disabled={false}
+                        styles={dropdownShortStyles}
+                    />
+                    &nbsp;
+                    <Label>Chunk Overlap :</Label>
+                    &nbsp;
+                    <Dropdown
+                        selectedKey={selectedChunkOverlapItem?.key}
+                        onChange={onChunkOverlapChange}
+                        //defaultSelectedKeys={['0']}
+                        placeholder="Select Overlap"
+                        options={chunkOverlapOptions}
+                        disabled={false}
+                        styles={dropdownShortStyles}
+                    />
+                     &nbsp;
+                    <Label>Domain Prompt :</Label>
+                    &nbsp;
+                    <Dropdown
+                        selectedKey={selectedPromptTypeItem?.key}
+                        onChange={onPromptTypeChange}
+                        //defaultSelectedKeys={['0']}
+                        placeholder="Select Prompt"
+                        options={promptTypeOptions}
+                        disabled={false}
+                        styles={dropdownShortStyles}
+                    />
                 </Stack.Item>
               </Stack>
             </Stack>

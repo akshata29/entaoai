@@ -1,11 +1,22 @@
 import { AskRequest, AskResponse, ChatRequest, ChatResponse, SpeechTokenResponse, SqlResponse,
-  EvalResponse } from "./models";
+  EvalResponse, UserInfo} from "./models";
 import { PineconeStore } from "langchain/vectorstores";
 import { OpenAIEmbeddings } from 'langchain/embeddings'
 import { PineconeClient } from "@pinecone-database/pinecone";
 import { ChatVectorDBQAChain } from 'langchain/chains'
 import { OpenAI } from 'langchain/llms'
 import { Any } from "@react-spring/web";
+
+export async function getUserInfo(): Promise<UserInfo[]> {
+  const response = await fetch('/.auth/me');
+  if (!response.ok) {
+      console.log("No identity provider found. Access to chat will be blocked.")
+      return [];
+  }
+
+  const payload = await response.json();
+  return payload;
+}
 
 export async function askApi(options: AskRequest, indexNs: string, indexType: string, chainType : string): Promise<AskResponse> {
     const response = await fetch('/ask', {
@@ -37,6 +48,7 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
                         chainType: options.overrides?.chainType,
                         tokenLength: options.overrides?.tokenLength,
                         embeddingModelType: options.overrides?.embeddingModelType,
+                        deploymentType: options.overrides?.deploymentType,
                     }
                   }
                 }
@@ -609,7 +621,7 @@ export async function processDoc(indexType: string, loadType : string, multiple:
   blobConnectionString : string, blobContainer : string, blobPrefix : string, blobName : string,
   s3Bucket : string, s3Key : string, s3AccessKey : string, s3SecretKey : string, s3Prefix : string,
   existingIndex : string, existingIndexNs: string, embeddingModelType: string,
-  textSplitter:string) : Promise<string> {
+  textSplitter:string, chunkSize:any, chunkOverlap:any, promptType:string) : Promise<string> {
   const response = await fetch('/processDoc', {
     method: "POST",
     headers: {
@@ -624,6 +636,9 @@ export async function processDoc(indexType: string, loadType : string, multiple:
       existingIndexNs:existingIndexNs,
       embeddingModelType:embeddingModelType,
       textSplitter:textSplitter,
+      chunkSize:chunkSize,
+      chunkOverlap:chunkOverlap,
+      promptType:promptType,
       postBody: {
         values: [
           {
@@ -1026,6 +1041,7 @@ export async function summarizer(options: AskRequest, requestText: string, promp
                   temperature: options.overrides?.temperature,
                   tokenLength: options.overrides?.tokenLength,
                   embeddingModelType : embeddingModelType,
+                  useInternet:options.overrides?.useInternet,
                 }
               }
             }

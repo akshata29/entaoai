@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { TextField, Stack, Spinner, IStackStyles, IStackTokens } from "@fluentui/react";
+import { TextField, Stack, Spinner, IStackStyles, IStackTokens, Checkbox } from "@fluentui/react";
 import { PrimaryButton } from "@fluentui/react";
 import { githubLight } from '@uiw/codemirror-theme-github';
 import { Label } from '@fluentui/react/lib/Label';
@@ -66,6 +66,7 @@ const DeveloperTools = () => {
     const [exampleList, setExampleList] = useState<ExampleModel[]>([{text:'', value: ''}]);
     const [gptPrompt, setGptPrompt] = useState('');
     const [gptSummary, setGptSummary] = useState('');
+    const [useInternet, setUseInternet] = useState(false);
 
 
     const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
@@ -220,9 +221,11 @@ const DeveloperTools = () => {
                 temperature: 0,
                 chainType: "map_reduce",
                 tokenLength: 500,
+                useInternet:useInternet,
             }
         };
 
+        console.log(request)
         await summarizer(request, requestText, 'custom', '', 'inline', 
           "map_reduce", String(selectedEmbeddingItem?.key)).then((response) => {
             setGptSummary(response)
@@ -359,6 +362,10 @@ const DeveloperTools = () => {
 
     const onModelChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         setSelectedModelItem(item);
+    };
+
+    const onUseInternetChanged = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
+        setUseInternet(!!checked);
     };
 
     const onInputLangChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
@@ -620,7 +627,9 @@ const DeveloperTools = () => {
                                     options={modelOptions}
                                     disabled={false}
                                     styles={dropdownStyles}
-                                />                               
+                                />
+                                &nbsp;
+                                <Checkbox label="Internet Search" checked={useInternet} onChange={onUseInternetChanged} />                       
                             </div>
                             <br/>
                             <h1 className={styles.developerToolsTitle}>OpenAI Playground</h1>

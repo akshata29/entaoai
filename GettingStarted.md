@@ -142,10 +142,11 @@ Verify http://localhost:5000 to confirm the App is running locally.
 8. Update the configuration (Minimally you need OpenAi, one of the document store, storage account)
 9. Start the Python API by running `func host start`
 10. Open new terminal and go to /app/backend directory
-11. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
-12. Run py app.py to start the backend locally (on port 5000)
-13. Open new terminal and go to /app/frontend directory
-14. Run npm run dev to start the local server (on port 5173)
+11. Run `pip install -r requirements.txt` to install all required python packages
+12. Copy env.example to .env file and edit the file to enter the Python localhost API and the storage configuration
+13. Run py app.py to start the backend locally (on port 5000)
+14. Open new terminal and go to /app/frontend directory
+15. Run npm run dev to start the local server (on port 5173)
 !5. Browse the localhost:5173 to open the web app.
 
 Once in the web app:

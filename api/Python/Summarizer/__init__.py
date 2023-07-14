@@ -9,6 +9,9 @@ import tempfile
 import uuid
 from langchain.document_loaders import UnstructuredFileLoader
 from Utilities.envVars import *
+from langchain.utilities import BingSearchAPIWrapper
+from langchain.docstore.document import Document
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -46,26 +49,60 @@ def Summarize(promptType, promptName, chainType, docType, inLineText, overrides)
     temperature = overrides.get("temperature") or 0.3
     tokenLength = overrides.get('tokenLength') or 500
     embeddingModelType = overrides.get('embeddingModelType') or 'azureopenai'
+    useInternet = overrides.get('useInternet') or False
+    os.environ['BING_SUBSCRIPTION_KEY'] = BingKey
+    os.environ['BING_SEARCH_URL'] = BingUrl
 
     summaryResponse = ''
+    results = ''
 
     if (embeddingModelType == 'azureopenai'):
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
         openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        baseUrl = f"https://{OpenAiService}.openai.azure.com"
 
-        llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                temperature=temperature,
-                max_tokens=tokenLength,
-                openai_api_key=OpenAiKey)
+        # llm = AzureOpenAI(deployment_name=OpenAiDavinci,
+        #         temperature=temperature,
+        #         max_tokens=tokenLength,
+        #         openai_api_key=OpenAiKey)
 
-        completion = openai.Completion.create(
-                engine= OpenAiDavinci,
-                prompt = inLineText,
-                temperature = temperature,
-                max_tokens = tokenLength,
-        )
+        llm = AzureChatOpenAI(
+                    openai_api_base=baseUrl,
+                    openai_api_version=OpenAiVersion,
+                    deployment_name=OpenAiChat,
+                    temperature=temperature,
+                    openai_api_key=OpenAiKey,
+                    openai_api_type="azure",
+                    max_tokens=tokenLength)
+
+        if useInternet:
+            qaPromptTemplate = """
+                Rephrase the following question asked by user to perform intelligent internet search
+                {query}
+                """
+            optimizedPrompt = qaPromptTemplate.format(query=inLineText)
+            completion = openai.Completion.create(
+                        engine=OpenAiDavinci,
+                        prompt=optimizedPrompt,
+                        temperature=temperature,
+                        max_tokens=100,
+                        n=1)
+            q = completion.choices[0].text
+            logging.info("Rephrased Question : " + q)
+            bingSearch = BingSearchAPIWrapper(k=1)
+            results = bingSearch.run(query=q.replace("Answer:", ""))
+            logging.info(results)
+            
+        else:
+            completion = openai.Completion.create(
+                    engine= OpenAiDavinci,
+                    prompt = inLineText,
+                    temperature = temperature,
+                    max_tokens = tokenLength,
+            )
+
         logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
         openai.api_type = "open_ai"
@@ -73,21 +110,48 @@ def Summarize(promptType, promptName, chainType, docType, inLineText, overrides)
         openai.api_version = '2020-11-07' 
         openai.api_key = OpenAiApiKey
         
-        llm = OpenAI(temperature=temperature,
-                openai_api_key=OpenAiApiKey)
+        # llm = OpenAI(temperature=temperature,
+        #         openai_api_key=OpenAiApiKey)
         
-        completion = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=inLineText,
-            temperature=temperature,
-            max_tokens=tokenLength)
+        llm = ChatOpenAI(temperature=temperature,
+                openai_api_key=OpenAiApiKey,
+                max_tokens=tokenLength)
+        
+        if useInternet:
+            qaPromptTemplate = """
+                Rephrase the following question asked by user to perform intelligent internet search
+                {query}
+                """
+            optimizedPrompt = qaPromptTemplate.format(query=inLineText)
+            completion = openai.Completion.create(
+                        engine=OpenAiDavinci,
+                        prompt=optimizedPrompt,
+                        temperature=temperature,
+                        max_tokens=100,
+                        n=1)
             
+            q = completion.choices[0].text
+            bingSearch = BingSearchAPIWrapper(k=1)
+            results = bingSearch.run(query=q.replace("Answer:", ""))
+
+        else:
+            completion = openai.Completion.create(
+                engine="text-davinci-003",
+                prompt=inLineText,
+                temperature=temperature,
+                max_tokens=tokenLength)
+    
     if (promptType == "custom"):
         try:
+            if useInternet:
+                chain = load_summarize_chain(llm, chain_type="map_reduce")
+                docs = [Document(page_content=results)]
+                summaryResponse = chain.run(docs)
+            else:
+                summaryResponse = completion.choices[0].text
             logging.info(inLineText)
         except Exception as e:
             logging.info("Exception : " + str(e))
-        summaryResponse = completion.choices[0].text
         return summaryResponse
     else:
         pTemplate = os.environ[promptName]
