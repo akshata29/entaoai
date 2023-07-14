@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack, 
     IPivotItemProps, getFadedOverflowStyle} from "@fluentui/react";
-import { BroomRegular, DismissRegular, SquareRegular, ShieldLockRegular, ErrorCircleRegular } from "@fluentui/react-icons";
+import { ShieldLockRegular } from "@fluentui/react-icons";
 
 import styles from "./OneShot.module.css";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
@@ -716,12 +716,12 @@ const OneShot = () => {
     };
 
     useEffect(() => {
-        // if (window.location.hostname != "localhost") {
-        //     getUserInfoList();
-        // } else
-        // {
-        //     setShowAuthMessage(false)
-        // }
+        if (window.location.hostname != "localhost") {
+            getUserInfoList();
+            setShowAuthMessage(true)
+        } else
+            setShowAuthMessage(false)
+
         refreshBlob()
         setChainTypeOptions(chainType)
         setSelectedChain(chainType[0])

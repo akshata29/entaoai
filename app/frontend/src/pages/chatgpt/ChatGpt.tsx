@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { Checkbox, Panel, DefaultButton, TextField, SpinButton, Spinner, mergeStyles } from "@fluentui/react";
+import { Checkbox, Panel, DefaultButton, TextField, SpinButton, Spinner, Stack } from "@fluentui/react";
 import { SparkleFilled } from "@fluentui/react-icons";
+import { ShieldLockRegular } from "@fluentui/react-icons";
 
 import { Dropdown, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import { Pivot, PivotItem } from '@fluentui/react';
@@ -10,7 +11,7 @@ import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
 import { chatGptApi, chatGpt3Api, Approaches, AskResponse, ChatRequest, ChatTurn, refreshIndex, getSpeechApi, 
-    getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession, renameIndexSession } from "../../api";
+    getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession, renameIndexSession, getUserInfo } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { UserChatMessage } from "../../components/UserChatMessage";
@@ -76,6 +77,7 @@ const ChatGpt = () => {
     const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
     const [selectedItems, setSelectedItems] = useState<any[]>([]);
     const [sessionName, setSessionName] = useState<string>('');
+    const [showAuthMessage, setShowAuthMessage] = useState<boolean>(false);
 
     const generateQuickGuid = () => {
         return Math.random().toString(36).substring(2, 15) +
@@ -144,6 +146,16 @@ const ChatGpt = () => {
         selectionMode: SelectionMode.single,
         }),
     []);
+
+    const getUserInfoList = async () => {
+        const userInfoList = await getUserInfo();
+        if (userInfoList.length === 0 && window.location.hostname !== "localhost") {
+            setShowAuthMessage(true);
+        }
+        else {
+            setShowAuthMessage(false);
+        }
+    }
 
     const detailsList = useMemo(
         () => (
@@ -304,8 +316,8 @@ const ChatGpt = () => {
     };
 
     const deleteSession = async () => {
-        const sessionName = String(selectedItems[0]?.['Session Name'])
-        if (sessionName === 'No Sessions found' || sessionName === "undefined") {
+        //const sessionName = String(selectedItems[0]?.['Session Name'])
+        if (sessionName === 'No Sessions found' || sessionName === "" || sessionName === undefined) {
             alert("Select Session to delete")
         }
         await deleteIndexSession(String(selectedItem?.key), String(selectedIndex), sessionName)
@@ -548,6 +560,12 @@ const ChatGpt = () => {
     }
 
     useEffect(() => {
+        if (window.location.hostname != "localhost") {
+            getUserInfoList();
+            setShowAuthMessage(true)
+        } else
+            setShowAuthMessage(false)
+
         setOptions([])
         refreshBlob()
         setSelectedEmbeddingItem(embeddingOptions[0])
@@ -640,380 +658,395 @@ const ChatGpt = () => {
 
     return (
         <div className={styles.root}>
-            <div className={styles.container}>
-                <Pivot aria-label="Chat">
-                    <PivotItem
-                        headerText="GPT3.5"
-                        headerButtonProps={{
-                        'data-order': 1,
-                        }}
-                    >
-                        <div className={styles.commandsContainer}>
-                            <ClearChatButton className={styles.commandButton} onClick={clearChat}  text="Clear chat" disabled={!lastQuestionRef.current || isLoading} />
-                            <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
-                            <div className={styles.commandButton}>{selectedItem ? 
-                                "Document Name : "  + selectedItem.text : undefined}</div>
-                        </div>
-                        <div className={styles.commandsContainer}>
-                            <SessionButton className={styles.commandButton} onClick={clearChat} />
-                            <ClearChatButton className={styles.commandButton} onClick={deleteSession}  text="Delete Session" disabled={false} />
-                            <RenameButton className={styles.commandButton}  onClick={renameSession}  text="Rename Session"/>
-                            <TextField className={styles.commandButton} value={sessionName} onChange={onSessionNameChange}
-                                styles={{root: {width: '200px'}}} />
-                        </div>
-                         <div className={styles.chatRoot}>
-                            {detailsList}
-                            <div className={styles.chatContainer}>
-                                {!lastQuestionRef.current ? (
-                                    <div className={styles.chatEmptyState}>
-                                        <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
-                                        <h3 className={styles.chatEmptyStateTitle}>Chat with your data</h3>
-                                        <div className={styles.example}>
-                                            <p className={styles.exampleText}><b>Document Summary</b> : {summary}</p>
-                                        </div>
-                                        <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
-                                        <div className={styles.chatInput}>
-                                            <QuestionInput
-                                                clearOnSend
-                                                placeholder="Type a new question"
-                                                disabled={isLoading}
-                                                onSend={question => makeApiRequest(question)}
-                                            />
-                                        </div>
-                                        {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
-                                        <ExampleList onExampleClicked={onExampleClicked}
-                                        EXAMPLES={
-                                            exampleList
-                                        } />
-                                    </div>
-                                ) : (
-                                    <div className={styles.chatMessageStream}>
-                                        {answers.map((answer, index) => (
-                                            <div key={index}>
-                                                <UserChatMessage message={answer[0]} />
-                                                <div className={styles.chatMessageGpt}>
-                                                    <Answer
-                                                        key={index}
-                                                        answer={answer[1]}
-                                                        isSpeaking = {runningIndex === index}
-                                                        isSelected={selectedAnswer === index && activeAnalysisPanelTab !== undefined}
-                                                        onCitationClicked={c => onShowCitation(c, index)}
-                                                        onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
-                                                        onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
-                                                        onFollowupQuestionClicked={q => makeApiRequest(q)}
-                                                        onSpeechSynthesisClicked={() => startOrStopSynthesis("gpt35", answer[2], index)}
-                                                        showFollowupQuestions={useSuggestFollowupQuestions && answers.length - 1 === index}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {isLoading && (
-                                            <>
-                                                <UserChatMessage message={lastQuestionRef.current} />
-                                                <div className={styles.chatMessageGptMinWidth}>
-                                                    <AnswerLoading />
-                                                </div>
-                                            </>
-                                        )}
-                                        {error ? (
-                                            <>
-                                                <UserChatMessage message={lastQuestionRef.current} />
-                                                <div className={styles.chatMessageGptMinWidth}>
-                                                    <AnswerError error={error.toString()} onRetry={() => makeApiRequest(lastQuestionRef.current)} />
-                                                </div>
-                                            </>
-                                        ) : null}
-                                        <div ref={chatMessageStreamEnd} />
-                                        <div className={styles.chatInput}>
-                                            <QuestionInput
-                                                clearOnSend
-                                                placeholder="Type a new question"
-                                                disabled={isLoading}
-                                                onSend={question => makeApiRequest(question)}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
+            {showAuthMessage ? (
+                <Stack className={styles.chatEmptyState}>
+                    <ShieldLockRegular className={styles.chatIcon} style={{color: 'darkorange', height: "200px", width: "200px"}}/>
+                    <h1 className={styles.chatEmptyStateTitle}>Authentication Not Configured</h1>
+                    <h2 className={styles.chatEmptyStateSubtitle}>
+                        This app does not have authentication configured. Please add an identity provider by finding your app in the 
+                        <a href="https://portal.azure.com/" target="_blank"> Azure Portal </a>
+                        and following 
+                         <a href="https://learn.microsoft.com/en-us/azure/app-service/scenario-secure-app-authentication-app-service#3-configure-authentication-and-authorization" target="_blank"> these instructions</a>.
+                    </h2>
+                    <h2 className={styles.chatEmptyStateSubtitle} style={{fontSize: "20px"}}><strong>Authentication configuration takes a few minutes to apply. </strong></h2>
+                    <h2 className={styles.chatEmptyStateSubtitle} style={{fontSize: "20px"}}><strong>If you deployed in the last 10 minutes, please wait and reload the page after 10 minutes.</strong></h2>
+                </Stack>
+            ) : (
+                <div className={styles.container}>
+                    <Pivot aria-label="Chat">
+                        <PivotItem
+                            headerText="GPT3.5"
+                            headerButtonProps={{
+                            'data-order': 1,
+                            }}
+                        >
+                            <div className={styles.commandsContainer}>
+                                <ClearChatButton className={styles.commandButton} onClick={clearChat}  text="Clear chat" disabled={!lastQuestionRef.current || isLoading} />
+                                <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                                <div className={styles.commandButton}>{selectedItem ? 
+                                    "Document Name : "  + selectedItem.text : undefined}</div>
                             </div>
-
-                            {answers.length > 0 && activeAnalysisPanelTab && (
-                                <AnalysisPanel
-                                    className={styles.chatAnalysisPanel}
-                                    activeCitation={activeCitation}
-                                    onActiveTabChanged={x => onToggleTab(x, selectedAnswer)}
-                                    citationHeight="810px"
-                                    answer={answers[selectedAnswer][1]}
-                                    activeTab={activeAnalysisPanelTab}
-                                />
-                            )}
-
-                            <Panel
-                                headerText="Configure Chat Interaction"
-                                isOpen={isConfigPanelOpen}
-                                isBlocking={false}
-                                onDismiss={() => setIsConfigPanelOpen(false)}
-                                closeButtonAriaLabel="Close"
-                                onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
-                                isFooterAtBottom={true}
-                            >
-                                <br/>
-                                <div>
-                                    <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
-                                    <Dropdown
-                                        selectedKey={selectedItem ? selectedItem.key : undefined}
-                                        // eslint-disable-next-line react/jsx-no-bind
-                                        onChange={onChange}
-                                        placeholder="Select an PDF"
-                                        options={options}
-                                        styles={dropdownStyles}
-                                    />
-                                    &nbsp;
-                                    <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
-                                </div>
-                                <br/>
-                                <div>
-                                    <Label>LLM Model</Label>
-                                    <Dropdown
-                                        selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
-                                        onChange={onEmbeddingChange}
-                                        defaultSelectedKey="azureopenai"
-                                        placeholder="Select an LLM Model"
-                                        options={embeddingOptions}
-                                        disabled={false}
-                                        styles={dropdownStyles}
-                                    />
-                                </div>
-                                <TextField
-                                    className={styles.chatSettingsSeparator}
-                                    defaultValue={promptTemplate}
-                                    label="Override prompt template"
-                                    multiline
-                                    autoAdjustHeight
-                                    onChange={onPromptTemplateChange}
-                                />
-
-                                <SpinButton
-                                    className={styles.chatSettingsSeparator}
-                                    label="Retrieve this many documents from search:"
-                                    min={1}
-                                    max={7}
-                                    defaultValue={retrieveCount.toString()}
-                                    onChange={onRetrieveCountChange}
-                                />
-                                <SpinButton
-                                    className={styles.oneshotSettingsSeparator}
-                                    label="Set the Temperature:"
-                                    min={0.0}
-                                    max={1.0}
-                                    defaultValue={temperature.toString()}
-                                    onChange={onTemperatureChange}
-                                />
-                                <SpinButton
-                                    className={styles.oneshotSettingsSeparator}
-                                    label="Max Length (Tokens):"
-                                    min={0}
-                                    max={4000}
-                                    defaultValue={tokenLength.toString()}
-                                    onChange={onTokenLengthChange}
-                                />
-                                <Checkbox
-                                    className={styles.chatSettingsSeparator}
-                                    checked={useSuggestFollowupQuestions}
-                                    label="Suggest follow-up questions"
-                                    onChange={onUseSuggestFollowupQuestionsChange}
-                                />
-                                <Checkbox
-                                    className={styles.chatSettingsSeparator}
-                                    checked={useAutoSpeakAnswers}
-                                    label="Automatically speak answers"
-                                    onChange={onEnableAutoSpeakAnswersChange}
-                                />
-                            </Panel>
-                        </div>
-                    </PivotItem>
-                    <PivotItem
-                        headerText="GPT3"
-                        headerButtonProps={{
-                        'data-order': 2,
-                        }}
-                    >
-                        <div className={styles.commandsContainer}>
-                            <ClearChatButton className={styles.commandButton} onClick={clearChat3}  text="Clear chat" disabled={!lastQuestionRef3.current || isLoading} />
-                            <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
-                            <div className={styles.commandButton}>{selectedItem ? 
-                                "Document Name : "  + selectedItem.text : undefined}</div>
-                        </div>
-                         <div className={styles.chatRoot}>
-                            <div className={styles.chatContainer}>
-                                {!lastQuestionRef3.current ? (
-                                    <div className={styles.chatEmptyState}>
-                                        <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
-                                        <h3 className={styles.chatEmptyStateTitle}>Chat with your data</h3>
-                                        <div className={styles.example}>
-                                            <p className={styles.exampleText}><b>Document Summary</b> : {summary}</p>
-                                        </div>
-                                        <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
-                                        <div className={styles.chatInput}>
-                                            <QuestionInput
-                                                clearOnSend
-                                                placeholder="Type a new question"
-                                                disabled={isLoading}
-                                                onSend={question => makeApiRequest3(question)}
-                                            />
-                                        </div>
-                                        {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
-                                        <ExampleList onExampleClicked={onExampleClicked3}
-                                        EXAMPLES={
-                                            exampleList
-                                        } />
-                                    </div>
-                                ) : (
-                                    <div className={styles.chatMessageStream}>
-                                        {answers3.map((answer, index) => (
-                                            <div key={index}>
-                                                <UserChatMessage message={answer[0]} />
-                                                <div className={styles.chatMessageGpt}>
-                                                    <Answer
-                                                        key={index}
-                                                        answer={answer[1]}
-                                                        isSpeaking = {runningIndex === index}
-                                                        isSelected={selectedAnswer === index && activeAnalysisPanelTab !== undefined}
-                                                        onCitationClicked={c => onShowCitation(c, index)}
-                                                        onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
-                                                        onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
-                                                        onSpeechSynthesisClicked={() => startOrStopSynthesis("gpt3", answer[2], index)}
-                                                        onFollowupQuestionClicked={q => makeApiRequest3(q)}
-                                                        showFollowupQuestions={useSuggestFollowupQuestions && answers3.length - 1 === index}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {isLoading && (
-                                            <>
-                                                <UserChatMessage message={lastQuestionRef3.current} />
-                                                <div className={styles.chatMessageGptMinWidth}>
-                                                    <AnswerLoading />
-                                                </div>
-                                            </>
-                                        )}
-                                        {error ? (
-                                            <>
-                                                <UserChatMessage message={lastQuestionRef3.current} />
-                                                <div className={styles.chatMessageGptMinWidth}>
-                                                    <AnswerError error={error.toString()} onRetry={() => makeApiRequest3(lastQuestionRef3.current)} />
-                                                </div>
-                                            </>
-                                        ) : null}
-                                        <div ref={chatMessageStreamEnd} />
-                                        <div className={styles.chatInput}>
-                                            <QuestionInput
-                                                clearOnSend
-                                                placeholder="Type a new question"
-                                                disabled={isLoading}
-                                                onSend={question => makeApiRequest3(question)}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
+                            <div className={styles.commandsContainer}>
+                                <SessionButton className={styles.commandButton} onClick={clearChat} />
+                                <ClearChatButton className={styles.commandButton} onClick={deleteSession}  text="Delete Session" disabled={false} />
+                                <RenameButton className={styles.commandButton}  onClick={renameSession}  text="Rename Session"/>
+                                <TextField className={styles.commandButton} value={sessionName} onChange={onSessionNameChange}
+                                    styles={{root: {width: '200px'}}} />
                             </div>
-
-                            {answers3.length > 0 && activeAnalysisPanelTab && (
-                                <AnalysisPanel
-                                    className={styles.chatAnalysisPanel}
-                                    activeCitation={activeCitation}
-                                    onActiveTabChanged={x => onToggleTab(x, selectedAnswer)}
-                                    citationHeight="810px"
-                                    answer={answers3[selectedAnswer][1]}
-                                    activeTab={activeAnalysisPanelTab}
-                                />
-                            )}
-
-                            <Panel
-                                headerText="Configure Chat Interaction"
-                                isOpen={isConfigPanelOpen}
-                                isBlocking={false}
-                                onDismiss={() => setIsConfigPanelOpen(false)}
-                                closeButtonAriaLabel="Close"
-                                onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
-                                isFooterAtBottom={true}
-                            >
-                                <br/>
-                                <div>
-                                    <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
-                                    <Dropdown
-                                        selectedKey={selectedItem ? selectedItem.key : undefined}
-                                        // eslint-disable-next-line react/jsx-no-bind
-                                        onChange={onChange}
-                                        placeholder="Select an PDF"
-                                        options={options}
-                                        styles={dropdownStyles}
-                                    />
-                                    &nbsp;
-                                    <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                            <div className={styles.chatRoot}>
+                                {detailsList}
+                                <div className={styles.chatContainer}>
+                                    {!lastQuestionRef.current ? (
+                                        <div className={styles.chatEmptyState}>
+                                            <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
+                                            <h3 className={styles.chatEmptyStateTitle}>Chat with your data</h3>
+                                            <div className={styles.example}>
+                                                <p className={styles.exampleText}><b>Document Summary</b> : {summary}</p>
+                                            </div>
+                                            <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
+                                            <div className={styles.chatInput}>
+                                                <QuestionInput
+                                                    clearOnSend
+                                                    placeholder="Type a new question"
+                                                    disabled={isLoading}
+                                                    onSend={question => makeApiRequest(question)}
+                                                />
+                                            </div>
+                                            {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                                            <ExampleList onExampleClicked={onExampleClicked}
+                                            EXAMPLES={
+                                                exampleList
+                                            } />
+                                        </div>
+                                    ) : (
+                                        <div className={styles.chatMessageStream}>
+                                            {answers.map((answer, index) => (
+                                                <div key={index}>
+                                                    <UserChatMessage message={answer[0]} />
+                                                    <div className={styles.chatMessageGpt}>
+                                                        <Answer
+                                                            key={index}
+                                                            answer={answer[1]}
+                                                            isSpeaking = {runningIndex === index}
+                                                            isSelected={selectedAnswer === index && activeAnalysisPanelTab !== undefined}
+                                                            onCitationClicked={c => onShowCitation(c, index)}
+                                                            onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
+                                                            onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
+                                                            onFollowupQuestionClicked={q => makeApiRequest(q)}
+                                                            onSpeechSynthesisClicked={() => startOrStopSynthesis("gpt35", answer[2], index)}
+                                                            showFollowupQuestions={useSuggestFollowupQuestions && answers.length - 1 === index}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {isLoading && (
+                                                <>
+                                                    <UserChatMessage message={lastQuestionRef.current} />
+                                                    <div className={styles.chatMessageGptMinWidth}>
+                                                        <AnswerLoading />
+                                                    </div>
+                                                </>
+                                            )}
+                                            {error ? (
+                                                <>
+                                                    <UserChatMessage message={lastQuestionRef.current} />
+                                                    <div className={styles.chatMessageGptMinWidth}>
+                                                        <AnswerError error={error.toString()} onRetry={() => makeApiRequest(lastQuestionRef.current)} />
+                                                    </div>
+                                                </>
+                                            ) : null}
+                                            <div ref={chatMessageStreamEnd} />
+                                            <div className={styles.chatInput}>
+                                                <QuestionInput
+                                                    clearOnSend
+                                                    placeholder="Type a new question"
+                                                    disabled={isLoading}
+                                                    onSend={question => makeApiRequest(question)}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                <br/>
-                                <div>
-                                    <Label>LLM Model</Label>
-                                    <Dropdown
-                                        selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
-                                        onChange={onEmbeddingChange}
-                                        defaultSelectedKey="azureopenai"
-                                        placeholder="Select an LLM Model"
-                                        options={embeddingOptions}
-                                        disabled={false}
-                                        styles={dropdownStyles}
-                                    />
-                                </div>
-                                <TextField
-                                    className={styles.chatSettingsSeparator}
-                                    defaultValue={promptTemplate}
-                                    label="Override prompt template"
-                                    multiline
-                                    autoAdjustHeight
-                                    onChange={onPromptTemplateChange}
-                                />
 
-                                <SpinButton
-                                    className={styles.chatSettingsSeparator}
-                                    label="Retrieve this many documents from search:"
-                                    min={1}
-                                    max={7}
-                                    defaultValue={retrieveCount.toString()}
-                                    onChange={onRetrieveCountChange}
-                                />
-                                <SpinButton
-                                    className={styles.oneshotSettingsSeparator}
-                                    label="Set the Temperature:"
-                                    min={0.0}
-                                    max={1.0}
-                                    defaultValue={temperature.toString()}
-                                    onChange={onTemperatureChange}
-                                />
-                                <SpinButton
-                                    className={styles.oneshotSettingsSeparator}
-                                    label="Max Length (Tokens):"
-                                    min={0}
-                                    max={4000}
-                                    defaultValue={tokenLength.toString()}
-                                    onChange={onTokenLengthChange}
-                                />
-                                <Checkbox
-                                    className={styles.chatSettingsSeparator}
-                                    checked={useSuggestFollowupQuestions}
-                                    label="Suggest follow-up questions"
-                                    onChange={onUseSuggestFollowupQuestionsChange}
-                                />
-                                <Checkbox
-                                    className={styles.chatSettingsSeparator}
-                                    checked={useAutoSpeakAnswers}
-                                    label="Automatically speak answers"
-                                    onChange={onEnableAutoSpeakAnswersChange}
-                                />
-                            </Panel>
-                        </div>
-                    </PivotItem>
-              </Pivot>
-            </div>
+                                {answers.length > 0 && activeAnalysisPanelTab && (
+                                    <AnalysisPanel
+                                        className={styles.chatAnalysisPanel}
+                                        activeCitation={activeCitation}
+                                        onActiveTabChanged={x => onToggleTab(x, selectedAnswer)}
+                                        citationHeight="810px"
+                                        answer={answers[selectedAnswer][1]}
+                                        activeTab={activeAnalysisPanelTab}
+                                    />
+                                )}
+
+                                <Panel
+                                    headerText="Configure Chat Interaction"
+                                    isOpen={isConfigPanelOpen}
+                                    isBlocking={false}
+                                    onDismiss={() => setIsConfigPanelOpen(false)}
+                                    closeButtonAriaLabel="Close"
+                                    onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
+                                    isFooterAtBottom={true}
+                                >
+                                    <br/>
+                                    <div>
+                                        <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
+                                        <Dropdown
+                                            selectedKey={selectedItem ? selectedItem.key : undefined}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onChange={onChange}
+                                            placeholder="Select an PDF"
+                                            options={options}
+                                            styles={dropdownStyles}
+                                        />
+                                        &nbsp;
+                                        <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                                    </div>
+                                    <br/>
+                                    <div>
+                                        <Label>LLM Model</Label>
+                                        <Dropdown
+                                            selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                                            onChange={onEmbeddingChange}
+                                            defaultSelectedKey="azureopenai"
+                                            placeholder="Select an LLM Model"
+                                            options={embeddingOptions}
+                                            disabled={false}
+                                            styles={dropdownStyles}
+                                        />
+                                    </div>
+                                    <TextField
+                                        className={styles.chatSettingsSeparator}
+                                        defaultValue={promptTemplate}
+                                        label="Override prompt template"
+                                        multiline
+                                        autoAdjustHeight
+                                        onChange={onPromptTemplateChange}
+                                    />
+
+                                    <SpinButton
+                                        className={styles.chatSettingsSeparator}
+                                        label="Retrieve this many documents from search:"
+                                        min={1}
+                                        max={7}
+                                        defaultValue={retrieveCount.toString()}
+                                        onChange={onRetrieveCountChange}
+                                    />
+                                    <SpinButton
+                                        className={styles.oneshotSettingsSeparator}
+                                        label="Set the Temperature:"
+                                        min={0.0}
+                                        max={1.0}
+                                        defaultValue={temperature.toString()}
+                                        onChange={onTemperatureChange}
+                                    />
+                                    <SpinButton
+                                        className={styles.oneshotSettingsSeparator}
+                                        label="Max Length (Tokens):"
+                                        min={0}
+                                        max={4000}
+                                        defaultValue={tokenLength.toString()}
+                                        onChange={onTokenLengthChange}
+                                    />
+                                    <Checkbox
+                                        className={styles.chatSettingsSeparator}
+                                        checked={useSuggestFollowupQuestions}
+                                        label="Suggest follow-up questions"
+                                        onChange={onUseSuggestFollowupQuestionsChange}
+                                    />
+                                    <Checkbox
+                                        className={styles.chatSettingsSeparator}
+                                        checked={useAutoSpeakAnswers}
+                                        label="Automatically speak answers"
+                                        onChange={onEnableAutoSpeakAnswersChange}
+                                    />
+                                </Panel>
+                            </div>
+                        </PivotItem>
+                        <PivotItem
+                            headerText="GPT3"
+                            headerButtonProps={{
+                            'data-order': 2,
+                            }}
+                        >
+                            <div className={styles.commandsContainer}>
+                                <ClearChatButton className={styles.commandButton} onClick={clearChat3}  text="Clear chat" disabled={!lastQuestionRef3.current || isLoading} />
+                                <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                                <div className={styles.commandButton}>{selectedItem ? 
+                                    "Document Name : "  + selectedItem.text : undefined}</div>
+                            </div>
+                            <div className={styles.chatRoot}>
+                                <div className={styles.chatContainer}>
+                                    {!lastQuestionRef3.current ? (
+                                        <div className={styles.chatEmptyState}>
+                                            <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
+                                            <h3 className={styles.chatEmptyStateTitle}>Chat with your data</h3>
+                                            <div className={styles.example}>
+                                                <p className={styles.exampleText}><b>Document Summary</b> : {summary}</p>
+                                            </div>
+                                            <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
+                                            <div className={styles.chatInput}>
+                                                <QuestionInput
+                                                    clearOnSend
+                                                    placeholder="Type a new question"
+                                                    disabled={isLoading}
+                                                    onSend={question => makeApiRequest3(question)}
+                                                />
+                                            </div>
+                                            {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                                            <ExampleList onExampleClicked={onExampleClicked3}
+                                            EXAMPLES={
+                                                exampleList
+                                            } />
+                                        </div>
+                                    ) : (
+                                        <div className={styles.chatMessageStream}>
+                                            {answers3.map((answer, index) => (
+                                                <div key={index}>
+                                                    <UserChatMessage message={answer[0]} />
+                                                    <div className={styles.chatMessageGpt}>
+                                                        <Answer
+                                                            key={index}
+                                                            answer={answer[1]}
+                                                            isSpeaking = {runningIndex === index}
+                                                            isSelected={selectedAnswer === index && activeAnalysisPanelTab !== undefined}
+                                                            onCitationClicked={c => onShowCitation(c, index)}
+                                                            onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
+                                                            onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
+                                                            onSpeechSynthesisClicked={() => startOrStopSynthesis("gpt3", answer[2], index)}
+                                                            onFollowupQuestionClicked={q => makeApiRequest3(q)}
+                                                            showFollowupQuestions={useSuggestFollowupQuestions && answers3.length - 1 === index}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {isLoading && (
+                                                <>
+                                                    <UserChatMessage message={lastQuestionRef3.current} />
+                                                    <div className={styles.chatMessageGptMinWidth}>
+                                                        <AnswerLoading />
+                                                    </div>
+                                                </>
+                                            )}
+                                            {error ? (
+                                                <>
+                                                    <UserChatMessage message={lastQuestionRef3.current} />
+                                                    <div className={styles.chatMessageGptMinWidth}>
+                                                        <AnswerError error={error.toString()} onRetry={() => makeApiRequest3(lastQuestionRef3.current)} />
+                                                    </div>
+                                                </>
+                                            ) : null}
+                                            <div ref={chatMessageStreamEnd} />
+                                            <div className={styles.chatInput}>
+                                                <QuestionInput
+                                                    clearOnSend
+                                                    placeholder="Type a new question"
+                                                    disabled={isLoading}
+                                                    onSend={question => makeApiRequest3(question)}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {answers3.length > 0 && activeAnalysisPanelTab && (
+                                    <AnalysisPanel
+                                        className={styles.chatAnalysisPanel}
+                                        activeCitation={activeCitation}
+                                        onActiveTabChanged={x => onToggleTab(x, selectedAnswer)}
+                                        citationHeight="810px"
+                                        answer={answers3[selectedAnswer][1]}
+                                        activeTab={activeAnalysisPanelTab}
+                                    />
+                                )}
+
+                                <Panel
+                                    headerText="Configure Chat Interaction"
+                                    isOpen={isConfigPanelOpen}
+                                    isBlocking={false}
+                                    onDismiss={() => setIsConfigPanelOpen(false)}
+                                    closeButtonAriaLabel="Close"
+                                    onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
+                                    isFooterAtBottom={true}
+                                >
+                                    <br/>
+                                    <div>
+                                        <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
+                                        <Dropdown
+                                            selectedKey={selectedItem ? selectedItem.key : undefined}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onChange={onChange}
+                                            placeholder="Select an PDF"
+                                            options={options}
+                                            styles={dropdownStyles}
+                                        />
+                                        &nbsp;
+                                        <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                                    </div>
+                                    <br/>
+                                    <div>
+                                        <Label>LLM Model</Label>
+                                        <Dropdown
+                                            selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                                            onChange={onEmbeddingChange}
+                                            defaultSelectedKey="azureopenai"
+                                            placeholder="Select an LLM Model"
+                                            options={embeddingOptions}
+                                            disabled={false}
+                                            styles={dropdownStyles}
+                                        />
+                                    </div>
+                                    <TextField
+                                        className={styles.chatSettingsSeparator}
+                                        defaultValue={promptTemplate}
+                                        label="Override prompt template"
+                                        multiline
+                                        autoAdjustHeight
+                                        onChange={onPromptTemplateChange}
+                                    />
+
+                                    <SpinButton
+                                        className={styles.chatSettingsSeparator}
+                                        label="Retrieve this many documents from search:"
+                                        min={1}
+                                        max={7}
+                                        defaultValue={retrieveCount.toString()}
+                                        onChange={onRetrieveCountChange}
+                                    />
+                                    <SpinButton
+                                        className={styles.oneshotSettingsSeparator}
+                                        label="Set the Temperature:"
+                                        min={0.0}
+                                        max={1.0}
+                                        defaultValue={temperature.toString()}
+                                        onChange={onTemperatureChange}
+                                    />
+                                    <SpinButton
+                                        className={styles.oneshotSettingsSeparator}
+                                        label="Max Length (Tokens):"
+                                        min={0}
+                                        max={4000}
+                                        defaultValue={tokenLength.toString()}
+                                        onChange={onTokenLengthChange}
+                                    />
+                                    <Checkbox
+                                        className={styles.chatSettingsSeparator}
+                                        checked={useSuggestFollowupQuestions}
+                                        label="Suggest follow-up questions"
+                                        onChange={onUseSuggestFollowupQuestionsChange}
+                                    />
+                                    <Checkbox
+                                        className={styles.chatSettingsSeparator}
+                                        checked={useAutoSpeakAnswers}
+                                        label="Automatically speak answers"
+                                        onChange={onEnableAutoSpeakAnswersChange}
+                                    />
+                                </Panel>
+                            </div>
+                        </PivotItem>
+                </Pivot>
+                </div>
+            )}
         </div>
     );
 };
