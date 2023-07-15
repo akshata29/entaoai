@@ -69,7 +69,7 @@ const ChatGpt = () => {
     const [exampleLoading, setExampleLoading] = useState(false)
 
     const [selectedIndex, setSelectedIndex] = useState<string>();
-    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; summary:string; qa:string;  }[]>();
+    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; summary:string; qa:string; chunkSize:string; chunkOverlap:string; promptType:string }[]>();
     const [exampleList, setExampleList] = useState<ExampleModel[]>([{text:'', value: ''}]);
     const [summary, setSummary] = useState<string>();
     const [qa, setQa] = useState<string>('');
@@ -78,6 +78,11 @@ const ChatGpt = () => {
     const [selectedItems, setSelectedItems] = useState<any[]>([]);
     const [sessionName, setSessionName] = useState<string>('');
     const [showAuthMessage, setShowAuthMessage] = useState<boolean>(false);
+    const [selectedDeploymentType, setSelectedDeploymentType] = useState<IDropdownOption>();
+    const [selectedPromptTypeItem, setSelectedPromptTypeItem] = useState<IDropdownOption>();
+    const [selectedChunkSize, setSelectedChunkSize] = useState<string>()
+    const [selectedChunkOverlap, setSelectedChunkOverlap] = useState<string>()
+    const [selectedPromptType, setSelectedPromptType] = useState<string>()
 
     const generateQuickGuid = () => {
         return Math.random().toString(36).substring(2, 15) +
@@ -105,6 +110,36 @@ const ChatGpt = () => {
             flexWrap: 'wrap',
         },
     });
+
+    const promptTypeOptions = [
+        {
+          key: 'generic',
+          text: 'generic'
+        },
+        {
+          key: 'medical',
+          text: 'medical'
+        },
+        {
+          key: 'financial',
+          text: 'financial'
+        },
+        {
+          key: 'insurance',
+          text: 'insurance'
+        }
+    ]
+
+    const deploymentTypeOptions = [
+        {
+          key: 'gpt35',
+          text: 'GPT 3.5 Turbo'
+        },
+        {
+          key: 'gpt3516k',
+          text: 'GPT 3.5 Turbo - 16k'
+        }
+    ]
 
     const focusZoneProps = {
         className: classNames.focusZone,
@@ -219,7 +254,8 @@ const ChatGpt = () => {
                     embeddingModelType: String(selectedEmbeddingItem?.key),
                     firstSession: firstSession,
                     session: JSON.stringify(currentSession),
-                    sessionId: currentSession.sessionId
+                    sessionId: currentSession.sessionId,
+                    deploymentType: String(selectedDeploymentType?.key),
                 }
             };
             const result = await chatGptApi(request, String(selectedItem?.key), String(selectedIndex));
@@ -287,7 +323,8 @@ const ChatGpt = () => {
                     suggestFollowupQuestions: useSuggestFollowupQuestions,
                     tokenLength: tokenLength,
                     autoSpeakAnswers: useAutoSpeakAnswers,
-                    embeddingModelType: String(selectedEmbeddingItem?.key)
+                    embeddingModelType: String(selectedEmbeddingItem?.key),
+                    deploymentType: String(selectedDeploymentType?.key),
                 }
             };
             const result = await chatGpt3Api(question, request, String(selectedItem?.key), String(selectedIndex));
@@ -438,7 +475,10 @@ const ChatGpt = () => {
                     key:blob.namespace,
                     iType:blob.indexType,
                     summary:blob.summary,
-                    qa:blob.qa
+                    qa:blob.qa,
+                    chunkSize:blob.chunkSize,
+                    chunkOverlap:blob.chunkOverlap,
+                    promptType:blob.promptType
             })
           }
         }
@@ -456,6 +496,15 @@ const ChatGpt = () => {
                 setSelectedIndex(item.iType)
                 setSummary(item.summary)
                 setQa(item.qa)
+                setSelectedChunkOverlap(item.chunkOverlap)
+                setSelectedChunkSize(item.chunkSize)
+                setSelectedPromptType(item.promptType)
+                setSelectedPromptTypeItem(promptTypeOptions.find(x => x.key === item.promptType))
+                updatePrompt(item.promptType)
+
+                if (Number(item.chunkSize) > 4000) {
+                    setSelectedDeploymentType(deploymentTypeOptions[1])
+                }
 
                 getCosmosSession(item?.key, item?.iType)
 
@@ -491,6 +540,16 @@ const ChatGpt = () => {
                 setSelectedIndex(item.iType)
                 setSummary(item.summary)
                 setQa(item.qa)
+                setSelectedChunkSize(item.chunkSize)
+                setSelectedChunkOverlap(item.chunkOverlap)
+                setSelectedPromptType(item.promptType)
+                setSelectedPromptTypeItem(promptTypeOptions.find(x => x.key === item.promptType))
+                updatePrompt(item.promptType)
+
+                if (Number(item.chunkSize) > 4000) {
+                    setSelectedDeploymentType(deploymentTypeOptions[1])
+                }
+
                 getCosmosSession(item?.key, item?.iType)
 
                 const sampleQuestion = []
@@ -559,6 +618,37 @@ const ChatGpt = () => {
         }
     }
 
+    const updatePrompt = (promptType: string) => {
+        const genericPrompt = `Given the following extracted parts of a long document and a question, create a final answer. 
+        If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
+        If the answer is not contained within the text below, say \"I don't know\".
+
+        {summaries}
+        Question: {question}
+        `
+
+        const medicalPrompt = `You are an AI assistant tasked with answering questions and summarizing information from medical records documents. 
+        Your answer should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
+        Please generate a concise and comprehensive information that includes details such as patient information, medical history, 
+        allergies, chronic conditions, previous surgeries, prescribed medications, and upcoming appointments. 
+        Ensure that it is easy to understand for healthcare professionals and provides an accurate representation of the patient's medical history 
+        and current health status. 
+        
+        Begin with a brief introduction of the patient, followed by the main points of their medical records.
+        Please remember to use clear language and maintain the integrity of the original information without missing any important details
+        {summaries}
+        Question: {question}
+        `
+        if (promptType == "generic") {
+            setPromptTemplate(genericPrompt)
+        }
+        else if (promptType == "medical") {
+            setPromptTemplate(medicalPrompt)
+        } else if (promptType == "custom") {
+            setPromptTemplate("")
+        }
+    }
+
     useEffect(() => {
         if (window.location.hostname != "localhost") {
             getUserInfoList();
@@ -569,6 +659,7 @@ const ChatGpt = () => {
         setOptions([])
         refreshBlob()
         setSelectedEmbeddingItem(embeddingOptions[0])
+        setSelectedDeploymentType(deploymentTypeOptions[0])
     }, [])
 
     useEffect(() => chatMessageStreamEnd.current?.scrollIntoView({ behavior: "smooth" }), [isLoading]);
@@ -644,6 +735,15 @@ const ChatGpt = () => {
         };
         setChatSession(newSession);
         return newSession;
+    };
+
+    const onDeploymentTypeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedDeploymentType(item);
+    };
+
+    const onPromptTypeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedPromptTypeItem(item);
+        updatePrompt(String(item?.key));
     };
 
     const onToggleTab = (tab: AnalysisPanelTabs, index: number) => {
@@ -801,6 +901,7 @@ const ChatGpt = () => {
                                         />
                                         &nbsp;
                                         <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                                        <Label className={styles.commandsContainer}>Chunk Size : {selectedChunkSize} / Chunk Overlap : {selectedChunkOverlap}</Label>
                                     </div>
                                     <br/>
                                     <div>
@@ -815,14 +916,46 @@ const ChatGpt = () => {
                                             styles={dropdownStyles}
                                         />
                                     </div>
-                                    <TextField
+                                    <div>
+                                        <Label>Deployment Type</Label>
+                                        <Dropdown
+                                                selectedKey={selectedDeploymentType ? selectedDeploymentType.key : undefined}
+                                                onChange={onDeploymentTypeChange}
+                                                //defaultSelectedKey="azureopenai"
+                                                placeholder="Select an Deployment Type"
+                                                options={deploymentTypeOptions}
+                                                disabled={((selectedEmbeddingItem?.key == "openai" ? true : false) || (Number(selectedChunkSize) > 4000 ? true : false))}
+                                                styles={dropdownStyles}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Prompt Type</Label>
+                                        <Dropdown
+                                                selectedKey={selectedPromptTypeItem ? selectedPromptTypeItem.key : undefined}
+                                                onChange={onPromptTypeChange}
+                                                //defaultSelectedKey="azureopenai"
+                                                placeholder="Prompt Type"
+                                                options={promptTypeOptions}
+                                                disabled={false}
+                                                styles={dropdownStyles}
+                                        />
+                                        <TextField
+                                            className={styles.oneshotSettingsSeparator}
+                                            value={promptTemplate}
+                                            label="Override prompt template"
+                                            multiline
+                                            autoAdjustHeight
+                                            onChange={onPromptTemplateChange}
+                                        />
+                                    </div>
+                                    {/* <TextField
                                         className={styles.chatSettingsSeparator}
                                         defaultValue={promptTemplate}
                                         label="Override prompt template"
                                         multiline
                                         autoAdjustHeight
                                         onChange={onPromptTemplateChange}
-                                    />
+                                    /> */}
 
                                     <SpinButton
                                         className={styles.chatSettingsSeparator}

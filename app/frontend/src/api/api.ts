@@ -247,6 +247,7 @@ export async function chatGptApi(options: ChatRequest, indexNs: string, indexTyp
                     firstSession:options.overrides?.firstSession,
                     session:options.overrides?.session,
                     sessionId:options.overrides?.sessionId,
+                    deploymentType: options.overrides?.deploymentType,
                   }
                 }
               }
@@ -447,6 +448,7 @@ export async function chatGpt3Api(question: string, options: ChatRequest, indexN
                   prompt_template_suffix: options.overrides?.promptTemplateSuffix,
                   suggest_followup_questions: options.overrides?.suggestFollowupQuestions,
                   embeddingModelType: options.overrides?.embeddingModelType,
+                  deploymentType: options.overrides?.deploymentType,
                 }
               }
             }

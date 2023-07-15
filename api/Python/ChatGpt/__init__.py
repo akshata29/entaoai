@@ -163,6 +163,9 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     tokenLength = overrides.get('tokenLength') or 500
     firstSession = overrides.get('firstSession') or False
     sessionId = overrides.get('sessionId')
+    promptTemplate = overrides.get('promptTemplate') or ''
+    deploymentType = overrides.get('deploymentType') or 'gpt35'
+    
     logging.info("Search for Top " + str(topK))
     try:
         cosmosClient = CosmosClient(url=CosmosEndpoint, credential=CosmosKey)
@@ -211,14 +214,24 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
         embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
-        llmChat = AzureChatOpenAI(
-                    openai_api_base=baseUrl,
-                    openai_api_version=OpenAiVersion,
-                    deployment_name=OpenAiChat,
-                    temperature=temperature,
-                    openai_api_key=OpenAiKey,
-                    openai_api_type="azure",
-                    max_tokens=tokenLength)
+        if deploymentType == 'gpt35':
+            llmChat = AzureChatOpenAI(
+                        openai_api_base=baseUrl,
+                        openai_api_version=OpenAiVersion,
+                        deployment_name=OpenAiChat,
+                        temperature=temperature,
+                        openai_api_key=OpenAiKey,
+                        openai_api_type="azure",
+                        max_tokens=tokenLength)
+        elif deploymentType == "gpt3516k":
+            llmChat = AzureChatOpenAI(
+                        openai_api_base=baseUrl,
+                        openai_api_version=OpenAiVersion,
+                        deployment_name=OpenAiChat16k,
+                        temperature=temperature,
+                        openai_api_key=OpenAiKey,
+                        openai_api_type="azure",
+                        max_tokens=tokenLength)
         
         completion = openai.Completion.create(
             engine=OpenAiDavinci,
