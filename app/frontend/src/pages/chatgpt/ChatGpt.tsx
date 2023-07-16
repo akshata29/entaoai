@@ -77,12 +77,15 @@ const ChatGpt = () => {
     const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
     const [selectedItems, setSelectedItems] = useState<any[]>([]);
     const [sessionName, setSessionName] = useState<string>('');
+    const [oldSessionName, setOldSessionName] = useState<string>('');
     const [showAuthMessage, setShowAuthMessage] = useState<boolean>(false);
     const [selectedDeploymentType, setSelectedDeploymentType] = useState<IDropdownOption>();
     const [selectedPromptTypeItem, setSelectedPromptTypeItem] = useState<IDropdownOption>();
     const [selectedChunkSize, setSelectedChunkSize] = useState<string>()
     const [selectedChunkOverlap, setSelectedChunkOverlap] = useState<string>()
     const [selectedPromptType, setSelectedPromptType] = useState<string>()
+    const [selectedChain, setSelectedChain] = useState<IDropdownOption>();
+    const [chainTypeOptions, setChainTypeOptions] = useState<any>([])
 
     const generateQuickGuid = () => {
         return Math.random().toString(36).substring(2, 15) +
@@ -157,6 +160,13 @@ const ChatGpt = () => {
         }
     ]
 
+    const chainType = [
+        { key: 'stuff', text: 'Stuff'},
+        { key: 'map_rerank', text: 'Map ReRank' },
+        { key: 'map_reduce', text: 'Map Reduce' },
+        { key: 'refine', text: 'Refine'},
+    ]
+
     const embeddingOptions = [
         {
           key: 'azureopenai',
@@ -217,6 +227,10 @@ const ChatGpt = () => {
          [selection, sessionListColumn, sessionList]
      );
 
+    const onChainChange = (event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedChain(item);
+    };
+
     const makeApiRequest = async (question: string) => {
         let  currentSession = chatSession;
         let firstSession = false;
@@ -256,6 +270,7 @@ const ChatGpt = () => {
                     session: JSON.stringify(currentSession),
                     sessionId: currentSession.sessionId,
                     deploymentType: String(selectedDeploymentType?.key),
+                    chainType: String(selectedChain?.key),
                 }
             };
             const result = await chatGptApi(request, String(selectedItem?.key), String(selectedIndex));
@@ -325,6 +340,7 @@ const ChatGpt = () => {
                     autoSpeakAnswers: useAutoSpeakAnswers,
                     embeddingModelType: String(selectedEmbeddingItem?.key),
                     deploymentType: String(selectedDeploymentType?.key),
+                    chainType: String(selectedChain?.key),
                 }
             };
             const result = await chatGpt3Api(question, request, String(selectedItem?.key), String(selectedIndex));
@@ -371,20 +387,25 @@ const ChatGpt = () => {
     };
 
     const renameSession = async () => {
-        const oldSessionName = String(selectedItems[0]?.['Session Name'])
-        if (oldSessionName === 'No Sessions found' || oldSessionName === "undefined") {
+        console.log(oldSessionName)
+        console.log(sessionName)
+        //const oldSessionName = String(selectedItems[0]?.['Session Name'])
+        if (oldSessionName === 'No Sessions found' || oldSessionName === undefined || sessionName === "" || sessionName === undefined
+        || oldSessionName === "" || sessionName === 'No Sessions found') {
             alert("Select valid session to rename")
         }
-        await renameIndexSession(oldSessionName, sessionName)
-            .then(async (sessionResponse:any) => {
-                const defaultKey = selectedItem?.key
-                indexMapping?.findIndex((item) => {
-                    if (item.key == defaultKey) {
-                        getCosmosSession(item?.key, item?.iType)
-                    }
-                })
-                clearChat();
-        })
+        else {
+            await renameIndexSession(oldSessionName, sessionName)
+                .then(async (sessionResponse:any) => {
+                    const defaultKey = selectedItem?.key
+                    indexMapping?.findIndex((item) => {
+                        if (item.key == defaultKey) {
+                            getCosmosSession(item?.key, item?.iType)
+                        }
+                    })
+                    clearChat();
+            })
+        }
     };
 
     const onSessionNameChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
@@ -574,6 +595,7 @@ const ChatGpt = () => {
         //makeApiRequest(sessionFromList.name);
         const sessionName = sessionFromList["Session Name"]
         setSessionName(sessionName)
+        setOldSessionName(sessionName)
         if (sessionName != "No Session Found") {
             try {
                 await getIndexSession(String(selectedItem?.key), String(selectedIndex), sessionName)
@@ -658,6 +680,8 @@ const ChatGpt = () => {
 
         setOptions([])
         refreshBlob()
+        setChainTypeOptions(chainType)
+        setSelectedChain(chainType[0])
         setSelectedEmbeddingItem(embeddingOptions[0])
         setSelectedDeploymentType(deploymentTypeOptions[0])
     }, [])
@@ -981,6 +1005,14 @@ const ChatGpt = () => {
                                         defaultValue={tokenLength.toString()}
                                         onChange={onTokenLengthChange}
                                     />
+                                     <Dropdown 
+                                        label="Chain Type"
+                                        onChange={onChainChange}
+                                        selectedKey={selectedChain ? selectedChain.key : 'stuff'}
+                                        options={chainTypeOptions}
+                                        defaultSelectedKey={'stuff'}
+                                        styles={dropdownStyles}
+                                    />
                                     <Checkbox
                                         className={styles.chatSettingsSeparator}
                                         checked={useSuggestFollowupQuestions}
@@ -996,7 +1028,7 @@ const ChatGpt = () => {
                                 </Panel>
                             </div>
                         </PivotItem>
-                        <PivotItem
+                        {/* <PivotItem
                             headerText="GPT3"
                             headerButtonProps={{
                             'data-order': 2,
@@ -1176,7 +1208,7 @@ const ChatGpt = () => {
                                     />
                                 </Panel>
                             </div>
-                        </PivotItem>
+                        </PivotItem> */}
                 </Pivot>
                 </div>
             )}

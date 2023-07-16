@@ -21,6 +21,7 @@ from azure.search.documents.indexes.models import (
 from azure.search.documents.models import Vector  
 from tenacity import retry, wait_random_exponential, stop_after_attempt  
 import openai
+import logging
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 # Function to generate embeddings for title and content fields, also used for query embeddings
@@ -47,7 +48,7 @@ def generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, em
                 input=text, engine="text-embedding-ada-002", api_key = OpenAiApiKey)
             embeddings = response['data'][0]['embedding']
         except Exception as e:
-            print(e)
+            logging.info(e)
         
     return embeddings
 
@@ -55,10 +56,10 @@ def deleteSearchIndex(SearchService, SearchKey, indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
             credential=AzureKeyCredential(SearchKey))
     if indexName in indexClient.list_index_names():
-        print(f"Deleting {indexName} search index")
+        logging.info(f"Deleting {indexName} search index")
         indexClient.delete_index(indexName)
     else:
-        print(f"Search index {indexName} does not exist")
+        logging.info(f"Search index {indexName} does not exist")
 
 def createPibIndex(SearchService, SearchKey, indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
@@ -89,31 +90,12 @@ def createPibIndex(SearchService, SearchKey, indexName):
         )
 
         try:
-            print(f"Creating {indexName} search index")
+            logging.info(f"Creating {indexName} search index")
             indexClient.create_index(index)
         except Exception as e:
-            print(e)
+            logging.info(e)
     else:
-        print(f"Search index {indexName} already exists")
-
-def findEarningCalls(SearchService, SearchKey, indexName, symbol, quarter, year, returnFields=["id", "content", "sourcefile"]):
-    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
-        index_name=indexName,
-        credential=AzureKeyCredential(SearchKey))
-    
-    try:
-        r = searchClient.search(  
-            search_text="",
-            filter="symbol eq '" + symbol + "' and quarter eq '" + quarter + "' and year eq '" + year + "'",
-            select=returnFields,
-            semantic_configuration_name="semanticConfig",
-            include_total_count=True
-        )
-        return r
-    except Exception as e:
-        print(e)
-
-    return None
+        logging.info(f"Search index {indexName} already exists")
 
 def findPibData(SearchService, SearchKey, indexName, cik, step, returnFields=["id", "content", "sourcefile"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
@@ -130,7 +112,7 @@ def findPibData(SearchService, SearchKey, indexName, cik, step, returnFields=["i
         )
         return r
     except Exception as e:
-        print(e)
+        logging.info(e)
 
     return None
 
@@ -183,12 +165,31 @@ def createEarningCallIndex(SearchService, SearchKey, indexName):
         )
 
         try:
-            print(f"Creating {indexName} search index")
+            logging.info(f"Creating {indexName} search index")
             indexClient.create_index(index)
         except Exception as e:
-            print(e)
+            logging.info(e)
     else:
-        print(f"Search index {indexName} already exists")
+        logging.info(f"Search index {indexName} already exists")
+
+def findEarningCalls(SearchService, SearchKey, indexName, symbol, quarter, year, returnFields=["id", "content", "sourcefile"]):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    
+    try:
+        r = searchClient.search(  
+            search_text="",
+            filter="symbol eq '" + symbol + "' and quarter eq '" + quarter + "' and year eq '" + year + "'",
+            select=returnFields,
+            semantic_configuration_name="semanticConfig",
+            include_total_count=True
+        )
+        return r
+    except Exception as e:
+        logging.info(e)
+
+    return None
 
 def createEarningCallVectorIndex(SearchService, SearchKey, indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
@@ -232,12 +233,12 @@ def createEarningCallVectorIndex(SearchService, SearchKey, indexName):
         )
 
         try:
-            print(f"Creating {indexName} search index")
+            logging.info(f"Creating {indexName} search index")
             indexClient.create_index(index)
         except Exception as e:
-            print(e)
+            logging.info(e)
     else:
-        print(f"Search index {indexName} already exists")
+        logging.info(f"Search index {indexName} already exists")
 
 def createEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
                               callDate, symbol, year, quarter):
@@ -256,7 +257,7 @@ def createEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApi
 
 def indexEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
                              OpenAiEmbedding, indexName, docs, callDate, symbol, year, quarter):
-    print("Total docs: " + str(len(docs)))
+    logging.info("Total docs: " + str(len(docs)))
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
                                     index_name=indexName,
                                     credential=AzureKeyCredential(SearchKey))
@@ -268,10 +269,10 @@ def indexEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiK
             semantic_configuration_name="semanticConfig",
             include_total_count=True
     )
-    print(f"Found {r.get_count()} sections for {symbol} {year} Q{quarter}")
+    logging.info(f"Found {r.get_count()} sections for {symbol} {year} Q{quarter}")
 
     if r.get_count() > 0:
-        print(f"Already indexed {r.get_count()} sections for {symbol} {year} Q{quarter}")
+        logging.info(f"Already indexed {r.get_count()} sections for {symbol} {year} Q{quarter}")
         return
     
     sections = createEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
@@ -284,13 +285,13 @@ def indexEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiK
         if i % 1000 == 0:
             results = searchClient.index_documents(batch=batch)
             succeeded = sum([1 for r in results if r.succeeded])
-            print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+            logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
             batch = []
 
     if len(batch) > 0:
         results = searchClient.upload_documents(documents=batch)
         succeeded = sum([1 for r in results if r.succeeded])
-        print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+        logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
 
 def createPressReleaseIndex(SearchService, SearchKey, indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
@@ -317,12 +318,12 @@ def createPressReleaseIndex(SearchService, SearchKey, indexName):
         )
 
         try:
-            print(f"Creating {indexName} search index")
+            logging.info(f"Creating {indexName} search index")
             indexClient.create_index(index)
         except Exception as e:
-            print(e)
+            logging.info(e)
     else:
-        print(f"Search index {indexName} already exists")
+        logging.info(f"Search index {indexName} already exists")
 
 def createStockNewsIndex(SearchService, SearchKey, indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
@@ -353,15 +354,15 @@ def createStockNewsIndex(SearchService, SearchKey, indexName):
         )
 
         try:
-            print(f"Creating {indexName} search index")
+            logging.info(f"Creating {indexName} search index")
             indexClient.create_index(index)
         except Exception as e:
-            print(e)
+            logging.info(e)
     else:
-        print(f"Search index {indexName} already exists")
+        logging.info(f"Search index {indexName} already exists")
 
 def mergeDocs(SearchService, SearchKey, indexName, docs):
-    print("Total docs: " + str(len(docs)))
+    logging.info("Total docs: " + str(len(docs)))
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
                                     index_name=indexName,
                                     credential=AzureKeyCredential(SearchKey))
@@ -373,13 +374,13 @@ def mergeDocs(SearchService, SearchKey, indexName, docs):
         if i % 1000 == 0:
             results = searchClient.merge_or_upload_documents(documents=batch)
             succeeded = sum([1 for r in results if r.succeeded])
-            print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+            logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
             batch = []
 
     if len(batch) > 0:
         results = searchClient.merge_or_upload_documents(documents=batch)
         succeeded = sum([1 for r in results if r.succeeded])
-        print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+        logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
 
 def createSecFilingIndex(SearchService, SearchKey, indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
@@ -436,10 +437,10 @@ def createSecFilingIndex(SearchService, SearchKey, indexName):
         )
 
         try:
-            print(f"Creating {indexName} search index")
+            logging.info(f"Creating {indexName} search index")
             indexClient.create_index(index)
         except Exception as e:
-            print(e)
+            logging.info(e)
 
 def findSecFiling(SearchService, SearchKey, indexName, cik, filingType, filingDate, returnFields=["id", "content", "sourcefile"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
@@ -456,12 +457,12 @@ def findSecFiling(SearchService, SearchKey, indexName, cik, filingType, filingDa
         )
         return r
     except Exception as e:
-        print(e)
+        logging.info(e)
 
     return None
 
 def indexDocs(SearchService, SearchKey, indexName, docs):
-    print("Total docs: " + str(len(docs)))
+    logging.info("Total docs: " + str(len(docs)))
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
                                     index_name=indexName,
                                     credential=AzureKeyCredential(SearchKey))
@@ -473,13 +474,13 @@ def indexDocs(SearchService, SearchKey, indexName, docs):
         if i % 1000 == 0:
             results = searchClient.upload_documents(documents=batch)
             succeeded = sum([1 for r in results if r.succeeded])
-            print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+            logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
             batch = []
 
     if len(batch) > 0:
         results = searchClient.upload_documents(documents=batch)
         succeeded = sum([1 for r in results if r.succeeded])
-        print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+        logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
 
 def performCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
@@ -494,7 +495,7 @@ def performCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, Sear
         )
         return r
     except Exception as e:
-        print(e)
+        logging.info(e)
 
     return None
 
@@ -512,7 +513,7 @@ def performCogVectorSearch(embedValue, embedField, SearchService, SearchKey, ind
         )
         return r
     except Exception as e:
-        print(e)
+        logging.info(e)
 
     return None
 
@@ -532,6 +533,6 @@ def performKbCogVectorSearch(embedValue, embedField, SearchService, SearchKey, i
         )
         return r
     except Exception as e:
-        print(e)
+        logging.info(e)
 
     return None

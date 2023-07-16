@@ -32,6 +32,7 @@ export default defineConfig({
             "/getEvaluationQaDataSet": "http://127.0.0.1:5000",
             "/getIndexSession": "http://127.0.0.1:5000",
             "/getIndexSessionDetail": "http://127.0.0.1:5000",
+            "/getPib": "http://127.0.0.1:5000",
             "/getAllIndexSessions": "http://127.0.0.1:5000",
             "/indexManagement": "http://127.0.0.1:5000",
             "/kbQuestionManagement": "http://127.0.0.1:5000",

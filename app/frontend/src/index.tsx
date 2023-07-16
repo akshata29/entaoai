@@ -21,6 +21,7 @@ import DeveloperTools from "./pages/developertools/DeveloperTools";
 import SmartAgent from "./pages/smartagent/SmartAgent";
 import Summary from "./pages/summary/Summary";
 import Evaluator from "./pages/evaluator/Evaluator";
+import Pib from "./pages/pib/Pib";
 
 initializeIcons();
 
@@ -34,10 +35,11 @@ export default function App() {
                     <Route path="qa" element={<OneShot />} />
                     <Route path="sql" element={<SqlAgent />} />
                     <Route path="summary" element={<Summary />} />
-                    <Route path="smartagent" element={<SmartAgent />} />
+                    <Route path="smartAgent" element={<SmartAgent />} />
                     <Route path="developer" element={<DeveloperTools />} />
+                    <Route path="pib" element={<Pib />} />
                     <Route path="evaluator" element={<Evaluator />} />
-                    {/* <Route path="botchat" element={<BotChat />} /> */}
+                    {/* <Route path="botChat" element={<BotChat />} /> */}
                     <Route path="edgar" element={<Edgar />} />
                     <Route path="speech" element={<Speech />} />
                     <Route path="admin" element={<Admin />} />

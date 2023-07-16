@@ -356,7 +356,6 @@ const Evaluator = () => {
                             "Latency": evaluation['latency'],
                             });
                     }
-                    console.log(evaluationResult)
                     setEvaluationResults(evaluationResult);
                 })
             })

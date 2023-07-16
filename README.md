@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 7/16/2023 - Initial version of Pib UI (currently supporting 3 Steps - Company Profile, Call Transcripts and Press Releases).  You will need access to Paid subscription (FMP or modify based on what your enterprise have access to).  To use with FMP you will need to add `FmpKey` in Azure Functions
 * 7/14/2023 - Add support for GPT3.5 16K model and ability to chunk document > 4000 tokens with > 500 overlap.  For the ChunkSize > 4000, it will default to 16K token for both QnA and Chat functionality. Added identity provider to the application and authentication for QnA and Chat interface.  For GPT3.5 16k model, you will need to add `OpenAiChat16k` property in Azure Function app.
 * 7/13/2023 - Allow end user to select ChunkSize and ChunkOverlap Configuration.  Initial version of overriding prompt template.
 * 7/11/2023 - Functional PIB CoPilot in the form of the [notebook](./Workshop/10_PibCoPilot.ipynb).  UI will be added soon.

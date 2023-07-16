@@ -16,6 +16,7 @@
       "OpenAiEmbedding": "", // Deployment name of Ada-003
       "FormRecognizerEndPoint": "", // Form Recognizer Endpoint
       "FormRecognizerKey": "",  // Form Recognizer Key
+      "FmpKey":"", // Financial Modeling Prep Key
       "MaxTokens": 500, 
       "Temperature": 0.3,
       "CosmosEndpoint":"https://<>.documents.azure.com:443/",

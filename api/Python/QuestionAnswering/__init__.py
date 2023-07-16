@@ -113,7 +113,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
 
                 """
                 followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
-                followupChain = load_qa_chain(llm, chain_type=overrideChain, prompt=followupPrompt)
+                followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
             elif (overrideChain == "map_rerank"):
                 outputParser = RegexParser(
                     regex=r"(.*?)\nScore: (.*)",
@@ -141,7 +141,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 """
                 qaPrompt = PromptTemplate(template=promptTemplate,input_variables=["summaries", "question"],
                                           output_parser=outputParser)
-                qaChain = load_qa_with_sources_chain(llm, chain_type=chainType,
+                qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain,
                                             prompt=qaPrompt)
 
                 followupTemplate = """

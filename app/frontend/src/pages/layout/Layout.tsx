@@ -13,6 +13,7 @@ const Layout = () => {
     const [showUpload, setShowUpload] = useState<boolean>(false);
     const [showEdgar, setshowEdgar] = useState<boolean>(false);
     const [showAdmin, setShowAdmin] = useState<boolean>(false);
+    const [showSmartAgent, setShowSmartAgent] = useState<boolean>(false);
     const [showSpeech, setShowSpeech] = useState<boolean>(true);
 
     const onShowUpload = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
@@ -29,6 +30,10 @@ const Layout = () => {
 
     const onShowSpeech = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
         setShowSpeech(!!checked);
+    };
+
+    const onShowSmartAgent = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+        setShowSmartAgent(!!checked);
     };
 
     return (
@@ -48,7 +53,7 @@ const Layout = () => {
                                 </li>
                             )}
                             {/* <li>
-                                <NavLink to="/botchat" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}> 
+                                <NavLink to="/botChat" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}> 
                                     Bot Chat&nbsp;&nbsp;
                                 </NavLink>
                             </li> */}
@@ -78,10 +83,17 @@ const Layout = () => {
                                 </NavLink>
                             </li>
                             <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/smartagent" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                <NavLink to="/pib" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    PIB
+                                </NavLink>
+                            </li>
+                            { showSmartAgent && (
+                            <li className={styles.headerNavLeftMargin}>
+                                <NavLink to="/smartAgent" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Smart Agent
                                 </NavLink>
                             </li>
+                            )}
                             <li className={styles.headerNavLeftMargin}>
                                 <NavLink to="/developer" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Developer Tools
@@ -167,6 +179,13 @@ const Layout = () => {
                     checked={showSpeech}
                     label="Display Speech Analytics"
                     onChange={onShowSpeech}
+                />
+                <br/>
+                <Checkbox
+                    className={styles.chatSettingsSeparator}
+                    checked={showSmartAgent}
+                    label="Display Smart Agent"
+                    onChange={onShowSmartAgent}
                 />
                 <br/>
                 <Checkbox

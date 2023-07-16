@@ -32,6 +32,11 @@ try:
     else:
         OpenAiSummaryContainer = "summary"
 
+    if "FmpKey" in os.environ: 
+        FmpKey = os.getenv('FmpKey')
+    else:
+        FmpKey = ""
+        
     if "SecDocContainer" in os.environ: 
         SecDocContainer = os.environ['SecDocContainer']
     else:

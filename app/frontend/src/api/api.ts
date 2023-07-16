@@ -41,9 +41,7 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
                         semantic_captions: options.overrides?.semanticCaptions,
                         top: options.overrides?.top,
                         temperature: options.overrides?.temperature,
-                        prompt_template: options.overrides?.promptTemplate,
-                        prompt_template_prefix: options.overrides?.promptTemplatePrefix,
-                        prompt_template_suffix: options.overrides?.promptTemplateSuffix,
+                        promptTemplate: options.overrides?.promptTemplate,
                         exclude_category: options.overrides?.excludeCategory,
                         chainType: options.overrides?.chainType,
                         tokenLength: options.overrides?.tokenLength,
@@ -64,6 +62,36 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
     return parsedResponse.values[0].data
 
 }
+export async function getPib(step: string, symbol: string, embeddingModelType: string): Promise<AskResponse> {
+  const response = await fetch('/getPib', {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        step: step,
+        symbol: symbol,
+        embeddingModelType:embeddingModelType,
+        postBody: {
+          values: [
+            {
+              recordId: 0,
+              data: {
+                text: '',
+              }
+            }
+          ]
+        }
+      })
+  });
+
+  const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse.values[0].data
+}
+
 export async function promptGuru(task: string, modelName:string, embeddingModelType: string): Promise<AskResponse> {
   const response = await fetch('/promptGuru', {
       method: "POST",
@@ -112,13 +140,9 @@ export async function askAgentApi(options: AskRequest): Promise<AskResponse> {
                   overrides: {
                       indexType: options.overrides?.indexType,
                       indexes: options.overrides?.indexes,
-                      semantic_ranker: options.overrides?.semanticRanker,
-                      semantic_captions: options.overrides?.semanticCaptions,
                       top: options.overrides?.top,
                       temperature: options.overrides?.temperature,
-                      prompt_template: options.overrides?.promptTemplate,
-                      prompt_template_prefix: options.overrides?.promptTemplatePrefix,
-                      prompt_template_suffix: options.overrides?.promptTemplateSuffix,
+                      promptTemplate: options.overrides?.promptTemplate,
                       exclude_category: options.overrides?.excludeCategory,
                       chainType: options.overrides?.chainType,
                       tokenLength: options.overrides?.tokenLength,
@@ -235,19 +259,16 @@ export async function chatGptApi(options: ChatRequest, indexNs: string, indexTyp
                   history: options.history,
                   approach: 'rrr',
                   overrides: {
-                    semantic_ranker: options.overrides?.semanticRanker,
-                    semantic_captions: options.overrides?.semanticCaptions,
                     top: options.overrides?.top,
                     temperature: options.overrides?.temperature,
-                    prompt_template: options.overrides?.promptTemplate,
-                    prompt_template_prefix: options.overrides?.promptTemplatePrefix,
-                    prompt_template_suffix: options.overrides?.promptTemplateSuffix,
+                    promptTemplate: options.overrides?.promptTemplate,
                     suggest_followup_questions: options.overrides?.suggestFollowupQuestions,
                     embeddingModelType: options.overrides?.embeddingModelType,
                     firstSession:options.overrides?.firstSession,
                     session:options.overrides?.session,
                     sessionId:options.overrides?.sessionId,
                     deploymentType: options.overrides?.deploymentType,
+                    chainType: options.overrides?.chainType,
                   }
                 }
               }
@@ -439,16 +460,13 @@ export async function chatGpt3Api(question: string, options: ChatRequest, indexN
                 history: options.history,
                 approach: 'rrr',
                 overrides: {
-                  semantic_ranker: options.overrides?.semanticRanker,
-                  semantic_captions: options.overrides?.semanticCaptions,
                   top: options.overrides?.top,
                   temperature: options.overrides?.temperature,
-                  prompt_template: options.overrides?.promptTemplate,
-                  prompt_template_prefix: options.overrides?.promptTemplatePrefix,
-                  prompt_template_suffix: options.overrides?.promptTemplateSuffix,
+                  promptTemplate: options.overrides?.promptTemplate,
                   suggest_followup_questions: options.overrides?.suggestFollowupQuestions,
                   embeddingModelType: options.overrides?.embeddingModelType,
                   deploymentType: options.overrides?.deploymentType,
+                  chainType: options.overrides?.chainType,
                 }
               }
             }
