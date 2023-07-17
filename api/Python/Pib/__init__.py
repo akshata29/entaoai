@@ -5,7 +5,6 @@ from langchain.llms.openai import AzureOpenAI, OpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.docstore.document import Document
 from langchain.prompts import PromptTemplate
-from IPython.display import display, HTML
 from langchain.utilities import BingSearchAPIWrapper
 from langchain.chains.summarize import load_summarize_chain
 from langchain.docstore.document import Document
