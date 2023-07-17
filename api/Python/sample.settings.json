@@ -4,6 +4,8 @@
       "FUNCTIONS_WORKER_RUNTIME": "python",
       "AzureWebJobsFeatureFlags": "EnableWorkerIndexing",
       "DOCGENERATOR_URL": "http://localhost:7071/api/DocGenerator?code=",
+      "SecDocPersistUrl": "http://localhost:7071/api/SecDocPersist?code=",
+      "SecExtractionUrl": "http://localhost:7071/api/SecExtraction?code=",
       "AdminPassword": "P@ssw0rd", // Admin Password that is used for protected pages
       "UploadPassword": "P@ssw0rd", // Upload Password that is used for uploading files
       "AzureWebJobsStorage": "UseDevelopmentStorage=true",

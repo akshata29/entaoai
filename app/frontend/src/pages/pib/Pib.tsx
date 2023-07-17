@@ -47,6 +47,8 @@ const Pib = () => {
     const [latestTranscript, setLatestTranscript] = useState<string>();
     const [transcriptQuestions, setTranscriptQuestions] = useState<any>();
     const [pressReleases, setPressReleases] = useState<any>();
+    const [secFilings, setSecFilings] = useState<any>();
+    const [researchReport, setResearchReports] = useState<any>();
 
     const exchangeOptions = [
         {
@@ -144,11 +146,55 @@ const Pib = () => {
         }
     ]
 
+    const secFilingsColumns = [
+        {
+          key: 'section',
+          name: 'Sec Section',
+          fieldName: 'section',
+          minWidth: 100, maxWidth: 150, isResizable: false, isMultiline: true
+        },
+        {
+          key: 'summaryType',
+          name: 'Section Type',
+          fieldName: 'summaryType',
+          minWidth: 200, maxWidth: 300, isResizable: false, isMultiline: true
+        },
+        {
+            key: 'summary',
+            name: 'Section Summary',
+            fieldName: 'summary',
+            minWidth: 700, maxWidth: 900, isResizable: false, isMultiline: true
+        }
+    ]
+
+    const researchReportColumns = [
+        {
+          key: 'key',
+          name: 'Metrics',
+          fieldName: 'key',
+          minWidth: 200, maxWidth: 250, isResizable: false, isMultiline: true
+        },
+        {
+          key: 'value',
+          name: 'Recommendation or Score',
+          fieldName: 'value',
+          minWidth: 250, maxWidth: 300, isResizable: false, isMultiline: true
+        }
+    ]
+
     const stackItemStyles: IStackItemStyles = {
         root: {
             alignItems: 'left',
             // background: DefaultPalette.white,
             // color: DefaultPalette.white,
+            display: 'flex',
+            justifyContent: 'left',
+        },
+    };
+
+    const stackItemCenterStyles: IStackItemStyles = {
+        root: {
+            alignItems: 'center',
             display: 'flex',
             justifyContent: 'left',
         },
@@ -271,6 +317,37 @@ const Pib = () => {
                                 setPressReleases(pReleases);
                             }
                         }
+                    } else if (step == "4") {
+                        for (let i = 0; i < answer.length; i++) {
+                            if (answer[i].description == "SEC Filings") {
+                                const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
+                                const sFilings = []
+                                for (let i = 0; i < pibData.length; i++) 
+                                {
+                                    sFilings.push({
+                                        "section": pibData[i]['section'],
+                                        "summaryType": pibData[i]['summaryType'],
+                                        "summary": pibData[i]['summary'],
+                                        });
+                                }
+                                setSecFilings(sFilings);
+                            }
+                        }
+                    } else if (step == "5") {
+                        for (let i = 0; i < answer.length; i++) {
+                            if (answer[i].description == "Research Report") {
+                                const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
+                                const rReports = []
+                                for (let i = 0; i < pibData.length; i++) 
+                                {
+                                    rReports.push({
+                                        "key": pibData[i]['key'],
+                                        "value": pibData[i]['value'],
+                                        });
+                                }
+                                setResearchReports(rReports);
+                            }
+                        }
                     }
                 }
             )
@@ -390,19 +467,21 @@ const Pib = () => {
                                                     {description}
                                                 </Stack.Item>
                                                 <br/>
-                                                <Stack.Item grow={2} styles={stackItemStyles}>
-                                                    <DetailsList
-                                                        compact={true}
-                                                        items={biography || []}
-                                                        columns={biographyColumns}
-                                                        selectionMode={SelectionMode.none}
-                                                        getKey={(item: any) => item.key}
-                                                        selectionPreservedOnEmptyClick={true}
-                                                        layoutMode={DetailsListLayoutMode.justified}
-                                                        ariaLabelForSelectionColumn="Toggle selection"
-                                                        checkButtonAriaLabel="select row"
-                                                        />
-                                                </Stack.Item>
+                                                <Stack enableScopedSelectors styles={stackItemCenterStyles} tokens={innerStackTokens}>
+                                                    <Stack.Item grow={2} styles={stackItemCenterStyles}>
+                                                        <DetailsList
+                                                            compact={true}
+                                                            items={biography || []}
+                                                            columns={biographyColumns}
+                                                            selectionMode={SelectionMode.none}
+                                                            getKey={(item: any) => item.key}
+                                                            selectionPreservedOnEmptyClick={true}
+                                                            layoutMode={DetailsListLayoutMode.justified}
+                                                            ariaLabelForSelectionColumn="Toggle selection"
+                                                            checkButtonAriaLabel="select row"
+                                                            />
+                                                    </Stack.Item>
+                                                </Stack>
                                         </div>
                                         )
                                     }
@@ -473,30 +552,32 @@ const Pib = () => {
                                             <Spinner label="Processing..." ariaLive="assertive" labelPosition="right" />
                                         </Stack.Item>
                                         ) : (
-                                            <div>
+                                        <div>
                                         <br/>
-                                        <Stack.Item grow={2} styles={stackItemStyles}>
-                                            <Label>Earning Call Transcript</Label>
-                                            &nbsp; 
-                                            <TextField onChange={onSymbolChange}  
-                                                value={latestTranscript} disabled={true}
-                                                style={{ resize: 'none', width: '1000px', height: '500px' }}
-                                                multiline/>
-                                        </Stack.Item>
-                                        <br/>
-                                        <Stack.Item grow={2} styles={stackItemStyles}>
-                                            <DetailsList
-                                                compact={true}
-                                                items={transcriptQuestions || []}
-                                                columns={transcriptQuestionsColumns}
-                                                selectionMode={SelectionMode.none}
-                                                getKey={(item: any) => item.key}
-                                                selectionPreservedOnEmptyClick={true}
-                                                layoutMode={DetailsListLayoutMode.justified}
-                                                ariaLabelForSelectionColumn="Toggle selection"
-                                                checkButtonAriaLabel="select row"
-                                                />
-                                        </Stack.Item>
+                                        <Stack enableScopedSelectors styles={stackItemCenterStyles} tokens={innerStackTokens}>
+                                            <Stack.Item grow={2} styles={stackItemStyles}>
+                                                <Label>Earning Call Transcript</Label>
+                                                &nbsp; 
+                                                <TextField onChange={onSymbolChange}  
+                                                    value={latestTranscript} disabled={true}
+                                                    style={{ resize: 'none', width: '1000px', height: '500px' }}
+                                                    multiline/>
+                                            </Stack.Item>
+                                            <br/>
+                                            <Stack.Item grow={2} styles={stackItemCenterStyles}>
+                                                <DetailsList
+                                                    compact={true}
+                                                    items={transcriptQuestions || []}
+                                                    columns={transcriptQuestionsColumns}
+                                                    selectionMode={SelectionMode.none}
+                                                    getKey={(item: any) => item.key}
+                                                    selectionPreservedOnEmptyClick={true}
+                                                    layoutMode={DetailsListLayoutMode.justified}
+                                                    ariaLabelForSelectionColumn="Toggle selection"
+                                                    checkButtonAriaLabel="select row"
+                                                    />
+                                            </Stack.Item>
+                                        </Stack>
                                         </div>
                                     )}
                                 </Stack>
@@ -506,14 +587,14 @@ const Pib = () => {
                     <PivotItem
                         headerText="Step 3"
                         headerButtonProps={{
-                        'data-order': 2,
+                        'data-order': 3,
                         }}
                     >
                             <Stack enableScopedSelectors tokens={outerStackTokens}>
                                 <Stack enableScopedSelectors styles={stackItemStyles} tokens={innerStackTokens}>
                                     <Stack.Item grow={2} styles={stackItemStyles}>
                                         <div className={styles.example}>
-                                            <p><b>Step 2 : </b> 
+                                            <p><b>Step 3 : </b> 
                                               This step focuses on accessing the <b>Publicly</b> available press releases for the company.  For our use-case we are focusing on
                                               generating summary only for the latest 25 press releases.  Besides genearting the summary, we are also using GPT to find 
                                               sentiment and the sentiment score for the press-releases.
@@ -533,26 +614,130 @@ const Pib = () => {
                                             <Spinner label="Processing..." ariaLive="assertive" labelPosition="right" />
                                         </Stack.Item>
                                         ) : (
+                                        <Stack enableScopedSelectors styles={stackItemCenterStyles} tokens={innerStackTokens}>
+                                        <div>
+                                        <br/>
+                                            <Stack.Item grow={2} styles={stackItemCenterStyles}>
+                                                <DetailsList
+                                                    compact={true}
+                                                    items={pressReleases || []}
+                                                    columns={pressReleasesColumns}
+                                                    selectionMode={SelectionMode.none}
+                                                    getKey={(item: any) => item.key}
+                                                    selectionPreservedOnEmptyClick={true}
+                                                    layoutMode={DetailsListLayoutMode.justified}
+                                                    ariaLabelForSelectionColumn="Toggle selection"
+                                                    checkButtonAriaLabel="select row"
+                                                    />
+                                            </Stack.Item>
+                                        </div>
+                                        </Stack>
+                                    )}
+                                </Stack>
+                            </Stack>
+                    </PivotItem>
+                    <PivotItem
+                        headerText="Step 4"
+                        headerButtonProps={{
+                        'data-order': 4,
+                        }}
+                    >
+                            <Stack enableScopedSelectors tokens={outerStackTokens}>
+                                <Stack enableScopedSelectors styles={stackItemStyles} tokens={innerStackTokens}>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        <div className={styles.example}>
+                                            <p><b>Step 4 : </b> 
+                                              This step focuses on pulling the <b>Publicly</b> available 10-K annual filings for the company from the SEC Edgar website.
+                                              Once the data is crawled, it is stored and persisted in the indexed Repository.  The data is then used to 
+                                              generate the summary.   Summaries are generated for Item1, Item1A, Item3, Item5, Item7, Item7A and Item9 sections of the 10-K filing.
+                                            </p>
+                                        </div>
+                                    </Stack.Item>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        &nbsp;
+                                         <Label>Symbol :</Label>
+                                        &nbsp;
+                                        <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
+                                        &nbsp;
+                                        <PrimaryButton text="Process Step4" onClick={() => processPib("4")} />
+                                    </Stack.Item>
+                                    {isLoading ? (
+                                        <Stack.Item grow={2} styles={stackItemStyles}>
+                                            <Spinner label="Processing..." ariaLive="assertive" labelPosition="right" />
+                                        </Stack.Item>
+                                        ) : (
                                             <div>
                                         <br/>
-                                        <Stack.Item grow={2} styles={stackItemStyles}>
-                                            <DetailsList
-                                                compact={true}
-                                                items={pressReleases || []}
-                                                columns={pressReleasesColumns}
-                                                selectionMode={SelectionMode.none}
-                                                getKey={(item: any) => item.key}
-                                                selectionPreservedOnEmptyClick={true}
-                                                layoutMode={DetailsListLayoutMode.justified}
-                                                ariaLabelForSelectionColumn="Toggle selection"
-                                                checkButtonAriaLabel="select row"
-                                                />
-                                        </Stack.Item>
+                                        <Stack enableScopedSelectors styles={stackItemCenterStyles} tokens={innerStackTokens}>
+                                            <Stack.Item grow={2} styles={stackItemCenterStyles}>
+                                                <DetailsList
+                                                    compact={true}
+                                                    items={secFilings || []}
+                                                    columns={secFilingsColumns}
+                                                    selectionMode={SelectionMode.none}
+                                                    getKey={(item: any) => item.key}
+                                                    selectionPreservedOnEmptyClick={true}
+                                                    layoutMode={DetailsListLayoutMode.justified}
+                                                    ariaLabelForSelectionColumn="Toggle selection"
+                                                    checkButtonAriaLabel="select row"
+                                                    />
+                                            </Stack.Item>
+                                        </Stack>
                                         </div>
                                     )}
                                 </Stack>
                             </Stack>
-
+                    </PivotItem>
+                    <PivotItem
+                        headerText="Step 5"
+                        headerButtonProps={{
+                        'data-order': 5,
+                        }}
+                    >
+                            <Stack enableScopedSelectors tokens={outerStackTokens}>
+                                <Stack enableScopedSelectors styles={stackItemStyles} tokens={innerStackTokens}>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        <div className={styles.example}>
+                                            <p><b>Step 5 : </b> 
+                                              This step focuses on pulling the <b>Private</b> data that generates the fundamental and technical scores for the company.
+                                              It also shows the common analyst ratings and other information that is not publicly available.
+                                            </p>
+                                        </div>
+                                    </Stack.Item>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        &nbsp;
+                                         <Label>Symbol :</Label>
+                                        &nbsp;
+                                        <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
+                                        &nbsp;
+                                        <PrimaryButton text="Process Step5" onClick={() => processPib("5")} />
+                                    </Stack.Item>
+                                    {isLoading ? (
+                                        <Stack.Item grow={2} styles={stackItemStyles}>
+                                            <Spinner label="Processing..." ariaLive="assertive" labelPosition="right" />
+                                        </Stack.Item>
+                                        ) : (
+                                            <div>
+                                        <br/>
+                                        <Stack enableScopedSelectors styles={stackItemCenterStyles} tokens={innerStackTokens}>
+                                            <Stack.Item grow={2} styles={stackItemCenterStyles}>
+                                                <DetailsList
+                                                    compact={true}
+                                                    items={researchReport || []}
+                                                    columns={researchReportColumns}
+                                                    selectionMode={SelectionMode.none}
+                                                    getKey={(item: any) => item.key}
+                                                    selectionPreservedOnEmptyClick={true}
+                                                    layoutMode={DetailsListLayoutMode.justified}
+                                                    ariaLabelForSelectionColumn="Toggle selection"
+                                                    checkButtonAriaLabel="select row"
+                                                    />
+                                            </Stack.Item>
+                                        </Stack>
+                                        </div>
+                                    )}
+                                </Stack>
+                            </Stack>
                     </PivotItem>
                 </Pivot>
             </div>

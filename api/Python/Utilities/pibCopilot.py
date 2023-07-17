@@ -131,7 +131,7 @@ def deletePibData(SearchService, SearchKey, indexName, cik, step, returnFields=[
         )
         if r.get_count() > 0:
             for doc in r:
-                searchClient.delete_document(doc["id"])
+                searchClient.delete_documents(doc)
         return None
     except Exception as e:
         print(e)
@@ -181,6 +181,25 @@ def findEarningCalls(SearchService, SearchKey, indexName, symbol, quarter, year,
         r = searchClient.search(  
             search_text="",
             filter="symbol eq '" + symbol + "' and quarter eq '" + quarter + "' and year eq '" + year + "'",
+            select=returnFields,
+            semantic_configuration_name="semanticConfig",
+            include_total_count=True
+        )
+        return r
+    except Exception as e:
+        logging.info(e)
+
+    return None
+
+def findEarningCallsBySymbol(SearchService, SearchKey, indexName, symbol, returnFields=["id", "content", "sourcefile"]):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    
+    try:
+        r = searchClient.search(  
+            search_text="",
+            filter="symbol eq '" + symbol + "'",
             select=returnFields,
             semantic_configuration_name="semanticConfig",
             include_total_count=True

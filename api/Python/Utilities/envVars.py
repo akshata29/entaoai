@@ -36,7 +36,17 @@ try:
         FmpKey = os.getenv('FmpKey')
     else:
         FmpKey = ""
-        
+    
+    if "SecExtractionUrl" in os.environ: 
+        SecExtractionUrl = os.getenv('SecExtractionUrl')
+    else:
+        SecExtractionUrl = ""
+
+    if "SecDocPersistUrl" in os.environ: 
+        SecDocPersistUrl = os.getenv('SecDocPersistUrl')
+    else:
+        SecDocPersistUrl = ""
+    
     if "SecDocContainer" in os.environ: 
         SecDocContainer = os.environ['SecDocContainer']
     else:

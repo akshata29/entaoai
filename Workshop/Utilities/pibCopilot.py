@@ -149,7 +149,7 @@ def deletePibData(SearchService, SearchKey, indexName, cik, step, returnFields=[
         )
         if r.get_count() > 0:
             for doc in r:
-                searchClient.delete_document(doc["id"])
+                searchClient.delete_documents(doc["id"])
         return None
     except Exception as e:
         print(e)
