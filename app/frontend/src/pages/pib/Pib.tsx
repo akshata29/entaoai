@@ -17,6 +17,7 @@ import { Amex } from "../../components/Symbols/Amex";
 import { Nasdaq } from "../../components/Symbols/Nasdaq";
 import { Nyse } from "../../components/Symbols/Nyse";
 import { PrimaryButton } from "@fluentui/react";
+import { type } from "microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/RecognizerConfig";
 
 
 const Pib = () => {
@@ -256,6 +257,20 @@ const Pib = () => {
             .then(async (response) => {
                     const answer = JSON.parse(JSON.stringify(response.answer));
                     if (step == "1") {
+                        setBiography(undefined)
+                        setCompanyName(undefined)
+                        setCik(undefined)
+                        setExchange(undefined)
+                        setIndustry(undefined)
+                        setSector(undefined)
+                        setWebsite(undefined)
+                        setAddress(undefined)
+                        setDescription(undefined)
+                        setTranscriptQuestions(undefined)
+                        setLatestTranscript(undefined)
+                        setPressReleases(undefined)
+                        setSecFilings(undefined);
+                        setResearchReports(undefined);
                         for (let i = 0; i < answer.length; i++) {
                             if (answer[i].description == "Biography of Key Executives") {
                                 const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
@@ -283,6 +298,11 @@ const Pib = () => {
                             }
                         }
                     } else if (step == "2") {
+                        setTranscriptQuestions(undefined)
+                        setLatestTranscript(undefined)
+                        setPressReleases(undefined)
+                        setSecFilings(undefined);
+                        setResearchReports(undefined);
                         const dataPoints = response.data_points[0];
                         for (let i = 0; i < answer.length; i++) {
                             if (answer[i].description == "Earning Call Q&A") {
@@ -300,6 +320,9 @@ const Pib = () => {
                         }
                         setLatestTranscript(dataPoints)
                     } else if (step == "3") {
+                        setPressReleases(undefined)
+                        setSecFilings(undefined);
+                        setResearchReports(undefined);
                         for (let i = 0; i < answer.length; i++) {
                             if (answer[i].description == "Press Releases") {
                                 const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
@@ -318,6 +341,8 @@ const Pib = () => {
                             }
                         }
                     } else if (step == "4") {
+                        setSecFilings(undefined);
+                        setResearchReports(undefined);
                         for (let i = 0; i < answer.length; i++) {
                             if (answer[i].description == "SEC Filings") {
                                 const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
@@ -334,6 +359,7 @@ const Pib = () => {
                             }
                         }
                     } else if (step == "5") {
+                        setResearchReports(undefined);
                         for (let i = 0; i < answer.length; i++) {
                             if (answer[i].description == "Research Report") {
                                 const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
@@ -348,6 +374,9 @@ const Pib = () => {
                                 setResearchReports(rReports);
                             }
                         }
+                    }
+                    else {
+                        console.log("Step not defined")
                     }
                 }
             )
@@ -397,6 +426,31 @@ const Pib = () => {
                     >
                             <Stack enableScopedSelectors tokens={outerStackTokens}>
                                 <Stack enableScopedSelectors styles={stackItemStyles} tokens={innerStackTokens}>
+                                   <Stack.Item grow={2} styles={stackItemStyles}>
+                                        <div className={styles.example}>
+                                            <b>CoPilot</b> 
+                                            <p>
+                                            This use-case shows how to build your own CoPilot using the set of Cognitive Services on Microsoft Azure.  This use-case leverages the following services:
+                                            <ul>
+                                                <li>
+                                                    <b>Bing Search</b> - This service is used to find the latest information on the company and the key executives.
+                                                </li>
+                                                <li>
+                                                    <b>Azure OpenAI</b> - This service is used to generate content, summarize the content and answer questions.
+                                                </li>
+                                                <li>
+                                                    <b>Speech Services</b> - This service is used to convert the speech to text.
+                                                </li>
+                                                <li>
+                                                    <b>Cognitive Search</b> - This service is used as Vector store to persist the information.
+                                                </li>
+                                                <li>
+                                                    <b>Azure Functions</b> - This service is to orchestrated the entire process.
+                                                </li>
+                                            </ul>
+                                            </p>
+                                        </div>
+                                    </Stack.Item>
                                     <Stack.Item grow={2} styles={stackItemStyles}>
                                         <div className={styles.example}>
                                             <p><b>Step 1 : </b> 

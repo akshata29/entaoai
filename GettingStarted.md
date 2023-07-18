@@ -58,7 +58,8 @@ Verify http://localhost:5000 to confirm the App is running locally.
       8. Cognitive Services (Language and Speech Service)
       9. SQL Server and Database (**Note** - SQL Script - northwind.sql need to run manually once database is created)
       10. **Note** - Pinecone and Redis needs to be installed manually if you want vector database support.
-      11. **AWS Integration** - None of the artifacts are deployed for AWS Integration.  Scripts are available in Deployment\aws folder
+      11. **NOTE** - Due to rapid change in the deployment model on Azure Open AI models, commenting out the code to deploy the model.  You need to manually deploy the model using the [Azure Open AI Studio](https://oai.azure.com/).  Ensure you create a gpt-3.5-turbo as deployment name "chat" and text-davinci-003 as "davinci".
+      12. **AWS Integration** - None of the artifacts are deployed for AWS Integration.  Scripts are available in Deployment\aws folder
    2. [Fork the repo](https://github.com/akshata29/chatpdf/fork)
       1. **Note - Following information need to be performed only once**
       2. Click on Actions and select "I understand my workflow, go ahead and enable them"

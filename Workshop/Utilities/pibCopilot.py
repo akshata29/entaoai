@@ -149,7 +149,7 @@ def deletePibData(SearchService, SearchKey, indexName, cik, step, returnFields=[
         )
         if r.get_count() > 0:
             for doc in r:
-                searchClient.delete_documents(doc["id"])
+                searchClient.delete_documents(doc)
         return None
     except Exception as e:
         print(e)
@@ -480,6 +480,25 @@ def indexDocs(SearchService, SearchKey, indexName, docs):
         results = searchClient.upload_documents(documents=batch)
         succeeded = sum([1 for r in results if r.succeeded])
         print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+
+def performEarningCallCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, 
+                                embeddingModelType, OpenAiEmbedding, symbol, quarter, year, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    try:
+        r = searchClient.search(  
+            search_text="",  
+            filter="symbol eq '" + symbol + "' and quarter eq '" + quarter + "' and year eq '" + year + "'",
+            vector=Vector(value=generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
+            select=returnFields,
+            semantic_configuration_name="semanticConfig"
+        )
+        return r
+    except Exception as e:
+        print(e)
+
+    return None
 
 def performCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",

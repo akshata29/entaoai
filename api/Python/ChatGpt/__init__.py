@@ -279,7 +279,6 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     try:
         logging.info("Execute step 2")
         if (overrideChain == "stuff"):
-            logging.info(promptTemplate)
             if promptTemplate == '':
                 template = """
                     Given the following extracted parts of a long document and a question, create a final answer. 

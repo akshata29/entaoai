@@ -210,6 +210,25 @@ def findEarningCallsBySymbol(SearchService, SearchKey, indexName, symbol, return
 
     return None
 
+def performEarningCallCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, 
+                                embeddingModelType, OpenAiEmbedding, symbol, quarter, year, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    try:
+        r = searchClient.search(  
+            search_text="",  
+            filter="symbol eq '" + symbol + "' and quarter eq '" + quarter + "' and year eq '" + year + "'",
+            vector=Vector(value=generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
+            select=returnFields,
+            semantic_configuration_name="semanticConfig"
+        )
+        return r
+    except Exception as e:
+        print(e)
+
+    return None
+
 def createEarningCallVectorIndex(SearchService, SearchKey, indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
             credential=AzureKeyCredential(SearchKey))

@@ -19,5 +19,40 @@
         "State location": "CA",
         "State of Inc": "DE",
         "Fiscal Year End": "1231"
+    },
+    "831001": {
+        "Company Name": "CITIGROUP INC",
+        "SIC": "6021",
+        "State location": "NY",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "1018724": {
+        "Company Name": "AMAZON COM INC",
+        "SIC": "5961",
+        "State location": "WA",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "1640147": {
+        "Company Name": "Snowflake Inc.",
+        "SIC": "7372",
+        "State location": "MT",
+        "State of Inc": "DE",
+        "Fiscal Year End": "0131"
+    },
+    "1326801": {
+        "Company Name": "Meta Platforms, Inc.",
+        "SIC": "7370",
+        "State location": "CA",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "896159": {
+        "Company Name": "Chubb Ltd",
+        "SIC": "6331",
+        "State location": "V8",
+        "State of Inc": "V8",
+        "Fiscal Year End": "1231"
     }
 }

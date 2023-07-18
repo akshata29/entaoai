@@ -1243,7 +1243,7 @@ def batch_earning_call_transcript(
     query_vars = {"apikey": apikey, "year": year}
     return __return_json_v4(path=path, query_vars=query_vars)
 
-def earning_call_transcripts_available_dates(
+def earningCallsAvailableDates(
     apikey: str, symbol: str
 ) -> typing.Optional[typing.List[typing.List]]:
     """
