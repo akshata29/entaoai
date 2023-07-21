@@ -1,23 +1,34 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack, 
     IPivotItemProps, getFadedOverflowStyle, on} from "@fluentui/react";
 import { ShieldLockRegular } from "@fluentui/react-icons";
+import { SparkleFilled } from "@fluentui/react-icons";
 
 import styles from "./Pib.module.css";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
-import { askApi, askAgentApi, askTaskAgentApi, Approaches, AskResponse, AskRequest, refreshIndex, getSpeechApi, 
-    summaryAndQa, getPib, getUserInfo } from "../../api";
+import { AskResponse,  getPib, getUserInfo, Approaches } from "../../api";
+import { pibChatGptApi, ChatRequest, ChatTurn, getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession, renameIndexSession } from "../../api";
+    
 import { Label } from '@fluentui/react/lib/Label';
 import { Pivot, PivotItem } from '@fluentui/react';
 import { IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
-import { DetailsList, DetailsListLayoutMode, SelectionMode, ConstrainMode } from '@fluentui/react/lib/DetailsList';
 import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { Amex } from "../../components/Symbols/Amex";
 import { Nasdaq } from "../../components/Symbols/Nasdaq";
 import { Nyse } from "../../components/Symbols/Nyse";
 import { PrimaryButton } from "@fluentui/react";
 import { type } from "microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/RecognizerConfig";
+import { ClearChatButton } from "../../components/ClearChatButton";
+import { ChatSession } from "../../api/models";
+import { SessionButton } from "../../components/SessionButton";
+import { RenameButton } from "../../components/RenameButton";
+import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
+import { QuestionInput } from "../../components/QuestionInput";
+import { UserChatMessage } from "../../components/UserChatMessage";
+import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
+import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
+import { DetailsList, DetailsListLayoutMode, SelectionMode, Selection} from '@fluentui/react/lib/DetailsList';
 
 
 const Pib = () => {
@@ -51,6 +62,25 @@ const Pib = () => {
     const [secFilings, setSecFilings] = useState<any>();
     const [researchReport, setResearchReports] = useState<any>();
 
+    const lastQuestionRef = useRef<string>("");
+    const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
+    const [activeCitation, setActiveCitation] = useState<string>();
+    const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
+    const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
+    const [answers, setAnswers] = useState<[user: string, response: AskResponse, speechUrl: string | null][]>([]);
+    const [runningIndex, setRunningIndex] = useState<number>(-1);
+    const [chatSession, setChatSession] = useState<ChatSession | null>(null);
+    const [selectedItems, setSelectedItems] = useState<any[]>([]);
+    const [sessionName, setSessionName] = useState<string>('');
+    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; summary:string; qa:string; chunkSize:string; chunkOverlap:string; promptType:string }[]>();
+    const [selectedIndex, setSelectedIndex] = useState<string>();
+    const [sessionList, setSessionList] = useState<any[]>();
+    const [oldSessionName, setOldSessionName] = useState<string>('');
+    const [sessionId, setSessionId] = useState<string>();
+    const chatMessageStreamEnd = useRef<HTMLDivElement | null>(null);
+    const [selectedDoc, setSelectedDoc] = useState<IDropdownOption>();
+
+
     const exchangeOptions = [
         {
             key: 'AMEX',
@@ -63,6 +93,17 @@ const Pib = () => {
         {
             key: 'NYSE',
             text: 'NYSE'
+        }
+    ]
+
+    const docOptions = [
+        {
+            key: 'latestearningcalls',
+            text: 'Earning Calls'
+        },
+        {
+            key: 'latestsecfilings',
+            text: 'SEC Filings'
         }
     ]
 
@@ -208,12 +249,55 @@ const Pib = () => {
         },
     };
 
+    const sessionListColumn = [
+        {
+          key: 'Session Name',
+          name: 'Session Name',
+          fieldName: 'Session Name',
+          minWidth: 100,
+          maxWidth: 200, 
+          isResizable: false,
+        }
+    ]
+
     // Tokens definition
     const outerStackTokens: IStackTokens = { childrenGap: 5 };
     const innerStackTokens: IStackTokens = {
         childrenGap: 5,
         padding: 10,
     };
+
+    const selection = useMemo(
+        () =>
+        new Selection({
+            onSelectionChanged: () => {
+            setSelectedItems(selection.getSelection());
+        },
+        selectionMode: SelectionMode.single,
+        }),
+    []);
+
+    const detailsList = useMemo(
+        () => (
+            <MarqueeSelection selection={selection}>
+                <DetailsList
+                    className={styles.example}
+                    items={sessionList || []}
+                    columns={sessionListColumn}
+                    selectionMode={SelectionMode.single}
+                    getKey={(item: any) => item.key}
+                    setKey="single"
+                    onActiveItemChanged={(item:any) => onSessionClicked(item)}
+                    layoutMode={DetailsListLayoutMode.fixedColumns}
+                    ariaLabelForSelectionColumn="Toggle selection"
+                    checkButtonAriaLabel="select row"
+                    selection={selection}
+                    selectionPreservedOnEmptyClick={false}
+                 />
+             </MarqueeSelection>
+         ),
+         [selection, sessionListColumn, sessionList]
+    );
 
     const onExchangeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         setSelectedExchange(item);
@@ -224,6 +308,12 @@ const Pib = () => {
         } else if (item?.key === "NYSE") {
             setSelectedCompany(nyseTickers[0])
         }
+    }
+
+    const onDocChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedDoc(item);
+        clearChat();
+        getCosmosSession(String(item?.key), String(symbol))
     }
 
     const onCompanyChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
@@ -238,6 +328,8 @@ const Pib = () => {
         else {
             setMissingSymbol(false)
         }
+        getCosmosSession(String(selectedDoc?.key), String(newValue))
+        clearChat();
     };
 
     const getUserInfoList = async () => {
@@ -389,9 +481,236 @@ const Pib = () => {
         }
     }
 
+    const clearChat = () => {
+        lastQuestionRef.current = "";
+        error && setError(undefined);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+        setChatSession(null)
+        setAnswers([]);
+        setSelectedItems([])
+        setSessionName('');
+    };
+
+    const getCosmosSession = async (indexNs : string, indexType: string) => {
+        try {
+            await getAllIndexSessions(indexNs, indexType, 'chat', 'Session')
+            .then(async (response:any) => {
+                const sessionLists = []
+                if (response.length === 0) {
+                    sessionLists.push({
+                        "Session Name": "No Sessions found",
+                    });    
+                } else 
+                {
+                    for (const session of response) {
+                        sessionLists.push({
+                            "Session Name": session.name,
+                        });    
+                    }
+                }
+                setSessionList(sessionLists)
+            })
+        } catch (e) {
+            setError(e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const deleteSession = async () => {
+        //const sessionName = String(selectedItems[0]?.['Session Name'])
+        if (sessionName === 'No Sessions found' || sessionName === "" || sessionName === undefined) {
+            alert("Select Session to delete")
+        }
+        await deleteIndexSession(String(selectedDoc?.key), String(symbol), sessionName)
+            .then(async (sessionResponse:any) => {
+                getCosmosSession(String(selectedDoc?.key), String(symbol))
+                clearChat();
+        })
+
+    };
+
+    const renameSession = async () => {
+        if (oldSessionName === 'No Sessions found' || oldSessionName === undefined || sessionName === "" || sessionName === undefined
+        || oldSessionName === "" || sessionName === 'No Sessions found') {
+            alert("Select valid session to rename")
+        }
+        else {
+            await renameIndexSession(oldSessionName, sessionName)
+                .then(async (sessionResponse:any) => {
+                    getCosmosSession(String(selectedDoc?.key), String(symbol))
+                    clearChat();
+            })
+        }
+    };
+
+    const onSessionNameChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
+        const oldSessionName = String(selectedItems[0]?.['Session Name'])
+        if (newValue === undefined || newValue === "") {
+            alert("Provide session name")
+        }
+        setSessionName(newValue || oldSessionName);
+    };
+
+    const onSessionClicked = async (sessionFromList: any) => {
+        //makeApiRequest(sessionFromList.name);
+        const sessionName = sessionFromList["Session Name"]
+        setSessionName(sessionName)
+        setOldSessionName(sessionName)
+        if (sessionName != "No Session Found") {
+            try {
+                await getIndexSession(String(selectedDoc?.key), String(symbol), sessionName)
+                .then(async (sessionResponse:any) => {
+                    const sessionId = sessionResponse[0].sessionId
+                    const newSession: ChatSession = {
+                        id: sessionResponse[0].id,
+                        type: sessionResponse[0].type,
+                        sessionId: sessionResponse[0].sessionId,
+                        name: sessionResponse[0].name,
+                        chainType: sessionResponse[0].chainType,
+                        feature: sessionResponse[0].feature,
+                        indexId: sessionResponse[0].indexId,
+                        indexType: sessionResponse[0].indexType,
+                        indexName: sessionResponse[0].indexName,
+                        llmModel: sessionResponse[0].llmModel,
+                        timestamp: sessionResponse[0].timestamp,
+                        tokenUsed: sessionResponse[0].tokenUsed,
+                        embeddingModelType: sessionResponse[0].embeddingModelType
+                      };
+                    setChatSession(newSession);
+                    await getIndexSessionDetail(sessionId)
+                    .then(async (response:any) => {
+                        const rows = response.reduce(function (rows: any[][], key: any, index: number) { 
+                            return (index % 2 == 0 ? rows.push([key]) 
+                            : rows[rows.length-1].push(key)) && rows;
+                        }, []);
+                        const sessionLists: [string, AskResponse, string | null][] = [];
+                        for (const session of rows)
+                        {
+                            sessionLists.push([session[0].content, session[1].content, null]);
+                        }
+                        lastQuestionRef.current = sessionLists[sessionLists.length - 1][0];
+                        setAnswers(sessionLists);
+                    })
+                })
+            } catch (e) {
+                setError(e);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    }
+
+    const onShowCitation = (citation: string, index: number) => {
+        if (citation.indexOf('http') > -1 || citation.indexOf('https') > -1) {
+            window.open(citation.replace('/content/', '').trim(), '_blank');
+        } else {
+            if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab && selectedAnswer === index) {
+                setActiveAnalysisPanelTab(undefined);
+            } else {
+                setActiveCitation(citation);
+                setActiveAnalysisPanelTab(AnalysisPanelTabs.CitationTab);
+            }
+        }
+        setSelectedAnswer(index);
+    };
+
+    const generateQuickGuid = () => {
+        return Math.random().toString(36).substring(2, 15) +
+            Math.random().toString(36).substring(2, 15);
+    }
+
+    const handleNewConversation = () => {
+        const sessId = generateQuickGuid(); //uuidv4();
+        setSessionId(sessId);
+
+        const newSession: ChatSession = {
+          id: generateQuickGuid(),
+          type: 'Session',
+          sessionId: sessId,
+          name: sessId,
+          chainType: 'stuff',
+          feature: 'chat',
+          indexId: String(selectedDoc?.key),
+          indexType: String(symbol),
+          indexName: String(selectedDoc?.text),
+          llmModel: 'gpt3.5',
+          timestamp: String(new Date().getTime()),
+          tokenUsed: 0,
+          embeddingModelType: "azureopenai"
+        };
+        setChatSession(newSession);
+        return newSession;
+    };
+
+    const onToggleTab = (tab: AnalysisPanelTabs, index: number) => {
+        if (activeAnalysisPanelTab === tab && selectedAnswer === index) {
+            setActiveAnalysisPanelTab(undefined);
+        } else {
+            setActiveAnalysisPanelTab(tab);
+        }
+
+        setSelectedAnswer(index);
+    };
+
+    const makeApiRequest = async (question: string) => {
+        let  currentSession = chatSession;
+        let firstSession = false;
+        if (!lastQuestionRef.current || currentSession === null) {
+            currentSession = handleNewConversation();
+            firstSession = true;
+            let sessionLists = sessionList;
+            sessionLists?.unshift({
+                "Session Name": currentSession.sessionId,
+            });
+            setSessionList(sessionLists)
+        }
+        lastQuestionRef.current = question;
+
+        error && setError(undefined);
+        setIsLoading(true);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+
+        try {
+            const history: ChatTurn[] = answers.map(a => ({ user: a[0], bot: a[1].answer }));
+            const request: ChatRequest = {
+                history: [...history, { user: question, bot: undefined }],
+                approach: Approaches.ReadRetrieveRead,
+                overrides: {
+                    promptTemplate: '',
+                    top: 3,
+                    temperature: 0,
+                    suggestFollowupQuestions: true,
+                    tokenLength: 1000,
+                    autoSpeakAnswers: false,
+                    embeddingModelType: "azureopenai",
+                    firstSession: firstSession,
+                    session: JSON.stringify(currentSession),
+                    sessionId: currentSession.sessionId,
+                    deploymentType: "gpt3516k",
+                    chainType: "stuff",
+                }
+            };
+            const result = await pibChatGptApi(request, symbol, String(selectedDoc?.key));
+            setAnswers([...answers, [question, result, null]]);
+        } catch (e) {
+            setError(e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const startOrStopSynthesis = async (answerType:string, url: string | null, index: number) => {
+    };
+
     useEffect(() => {
         setSelectedExchange(exchangeOptions[0])
         setSelectedCompany(amexTickers[0]);
+
+        setSelectedDoc(docOptions[0]);
+        getCosmosSession(docOptions[0]?.key, String(symbol))
         if (window.location.hostname != "localhost") {
             getUserInfoList();
             setShowAuthMessage(true)
@@ -399,6 +718,7 @@ const Pib = () => {
             setShowAuthMessage(false)
     }, [])
 
+    useEffect(() => chatMessageStreamEnd.current?.scrollIntoView({ behavior: "smooth" }), [isLoading]);
 
     return (
         <div className={styles.root}>
@@ -492,6 +812,7 @@ const Pib = () => {
                                             errorMessage={!missingSymbol ? '' : "Symbol is required for PIB Functionality"}/>
                                         &nbsp;
                                         <PrimaryButton text="Process Step1" onClick={() => processPib("1")} disabled={isLoading} />
+                                        <PrimaryButton text="ReProcess Step1" onClick={() => processPib("1")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -600,6 +921,7 @@ const Pib = () => {
                                         <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
                                         &nbsp;
                                         <PrimaryButton text="Process Step2" onClick={() => processPib("2")} />
+                                        <PrimaryButton text="ReProcess Step2" onClick={() => processPib("2")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -662,6 +984,7 @@ const Pib = () => {
                                         <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
                                         &nbsp;
                                         <PrimaryButton text="Process Step3" onClick={() => processPib("3")} />
+                                        <PrimaryButton text="ReProcess Step3" onClick={() => processPib("3")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -714,6 +1037,7 @@ const Pib = () => {
                                         <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
                                         &nbsp;
                                         <PrimaryButton text="Process Step4" onClick={() => processPib("4")} />
+                                        <PrimaryButton text="ReProcess Step4" onClick={() => processPib("4")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -765,6 +1089,7 @@ const Pib = () => {
                                         <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
                                         &nbsp;
                                         <PrimaryButton text="Process Step5" onClick={() => processPib("5")} />
+                                        <PrimaryButton text="ReProcess Step5" onClick={() => processPib("5")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -792,6 +1117,135 @@ const Pib = () => {
                                     )}
                                 </Stack>
                             </Stack>
+                    </PivotItem>
+                    <PivotItem
+                        headerText="Chat Pib"
+                        headerButtonProps={{
+                        'data-order': 9,
+                        }}
+                    >
+                        <div className={styles.root}>
+                        <Stack enableScopedSelectors tokens={outerStackTokens}>
+                                <Stack enableScopedSelectors styles={stackItemStyles} tokens={innerStackTokens}>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        <Label>Symbol :</Label>&nbsp;
+                                        <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
+                                        <Label>Talk to Document :</Label>&nbsp;
+                                        <Dropdown
+                                            selectedKey={selectedDoc ? selectedDoc.key : undefined}
+                                            // eslint-disable-next-line react/jsx-no-bind
+                                            onChange={onDocChange}
+                                            placeholder="Select an PDF"
+                                            options={docOptions}
+                                            styles={dropdownStyles}
+                                        />
+                                    </Stack.Item>
+                                </Stack>
+                        </Stack>
+                        <br/>
+                        <div className={styles.commandsContainer}>
+                            <ClearChatButton className={styles.commandButton} onClick={clearChat}  text="Clear chat" disabled={!lastQuestionRef.current || isLoading} />
+                        </div>
+                        <div className={styles.commandsContainer}>
+                            <SessionButton className={styles.commandButton} onClick={clearChat} />
+                            <ClearChatButton className={styles.commandButton} onClick={deleteSession}  text="Delete Session" disabled={false} />
+                            <RenameButton className={styles.commandButton}  onClick={renameSession}  text="Rename Session"/>
+                            <TextField className={styles.commandButton} value={sessionName} onChange={onSessionNameChange}
+                                styles={{root: {width: '200px'}}} />
+                        </div>
+                        <div className={styles.chatRoot}>
+                            {detailsList}
+                            <div className={styles.chatContainer}>
+                                {!lastQuestionRef.current ? (
+                                    <div className={styles.chatEmptyState}>
+                                        <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
+                                        <h3 className={styles.chatEmptyStateTitle}>Chat with your Pitch Book</h3>
+                                        <h4 className={styles.chatEmptyStateSubtitle}>Ask anything on {symbol} from {selectedDoc ? selectedDoc.text : ''}</h4>
+                                        <div className={styles.chatInput}>
+                                            <QuestionInput
+                                                clearOnSend
+                                                placeholder="Type a new question"
+                                                disabled={isLoading}
+                                                onSend={question => makeApiRequest(question)}
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className={styles.chatMessageStream}>
+                                        {answers.map((answer, index) => (
+                                            <div key={index}>
+                                                <UserChatMessage message={answer[0]} />
+                                                <div className={styles.chatMessageGpt}>
+                                                    <Answer
+                                                        key={index}
+                                                        answer={answer[1]}
+                                                        isSpeaking = {runningIndex === index}
+                                                        isSelected={selectedAnswer === index && activeAnalysisPanelTab !== undefined}
+                                                        onCitationClicked={c => onShowCitation(c, index)}
+                                                        onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
+                                                        onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
+                                                        onFollowupQuestionClicked={q => makeApiRequest(q)}
+                                                        onSpeechSynthesisClicked={() => startOrStopSynthesis("gpt35", answer[2], index)}
+                                                        showFollowupQuestions={true}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {isLoading && (
+                                            <>
+                                                <UserChatMessage message={lastQuestionRef.current} />
+                                                <div className={styles.chatMessageGptMinWidth}>
+                                                    <AnswerLoading />
+                                                </div>
+                                            </>
+                                        )}
+                                        {error ? (
+                                            <>
+                                                <UserChatMessage message={lastQuestionRef.current} />
+                                                <div className={styles.chatMessageGptMinWidth}>
+                                                    <AnswerError error={error.toString()} onRetry={() => makeApiRequest(lastQuestionRef.current)} />
+                                                </div>
+                                            </>
+                                        ) : null}
+                                        <div ref={chatMessageStreamEnd} />
+                                        <div className={styles.chatInput}>
+                                            <QuestionInput
+                                                clearOnSend
+                                                placeholder="Type a new question"
+                                                disabled={isLoading}
+                                                onSend={question => makeApiRequest(question)}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {answers.length > 0 && activeAnalysisPanelTab && (
+                                <AnalysisPanel
+                                    className={styles.chatAnalysisPanel}
+                                    activeCitation={activeCitation}
+                                    onActiveTabChanged={x => onToggleTab(x, selectedAnswer)}
+                                    citationHeight="810px"
+                                    answer={answers[selectedAnswer][1]}
+                                    activeTab={activeAnalysisPanelTab}
+                                />
+                            )}
+
+                            {/* <div>
+                                <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
+                                <Dropdown
+                                    selectedKey={selectedItem ? selectedItem.key : undefined}
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    onChange={onChange}
+                                    placeholder="Select an PDF"
+                                    options={options}
+                                    styles={dropdownStyles}
+                                />
+                                &nbsp;
+                            </div> */}
+                        </div>
+                    </div>
+
                     </PivotItem>
                 </Pivot>
             </div>

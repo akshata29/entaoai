@@ -54,5 +54,54 @@
         "State location": "V8",
         "State of Inc": "V8",
         "Fiscal Year End": "1231"
+    },
+    "1750": {
+        "Company Name": "AAR CORP",
+        "SIC": "3720",
+        "State location": "IL",
+        "State of Inc": "DE",
+        "Fiscal Year End": "0531"
+    },
+    "40545": {
+        "Company Name": "GENERAL ELECTRIC CO",
+        "SIC": "3600",
+        "State location": "MA",
+        "State of Inc": "NY",
+        "Fiscal Year End": "1231"
+    },
+    "1559720": {
+        "Company Name": "Airbnb, Inc.",
+        "SIC": "7340",
+        "State location": "CA",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "6201": {
+        "Company Name": "American Airlines Group Inc.",
+        "SIC": "4512",
+        "State location": "TX",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "100517": {
+        "Company Name": "United Airlines Holdings, Inc.",
+        "SIC": "4512",
+        "State location": "IL",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "70858": {
+        "Company Name": "BANK OF AMERICA CORP /DE/",
+        "SIC": "6021",
+        "State location": "NC",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "72971": {
+        "Company Name": "WELLS FARGO & COMPANY/MN",
+        "SIC": "6021",
+        "State location": "CA",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
     }
 }

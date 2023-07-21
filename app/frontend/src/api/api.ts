@@ -283,6 +283,47 @@ export async function chatGptApi(options: ChatRequest, indexNs: string, indexTyp
     }
     return parsedResponse.values[0].data;
 }
+export async function pibChatGptApi(options: ChatRequest, symbol: string, indexName: string): Promise<AskResponse> {
+  const response = await fetch('/pibChat' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        symbol:symbol,
+        indexName: indexName,
+        postBody: {
+          values: [
+            {
+              recordId: 0,
+              data: {
+                history: options.history,
+                approach: 'rrr',
+                overrides: {
+                  top: options.overrides?.top,
+                  temperature: options.overrides?.temperature,
+                  promptTemplate: options.overrides?.promptTemplate,
+                  suggest_followup_questions: options.overrides?.suggestFollowupQuestions,
+                  embeddingModelType: options.overrides?.embeddingModelType,
+                  firstSession:options.overrides?.firstSession,
+                  session:options.overrides?.session,
+                  sessionId:options.overrides?.sessionId,
+                  deploymentType: options.overrides?.deploymentType,
+                  chainType: options.overrides?.chainType,
+                }
+              }
+            }
+          ]
+        }
+      })
+  });
+
+  const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error(parsedResponse.values[0].data.error || "Unknown error");
+  }
+  return parsedResponse.values[0].data;
+}
 export async function getAllIndexSessions(indexNs: string, indexType:string, feature:string, type:string): Promise<Any> {
   const response = await fetch('/getAllIndexSessions' , {
       method: "POST",

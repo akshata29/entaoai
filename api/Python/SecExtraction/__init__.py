@@ -833,79 +833,74 @@ def getSpecificIndicies(
 		user_agent,
 		cik_tickers=None,
 ):
-	"""
-	Loops through all the indexes and keeps only the rows/Series for the specific filing types
-	:param tsv_filenames: the indices filenames
-	:param filing_types: list of filing types to download. e.g. ['10-K', '10-K405', '10-KT']
-	:param user_agent: the User-agent that will be declared to SEC EDGAR
-	:param cik_tickers: list of CIKs or Tickers
-	:return: a final dataframe which has Series only for the specific indices
-	"""
+      """
+	    Loops through all the indexes and keeps only the rows/Series for the specific filing types
+	    :param tsv_filenames: the indices filenames
+	    :param filing_types: list of filing types to download. e.g. ['10-K', '10-K405', '10-KT']
+	    :param user_agent: the User-agent that will be declared to SEC EDGAR
+	    :param cik_tickers: list of CIKs or Tickers
+	    :return: a final dataframe which has Series only for the specific indices
+	    """
+      
+      ciks = []
+      logging.info(f'Getting specific indices for {cik_tickers}')
+      
+      if cik_tickers is not None:
+            if isinstance(cik_tickers, str):
+                if os.path.exists(cik_tickers) and os.path.isfile(cik_tickers):  # If filepath
+                    with open(cik_tickers) as f:
+                        cik_tickers = [line.strip() for line in f.readlines() if line.strip() != '']
+                else:
+                    logging.debug(f'Please provide a valid cik_ticker file path')
+      
+      if isinstance(cik_tickers, List) and len(cik_tickers):
+        company_tickers_url = 'https://www.sec.gov/files/company_tickers.json'
+        session = requests.Session()
+        try:
+            request = requestRetrySession(retries=5, backoff_factor=0.2, session=session).get(url=company_tickers_url, headers={'User-agent': user_agent})
+        except (RequestException, HTTPError, ConnectionError, Timeout, RetryError) as err:
+            logging.info(f'Failed downloading "{company_tickers_url}" - {err}')
 
-	ciks = []
+        company_tickers = json.loads(request.content)
+        ticker2cik = {company['ticker']: company['cik_str'] for company in company_tickers.values()}
+        ticker2cik = dict(sorted(ticker2cik.items(), key=lambda item: item[0]))
 
-	if cik_tickers is not None:
-		if isinstance(cik_tickers, str):
-			if os.path.exists(cik_tickers) and os.path.isfile(cik_tickers):  # If filepath
-				with open(cik_tickers) as f:
-					cik_tickers = [line.strip() for line in f.readlines() if line.strip() != '']
-			else:
-				logging.debug(f'Please provide a valid cik_ticker file path')
+        for c_t in cik_tickers:
+              if isinstance(c_t, int) or c_t.isdigit():  # If CIK
+                ciks.append(str(c_t))
+              else:
+                if c_t in ticker2cik:
+                      ciks.append(str(ticker2cik[c_t]))  # If Ticker
+                else:
+                    logging.debug(f'Could not find CIK for "{c_t}"')
 
-	if isinstance(cik_tickers, List) and len(cik_tickers):
-		company_tickers_url = 'https://www.sec.gov/files/company_tickers.json'
+        dfs_list = []
 
-		session = requests.Session()
-		try:
-			request = requestRetrySession(
-				retries=5, backoff_factor=0.2, session=session
-			).get(url=company_tickers_url, headers={'User-agent': user_agent})
-		except (RequestException, HTTPError, ConnectionError, Timeout, RetryError) as err:
-			logging.info(f'Failed downloading "{company_tickers_url}" - {err}')
-
-		company_tickers = json.loads(request.content)
-		ticker2cik = {company['ticker']: company['cik_str'] for company in company_tickers.values()}
-		ticker2cik = dict(sorted(ticker2cik.items(), key=lambda item: item[0]))
-
-		for c_t in cik_tickers:
-			if isinstance(c_t, int) or c_t.isdigit():  # If CIK
-				ciks.append(str(c_t))
-			else:
-				if c_t in ticker2cik:
-					ciks.append(str(ticker2cik[c_t]))  # If Ticker
-				else:
-					logging.debug(f'Could not find CIK for "{c_t}"')
-
-	dfs_list = []
-
-	for filepath in tsv_filenames:
-		#logging.info(f'Loading index file: {filepath} ...')
-		# Load the index file
-		df = pd.read_csv(
-			filepath,
-			sep='|',
-			header=None,
-			dtype=str,
+        for filepath in tsv_filenames:
+            #logging.info(f'Loading index file: {filepath} ...')
+            # Load the index file
+            df = pd.read_csv(filepath,sep='|',header=None,dtype=str,
 			names=[
 				'CIK', 'Company', 'Type', 'Date', 'complete_text_file_link', 'html_index',
 				'Filing Date', 'Period of Report', 'SIC', 'htm_file_link',
 				'State of Inc', 'State location', 'Fiscal Year End', 'filename'
-			]
-		)
+			])
 
-		df['complete_text_file_link'] = 'https://www.sec.gov/Archives/' + df['complete_text_file_link'].astype(str)
-		df['html_index'] = 'https://www.sec.gov/Archives/' + df['html_index'].astype(str)
+        df['complete_text_file_link'] = 'https://www.sec.gov/Archives/' + df['complete_text_file_link'].astype(str)
+        df['html_index'] = 'https://www.sec.gov/Archives/' + df['html_index'].astype(str)
 
 		# Filter by filing type
-		df = df[df.Type.isin(filing_types)]
+        df = df[df.Type.isin(filing_types)]
 
 		# Filter by CIK
-		if len(ciks):
-			df = df[(df.CIK.isin(ciks))]
+        if len(ciks):
+            df = df[(df.CIK.isin(ciks))]
 
-		dfs_list.append(df)
+        # logging.info(f'Total Count of After Filtering by CIK Data: {str(df.count())} ...')
 
-	return pd.concat(dfs_list) if (len(dfs_list) > 1) else dfs_list[0]
+        dfs_list.append(df)
+
+        return pd.concat(dfs_list) if (len(dfs_list) > 1) else dfs_list[0]
 
 def downloadIndices(
 		start_year: int,

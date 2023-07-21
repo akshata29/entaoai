@@ -288,13 +288,17 @@ def chunkAndEmbed(embeddingModelType, indexType, indexName, secDoc, fullPath):
         # Comment for now on not generating embeddings
         #secCommonData['contentVector'] = generateEmbeddings(embeddingModelType, text)
         fullData.append(secCommonData)
+        try:
 
-        searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
-                                    index_name=indexName,
-                                    credential=AzureKeyCredential(SearchKey))
-        results = searchClient.upload_documents(fullData)
-        succeeded = sum([1 for r in results if r.succeeded])
-        logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+            searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
+                                        index_name=indexName,
+                                        credential=AzureKeyCredential(SearchKey))
+            results = searchClient.upload_documents(fullData)
+            #succeeded = sum([1 for r in results if r.succeeded])
+            logging.info("Completed Indexing of documents")
+        except Exception as e:
+            logging.error(f"Error indexing documents {e}")
+            raise e
 
     return None
 
@@ -348,7 +352,11 @@ def PersistSecDocs(embeddingModelType, indexType, indexName,  value):
                 createSearchIndex(indexType, indexName)
                 logging.info("Index created")
                 logging.info("Chunk and Embed")
-                chunkAndEmbed(embeddingModelType, indexType, indexName, secDoc, os.path.basename(fileName))
+                try:
+                    chunkAndEmbed(embeddingModelType, indexType, indexName, secDoc, os.path.basename(fileName))
+                except Exception as e:
+                    logging.error(e)
+                    logging.error("Error chunking and embedding")
                 logging.info("Embedding complete")
                 metadata = {'embedded': 'true', 'indexType': indexType, "indexName": indexName}
                 upsertMetadata(OpenAiDocConnStr, SecDocContainer, fileName, metadata)

@@ -36,6 +36,7 @@ export default defineConfig({
             "/getAllIndexSessions": "http://127.0.0.1:5000",
             "/indexManagement": "http://127.0.0.1:5000",
             "/kbQuestionManagement": "http://127.0.0.1:5000",
+            "/pibChat": "http://127.0.0.1:5000",
             "/processDoc": "http://127.0.0.1:5000",
             "/promptGuru": "http://127.0.0.1:5000",
             "/processSummary": "http://127.0.0.1:5000",

@@ -149,6 +149,28 @@ def chat():
         logging.exception("Exception in /chat")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/pibChat", methods=["POST"])
+def pibChat():
+    symbol=request.json["symbol"]
+    indexName=request.json["indexName"]
+    postBody=request.json["postBody"]
+ 
+    logging.info(f"symbol: {symbol}")
+    
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("PIBCHAT_URL")
+
+        data = postBody
+        params = {'symbol': symbol, 'indexName': indexName }
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /pibChat")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/getAllIndexSessions", methods=["POST"])
 def getAllIndexSessions():
     indexType=request.json["indexType"]

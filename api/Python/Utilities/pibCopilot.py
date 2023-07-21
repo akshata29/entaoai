@@ -499,6 +499,128 @@ def findSecFiling(SearchService, SearchKey, indexName, cik, filingType, filingDa
 
     return None
 
+def createSecFilingsVectorIndex(SearchService, SearchKey, indexName):
+    indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            credential=AzureKeyCredential(SearchKey))
+    if indexName not in indexClient.list_index_names():
+        index = SearchIndex(
+            name=indexName,
+            fields=[
+                        SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                        SearchableField(name="symbol", type=SearchFieldDataType.String, sortable=True,
+                                        searchable=True, retrievable=True, filterable=True, facetable=True, analyzer_name="en.microsoft"),
+                        SearchableField(name="cik", type=SearchFieldDataType.String, sortable=True,
+                                        searchable=True, retrievable=True, filterable=True, facetable=True, analyzer_name="en.microsoft"),
+                        SearchableField(name="latestFilingDate", type=SearchFieldDataType.String, sortable=True,
+                                        searchable=True, retrievable=True, filterable=True, facetable=True, analyzer_name="en.microsoft"),
+                        SimpleField(name="filingType", type="Edm.String", sortable=True,
+                                        searchable=True, retrievable=True, filterable=True, facetable=True, analyzer_name="en.microsoft"),
+                        SearchableField(name="content", type=SearchFieldDataType.String,
+                                        searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                        SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                                    searchable=True, dimensions=1536, vector_search_configuration="vectorConfig"),
+            ],
+            vector_search = VectorSearch(
+                algorithm_configurations=[
+                    VectorSearchAlgorithmConfiguration(
+                        name="vectorConfig",
+                        kind="hnsw",
+                        hnsw_parameters={
+                            "m": 4,
+                            "efConstruction": 400,
+                            "efSearch": 500,
+                            "metric": "cosine"
+                        }
+                    )
+                ]
+            ),
+            semantic_settings=SemanticSettings(
+                configurations=[SemanticConfiguration(
+                    name='semanticConfig',
+                    prioritized_fields=PrioritizedFields(
+                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+        )
+
+        try:
+            logging.info(f"Creating {indexName} search index")
+            indexClient.create_index(index)
+        except Exception as e:
+            logging.info(e)
+    else:
+        logging.info(f"Search index {indexName} already exists")
+
+def createSecFilingsSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
+                              cik, symbol, latestFilingDate, filingType):
+    counter = 1
+    for i in docs:
+        yield {
+            "id": f"{symbol}-{latestFilingDate}-{filingType}-{counter}",
+            "symbol": symbol,
+            "cik": cik,
+            "latestFilingDate": latestFilingDate,
+            "filingType": filingType,
+            "content": i.page_content,
+            "contentVector": generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, i.page_content)
+        }
+        counter += 1
+
+def indexSecFilingsSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
+                             OpenAiEmbedding, indexName, docs, cik, symbol, latestFilingDate, filingType):
+    logging.info("Total docs: " + str(len(docs)))
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
+                                    index_name=indexName,
+                                    credential=AzureKeyCredential(SearchKey))
+
+    # Validate if we already have created documents for this call transcripts
+    r = searchClient.search(  
+            search_text="",
+            filter="cik eq '" + cik + "' and symbol eq '" + symbol + "' and latestFilingDate eq '" + latestFilingDate  + "' and filingType eq '" + filingType + "'",
+            semantic_configuration_name="semanticConfig",
+            include_total_count=True
+    )
+    logging.info(f"Found {r.get_count()} sections for {symbol} {cik} {latestFilingDate} {filingType}")
+
+    if r.get_count() > 0:
+        logging.info(f"Already indexed {r.get_count()} sections for {symbol} {cik} {latestFilingDate} {filingType}")
+        return
+    
+    sections = createSecFilingsSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
+                                         cik, symbol, latestFilingDate, filingType)
+    i = 0
+    batch = []
+    for s in sections:
+        batch.append(s)
+        i += 1
+        if i % 1000 == 0:
+            results = searchClient.index_documents(batch=batch)
+            succeeded = sum([1 for r in results if r.succeeded])
+            logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+            batch = []
+
+    if len(batch) > 0:
+        results = searchClient.upload_documents(documents=batch)
+        succeeded = sum([1 for r in results if r.succeeded])
+        logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+
+def findLatestSecFilings(SearchService, SearchKey, indexName, cik, symbol, latestFilingDate, filingType, returnFields=["id", "content", "sourcefile"] ):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    
+    try:
+        r = searchClient.search(  
+            search_text="",
+            filter="cik eq '" + cik + "' and symbol eq '" + symbol + "' and latestFilingDate eq '" + latestFilingDate  + "' and filingType eq '" + filingType + "'",
+            select=returnFields,
+            semantic_configuration_name="semanticConfig",
+            include_total_count=True
+        )
+        return r
+    except Exception as e:
+        logging.info(e)
+
+    return None
+
 def indexDocs(SearchService, SearchKey, indexName, docs):
     logging.info("Total docs: " + str(len(docs)))
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
@@ -519,6 +641,25 @@ def indexDocs(SearchService, SearchKey, indexName, docs):
         results = searchClient.upload_documents(documents=batch)
         succeeded = sum([1 for r in results if r.succeeded])
         logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
+
+def performLatestPibDataSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
+                               OpenAiEmbedding, filterData, question, indexName, k, returnFields=["id", "content"] ):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    try:
+        r = searchClient.search(  
+            search_text="",
+            filter=filterData,
+            vector=Vector(value=generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
+            select=returnFields,
+            semantic_configuration_name="semanticConfig"
+        )
+        return r
+    except Exception as e:
+        logging.info(e)
+
+    return None
 
 def performCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",

@@ -336,8 +336,6 @@ const ChatGpt = () => {
     };
 
     const renameSession = async () => {
-        console.log(oldSessionName)
-        console.log(sessionName)
         //const oldSessionName = String(selectedItems[0]?.['Session Name'])
         if (oldSessionName === 'No Sessions found' || oldSessionName === undefined || sessionName === "" || sessionName === undefined
         || oldSessionName === "" || sessionName === 'No Sessions found') {
