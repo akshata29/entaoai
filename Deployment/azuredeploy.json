@@ -592,14 +592,14 @@
 			  "name": "BLOB_CONTAINER_NAME",
 			  "value": "chatpdf"
 			},
-                        {
-                            "name": "BLOB_SUMMARY_CONTAINER_NAME",
-                            "value": "summary"
-                        },
-                        {
-                            "name": "BLOB_EVALUATOR_CONTAINER_NAME",
-                            "value": "evaluator"
-                        },
+            {
+                "name": "BLOB_SUMMARY_CONTAINER_NAME",
+                "value": "summary"
+            },
+            {
+                "name": "BLOB_EVALUATOR_CONTAINER_NAME",
+                "value": "evaluator"
+            },
 			{
 			  "name": "ENABLE_ORYX_BUILD",
 			  "value": "True"
@@ -608,40 +608,39 @@
 			  "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
 			  "value": "True"
 			},
-                        {
-                            "name": "VERIFYPASS_URL",
-                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/VerifyPassword?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                        },
-                        {
-                            "name":"RUNEVALUATION_URL",
-                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Evaluator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                        },
-                        {
-                            "name": "SMARTAGENT_URL",
-                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SmartAgent?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                        },
-                        {
-                            "name": "TASKAGENTQA_URL",
-                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/TaskAgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                            
-                        },
-                        {
-                            "name": "CONVERTCODE_URL",
-                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ConvertCode?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                        },
-                        {
-                            "name": "PROMPTGURU_URL",
-                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/PromptGuru?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                        },
+            {
+                "name": "VERIFYPASS_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/VerifyPassword?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+                "name":"RUNEVALUATION_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Evaluator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+                "name": "SMARTAGENT_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SmartAgent?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+                "name": "TASKAGENTQA_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/TaskAgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+                
+            },
+            {
+                "name": "CONVERTCODE_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ConvertCode?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+                "name": "PROMPTGURU_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/PromptGuru?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
 			{
 			  "name": "AGENTQA_URL",
 			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/AgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-			  
 			},
-                        {
-                            "name": "INDEXMANAGEMENT_URL",
-                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/IndexManagement?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                        },
+            {
+                "name": "INDEXMANAGEMENT_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/IndexManagement?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
 			{
 			  "name": "CHAT3_URL",
 			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Chat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
@@ -666,10 +665,10 @@
 			  "name": "SQLCHAIN_URL",
 			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChain?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
 			},
-                        {
-                            "name": "SQLVISUAL_URL",
-                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlVisual?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-                        },
+            {
+                "name": "SQLVISUAL_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlVisual?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
+            },
 			{
 			  "name": "SQLCHAT_URL",
 			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
@@ -678,55 +677,75 @@
 			  "name": "SUMMARYQA_URL",
 			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SampleQaSummary?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
 			},
-                        {
-                            "name": "SPEECH_REGION",
-                            "value": "[parameters('location')]"
-                        },
-                        {
-                            "name": "SPEECH_KEY",
-                            "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('speechSvcName')), '2022-12-01').key1]"
-                        },
-                        {
-                            "name": "TEXTANALYTICS_KEY",
-                            "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('langSvcName')), '2022-12-01').key1]"
-                        },
-                        {
-                            "name": "TEXTANALYTICS_REGION",
-                            "value": "[parameters('location')]"
-                        },
-                        {
-                            "name": "SUMMARIZER_URL",
-                            "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Summarizer?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                        },
-                        {
-                            "name": "SEARCHKEY",
-                            "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
-                        },
-                        {
-                            "name": "SEARCHSERVICE",
-                            "value": "[variables('searchSvcName')]"
-                        },
-                        {
-                            "name": "KBINDEXNAME",
-                            "value": "aoaikb"
-                        },
-                        {
-                            "name": "COSMOSENDPOINT",
-                            "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
-                        },
-                        {
-                            "name": "COSMOSKEY",
-                            "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
-                        },
-                        {
-                            "name": "COSMOSDATABASE",
-                            "value": "[variables('cosmosDb')]"
-                        },
-                        {
-                            "name": "COSMOSCONTAINER",
-                            "value": "[variables('cosmosContainer')]"
-                        }
-		]
+            {
+                "name": "SPEECH_REGION",
+                "value": "[parameters('location')]"
+            },
+            {
+                "name": "SPEECH_KEY",
+                "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('speechSvcName')), '2022-12-01').key1]"
+            },
+            {
+                "name": "TEXTANALYTICS_KEY",
+                "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('langSvcName')), '2022-12-01').key1]"
+            },
+            {
+                "name": "TEXTANALYTICS_REGION",
+                "value": "[parameters('location')]"
+            },
+            {
+                "name": "SUMMARIZER_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Summarizer?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+                "name": "SEARCHKEY",
+                "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
+            },
+            {
+                "name": "SEARCHSERVICE",
+                "value": "[variables('searchSvcName')]"
+            },
+            {
+                "name": "KBINDEXNAME",
+                "value": "aoaikb"
+            },
+            {
+                "name": "COSMOSENDPOINT",
+                "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
+            },
+            {
+                "name": "COSMOSKEY",
+                "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
+            },
+            {
+                "name": "COSMOSDATABASE",
+                "value": "[variables('cosmosDb')]"
+            },
+            {
+                "name": "COSMOSCONTAINER",
+                "value": "[variables('cosmosContainer')]"
+            },
+            {
+                "name": "PIB_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Pib?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+                "name": "PIBCHAT_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/PibChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+                "name": "SECDOCPERSIST_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecDocPersist?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+                "name": "SECEXTRACTION_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecExtraction?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+                "name": "SQLVISUAL_URL",
+                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlVisual?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            }
+		    ]
                 },
                 "scmSiteAlsoStopped": false,
                 "clientAffinityEnabled": false,

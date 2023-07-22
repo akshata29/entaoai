@@ -6,6 +6,8 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 7/23/2023 - Added the rest of the feature for PIB UI and initial version of generating the PowerPoint deck as the output.  For new feature added ensure you add `FMPKEY` variable to webapp configuration.
+* 7/20/2023 - Added feature to talk to Pib Data (Sec Filings & Earning Call Transcript).  Because new Auzre function is deployed, ensure `PIBCHAT_URL` property is added to Azure WebApp with the URL for your deployed Azure Functions
 * 7/18/2023 - Refactored the PIB code to solve some of the performance issue and bug fixes.
 * 7/17/2023 - Removed GPT3 chat interface with retirement of "Davinci" models.
 * 7/16/2023 - Initial version of Pib UI (currently supporting 5 Steps - Company Profile, Call Transcripts, Press Releases, Sec Filings and Ratings/Recommendations).  You will need access to Paid subscription (FMP or modify based on what your enterprise have access to).  To use with FMP you will need to add `FmpKey` in Azure Functions.  Because of circular dependency you need to manually add `SecDocPersistUrl` and `SecExtractionUrl` manually in Azure Functions.

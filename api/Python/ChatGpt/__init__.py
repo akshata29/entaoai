@@ -614,7 +614,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 #     nextQuestions = ''
 
                 # Followup questions
-                followupAnswer = followupChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+                followupAnswer = followupChain({"input_documents": docs, "question": q}, return_only_outputs=True)
                 nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
                 sources = ''                
                 if (modifiedAnswer.find("I don't know") >= 0):
