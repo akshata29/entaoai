@@ -1,10 +1,5 @@
 import { AskRequest, AskResponse, ChatRequest, ChatResponse, SpeechTokenResponse, SqlResponse,
   EvalResponse, UserInfo} from "./models";
-import { PineconeStore } from "langchain/vectorstores";
-import { OpenAIEmbeddings } from 'langchain/embeddings'
-import { PineconeClient } from "@pinecone-database/pinecone";
-import { ChatVectorDBQAChain } from 'langchain/chains'
-import { OpenAI } from 'langchain/llms'
 import { Any } from "@react-spring/web";
 
 export async function getUserInfo(): Promise<UserInfo[]> {
@@ -16,6 +11,118 @@ export async function getUserInfo(): Promise<UserInfo[]> {
 
   const payload = await response.json();
   return payload;
+}
+
+export async function getNews(symbol: string): Promise<Any> {
+  const response = await fetch('/getNews', {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        symbol: symbol,
+          postBody: {
+            values: [
+              {
+                recordId: 0,
+                data: {
+                  text: '',
+                  }
+              }
+            ]
+          }
+      })
+  });
+
+  const parsedResponse: Any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse
+}
+
+export async function getSocialSentiment(symbol: string): Promise<Any> {
+  const response = await fetch('/getSocialSentiment', {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        symbol: symbol,
+          postBody: {
+            values: [
+              {
+                recordId: 0,
+                data: {
+                  text: '',
+                  }
+              }
+            ]
+          }
+      })
+  });
+
+  const parsedResponse: Any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse
+}
+
+export async function getIncomeStatement(symbol: string): Promise<Any> {
+  const response = await fetch('/getIncomeStatement', {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        symbol: symbol,
+          postBody: {
+            values: [
+              {
+                recordId: 0,
+                data: {
+                  text: '',
+                  }
+              }
+            ]
+          }
+      })
+  });
+
+  const parsedResponse: Any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse
+}
+
+export async function getCashFlow(symbol: string): Promise<Any> {
+  const response = await fetch('/getCashFlow', {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        symbol: symbol,
+          postBody: {
+            values: [
+              {
+                recordId: 0,
+                data: {
+                  text: '',
+                  }
+              }
+            ]
+          }
+      })
+  });
+
+  const parsedResponse: Any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse
 }
 
 export async function askApi(options: AskRequest, indexNs: string, indexType: string, chainType : string): Promise<AskResponse> {

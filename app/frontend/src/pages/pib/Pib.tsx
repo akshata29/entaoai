@@ -1,19 +1,19 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack, 
     IPivotItemProps, getFadedOverflowStyle, on} from "@fluentui/react";
-import { ShieldLockRegular } from "@fluentui/react-icons";
+import { News16Filled, ShieldLockRegular } from "@fluentui/react-icons";
 import { SparkleFilled } from "@fluentui/react-icons";
 
 import styles from "./Pib.module.css";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
-import { AskResponse,  getPib, getUserInfo, Approaches } from "../../api";
+import { AskResponse,  getPib, getUserInfo, Approaches, getNews, getSocialSentiment, getIncomeStatement, getCashFlow } from "../../api";
 import { pibChatGptApi, ChatRequest, ChatTurn, getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession, renameIndexSession } from "../../api";
     
 import { Label } from '@fluentui/react/lib/Label';
 import { Pivot, PivotItem } from '@fluentui/react';
 import { IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
-import { mergeStyleSets } from '@fluentui/react/lib/Styling';
+import { DefaultPalette, mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { Amex } from "../../components/Symbols/Amex";
 import { Nasdaq } from "../../components/Symbols/Nasdaq";
 import { Nyse } from "../../components/Symbols/Nyse";
@@ -28,7 +28,12 @@ import { QuestionInput } from "../../components/QuestionInput";
 import { UserChatMessage } from "../../components/UserChatMessage";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
-import { DetailsList, DetailsListLayoutMode, SelectionMode, Selection} from '@fluentui/react/lib/DetailsList';
+import { DetailsList, DetailsListLayoutMode, SelectionMode, Selection, IColumn} from '@fluentui/react/lib/DetailsList';
+import { MediaCard } from "../../components/MediaCard";
+import { Image, ImageFit } from '@fluentui/react/lib/Image';
+import { Link } from '@fluentui/react/lib/Link';
+import {  LineChart, GroupedVerticalBarChart, IGroupedVerticalBarChartProps } from '@fluentui/react-charting';
+import pptxgen from "pptxgenjs";
 
 
 const Pib = () => {
@@ -40,8 +45,6 @@ const Pib = () => {
     const [error, setError] = useState<unknown>();
 
     const [symbol, setSymbol] = useState<string>('AAPL');
-    const [agentSummary, setAgentSummary] = useState<string>();
-    const [taskAgentSummary, setTaskAgentSummary] = useState<string>();
     const [selectedExchange, setSelectedExchange] = useState<IDropdownOption>();
     const [selectedCompany, setSelectedCompany] = useState<IDropdownOption>();
     const [selectedCompanyOptions, setSelectedCompanyOptions] = useState<IDropdownOption>();
@@ -63,7 +66,6 @@ const Pib = () => {
     const [researchReport, setResearchReports] = useState<any>();
 
     const lastQuestionRef = useRef<string>("");
-    const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
     const [activeCitation, setActiveCitation] = useState<string>();
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
     const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
@@ -72,14 +74,17 @@ const Pib = () => {
     const [chatSession, setChatSession] = useState<ChatSession | null>(null);
     const [selectedItems, setSelectedItems] = useState<any[]>([]);
     const [sessionName, setSessionName] = useState<string>('');
-    const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string; summary:string; qa:string; chunkSize:string; chunkOverlap:string; promptType:string }[]>();
-    const [selectedIndex, setSelectedIndex] = useState<string>();
     const [sessionList, setSessionList] = useState<any[]>();
     const [oldSessionName, setOldSessionName] = useState<string>('');
     const [sessionId, setSessionId] = useState<string>();
     const chatMessageStreamEnd = useRef<HTMLDivElement | null>(null);
     const [selectedDoc, setSelectedDoc] = useState<IDropdownOption>();
-
+    const [stockNews, setStockNews] = useState<any>();
+    const [socialSentiment, setSocialSentiment] = useState<any>(null);
+    const [incomeStatement, setIncomeStatement] = useState<any>();
+    const [cashFlow, setCashFlow] = useState<any>();
+   
+    const lineMargins = { left: 35, top: 20, bottom: 35, right: 20 };
 
     const exchangeOptions = [
         {
@@ -119,6 +124,48 @@ const Pib = () => {
         return {key: ticker.key, text: ticker.text}
     })
 
+    function stockNewsRenderColumn(item?: any, index?: number, column?: IColumn) {
+        const fieldContent = item[column?.fieldName as keyof any] as string;
+      
+        switch (column?.key) {
+          case 'thumbnail':
+            return <Image src={fieldContent} width={50} height={50} imageFit={ImageFit.cover} />;
+      
+          case 'name':
+            return <Link href="#">{fieldContent}</Link>;
+            
+          default:
+            return <span>{fieldContent}</span>;
+        }
+    }
+
+    const stockNewsColumns = [
+        {
+            key: 'thumbnail',
+            name: '',
+            fieldName: 'image',
+            minWidth: 50, maxWidth: 70, isResizable: false, isMultiline: true
+        },
+        {
+          key: 'title',
+          name: 'Title',
+          fieldName: 'title',
+          minWidth: 200, maxWidth: 200, isResizable: false, isMultiline: true
+        },
+        {
+            key: 'name',
+            name: 'News Source',
+            fieldName: 'url',
+            minWidth: 200, maxWidth: 200, isResizable: false, isMultiline: true
+        },
+        {
+          key: 'text',
+          name: 'News Details',
+          fieldName: 'text',
+          minWidth: 300, maxWidth: 300, isResizable: false, isMultiline: true
+        }
+    ]
+
     const biographyColumns = [
         {
           key: 'Name',
@@ -143,7 +190,7 @@ const Pib = () => {
     const transcriptQuestionsColumns = [
         {
           key: 'Question',
-          name: 'Question or Topic Summary',
+          name: 'Question or Topic',
           fieldName: 'question',
           minWidth: 400, maxWidth: 400, isResizable: false, isMultiline: true
         },
@@ -342,137 +389,393 @@ const Pib = () => {
         }
     }
 
+    const generatePresentation = async () => {
+        let pptx = new pptxgen();
+        let slide = null;
+
+        // Define Master Slide
+        pptx.layout = "LAYOUT_WIDE";
+        pptx.title = "Pib for " + symbol;
+        pptx.company = "Microsoft";
+        pptx.author = "Ashish Talati"
+        pptx.subject = "Public Information Book"
+        pptx.theme = { headFontFace: "Arial Light" };
+        pptx.theme = { bodyFontFace: "Arial" };
+
+
+        // Define Master slides for Tables
+        pptx.defineSlideMaster({
+            title: "PibMasterForTable",
+            background: { fill: "F1F1F1" },
+            margin: [0.5, 0.25, 1.0, 0.25],
+            objects: [
+                { rect: { x: 0.0, y: 6.9, w: "100%", h: 0.6, fill: { color: "003b75" } } },
+                { image: { x: 11.45, y: 5.95, w: 1.67, h: 0.75, path: "Microsoft.png" } },
+                {
+                    placeholder: {
+                        options: { name: "footer", type:'tbl', x: 0, y: 6.9, w: "100%", h: 0.6, align: "center", valign: "middle", color: "FFFFFF", fontSize: 12 },
+                        text: "(footer placeholder)",
+                    },
+                },
+            ],
+            slideNumber: { x: 0.6, y: 7.1, color: "FFFFFF", fontFace: "Arial", fontSize: 10, align: "center" },
+        });
+
+        // Add Biography Slide
+        slide = pptx.addSlide({ sectionTitle: "Biography", masterName: "PibMasterForTable" });
+        slide.addText(
+			[
+				{ text: symbol + " : ", options: { fontSize: 14, color: "0088CC", bold: true } },
+				{ text: "Biography of Executives", options: { fontSize: 13, color: "9F9F9F" } },
+			],
+			{ x: 0.5, y: 0.13, w: "90%" }
+		);
+
+        let arrRows : any[] = [];
+        arrRows.push([
+			{ text: "Name", options: { fill: "0088cc", color: "ffffff", valign: "middle" } },
+			{ text: "Title", options: { fill: "0088cc", color: "ffffff", valign: "middle" } },
+			{ text: "Biography", options: { fill: "0088cc", color: "ffffff", valign: "middle" } },
+		]);
+
+        biography.forEach((bio: { Name: any; Title: any; Biography: any; }) => {
+            arrRows.push([
+                bio.Name,
+                bio.Title,
+                bio.Biography
+            ])
+        })
+
+        slide.addText("Overview & Biography", { placeholder: "footer" });
+		slide.addTable(arrRows, { x: 1.0, y: 0.6, colW: [0.75, 1.75, 9], margin: 0.05, border: { color: "CFCFCF" }, autoPage: true, autoPageRepeatHeader: true });
+		slide.newAutoPagedSlides.forEach((slide) => slide.addText("Overview & Biography", { placeholder: "footer" }));
+        slide.newAutoPagedSlides.forEach((slide) => slide.addText([
+            { text: symbol + " : ", options: { fontSize: 14, color: "0088CC", bold: true } },
+            { text: "Biography of Executives", options: { fontSize: 13, color: "9F9F9F" } },
+        ],
+        { x: 0.5, y: 0.13, w: "90%" }));
+
+        // Add Earning call Slide
+        slide = pptx.addSlide({ sectionTitle: "Earning Call", masterName: "PibMasterForTable" });
+        slide.addText(
+			[
+				{ text: symbol + " : ", options: { fontSize: 14, color: "0088CC", bold: true } },
+				{ text: "Earning Call Summary", options: { fontSize: 13, color: "9F9F9F" } },
+			],
+			{ x: 0.5, y: 0.13, w: "90%" }
+		);
+
+        arrRows = [];
+        arrRows.push([
+			{ text: "Question or Topic", options: { fill: "0088cc", color: "ffffff", valign: "middle" } },
+			{ text: "Answer or Summary", options: { fill: "0088cc", color: "ffffff", valign: "middle" } },
+		]);
+
+        transcriptQuestions.forEach((tr: { question: any; answer: any; }) => {
+            arrRows.push([
+                tr.question,
+                tr.answer,
+            ])
+        })
+
+        slide.addText("Earning Call Summary", { placeholder: "footer" });
+		slide.addTable(arrRows, { x: 1.0, y: 0.6, colW: [1.75, 9], margin: 0.05, border: { color: "CFCFCF" }, autoPage: true, autoPageRepeatHeader: true });
+        slide.newAutoPagedSlides.forEach((slide) => slide.addText("Earning Call Summary", { placeholder: "footer" }));
+        slide.newAutoPagedSlides.forEach((slide) => slide.addText([
+            { text: symbol + " : ", options: { fontSize: 14, color: "0088CC", bold: true } },
+            { text: "Earning Call Summary", options: { fontSize: 13, color: "9F9F9F" } },
+        ],
+        { x: 0.5, y: 0.13, w: "90%" }));
+
+        // Add Press Releases Slide
+        slide = pptx.addSlide({ sectionTitle: "Press Releases", masterName: "PibMasterForTable" });
+        slide.addText(
+            [
+                { text: symbol + " : ", options: { fontSize: 14, color: "0088CC", bold: true } },
+                { text: "Press Releases Summary", options: { fontSize: 13, color: "9F9F9F" } },
+            ],
+            { x: 0.5, y: 0.13, w: "90%" }
+        );
+
+        arrRows = [];
+        arrRows.push([
+            { text: "Release Date", options: { fill: "0088cc", color: "ffffff", valign: "middle" } },
+            { text: "Title", options: { fill: "0088cc", color: "ffffff", valign: "middle" } },
+            { text: "Summary", options: { fill: "0088cc", color: "ffffff", valign: "middle" } },
+            { text: "Sentiment", options: { fill: "0088cc", color: "ffffff", valign: "middle" } },
+            { text: "Score", options: { fill: "0088cc", color: "ffffff", valign: "middle" } },
+        ]);
+
+        pressReleases.forEach((pr: { releaseDate: any; title: any; summary:any, sentiment:any, sentimentScore:any }) => {
+            arrRows.push([
+                pr.releaseDate,
+                pr.title,
+                pr.summary,
+                pr.sentiment,
+                pr.sentimentScore
+            ])
+        })
+
+        slide.addText("Press Releases Summary", { placeholder: "footer" });
+        slide.addTable(arrRows, { x: 0.2, y: 0.6, colW: [1.7, 2.75, 7, 1.2, 1.0], margin: 0.05, border: { color: "CFCFCF" }, autoPage: true, autoPageRepeatHeader: true });
+        slide.newAutoPagedSlides.forEach((slide) => slide.addText("Press Releases Summary", { placeholder: "footer" }));
+        slide.newAutoPagedSlides.forEach((slide) => slide.addText([
+            { text: symbol + " : ", options: { fontSize: 14, color: "0088CC", bold: true } },
+            { text: "Press Releases Summary", options: { fontSize: 13, color: "9F9F9F" } },
+        ],
+        { x: 0.5, y: 0.13, w: "90%" }));
+
+        pptx.writeFile();
+
+    }
+
     const processPib = async (step: string) => {
         try {
             setIsLoading(true);
-            await getPib(step, symbol, "azureopenai")
-            .then(async (response) => {
-                    const answer = JSON.parse(JSON.stringify(response.answer));
-                    if (step == "1") {
-                        setBiography(undefined)
-                        setCompanyName(undefined)
-                        setCik(undefined)
-                        setExchange(undefined)
-                        setIndustry(undefined)
-                        setSector(undefined)
-                        setWebsite(undefined)
-                        setAddress(undefined)
-                        setDescription(undefined)
-                        setTranscriptQuestions(undefined)
-                        setLatestTranscript(undefined)
-                        setPressReleases(undefined)
-                        setSecFilings(undefined);
-                        setResearchReports(undefined);
-                        for (let i = 0; i < answer.length; i++) {
-                            if (answer[i].description == "Biography of Key Executives") {
-                                const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
-                                const biographies = []
-                                for (let i = 0; i < pibData.length; i++) 
+            if (step == '6') {
+                    await getNews(symbol)
+
+                    .then(async (response) => {
+                        setStockNews(response)
+                        await getSocialSentiment(symbol)
+                        .then((sentimentResp : any) => {
+                            const series1: { x: Date; y: any; }[] = []
+                            const series2: { x: Date; y: any; }[] = []
+                            const series3: { x: Date; y: any; }[] = []
+                            const series4: { x: Date; y: any; }[] = []
+                            const lineChartData = []
+                            const socialSentimentData = []
+                            sentimentResp.forEach((item: any) => {
+                                series1.push({x: new Date(item.date), y: item.tweetSentiment})
+                                series2.push({x: new Date(item.date), y: item.redditCommentSentiment})
+                                series3.push({x: new Date(item.date), y: item.stocktwitsPostSentiment})
+                                series4.push({x: new Date(item.date), y: item.yahooFinanceCommentSentiment})
+                            })
+                            lineChartData.push(
+                                { legend: 'Twitter Sentiment', data: series1.reverse(), color: DefaultPalette.blue },
+                            )
+                            lineChartData.push(
+                                { legend: 'Reddit Sentiment', data: series2.reverse(), color: DefaultPalette.green },
+                            )
+                            lineChartData.push(
+                                { legend: 'Stock Twits Sentiment', data: series3.reverse(), color: DefaultPalette.red },
+                            )
+                            lineChartData.push(
+                                { legend: 'Yahoo Finance Sentiment', data: series4.reverse(), color: DefaultPalette.yellow },
+                            )
+                            socialSentimentData.push(
+                                { chartTitle: 'Social Sentiment', lineChartData: lineChartData },
+                            )
+
+                            setSocialSentiment(socialSentimentData[0])
+                        })
+                        .catch((error) => {
+                            console.log(error)
+                        })
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                    })
+            } 
+            else if (step == '7') {
+                await getIncomeStatement(symbol)
+                .then(async (incResponse: any) => {
+                    const incomeDataSeries: { name: string; series: { key: string; data: number; color: string; legend: string; }[]; }[] = []
+                    incResponse.forEach((item: any) => {
+                        incomeDataSeries.push({
+                            name : String(new Date(item.date).getFullYear()),
+                            series: [{
+                                key: "Revenue",
+                                data: item.revenue,
+                                color: DefaultPalette.green,
+                                legend: 'Revenue',
+                                },
                                 {
-                                    biographies.push({
-                                        "Name": pibData[i]['name'],
-                                        "Title": pibData[i]['title'],
-                                        "Biography": pibData[i]['biography'],
-                                        });
+                                    key: "Income",
+                                    data: item.netIncome,
+                                    color: DefaultPalette.blue,
+                                    legend: 'Net Income',
+                                },
+                                {
+                                    key: "GrossProfit",
+                                    data: item.grossProfit,
+                                    color: DefaultPalette.yellow,
+                                    legend: 'Gross Profit',
                                 }
-                                setBiography(biographies);
-                            } else if (answer[i].description == "Company Profile")
-                            {
-                                const profileData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
-                                setCompanyName(profileData[0]['companyName'])
-                                setCik(profileData[0]['cik'])
-                                setExchange(profileData[0]['exchange'])
-                                setIndustry(profileData[0]['industry'])
-                                setSector(profileData[0]['sector'])
-                                setAddress(profileData[0]['address'] + " " + profileData[0]['city'] + " " + profileData[0]['state'] + " " + profileData[0]['zip'])
-                                setWebsite(profileData[0]['website'])
-                                setDescription(profileData[0]['description'])
+                            ]
+                        }
+                        )
+                    })
+                    setIncomeStatement(incomeDataSeries)
+                    await getCashFlow(symbol)
+                    .then((cfResponse : any) => {
+                        const cfDataSeries: { name: string; series: { key: string; data: number; color: string; legend: string; }[]; }[] = []
+                        cfResponse.forEach((item: any) => {
+                            cfDataSeries.push({
+                                name : String(new Date(item.date).getFullYear()),
+                                series: [{
+                                    key: "AP",
+                                    data: item.accountsPayables,
+                                    color: DefaultPalette.green,
+                                    legend: 'Account Payable',
+                                    },
+                                    {
+                                        key: "fcf",
+                                        data: item.freeCashFlow,
+                                        color: DefaultPalette.blue,
+                                        legend: 'Free Cash Flow',
+                                    },
+                                    {
+                                        key: "OcF",
+                                        data: item.operatingCashFlow,
+                                        color: DefaultPalette.yellow,
+                                        legend: 'Operating Cash Flow',
+                                    }
+                                ]
+                            }
+                            )
+                        })
+                        setCashFlow(cfDataSeries)
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                    })
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
+            }
+            else 
+            {
+                await getPib(step, symbol, "azureopenai")
+                .then(async (response) => {
+                        const answer = JSON.parse(JSON.stringify(response.answer));
+                        if (step == "1") {
+                            setBiography(undefined)
+                            setCompanyName(undefined)
+                            setCik(undefined)
+                            setExchange(undefined)
+                            setIndustry(undefined)
+                            setSector(undefined)
+                            setWebsite(undefined)
+                            setAddress(undefined)
+                            setDescription(undefined)
+                            setTranscriptQuestions(undefined)
+                            setLatestTranscript(undefined)
+                            setPressReleases(undefined)
+                            setSecFilings(undefined);
+                            setResearchReports(undefined);
+                            for (let i = 0; i < answer.length; i++) {
+                                if (answer[i].description == "Biography of Key Executives") {
+                                    const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
+                                    const biographies = []
+                                    for (let i = 0; i < pibData.length; i++) 
+                                    {
+                                        biographies.push({
+                                            "Name": pibData[i]['name'],
+                                            "Title": pibData[i]['title'],
+                                            "Biography": pibData[i]['biography'],
+                                            });
+                                    }
+                                    setBiography(biographies);
+                                } else if (answer[i].description == "Company Profile")
+                                {
+                                    const profileData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
+                                    setCompanyName(profileData[0]['companyName'])
+                                    setCik(profileData[0]['cik'])
+                                    setExchange(profileData[0]['exchange'])
+                                    setIndustry(profileData[0]['industry'])
+                                    setSector(profileData[0]['sector'])
+                                    setAddress(profileData[0]['address'] + " " + profileData[0]['city'] + " " + profileData[0]['state'] + " " + profileData[0]['zip'])
+                                    setWebsite(profileData[0]['website'])
+                                    setDescription(profileData[0]['description'])
+                                }
+                            }
+                        } else if (step == "2") {
+                            setTranscriptQuestions(undefined)
+                            setLatestTranscript(undefined)
+                            setPressReleases(undefined)
+                            setSecFilings(undefined);
+                            setResearchReports(undefined);
+                            const dataPoints = response.data_points[0];
+                            for (let i = 0; i < answer.length; i++) {
+                                if (answer[i].description == "Earning Call Q&A") {
+                                    const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
+                                    const tQuestions = []
+                                    for (let i = 0; i < pibData.length; i++) 
+                                    {
+                                        tQuestions.push({
+                                            "question": pibData[i]['question'],
+                                            "answer": pibData[i]['answer'],
+                                            });
+                                    }
+                                    setTranscriptQuestions(tQuestions);
+                                }
+                            }
+                            setLatestTranscript(dataPoints)
+                        } else if (step == "3") {
+                            setPressReleases(undefined)
+                            setSecFilings(undefined);
+                            setResearchReports(undefined);
+                            for (let i = 0; i < answer.length; i++) {
+                                if (answer[i].description == "Press Releases") {
+                                    const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
+                                    const pReleases = []
+                                    for (let i = 0; i < pibData.length; i++) 
+                                    {
+                                        pReleases.push({
+                                            "releaseDate": pibData[i]['releaseDate'],
+                                            "title": pibData[i]['title'],
+                                            "summary": pibData[i]['summary'],
+                                            "sentiment": pibData[i]['sentiment'],
+                                            "sentimentScore": pibData[i]['sentimentScore'],
+                                            });
+                                    }
+                                    setPressReleases(pReleases);
+                                }
+                            }
+                        } else if (step == "4") {
+                            setSecFilings(undefined);
+                            setResearchReports(undefined);
+                            for (let i = 0; i < answer.length; i++) {
+                                if (answer[i].description == "SEC Filings") {
+                                    const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
+                                    const sFilings = []
+                                    for (let i = 0; i < pibData.length; i++) 
+                                    {
+                                        sFilings.push({
+                                            "section": pibData[i]['section'],
+                                            "summaryType": pibData[i]['summaryType'],
+                                            "summary": pibData[i]['summary'],
+                                            });
+                                    }
+                                    setSecFilings(sFilings);
+                                }
+                            }
+                        } else if (step == "5") {
+                            setResearchReports(undefined);
+                            for (let i = 0; i < answer.length; i++) {
+                                if (answer[i].description == "Research Report") {
+                                    const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
+                                    const rReports = []
+                                    for (let i = 0; i < pibData.length; i++) 
+                                    {
+                                        rReports.push({
+                                            "key": pibData[i]['key'],
+                                            "value": pibData[i]['value'],
+                                            });
+                                    }
+                                    setResearchReports(rReports);
+                                }
                             }
                         }
-                    } else if (step == "2") {
-                        setTranscriptQuestions(undefined)
-                        setLatestTranscript(undefined)
-                        setPressReleases(undefined)
-                        setSecFilings(undefined);
-                        setResearchReports(undefined);
-                        const dataPoints = response.data_points[0];
-                        for (let i = 0; i < answer.length; i++) {
-                            if (answer[i].description == "Earning Call Q&A") {
-                                const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
-                                const tQuestions = []
-                                for (let i = 0; i < pibData.length; i++) 
-                                {
-                                    tQuestions.push({
-                                        "question": pibData[i]['question'],
-                                        "answer": pibData[i]['answer'],
-                                        });
-                                }
-                                setTranscriptQuestions(tQuestions);
-                            }
-                        }
-                        setLatestTranscript(dataPoints)
-                    } else if (step == "3") {
-                        setPressReleases(undefined)
-                        setSecFilings(undefined);
-                        setResearchReports(undefined);
-                        for (let i = 0; i < answer.length; i++) {
-                            if (answer[i].description == "Press Releases") {
-                                const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
-                                const pReleases = []
-                                for (let i = 0; i < pibData.length; i++) 
-                                {
-                                    pReleases.push({
-                                        "releaseDate": pibData[i]['releaseDate'],
-                                        "title": pibData[i]['title'],
-                                        "summary": pibData[i]['summary'],
-                                        "sentiment": pibData[i]['sentiment'],
-                                        "sentimentScore": pibData[i]['sentimentScore'],
-                                        });
-                                }
-                                setPressReleases(pReleases);
-                            }
-                        }
-                    } else if (step == "4") {
-                        setSecFilings(undefined);
-                        setResearchReports(undefined);
-                        for (let i = 0; i < answer.length; i++) {
-                            if (answer[i].description == "SEC Filings") {
-                                const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
-                                const sFilings = []
-                                for (let i = 0; i < pibData.length; i++) 
-                                {
-                                    sFilings.push({
-                                        "section": pibData[i]['section'],
-                                        "summaryType": pibData[i]['summaryType'],
-                                        "summary": pibData[i]['summary'],
-                                        });
-                                }
-                                setSecFilings(sFilings);
-                            }
-                        }
-                    } else if (step == "5") {
-                        setResearchReports(undefined);
-                        for (let i = 0; i < answer.length; i++) {
-                            if (answer[i].description == "Research Report") {
-                                const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
-                                const rReports = []
-                                for (let i = 0; i < pibData.length; i++) 
-                                {
-                                    rReports.push({
-                                        "key": pibData[i]['key'],
-                                        "value": pibData[i]['value'],
-                                        });
-                                }
-                                setResearchReports(rReports);
-                            }
+                        else {
+                            console.log("Step not defined")
                         }
                     }
-                    else {
-                        console.log("Step not defined")
-                    }
-                }
-            )
-            setIsLoading(false);
+                )
+                setIsLoading(false);
+            }
         } catch (e) {
             setError(e);
             setIsLoading(false);
@@ -881,6 +1184,7 @@ const Pib = () => {
                                               Once the transcript is acquired, we will use GPT to answer most common questions asked during the earning call as well as summarize
                                               the key information from the earning call.
                                               Following are the common questions asked during the earning call.
+                                              </p>
                                               <ul>
                                               <li>What are some of the current and looming threats to the business?</li>
                                               <li>What is the debt level or debt ratio of the company right now?</li>
@@ -911,7 +1215,6 @@ const Pib = () => {
                                                 <li>Management Negative Sentiment</li>
                                                 <li>Future Growth Strategies"</li>
                                               </ul>
-                                            </p>
                                         </div>
                                     </Stack.Item>
                                     <Stack.Item grow={2} styles={stackItemStyles}>
@@ -1115,6 +1418,165 @@ const Pib = () => {
                                         </Stack>
                                         </div>
                                     )}
+                                </Stack>
+                            </Stack>
+                    </PivotItem>
+                    <PivotItem
+                        headerText="Step 6"
+                        headerButtonProps={{
+                        'data-order': 6,
+                        }}
+                    >
+                            <Stack enableScopedSelectors tokens={outerStackTokens}>
+                                <Stack enableScopedSelectors styles={stackItemStyles} tokens={innerStackTokens}>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        <div className={styles.example}>
+                                            <p><b>Step 6 : </b> 
+                                              This step focuses on pulling the <b>Private or Public</b> data that in form of getting the latest news about the company.
+                                              Moreover it also shows the latest sentiment from twitter and other about the company in the form of a visual.
+                                            </p>
+                                        </div>
+                                    </Stack.Item>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        &nbsp;
+                                         <Label>Symbol :</Label>
+                                        &nbsp;
+                                        <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
+                                        &nbsp;
+                                        <PrimaryButton text="Process Step6" onClick={() => processPib("6")} />
+                                        <PrimaryButton text="ReProcess Step6" onClick={() => processPib("6")} disabled={true} />
+                                    </Stack.Item>
+                                    {isLoading ? (
+                                        <Stack.Item grow={2} styles={stackItemStyles}>
+                                            <Spinner label="Processing..." ariaLive="assertive" labelPosition="right" />
+                                        </Stack.Item>
+                                        ) : (
+                                        <div>
+                                            <br/>
+                                            {/* {
+                                                stockNews && stockNews.length > 0 ? (
+                                                    <MediaCard 
+                                                        cardData={stockNews}/>
+                                                ) : stockNews && stockNews.length === 0 ? "No data available" : ''
+                                            } */}
+                                        
+                                            <DetailsList
+                                                compact={true}
+                                                items={stockNews || []}
+                                                columns={stockNewsColumns}
+                                                onRenderItemColumn={stockNewsRenderColumn}
+                                                selectionMode={SelectionMode.none}
+                                                getKey={(item: any) => item.key}
+                                                selectionPreservedOnEmptyClick={true}
+                                                layoutMode={DetailsListLayoutMode.justified}
+                                                ariaLabelForSelectionColumn="Toggle selection"
+                                                checkButtonAriaLabel="select row"
+                                                />
+                                            <br/>
+                                            {
+                                                socialSentiment ? (
+                                                    <div>
+                                                        <LineChart
+                                                            culture={window.navigator.language}
+                                                            data={socialSentiment}
+                                                            legendsOverflowText={'Overflow Items'}
+                                                            yMinValue={0}
+                                                            yMaxValue={1}
+                                                            height={300}
+                                                            width={700}
+                                                            margins={lineMargins}
+                                                            xAxisTickCount={10}
+                                                            allowMultipleShapesForPoints={false}
+                                                            enablePerfOptimization={true}
+                                                        />
+                                                    </div>
+                                                ) : null
+                                            }
+                                            
+
+                                        </div>
+                                    )}
+                                </Stack>
+                            </Stack>
+                    </PivotItem>
+                    <PivotItem
+                        headerText="Step 7"
+                        headerButtonProps={{
+                        'data-order': 7,
+                        }}
+                    >
+                            <Stack enableScopedSelectors tokens={outerStackTokens}>
+                                <Stack enableScopedSelectors styles={stackItemStyles} tokens={innerStackTokens}>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        <div className={styles.example}>
+                                            <p><b>Step 7 : </b> 
+                                              This step focuses on pulling the <b>Private or Public</b> financial data and showing the graphical charts for the same.
+                                            </p>
+                                        </div>
+                                    </Stack.Item>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        &nbsp;
+                                         <Label>Symbol :</Label>
+                                        &nbsp;
+                                        <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
+                                        &nbsp;
+                                        <PrimaryButton text="Process Step7" onClick={() => processPib("7")} />
+                                        <PrimaryButton text="ReProcess Step7" onClick={() => processPib("7")} disabled={true} />
+                                    </Stack.Item>
+                                    {isLoading ? (
+                                        <Stack.Item grow={2} styles={stackItemStyles}>
+                                            <Spinner label="Processing..." ariaLive="assertive" labelPosition="right" />
+                                        </Stack.Item>
+                                        ) : (
+                                        <div>
+                                            <br/>
+                                            {
+                                                incomeStatement && cashFlow ? (
+                                                    <div style={{width:'100%', height: 500}}>
+                                                        <GroupedVerticalBarChart
+                                                            chartTitle="Income Statement"
+                                                            data={incomeStatement}
+                                                            yAxisTickCount={5}
+                                                            barwidth={23}
+                                                        />
+                                                        <GroupedVerticalBarChart
+                                                            chartTitle="Cash Flow"
+                                                            data={cashFlow}
+                                                            yAxisTickCount={5}
+                                                            barwidth={23}
+                                                        />
+                                                    </div>
+                                                ) : null
+                                            }
+                                        </div>
+                                    )}
+                                </Stack>
+                            </Stack>
+                    </PivotItem>
+                    <PivotItem
+                        headerText="Summary"
+                        headerButtonProps={{
+                        'data-order': 8,
+                        }}
+                    >
+                            <Stack enableScopedSelectors tokens={outerStackTokens}>
+                                <Stack enableScopedSelectors styles={stackItemStyles} tokens={innerStackTokens}>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        <div className={styles.example}>
+                                            <p><b>Summary : </b> 
+                                              Final step in the PIB generation, this step for now is generating the PowerPoint presentation using the Open Office XML.  With the OOXML 
+                                              based presentation they are compatible with the PowerPoint, Apple Keynote and other applications.
+                                            </p>
+                                        </div>
+                                    </Stack.Item>
+                                    <Stack.Item grow={2} styles={stackItemStyles}>
+                                        &nbsp;
+                                         <Label>Symbol :</Label>
+                                        &nbsp;
+                                        <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
+                                        &nbsp;
+                                        <PrimaryButton text="Generate Presentation" onClick={() => generatePresentation()} />
+                                    </Stack.Item>
                                 </Stack>
                             </Stack>
                     </PivotItem>

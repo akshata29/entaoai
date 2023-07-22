@@ -1,0 +1,15 @@
+.container {
+    align-items: left;
+    gap: 6px;
+    cursor: pointer;
+    background: white;
+}
+
+.disabled {
+    opacity: 0.4;
+}
+
+.questionInputContainer {
+    width: 100%;
+    line-height: 40px;
+}
