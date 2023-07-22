@@ -19,6 +19,7 @@ import azure.cognitiveservices.speech as speechsdk
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from azure.cosmos import CosmosClient, PartitionKey
+from Utilities.fmp import *
 
 load_dotenv()
 app = Flask(__name__)
@@ -55,6 +56,58 @@ def ask():
         logging.exception("Exception in /ask")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/getNews", methods=["POST"])
+def getNews():
+    symbol=request.json["symbol"]
+    logging.info(f"symbol: {symbol}")
+    try:
+        FmpKey = os.environ.get("FMPKEY")
+
+        newsResp = stockNews(apikey=FmpKey, tickers=[symbol], limit=10)
+        return jsonify(newsResp)
+    except Exception as e:
+        logging.exception("Exception in /getNews")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/getSocialSentiment", methods=["POST"])
+def getSocialSentiment():
+    symbol=request.json["symbol"]
+    logging.info(f"symbol: {symbol}")
+    try:
+        FmpKey = os.environ.get("FMPKEY")
+
+        sSentiment = socialSentiments(apikey=FmpKey, symbol=symbol)
+        return jsonify(sSentiment)
+    except Exception as e:
+        logging.exception("Exception in /getSocialSentiment")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/getIncomeStatement", methods=["POST"])
+def getIncomeStatement():
+    symbol=request.json["symbol"]
+    logging.info(f"symbol: {symbol}")
+    try:
+        FmpKey = os.environ.get("FMPKEY")
+
+        sSentiment = incomeStatement(apikey=FmpKey, symbol=symbol, limit=5)
+        return jsonify(sSentiment)
+    except Exception as e:
+        logging.exception("Exception in /getIncomeStatement")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/getCashFlow", methods=["POST"])
+def getCashFlow():
+    symbol=request.json["symbol"]
+    logging.info(f"symbol: {symbol}")
+    try:
+        FmpKey = os.environ.get("FMPKEY")
+
+        sSentiment = cashFlowStatement(apikey=FmpKey, symbol=symbol, limit=5)
+        return jsonify(sSentiment)
+    except Exception as e:
+        logging.exception("Exception in /getCashFlow")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/getPib", methods=["POST"])
 def getPib():
     step=request.json["step"]
