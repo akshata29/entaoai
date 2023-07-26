@@ -79,7 +79,7 @@ def processStep1(pibIndexName, cik, step, symbol, temperature, llm, today):
                         max_tokens=100,
                         n=1)
             q = completion.choices[0].text
-            bingSearch = BingSearchAPIWrapper(k=25)
+            bingSearch = BingSearchAPIWrapper(k=20)
             results = bingSearch.run(query=q)
             logging.info(f"Generate Summary for {q}")
             chain = load_summarize_chain(llm, chain_type="stuff")
@@ -480,7 +480,40 @@ def processStep2(pibIndexName, cik, step, symbol, llm, today, embeddingModelType
                     'description': 'Earning Call Q&A',
                     'insertedDate': today.strftime("%Y-%m-%d"),
                     'pibData' : str(earningCallQa)
-            })
+        })
+
+        promptTemplate = """You are an AI assistant tasked with summarizing financial information from earning call transcript. 
+        Your summary should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
+        Please generate a concise and comprehensive summary between 5-7 paragraphs and maintain the continuity.  
+        Ensure your summary includes the key information from the transcript like future outlook, business risk, 
+        management concerns.
+        {text}
+            """
+        customPrompt = PromptTemplate(template=promptTemplate, input_variables=["text"])
+        logging.info("Starting latest earning call transcript summarization - Stuff or MapReduce")
+        try:
+            chainType = "stuff"
+            summaryChain = load_summarize_chain(llm, chain_type=chainType, prompt=customPrompt)
+            summaryOutput = summaryChain({"input_documents": docs}, return_only_outputs=True)
+            output = summaryOutput['output_text']
+            logging.info("Completed latest earning call transcript summarization - Stuff")
+        except:
+            chainType = "map_reduce"
+            summaryChain = load_summarize_chain(llm, chain_type=chainType, combine_prompt=customPrompt)
+            summaryOutput = summaryChain({"input_documents": docs}, return_only_outputs=True)
+            output = summaryOutput['output_text']
+            logging.info("Completed latest earning call transcript summarization - MapReduce")
+        
+        s2Data.append({
+                    'id' : str(uuid.uuid4()),
+                    'symbol': symbol,
+                    'cik': cik,
+                    'step': step,
+                    'description': 'Earning Call Summary',
+                    'insertedDate': today.strftime("%Y-%m-%d"),
+                    'pibData' : str([{"summary": output}])
+        })
+
         mergeDocs(SearchService, SearchKey, pibIndexName, s2Data)
     else:
         logging.info('Found existing data')

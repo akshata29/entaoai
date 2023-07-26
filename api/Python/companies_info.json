@@ -103,5 +103,19 @@
         "State location": "CA",
         "State of Inc": "DE",
         "Fiscal Year End": "1231"
+    },
+    "1535929": {
+        "Company Name": "Voya Financial, Inc.",
+        "SIC": "6311",
+        "State location": "NY",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "1210677": {
+        "Company Name": "FIRST ADVANTAGE CORP",
+        "SIC": "7389",
+        "State location": "GA",
+        "State of Inc": null,
+        "Fiscal Year End": "1231"
     }
 }

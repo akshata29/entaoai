@@ -61,6 +61,7 @@ const Pib = () => {
     const [description, setDescription] = useState<string>();
     const [latestTranscript, setLatestTranscript] = useState<string>();
     const [transcriptQuestions, setTranscriptQuestions] = useState<any>();
+    const [summaryTranscript, setSummaryTranscript] = useState<string>();
     const [pressReleases, setPressReleases] = useState<any>();
     const [secFilings, setSecFilings] = useState<any>();
     const [researchReport, setResearchReports] = useState<any>();
@@ -710,6 +711,9 @@ const Pib = () => {
                                             });
                                     }
                                     setTranscriptQuestions(tQuestions);
+                                } else if (answer[i].description == "Earning Call Summary") {
+                                    const pibData = eval(JSON.parse(JSON.stringify(answer[i].pibData)))
+                                    setSummaryTranscript(pibData[0]['summary']);
                                 }
                             }
                             setLatestTranscript(dataPoints)
@@ -1237,9 +1241,18 @@ const Pib = () => {
                                             <Stack.Item grow={2} styles={stackItemStyles}>
                                                 <Label>Earning Call Transcript</Label>
                                                 &nbsp; 
-                                                <TextField onChange={onSymbolChange}  
+                                                <TextField   
                                                     value={latestTranscript} disabled={true}
                                                     style={{ resize: 'none', width: '1000px', height: '500px' }}
+                                                    multiline/>
+                                            </Stack.Item>
+                                            <br/>
+                                            <Stack.Item grow={2} styles={stackItemStyles}>
+                                                <Label>Earning Call Summary</Label>
+                                                &nbsp; 
+                                                <TextField  
+                                                    value={summaryTranscript} disabled={true}
+                                                    style={{ resize: 'none', width: '1000px', height: '300px' }}
                                                     multiline/>
                                             </Stack.Item>
                                             <br/>
@@ -1586,7 +1599,7 @@ const Pib = () => {
                         'data-order': 9,
                         }}
                     >
-                        <div className={styles.root}>
+                    <div className={styles.root}>
                         <Stack enableScopedSelectors tokens={outerStackTokens}>
                                 <Stack enableScopedSelectors styles={stackItemStyles} tokens={innerStackTokens}>
                                     <Stack.Item grow={2} styles={stackItemStyles}>

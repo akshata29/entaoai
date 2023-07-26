@@ -202,6 +202,29 @@ def chat():
         logging.exception("Exception in /chat")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/chatGpt", methods=["POST"])
+def chatGpt():
+    indexType=request.json["indexType"]
+    indexNs=request.json["indexNs"]
+    postBody=request.json["postBody"]
+ 
+    logging.info(f"indexType: {indexType}")
+    logging.info(f"indexNs: {indexNs}")
+    
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("CHATGPT_URL")
+
+        data = postBody
+        params = {'indexType': indexType, "indexNs": indexNs }
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /chatGpt")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/pibChat", methods=["POST"])
 def pibChat():
     symbol=request.json["symbol"]

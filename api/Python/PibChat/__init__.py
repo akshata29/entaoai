@@ -23,6 +23,8 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.output_parsers import RegexParser
 from langchain.chains import RetrievalQA
 from Utilities.pibCopilot import performLatestPibDataSearch
+from typing import Any, Sequence
+from Utilities.modelHelper import numTokenFromMessages, getTokenLimit
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -67,13 +69,31 @@ def ComposeResponse(jsonData, symbol, indexName):
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
 
-def getChatHistory(history, includeLastTurn=True, maxTokens=1000) -> str:
-    historyText = ""
-    for h in reversed(history if includeLastTurn else history[:-1]):
-        historyText = """<|im_start|>user""" +"\n" + h["user"] + "\n" + """<|im_end|>""" + "\n" + """<|im_start|>assistant""" + "\n" + (h.get("bot") + """<|im_end|>""" if h.get("bot") else "") + "\n" + historyText
-        if len(historyText) > maxTokens*4:
-            break
-    return historyText
+def getMessagesFromHistory(systemPrompt: str, modelId: str, history: Sequence[dict[str, str]], 
+                           userConv: str, fewShots = [], maxTokens: int = 4096):
+        #messageBuilder = MessageBuilder(systemPrompt, modelId)
+        messages = []
+        messages.append({'role': 'system', 'content': systemPrompt})
+        tokenLength = numTokenFromMessages(messages[-1], modelId)
+
+        # Add examples to show the chat what responses we want. It will try to mimic any responses and make sure they match the rules laid out in the system message.
+        for shot in fewShots:
+            messages.insert(1, {'role': shot.get('role'), 'content': shot.get('content')})
+
+        userContent = userConv
+        appendIndex = len(fewShots) + 1
+
+        messages.insert(appendIndex, {'role': "user", 'content': userContent})
+
+        for h in reversed(history[:-1]):
+            if h.get("bot"):
+                messages.insert(appendIndex, {'role': "assistant", 'content': h.get('bot')})
+            messages.insert(appendIndex, {'role': "user", 'content': h.get('user')})
+            tokenLength += numTokenFromMessages(messages[appendIndex], modelId)
+            if tokenLength > maxTokens:
+                break
+        
+        return messages
 
 def insertMessage(sessionId, type, role, totalTokens, tokens, response, cosmosContainer):
     aiMessage = {
@@ -120,23 +140,34 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
     except Exception as e:
         logging.info("Error inserting session into CosmosDB: " + str(e))
 
-
-    qaPromptTemplate = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
+    systemTemplate = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
     Generate a search query based on the conversation and the new question.
     The search query should be optimized to find the answer to the question in the knowledge base.
 
-    Chat History:
-    {chat_history}
-
-    Question:
-    {question}
-
-    Search query:
     """
 
+    gptModel = "gpt-35-turbo"
+    if (embeddingModelType == 'azureopenai'):
+        if deploymentType == 'gpt35':
+            gptModel = "gpt-35-turbo"
+        elif deploymentType == 'gpt3516k':
+            gptModel = "gpt-35-turbo-16k"
+    elif embeddingModelType == 'openai':
+        if deploymentType == 'gpt35':
+            gptModel = "gpt-3.5-turbo"
+        elif deploymentType == 'gpt3516k':
+            gptModel = "gpt-3.5-turbo-16k"
+
+    tokenLimit = getTokenLimit(gptModel)
     # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
-    optimizedPrompt = qaPromptTemplate.format(chat_history=getChatHistory(history, includeLastTurn=False),
-                                              question=lastQuestion)
+    messages = getMessagesFromHistory(
+            systemTemplate,
+            gptModel,
+            history,
+            lastQuestion,
+            [],
+            tokenLimit - len(lastQuestion)
+            )
 
     if (embeddingModelType == 'azureopenai'):
         baseUrl = f"https://{OpenAiService}.openai.azure.com"
@@ -155,6 +186,15 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
                         openai_api_key=OpenAiKey,
                         openai_api_type="azure",
                         max_tokens=tokenLength)
+            
+            completion = openai.ChatCompletion.create(
+                deployment_id=OpenAiChat,
+                model=gptModel,
+                messages=messages, 
+                temperature=0.0, 
+                max_tokens=32, 
+                n=1)
+            
         elif deploymentType == "gpt3516k":
             llmChat = AzureChatOpenAI(
                         openai_api_base=baseUrl,
@@ -164,16 +204,13 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
                         openai_api_key=OpenAiKey,
                         openai_api_type="azure",
                         max_tokens=tokenLength)
-        
-        completion = openai.Completion.create(
-            engine=OpenAiDavinci,
-            prompt=optimizedPrompt,
-            temperature=temperature,
-            max_tokens=32,
-            #max_tokens=tokenLength,
-            n=1,
-            stop=["\n"])
-
+            completion = openai.ChatCompletion.create(
+                deployment_id=OpenAiChat16k,
+                model=gptModel,
+                messages=messages, 
+                temperature=0.0, 
+                max_tokens=32, 
+                n=1)
         logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
         openai.api_type = "open_ai"
@@ -184,22 +221,27 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
                 openai_api_key=OpenAiApiKey,
                 max_tokens=tokenLength)
         embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
-        completion = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=optimizedPrompt,
-            temperature=temperature,
-            max_tokens=32,
-            n=1,
-            stop=["\n"])
+        completion = openai.ChatCompletion.create(
+                deployment_id=OpenAiChat,
+                model=gptModel,
+                messages=messages, 
+                temperature=0.0, 
+                max_tokens=32, 
+                n=1)
     
     try:
-        q = completion.choices[0].text
-        userToken = completion.usage.total_tokens
-        totalTokens = totalTokens + userToken
-        insertMessage(sessionId, "Message", "User", totalTokens, userToken, lastQuestion, cosmosContainer)
-        logging.info("Question " + completion.choices[0].text)
+        # userToken = completion.usage.total_tokens
+        # totalTokens = totalTokens + userToken
+        q = completion.choices[0].message.content
+        logging.info("Question " + str(q))
+        if q.strip() == "0":
+            q = history[-1]["user"]
+
         if (q == ''):
             q = history[-1]["user"]
+
+        insertMessage(sessionId, "Message", "User", 0, 0, lastQuestion, cosmosContainer)
+
     except Exception as e:
         q = history[-1]["user"]
         logging.info(e)

@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 7/25/2023 - Add tab for the Chat capabilities to support ChatGpt capability directly from the model instead of "Chat on Data".  You will need to add `CHATGPT_URL` property in Azure App Service (Webapp) to enable the feature outside of deploying the new Azure Function.
 * 7/23/2023 - Added the rest of the feature for PIB UI and initial version of generating the PowerPoint deck as the output.  For new feature added ensure you add `FMPKEY` variable to webapp configuration.
 * 7/20/2023 - Added feature to talk to Pib Data (Sec Filings & Earning Call Transcript).  Because new Auzre function is deployed, ensure `PIBCHAT_URL` property is added to Azure WebApp with the URL for your deployed Azure Functions
 * 7/18/2023 - Refactored the PIB code to solve some of the performance issue and bug fixes.

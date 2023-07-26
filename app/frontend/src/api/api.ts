@@ -12,7 +12,6 @@ export async function getUserInfo(): Promise<UserInfo[]> {
   const payload = await response.json();
   return payload;
 }
-
 export async function getNews(symbol: string): Promise<Any> {
   const response = await fetch('/getNews', {
       method: "POST",
@@ -40,7 +39,6 @@ export async function getNews(symbol: string): Promise<Any> {
   }
   return parsedResponse
 }
-
 export async function getSocialSentiment(symbol: string): Promise<Any> {
   const response = await fetch('/getSocialSentiment', {
       method: "POST",
@@ -68,7 +66,6 @@ export async function getSocialSentiment(symbol: string): Promise<Any> {
   }
   return parsedResponse
 }
-
 export async function getIncomeStatement(symbol: string): Promise<Any> {
   const response = await fetch('/getIncomeStatement', {
       method: "POST",
@@ -96,7 +93,6 @@ export async function getIncomeStatement(symbol: string): Promise<Any> {
   }
   return parsedResponse
 }
-
 export async function getCashFlow(symbol: string): Promise<Any> {
   const response = await fetch('/getCashFlow', {
       method: "POST",
@@ -124,7 +120,6 @@ export async function getCashFlow(symbol: string): Promise<Any> {
   }
   return parsedResponse
 }
-
 export async function askApi(options: AskRequest, indexNs: string, indexType: string, chainType : string): Promise<AskResponse> {
     const response = await fetch('/ask', {
         method: "POST",
@@ -198,7 +193,6 @@ export async function getPib(step: string, symbol: string, embeddingModelType: s
   }
   return parsedResponse.values[0].data
 }
-
 export async function promptGuru(task: string, modelName:string, embeddingModelType: string): Promise<AskResponse> {
   const response = await fetch('/promptGuru', {
       method: "POST",
@@ -389,6 +383,46 @@ export async function chatGptApi(options: ChatRequest, indexNs: string, indexTyp
         throw Error(parsedResponse.values[0].data.error || "Unknown error");
     }
     return parsedResponse.values[0].data;
+}
+export async function chatGpt(options: ChatRequest, indexNs: string, indexType:string): Promise<AskResponse> {
+  const response = await fetch('/chatGpt' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        indexType:indexType,
+        indexNs: indexNs,
+        postBody: {
+          values: [
+            {
+              recordId: 0,
+              data: {
+                history: options.history,
+                approach: 'rrr',
+                overrides: {
+                  temperature: options.overrides?.temperature,
+                  tokenLength: options.overrides?.tokenLength,
+                  promptTemplate: options.overrides?.promptTemplate,
+                  embeddingModelType: options.overrides?.embeddingModelType,
+                  firstSession:options.overrides?.firstSession,
+                  session:options.overrides?.session,
+                  sessionId:options.overrides?.sessionId,
+                  deploymentType: options.overrides?.deploymentType,
+                  useInternet: options.overrides?.useInternet,
+                }
+              }
+            }
+          ]
+        }
+      })
+  });
+
+  const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error(parsedResponse.values[0].data.error || "Unknown error");
+  }
+  return parsedResponse.values[0].data;
 }
 export async function pibChatGptApi(options: ChatRequest, symbol: string, indexName: string): Promise<AskResponse> {
   const response = await fetch('/pibChat' , {
@@ -1110,7 +1144,6 @@ export async function sqlChain(question:string, top: number, embeddingModelType:
   }
   return parsedResponse.values[0].data
 }
-
 export async function sqlVisual(question:string, top: number, embeddingModelType:string): Promise<SqlResponse> {
   const response = await fetch('/sqlVisual' , {
       method: "POST",
@@ -1186,7 +1219,6 @@ export async function getSpeechToken(): Promise<SpeechTokenResponse> {
   }
   return parsedResponse
 }
-
 export async function summarizer(options: AskRequest, requestText: string, promptType:string, promptName: string, docType: string, 
   chainType:string, embeddingModelType:string): Promise<string> {
   const response = await fetch('/summarizer' , {
@@ -1298,7 +1330,6 @@ export async function getSpeechApi(text: string): Promise<string|null> {
       }
   }).then((blob) => blob ? URL.createObjectURL(blob) : null);
 }
-
 export function getCitationFilePath(citation: string): string {
     return `/content/${citation}`;
 }
