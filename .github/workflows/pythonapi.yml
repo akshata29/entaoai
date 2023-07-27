@@ -19,8 +19,6 @@
 name: Deploy Python API
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
 
 env:
@@ -30,7 +28,7 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on:  [ self-hosted, linux, x64 ]
     environment: dev
     steps:
     - name: 'Checkout GitHub Action'

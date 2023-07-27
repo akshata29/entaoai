@@ -26,8 +26,6 @@ env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'app/backend'
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
