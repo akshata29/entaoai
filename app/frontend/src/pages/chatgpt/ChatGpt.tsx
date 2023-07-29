@@ -807,11 +807,30 @@ const ChatGpt = () => {
         {summaries}
         Question: {question}
         `
+
+        const financialPrompt = `You are an AI assistant tasked with answering questions and summarizing information from 
+        earning call transcripts, annual reports, SEC filings and financial statements like income statement, cashflow and 
+        balance sheets. Additionally you may also be asked to answer questions about financial ratios and other financial metrics.
+        The data that you are presented could be in table format or structure.
+        Your answer should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
+        Please generate a concise and comprehensive information that includes details such as reporting year and amount in millions.
+        Ensure that it is easy to understand for business professionals and provides an accurate representation of the financial statement history. 
+        
+        Please remember to use clear language and maintain the integrity of the original information without missing any important details
+
+        QUESTION: {question}
+        =========
+        {summaries}
+        =========
+        `
+
         if (promptType == "generic") {
             setPromptTemplate(genericPrompt)
         }
         else if (promptType == "medical") {
             setPromptTemplate(medicalPrompt)
+        } else if (promptType == "financial") {
+            setPromptTemplate(financialPrompt)
         } else if (promptType == "custom") {
             setPromptTemplate("")
         }

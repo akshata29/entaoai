@@ -14,7 +14,6 @@ AOAI_2_OAI = {
     "gpt-35-turbo-16k": "gpt-3.5-turbo-16k"
 }
 
-
 def getTokenLimit(modelId: str) -> int:
     if modelId not in MODELS_2_TOKEN_LIMITS:
         raise ValueError("Expected model gpt-35-turbo and above")

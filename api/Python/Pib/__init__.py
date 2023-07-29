@@ -28,6 +28,10 @@ import azure.functions as func
 import time
 from Utilities.cogSearchRetriever import CognitiveSearchRetriever
 from langchain.chains import RetrievalQA
+from langchain.chains import LLMChain
+from Utilities.azureBlob import upsertMetadata, getBlob, getFullPath, copyBlob, copyS3Blob
+import tempfile
+from langchain.document_loaders import PDFMinerLoader
 
 def processStep1(pibIndexName, cik, step, symbol, temperature, llm, today):
     s1Data = []
@@ -71,14 +75,10 @@ def processStep1(pibIndexName, cik, step, symbol, temperature, llm, today):
                 Rephrase the following question asked by user to perform intelligent internet search
                 {query}
                 """
-            optimizedPrompt = qaPromptTemplate.format(query=query)
-            completion = openai.Completion.create(
-                        engine=OpenAiDavinci,
-                        prompt=optimizedPrompt,
-                        temperature=temperature,
-                        max_tokens=100,
-                        n=1)
-            q = completion.choices[0].text
+            
+            qaPrompt = PromptTemplate(input_variables=["query"],template=qaPromptTemplate)
+            chain = LLMChain(llm=llm, prompt=qaPrompt)
+            q = chain.run(query=query)
             bingSearch = BingSearchAPIWrapper(k=20)
             results = bingSearch.run(query=q)
             logging.info(f"Generate Summary for {q}")
@@ -135,14 +135,9 @@ def processStep1(pibIndexName, cik, step, symbol, temperature, llm, today):
                         Rephrase the following question asked by user to perform intelligent internet search
                         {query}
                         """
-                    optimizedPrompt = qaPromptTemplate.format(query=query)
-                    completion = openai.Completion.create(
-                                engine=OpenAiDavinci,
-                                prompt=optimizedPrompt,
-                                temperature=temperature,
-                                max_tokens=100,
-                                n=1)
-                    q = completion.choices[0].text
+                    qaPrompt = PromptTemplate(input_variables=["query"],template=qaPromptTemplate)
+                    chain = LLMChain(llm=llm, prompt=qaPrompt)
+                    q = chain.run(query=query)
                     bingSearch = BingSearchAPIWrapper(k=25)
                     results = bingSearch.run(query=q)
                     logging.info(f"Generate Summary for {q}")
@@ -831,7 +826,7 @@ def processStep4(symbol, cik, filingType, historicalYear, currentYear, embedding
                                         "extracted_filings_folder": "EXTRACTED_FILINGS",
                                         "filings_metadata_file": "FILINGS_METADATA.csv",
                                         "items_to_extract": ["1","1A","1B","2","3","4","5","6","7","7A","8","9","9A","9B","10","11","12","13","14","15"],
-                                        "remove_tables": True,
+                                        "remove_tables": False,
                                         "skip_extracted_filings": True
                                     }
                                 }
@@ -1108,7 +1103,7 @@ def processStep5(pibIndexName, cik, step, symbol, today):
                 })
     return s5Data
 
-def PibSteps(step, symbol, embeddingModelType, value):
+def PibSteps(step, symbol, embeddingModelType, overrides):
     logging.info("Calling PibSteps Open AI for symbol " + symbol)
 
     central = timezone('US/Central')
@@ -1124,7 +1119,6 @@ def PibSteps(step, symbol, embeddingModelType, value):
     os.environ['BING_SEARCH_URL'] = BingUrl
     pibIndexName = 'pibdata'
     filingType = "10-K"
-
     # Find out the CIK for the Symbol 
     cik = str(int(searchCik(apikey=FmpKey, ticker=symbol)[0]["companyCik"]))
     logging.info(f"CIK for {symbol} is {cik}")
@@ -1280,7 +1274,6 @@ def TransformValue(step, symbol, embeddingModelType, record):
     try:
         # Getting the items from the values/data/text
         value = data['text']
-
         answer = PibSteps(step, symbol, embeddingModelType, value)
         return ({
             "recordId": recordId,

@@ -117,5 +117,33 @@
         "State location": "GA",
         "State of Inc": null,
         "Fiscal Year End": "1231"
+    },
+    "51143": {
+        "Company Name": "INTERNATIONAL BUSINESS MACHINES CORP",
+        "SIC": "3570",
+        "State location": "NY",
+        "State of Inc": "NY",
+        "Fiscal Year End": "1231"
+    },
+    "73124": {
+        "Company Name": "NORTHERN TRUST CORP",
+        "SIC": "6022",
+        "State location": "IL",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "63908": {
+        "Company Name": "MCDONALDS CORP",
+        "SIC": "5812",
+        "State location": "IL",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "1069157": {
+        "Company Name": "EAST WEST BANCORP INC",
+        "SIC": "6022",
+        "State location": "CA",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
     }
 }

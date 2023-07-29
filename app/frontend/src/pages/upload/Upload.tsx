@@ -76,8 +76,20 @@ const Upload = () => {
     const [selectedChunkSizeItem, setSelectedChunkSizeItem] = useState<IDropdownOption>();
     const [selectedChunkOverlapItem, setSelectedChunkOverlapItem] = useState<IDropdownOption>();
     const [selectedPromptTypeItem, setSelectedPromptTypeItem] = useState<IDropdownOption>();
+    const [selectedDeploymentType, setSelectedDeploymentType] = useState<IDropdownOption>();
 
     const dropdownShortStyles: Partial<IDropdownStyles> = { dropdown: { width: 150 } };
+
+    const deploymentTypeOptions = [
+      {
+        key: 'gpt35',
+        text: 'GPT 3.5 Turbo'
+      },
+      {
+        key: 'gpt3516k',
+        text: 'GPT 3.5 Turbo - 16k'
+      }
+    ]
 
     const textSplitterOptions = [
       {
@@ -172,6 +184,10 @@ const Upload = () => {
       {
         key: 'financial',
         text: 'financial'
+      },
+      {
+        key: 'prospectus',
+        text: 'prospectus'
       },
       {
         key: 'insurance',
@@ -443,7 +459,7 @@ const Upload = () => {
           existingIndex ? "true" : "false", existingIndex ? indexNs : '',
           String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key),
           selectedChunkSizeItem?.key, selectedChunkOverlapItem?.key,
-          String(selectedPromptTypeItem?.key))
+          String(selectedPromptTypeItem?.key), String(selectedDeploymentType?.key))
           .then((response:string) => {
             if (response == "Success") {
               setUploadText("Completed Successfully.  You can now search for your document.")
@@ -703,7 +719,14 @@ const Upload = () => {
       refreshBlob(item?.key as string)
     };
 
+    const onDeploymentTypeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedDeploymentType(item);
+    };
+
     const onEmbeddingChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      if (item?.key === "openai") {
+        setSelectedDeploymentType(deploymentTypeOptions[0]);
+      }
       setSelectedEmbeddingItem(item);
     };
 
@@ -793,6 +816,7 @@ const Upload = () => {
       setSelectedChunkOverlapItem(chunkOverlapOptions[0])
       setSelectedChunkSizeItem(chunkSizeOptions[2])
       setSelectedPromptTypeItem(promptTypeOptions[0])
+      setSelectedDeploymentType(deploymentTypeOptions[0])
     }, [])
 
     return (
@@ -821,7 +845,19 @@ const Upload = () => {
                       placeholder="Select an Embedding Model"
                       options={embeddingOptions}
                       disabled={false}
-                      styles={dropdownStyles}
+                      styles={dropdownShortStyles}
+                  />
+                  &nbsp;
+                  <Label>Deployment Type</Label>
+                  &nbsp;
+                  <Dropdown
+                          selectedKey={selectedDeploymentType ? selectedDeploymentType.key : undefined}
+                          onChange={onDeploymentTypeChange}
+                          //defaultSelectedKey="azureopenai"
+                          placeholder="Select an Deployment Type"
+                          options={deploymentTypeOptions}
+                          disabled={((selectedEmbeddingItem?.key == "openai" ? true : false) || (Number(selectedChunkSizeItem?.key) > 4000 ? true : false))}
+                          styles={dropdownShortStyles}
                   />
                   &nbsp;
                   <Label>Upload Password:</Label>&nbsp;

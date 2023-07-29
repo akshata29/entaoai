@@ -740,10 +740,6 @@
             {
                 "name": "SECEXTRACTION_URL",
                 "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecExtraction?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-                "name": "SQLVISUAL_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlVisual?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
             }
 		    ]
                 },

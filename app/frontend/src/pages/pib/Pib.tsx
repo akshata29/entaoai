@@ -1,15 +1,14 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack, 
-    IPivotItemProps, getFadedOverflowStyle, on} from "@fluentui/react";
+import { DefaultButton, Spinner, TextField, SpinButton, Stack, ITextStyles} from "@fluentui/react";
 import { News16Filled, ShieldLockRegular } from "@fluentui/react-icons";
 import { SparkleFilled } from "@fluentui/react-icons";
 
 import styles from "./Pib.module.css";
-import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
+import { Dropdown, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
 import { AskResponse,  getPib, getUserInfo, Approaches, getNews, getSocialSentiment, getIncomeStatement, getCashFlow } from "../../api";
 import { pibChatGptApi, ChatRequest, ChatTurn, getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession, renameIndexSession } from "../../api";
-    
+
 import { Label } from '@fluentui/react/lib/Label';
 import { Pivot, PivotItem } from '@fluentui/react';
 import { IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
@@ -29,12 +28,10 @@ import { UserChatMessage } from "../../components/UserChatMessage";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
 import { DetailsList, DetailsListLayoutMode, SelectionMode, Selection, IColumn} from '@fluentui/react/lib/DetailsList';
-import { MediaCard } from "../../components/MediaCard";
 import { Image, ImageFit } from '@fluentui/react/lib/Image';
 import { Link } from '@fluentui/react/lib/Link';
 import {  LineChart, GroupedVerticalBarChart, IGroupedVerticalBarChartProps } from '@fluentui/react-charting';
 import pptxgen from "pptxgenjs";
-
 
 const Pib = () => {
 
@@ -84,8 +81,9 @@ const Pib = () => {
     const [socialSentiment, setSocialSentiment] = useState<any>(null);
     const [incomeStatement, setIncomeStatement] = useState<any>();
     const [cashFlow, setCashFlow] = useState<any>();
-   
+
     const lineMargins = { left: 35, top: 20, bottom: 35, right: 20 };
+    const textStyles: Partial<ITextStyles> = { root: { width: 1200, height: 300 } };
 
     const exchangeOptions = [
         {
@@ -532,7 +530,7 @@ const Pib = () => {
 
     const processPib = async (step: string) => {
         try {
-            setIsLoading(true);
+            setIsLoading(true);    
             if (step == '6') {
                     await getNews(symbol)
 
@@ -772,8 +770,7 @@ const Pib = () => {
                                     setResearchReports(rReports);
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             console.log("Step not defined")
                         }
                     }
@@ -1013,16 +1010,18 @@ const Pib = () => {
     };
 
     useEffect(() => {
-        setSelectedExchange(exchangeOptions[0])
-        setSelectedCompany(amexTickers[0]);
-
-        setSelectedDoc(docOptions[0]);
-        getCosmosSession(docOptions[0]?.key, String(symbol))
         if (window.location.hostname != "localhost") {
             getUserInfoList();
             setShowAuthMessage(true)
         } else
             setShowAuthMessage(false)
+
+        
+        setSelectedExchange(exchangeOptions[0])
+        setSelectedCompany(amexTickers[0]);
+
+        setSelectedDoc(docOptions[0]);
+        getCosmosSession(docOptions[0]?.key, String(symbol))
     }, [])
 
     useEffect(() => chatMessageStreamEnd.current?.scrollIntoView({ behavior: "smooth" }), [isLoading]);
@@ -1046,7 +1045,7 @@ const Pib = () => {
             <div className={styles.oneshotContainer}>
             <Pivot aria-label="QA">
                     <PivotItem
-                        headerText="Step 1"
+                        headerText="Profile & Bio"
                         headerButtonProps={{
                         'data-order': 1,
                         }}
@@ -1118,8 +1117,8 @@ const Pib = () => {
                                         <TextField onChange={onSymbolChange}  value={symbol} required={true} 
                                             errorMessage={!missingSymbol ? '' : "Symbol is required for PIB Functionality"}/>
                                         &nbsp;
-                                        <PrimaryButton text="Process Step1" onClick={() => processPib("1")} disabled={isLoading} />
-                                        <PrimaryButton text="ReProcess Step1" onClick={() => processPib("1")} disabled={true} />
+                                        <PrimaryButton text="Get Profile & Bio" onClick={() => processPib("1")} disabled={isLoading} />
+                                        <PrimaryButton text="ReProcess Get Profile & Bio" onClick={() => processPib("1")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -1171,7 +1170,7 @@ const Pib = () => {
                             </Stack>
                     </PivotItem>
                     <PivotItem
-                        headerText="Step 2"
+                        headerText="Earning Calls"
                         headerButtonProps={{
                         'data-order': 2,
                         }}
@@ -1227,8 +1226,8 @@ const Pib = () => {
                                         &nbsp;
                                         <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
                                         &nbsp;
-                                        <PrimaryButton text="Process Step2" onClick={() => processPib("2")} />
-                                        <PrimaryButton text="ReProcess Step2" onClick={() => processPib("2")} disabled={true} />
+                                        <PrimaryButton text="Process Earning Calls" onClick={() => processPib("2")} />
+                                        <PrimaryButton text="ReProcess Earning Calls" onClick={() => processPib("2")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -1277,7 +1276,7 @@ const Pib = () => {
 
                     </PivotItem>
                     <PivotItem
-                        headerText="Step 3"
+                        headerText="Press Releases"
                         headerButtonProps={{
                         'data-order': 3,
                         }}
@@ -1299,8 +1298,8 @@ const Pib = () => {
                                         &nbsp;
                                         <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
                                         &nbsp;
-                                        <PrimaryButton text="Process Step3" onClick={() => processPib("3")} />
-                                        <PrimaryButton text="ReProcess Step3" onClick={() => processPib("3")} disabled={true} />
+                                        <PrimaryButton text="Fetch Press Releases" onClick={() => processPib("3")} />
+                                        <PrimaryButton text="ReProcess Press Releases" onClick={() => processPib("3")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -1330,7 +1329,7 @@ const Pib = () => {
                             </Stack>
                     </PivotItem>
                     <PivotItem
-                        headerText="Step 4"
+                        headerText="SEC Filings"
                         headerButtonProps={{
                         'data-order': 4,
                         }}
@@ -1352,8 +1351,8 @@ const Pib = () => {
                                         &nbsp;
                                         <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
                                         &nbsp;
-                                        <PrimaryButton text="Process Step4" onClick={() => processPib("4")} />
-                                        <PrimaryButton text="ReProcess Step4" onClick={() => processPib("4")} disabled={true} />
+                                        <PrimaryButton text="Crawl SEC Data" onClick={() => processPib("4")} />
+                                        <PrimaryButton text="ReProcess SEC Data" onClick={() => processPib("4")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -1383,7 +1382,7 @@ const Pib = () => {
                             </Stack>
                     </PivotItem>
                     <PivotItem
-                        headerText="Step 5"
+                        headerText="Private Data"
                         headerButtonProps={{
                         'data-order': 5,
                         }}
@@ -1404,8 +1403,8 @@ const Pib = () => {
                                         &nbsp;
                                         <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
                                         &nbsp;
-                                        <PrimaryButton text="Process Step5" onClick={() => processPib("5")} />
-                                        <PrimaryButton text="ReProcess Step5" onClick={() => processPib("5")} disabled={true} />
+                                        <PrimaryButton text="Recommendations" onClick={() => processPib("5")} />
+                                        <PrimaryButton text="ReProcess Recommendations" onClick={() => processPib("5")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -1435,7 +1434,7 @@ const Pib = () => {
                             </Stack>
                     </PivotItem>
                     <PivotItem
-                        headerText="Step 6"
+                        headerText="News and Sentiment"
                         headerButtonProps={{
                         'data-order': 6,
                         }}
@@ -1456,8 +1455,8 @@ const Pib = () => {
                                         &nbsp;
                                         <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
                                         &nbsp;
-                                        <PrimaryButton text="Process Step6" onClick={() => processPib("6")} />
-                                        <PrimaryButton text="ReProcess Step6" onClick={() => processPib("6")} disabled={true} />
+                                        <PrimaryButton text="Get News & Sentiment" onClick={() => processPib("6")} />
+                                        <PrimaryButton text="ReProcess News & Sentiment" onClick={() => processPib("6")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -1513,7 +1512,7 @@ const Pib = () => {
                             </Stack>
                     </PivotItem>
                     <PivotItem
-                        headerText="Step 7"
+                        headerText="Financials"
                         headerButtonProps={{
                         'data-order': 7,
                         }}
@@ -1533,8 +1532,8 @@ const Pib = () => {
                                         &nbsp;
                                         <TextField onChange={onSymbolChange}  value={symbol} disabled={true}/>
                                         &nbsp;
-                                        <PrimaryButton text="Process Step7" onClick={() => processPib("7")} />
-                                        <PrimaryButton text="ReProcess Step7" onClick={() => processPib("7")} disabled={true} />
+                                        <PrimaryButton text="Show Financial Data" onClick={() => processPib("7")} />
+                                        <PrimaryButton text="ReProcess Financial Data" onClick={() => processPib("7")} disabled={true} />
                                     </Stack.Item>
                                     {isLoading ? (
                                         <Stack.Item grow={2} styles={stackItemStyles}>
@@ -1596,7 +1595,7 @@ const Pib = () => {
                     <PivotItem
                         headerText="Chat Pib"
                         headerButtonProps={{
-                        'data-order': 9,
+                        'data-order': 10,
                         }}
                     >
                     <div className={styles.root}>

@@ -537,6 +537,20 @@ export async function getDocumentList(): Promise<Any> {
   }
   return parsedResponse;
 }
+export async function getProspectusList(): Promise<Any> {
+  const response = await fetch('/getProspectusList' , {
+      method: "GET",
+      headers: {
+          "Content-Type": "application/json"
+      },
+  });
+
+  const parsedResponse: any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse;
+}
 export async function getAllDocumentRuns(documentId: string): Promise<Any> {
   const response = await fetch('/getAllDocumentRuns' , {
       method: "POST",
@@ -823,7 +837,7 @@ export async function processDoc(indexType: string, loadType : string, multiple:
   blobConnectionString : string, blobContainer : string, blobPrefix : string, blobName : string,
   s3Bucket : string, s3Key : string, s3AccessKey : string, s3SecretKey : string, s3Prefix : string,
   existingIndex : string, existingIndexNs: string, embeddingModelType: string,
-  textSplitter:string, chunkSize:any, chunkOverlap:any, promptType:string) : Promise<string> {
+  textSplitter:string, chunkSize:any, chunkOverlap:any, promptType:string, deploymentType:string) : Promise<string> {
   const response = await fetch('/processDoc', {
     method: "POST",
     headers: {
@@ -841,6 +855,7 @@ export async function processDoc(indexType: string, loadType : string, multiple:
       chunkSize:chunkSize,
       chunkOverlap:chunkOverlap,
       promptType:promptType,
+      deploymentType:deploymentType,
       postBody: {
         values: [
           {
@@ -912,24 +927,33 @@ export async function runEvaluation(overlap: string[], chunkSize : string[], spl
   }
   return parsedResponse.values[0].data.statusUri
 }
-export async function processSummary(loadType : string, multiple: string, files: any,
-  embeddingModelType: string, chainType:string) : Promise<AskResponse> {
+export async function processSummary(indexNs: string, indexType: string, options : AskRequest) : Promise<AskResponse> {
   const response = await fetch('/processSummary', {
     method: "POST",
     headers: {
         "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      multiple: multiple,
-      loadType:loadType,
-      embeddingModelType:embeddingModelType,
-      chainType:chainType,
+      indexNs:indexNs,
+      indexType: indexType,
       postBody: {
         values: [
           {
             recordId: 0,
             data: {
-              text: files,
+              text: '',
+              overrides: {
+                  promptTemplate: options.overrides?.promptTemplate,
+                  fileName: options.overrides?.fileName,
+                  topics: options.overrides?.topics,
+                  embeddingModelType: options.overrides?.embeddingModelType,
+                  chainType: options.overrides?.chainType,
+                  temperature: options.overrides?.temperature,
+                  tokenLength: options.overrides?.tokenLength,
+                  top: options.overrides?.top,
+                  deploymentType: options.overrides?.deploymentType,
+                }
+
             }
           }
         ]
@@ -937,15 +961,10 @@ export async function processSummary(loadType : string, multiple: string, files:
     })
   });
   const parsedResponse: ChatResponse = await response.json();
-  return parsedResponse.values[0].data;
-  // if (response.status > 299 || !response.ok) {
-  //     return "Error";
-  // } else {
-  //   if (parsedResponse.values[0].data.error) {
-  //     return parsedResponse.values[0].data.error;
-  //   }
-  //   return parsedResponse.values[0].data.answer;
-  // }
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse.values[0].data
 }
 export async function convertCode(inputLanguage:string, outputLanguage:string, 
   inputCode:string, modelName:string, embeddingModelType: string) : Promise<string> {

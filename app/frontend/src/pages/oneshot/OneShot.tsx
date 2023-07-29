@@ -151,6 +151,10 @@ const OneShot = () => {
           text: 'financial'
         },
         {
+            key: 'prospectus',
+            text: 'prospectus'
+        },
+        {
           key: 'insurance',
           text: 'insurance'
         }
@@ -647,11 +651,44 @@ const OneShot = () => {
         {summaries}
         Question: {question}
         `
+
+        const financialPrompt = `You are an AI assistant tasked with answering questions and summarizing information from 
+        earning call transcripts, annual reports, SEC filings and financial statements like income statement, cashflow and 
+        balance sheets. Additionally you may also be asked to answer questions about financial ratios and other financial metrics.
+        The data that you are presented could be in table format or structure.
+        Your answer should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
+        Please generate a concise and comprehensive information that includes details such as reporting year and amount in millions.
+        Ensure that it is easy to understand for business professionals and provides an accurate representation of the financial statement history. 
+        
+        Please remember to use clear language and maintain the integrity of the original information without missing any important details
+
+        QUESTION: {question}
+        =========
+        {summaries}
+        =========
+        `
+
+        const prospectusPrompt = `"""You are an AI assistant tasked with summarizing documents from large documents that contains information about Initial Public Offerings. 
+        IPO document contains sections with information about the company, its business, strategies, risk, management structure, financial, and other information.
+        Your summary should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
+        Please generate a concise and comprehensive summary that includes details. 
+        Ensure that the summary is easy to understand and provides an accurate representation. 
+        Begin the summary with a brief introduction, followed by the main points.
+        Generate the summary with minimum of 7 paragraphs and maximum of 10 paragraphs.
+        Please remember to use clear language and maintain the integrity of the original information without missing any important details:
+        {text}
+
+        """`
+
         if (promptType == "generic") {
             setPromptTemplate(genericPrompt)
         }
         else if (promptType == "medical") {
             setPromptTemplate(medicalPrompt)
+        } else if (promptType == "financial") {
+            setPromptTemplate(financialPrompt)
+        } else if (promptType == "prospectus") {
+            setPromptTemplate(prospectusPrompt)
         } else if (promptType == "custom") {
             setPromptTemplate("")
         }

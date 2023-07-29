@@ -502,10 +502,11 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         )
 
     if body:
-        pinecone.init(
-            api_key=PineconeKey,  # find at app.pinecone.io
-            environment=PineconeEnv  # next to api key in console
-        )
+        if len(PineconeKey) > 10 and len(PineconeEnv) > 10:
+            pinecone.init(
+                api_key=PineconeKey,  # find at app.pinecone.io
+                environment=PineconeEnv  # next to api key in console
+            )
         result = ComposeResponse(chainType, question, indexType, body, indexNs)
         return func.HttpResponse(result, mimetype="application/json")
     else:

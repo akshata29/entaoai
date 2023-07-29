@@ -1,328 +1,509 @@
-import { useRef, useState, useEffect } from "react";
-import { DefaultButton, Spinner, PrimaryButton } from "@fluentui/react";
-import {
-    Card,
-    CardFooter,
-  } from "@fluentui/react-components";
-import { Checkbox } from '@fluentui/react/lib/Checkbox';
-import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@fluentui/react';
+import { useState, useEffect, useMemo } from "react";
+import { Spinner, PrimaryButton, DefaultButton, TextField } from "@fluentui/react";
 import { makeStyles } from "@fluentui/react-components";
 
-import { BarcodeScanner24Filled } from "@fluentui/react-icons";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import { Label } from '@fluentui/react/lib/Label';
-import { Stack, IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
-import { DefaultPalette } from '@fluentui/react/lib/Styling';
-import { TextField } from '@fluentui/react/lib/TextField';
-import { AskResponse, processSummary, uploadSummaryBinaryFile, verifyPassword } from "../../api";
+import { Stack, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
+import { AskRequest, Approaches, processSummary, refreshIndex } from "../../api";
+import { DetailsList, DetailsListLayoutMode, SelectionMode, Selection} from '@fluentui/react/lib/DetailsList';
 
 import styles from "./Summary.module.css";
 
-import { useDropzone } from 'react-dropzone'
-
-const buttonStyles = makeStyles({
-  innerWrapper: {
-    columnGap: "15px",
-    display: "flex",
-  },
-  outerWrapper: {
-    display: "flex",
-    flexDirection: "column",
-    rowGap: "15px",
-  },
-});
-
 const Summary = () => {
-    const [files, setFiles] = useState<any>([])
-    const [loading, setLoading] = useState(false)
-    const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
-    const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
-    const [multipleDocs, setMultipleDocs] = useState(false);
-    const [uploadText, setUploadText] = useState('');
-    const [uploadPassword, setUploadPassword] = useState('');
-    const [missingUploadPassword, setMissingUploadPassword] = useState(false)
-    const [uploadError, setUploadError] = useState(false)
-    const [selectedChain, setSelectedChain] = useState<IDropdownOption>();
-    const [summaryText, setsummaryText] = useState('');
-    const [intermediateStepsText, setIntermediateStepsText] = useState<string[]>();
+  const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
+  const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
+  const [selectedChain, setSelectedChain] = useState<IDropdownOption>();
+  const [selectedDocument, setSelectedDocument] = useState<string>('')
+  const [selectedProspectus, setSelectedProspectus] = useState<IDropdownOption>();
+  const [selectedSummaryTopicItem, setSelectedSummaryTopicItem] = useState<string[]>([]);
+  const [summaryPrompt, setSummaryPrompt] = useState('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<unknown>();
+  const [selectedItems, setSelectedItems] = useState<any[]>([]);
+  const [summaryQuestions, setSummaryQuestions] = useState<any>();
+  const [options, setOptions] = useState<any>([])
+  const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
+  const [selectedIndex, setSelectedIndex] = useState<string>();
+  const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string;  summary:string; qa:string; chunkSize:string; chunkOverlap:string; promptType:string, singleFile:boolean, fileName:string}[]>();
+  const [selectedPromptTypeItem, setSelectedPromptTypeItem] = useState<IDropdownOption>();
+  const [promptTemplate, setPromptTemplate] = useState<string>("");
 
-    const chainTypeOptions = [
-      { key: 'stuff', text: 'Stuff'},
-      { key: 'map_reduce', text: 'Map Reduce' },
-      { key: 'refine', text: 'Refine'},
+  const chainTypeOptions = [
+    { key: 'stuff', text: 'Stuff'},
+    { key: 'map_reduce', text: 'Map Reduce' },
+    { key: 'refine', text: 'Refine'},
   ]
 
-    const labelStyles: Partial<IStyleSet<ILabelStyles>> = {
-      root: { marginTop: 10 },
-    };
+  const summaryTopicOptions = [
+    {
+      key: 'Strengths',
+      text: 'Strengths'
+    },
+    {
+      key: 'Growth Strategy',
+      text: 'Growth Strategy'
+    },
+    {
+      key: 'Investment Risk',
+      text: 'Investment Risk'
+    },
+    {
+      key: 'Organization Structure',
+      text: 'Organization Structure'
+    },
+    {
+        key: 'Risk Factors',
+        text: 'Risk Factors'
+    },
+    {
+        key: 'IPO Offering',
+        text: 'IPO Offering'
+    },
+    {
+        key: 'Financial Data',
+        text: 'Financial Data'
+    },
+    {
+        key: 'Key Operating Metrics',
+        text: 'Key Operating Metrics'
+    },
+    {
+        key: 'Business Overview',
+        text: 'Business Overview'
+    },
+    {
+        key: 'Success Stories',
+        text: 'Success Stories'
+    },
+    {
+        key: 'Intellectual Property',
+        text: 'Intellectual Property'
+    },
+    {
+        key: 'Capital Stock',
+        text: 'Capital Stock'
+    },
+    {
+        key: 'Stockholder Agreements',
+        text: 'Stockholder Agreements'
+    },
+    {
+        key: 'Underwriting',
+        text: 'Underwriting'
+    }
+  ]
+
+  const summaryColumns = [
+    {
+      key: 'Question',
+      name: 'Question or Topic',
+      fieldName: 'question',
+      minWidth: 400, maxWidth: 400, isResizable: false, isMultiline: true
+    },
+    {
+      key: 'Answer',
+      name: 'Answer or Summarization',
+      fieldName: 'answer',
+      minWidth: 700, maxWidth: 900, isResizable: false, isMultiline: true
+    }
+  ]
+
+  const stackItemStyles: IStackItemStyles = {
+      root: {
+          alignItems: 'left',
+          // background: DefaultPalette.white,
+          // color: DefaultPalette.white,
+          display: 'flex',
+          justifyContent: 'left',
+      },
+  };
+
+  const stackItemCenterStyles: IStackItemStyles = {
+      root: {
+          alignItems: 'center',
+          display: 'flex',
+          justifyContent: 'left',
+      },
+  };
     
-    const stackStyles: IStackStyles = {
-      root: {
-        height: 250,
-      },
-    };
-    const stackItemStyles: IStackItemStyles = {
-      root: {
-        alignItems: 'left',
-        display: 'flex',
-        justifyContent: 'left',
-      },
-    };
+  // Tokens definition
+  const outerStackTokens: IStackTokens = { childrenGap: 5 };
+  const innerStackTokens: IStackTokens = {
+    childrenGap: 5,
+    padding: 10,
+  };
 
-    const bStyles = buttonStyles();
+  const promptTypeOptions = [
+    {
+      key: 'generic',
+      text: 'generic'
+    },
+    {
+      key: 'medical',
+      text: 'medical'
+    },
+    {
+      key: 'financial',
+      text: 'financial'
+    },
+    {
+      key: 'prospectus',
+      text: 'prospectus'
+    },
+    {
+      key: 'insurance',
+      text: 'insurance'
+    }
+  ]
 
-    // Tokens definition
-    const outerStackTokens: IStackTokens = { childrenGap: 5 };
-    const innerStackTokens: IStackTokens = {
-      childrenGap: 5,
-      padding: 10,
-    };
+  const embeddingOptions = [
+    {
+      key: 'azureopenai',
+      text: 'Azure Open AI'
+    },
+    {
+      key: 'openai',
+      text: 'Open AI'
+    }
+    // {
+    //   key: 'local',
+    //   text: 'Local Embedding'
+    // }
+  ]
 
-    const embeddingOptions = [
+  const selection = useMemo(
+    () =>
+    new Selection({
+        onSelectionChanged: () => {
+        setSelectedItems(selection.getSelection());
+    },
+    selectionMode: SelectionMode.single,
+    }),
+  []);
+
+
+  const onChainChange = (event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+    setSelectedChain(item);
+  };
+
+  const onEmbeddingChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+    setSelectedEmbeddingItem(item);
+  };
+
+  const onProspectusChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+    setSelectedProspectus(item);
+    //getDocumentRuns(String(item?.key))
+  };
+
+  const onSummarizationTopicChanged = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+    if (item) {
+        setSelectedSummaryTopicItem(
+          item.selected ? [...selectedSummaryTopicItem, item.key as string] : selectedSummaryTopicItem.filter(key => key !== item.key),
+        );
+    }
+  };
+
+  const updatePrompt = (promptType: string) => {
+    const genericPrompt = `"""You are an AI assistant tasked with answering questions and summarizing information from a long document. 
+    Please generate a concise and comprehensive summary that includes details. 
+    Ensure that the summary is easy to understand and provides an accurate representation. 
+    Begin the summary with a brief introduction, followed by the main points.
+    Generate the summary with minimum of 7 paragraphs and maximum of 10 paragraphs.
+    Please remember to use clear language and maintain the integrity of the original information without missing any important details:
+    {text}
+    """`
+
+    const medicalPrompt = `"""You are an AI assistant tasked with answering questions and summarizing information from medical records documents. 
+    Your answer should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
+    Please generate a concise and comprehensive information that includes details such as patient information, medical history, 
+    allergies, chronic conditions, previous surgeries, prescribed medications, and upcoming appointments. 
+    Ensure that it is easy to understand for healthcare professionals and provides an accurate representation of the patient's medical history 
+    and current health status. 
+    
+    Begin with a brief introduction of the patient, followed by the main points of their medical records.
+    Please remember to use clear language and maintain the integrity of the original information without missing any important details
+    {text}
+    """`
+
+    const financialPrompt = `"""You are an AI assistant tasked with answering questions and summarizing information from 
+    earning call transcripts, annual reports, SEC filings and financial statements like income statement, cashflow and 
+    balance sheets. Additionally you may also be asked to answer questions about financial ratios and other financial metrics.
+    The data that you are presented could be in table format or structure.
+    Your answer should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
+    Please generate a concise and comprehensive information that includes details such as reporting year and amount in millions.
+    Ensure that it is easy to understand for business professionals and provides an accurate representation of the financial statement history. 
+    
+    Please remember to use clear language and maintain the integrity of the original information without missing any important details
+
+    {text}
+    """`
+
+    const prospectusPrompt = `"""You are an AI assistant tasked with summarizing documents from large documents that contains information about Initial Public Offerings. 
+    IPO document contains sections with information about the company, its business, strategies, risk, management structure, financial, and other information.
+    Your summary should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
+    Please generate a concise and comprehensive summary that includes details. 
+    Ensure that the summary is easy to understand and provides an accurate representation. 
+    Begin the summary with a brief introduction, followed by the main points.
+    Generate the summary with minimum of 7 paragraphs and maximum of 10 paragraphs.
+    Please remember to use clear language and maintain the integrity of the original information without missing any important details:
+    {text}
+
+    """`
+
+    if (promptType == "generic") {
+        setPromptTemplate(genericPrompt)
+    }
+    else if (promptType == "medical") {
+        setPromptTemplate(medicalPrompt)
+    } else if (promptType == "financial") {
+        setPromptTemplate(financialPrompt)
+    } else if (promptType == "prospectus") {
+        setPromptTemplate(prospectusPrompt)
+    } else if (promptType == "custom") {
+        setPromptTemplate("")
+    }
+  }
+
+  const refreshBlob = async () => {
+    const files = []
+    const indexType = []
+
+    //const blobs = containerClient.listBlobsFlat(listOptions)
+    const blobs = await refreshIndex()
+    for (const blob of blobs.values) {
+      if (blob.embedded == "true" && blob.singleFile == true)
       {
-        key: 'azureopenai',
-        text: 'Azure Open AI'
-      },
-      {
-        key: 'openai',
-        text: 'Open AI'
+        files.push({
+            text: blob.indexName,
+            key: blob.namespace
+        })
+        indexType.push({
+                key:blob.namespace,
+                iType:blob.indexType,
+                summary:blob.summary,
+                qa:blob.qa == null ? '' : blob.qa,
+                chunkSize:blob.chunkSize,
+                chunkOverlap:blob.chunkOverlap,
+                promptType:blob.promptType,
+                singleFile:blob.singleFile,
+                fileName:blob.name
+        })
       }
-      // {
-      //   key: 'local',
-      //   text: 'Local Embedding'
-      // }
-    ]
+    }
+    var uniqFiles = files.filter((v,i,a)=>a.findIndex(v2=>(v2.key===v.key))===i)
+    setOptions(uniqFiles)
+    setSelectedItem(uniqFiles[0])
 
-    const { getRootProps, getInputProps } = useDropzone({
-        multiple: true,
-        maxSize: 100000000,
-        accept: {
-          'application/pdf': ['.pdf'],
-          'application/word': ['.doc', '.docx'],
-          'application/csv': ['.csv'],
-          'application/json': ['.json'],
-          'text/plain': ['.txt']
-        },
-        onDrop: acceptedFiles => {
-          setFiles(acceptedFiles.map(file => Object.assign(file)))
+    const defaultKey = uniqFiles[0].key
+   
+    var uniqIndexType = indexType.filter((v,i,a)=>a.findIndex(v2=>(v2.key===v.key))===i)
+
+    for (const item of uniqIndexType) {
+        if (item.key == defaultKey) {
+            setSelectedIndex(item.iType)
+            setSelectedPromptTypeItem(promptTypeOptions.find(x => x.key === item.promptType))
+            setSelectedDocument(item.fileName)
+            updatePrompt(item.promptType)
+
+            // if (Number(item.chunkSize) > 4000) {
+            //     setSelectedDeploymentType(deploymentTypeOptions[1])
+            // }
+        }
+    }
+    setIndexMapping(uniqIndexType)
+  }
+
+  const processSummarization = async () => {
+    try {
+        const request: AskRequest = {
+            question : '',
+            approach: Approaches.ReadDecomposeAsk,
+            overrides: {
+                promptTemplate: promptTemplate,
+                fileName: String(selectedDocument),
+                topics: selectedSummaryTopicItem.length === 0 ? undefined : selectedSummaryTopicItem,
+                embeddingModelType: String(selectedEmbeddingItem?.key),
+                chainType: String(selectedChain?.key),
+                temperature: 0.3,
+                tokenLength: 1500,
+                top: 3,
+                deploymentType: 'gpt3516k',
+            }
+        };
+
+        setIsLoading(true);    
+        await processSummary(String(selectedItem?.key), String(selectedIndex), request)
+        .then(async (response: { answer: any; }) => {
+                const answer = JSON.parse(JSON.stringify(response.answer));
+                  const tQuestions = []
+                  for (let i = 0; i < answer.length; i++) {
+                      tQuestions.push({
+                          "question": answer[i]['topic'],
+                          "answer": answer[i]['summary'],
+                      });
+                      setSummaryQuestions(tQuestions);
+                  }
+            }
+        )
+        setIsLoading(false);
+      } catch (e) {
+        setError(e);
+        setIsLoading(false);
+    } finally {
+        setIsLoading(false);
+    }
+  }
+
+  const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+    setSelectedItem(item);
+    const defaultKey = item?.key
+    indexMapping?.findIndex((item) => {
+        if (item.key == defaultKey) {
+            setSelectedIndex(item.iType)
+            setSelectedDocument(item.fileName)
+            setSummaryQuestions([])
+            // setSelectedChunkSize(item.chunkSize)
+            // setSelectedChunkOverlap(item.chunkOverlap)
+            //setSelectedPromptType(item.promptType)
+            setSelectedPromptTypeItem(promptTypeOptions.find(x => x.key === item.promptType))
+            updatePrompt(item.promptType)
+
+            // if (Number(item.chunkSize) > 4000) {
+            //     setSelectedDeploymentType(deploymentTypeOptions[1])
+            // }
         }
     })
+  };
 
-    const renderFilePreview = (file: File ) => {
-        if (file.type.startsWith('image')) {
-          return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />
-        } else {
-          return <BarcodeScanner24Filled/>
-        }
+  const onSummaryPromptChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+    if (newValue != '') {
+      setSummaryPrompt(newValue || "");
     }
+  };
+
+  useEffect(() => {
+    const defaultSummaryPrompt = `"""You are an AI assistant tasked with summarizing documents from large documents that contains information about Initial Public Offerings. 
+        IPO document contains sections with information about the company, its business, strategies, risk, management structure, financial, and other information.
+        Your summary should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
+        Please generate a concise and comprehensive summary that includes details. 
+        Ensure that the summary is easy to understand and provides an accurate representation. 
+        Begin the summary with a brief introduction, followed by the main points.
+        Generate the summary with minimum of 7 paragraphs and maximum of 10 paragraphs.
+        Please remember to use clear language and maintain the integrity of the original information without missing any important details:
+        {text}
+
+        """`
     
+    setSummaryPrompt(defaultSummaryPrompt)
+    setSelectedEmbeddingItem(embeddingOptions[0])
+    setSelectedChain(chainTypeOptions[1])
+    setSelectedSummaryTopicItem(['Strengths', 'Growth Strategy'])
+    refreshBlob()
+    setSelectedEmbeddingItem(embeddingOptions[0])
+    setSummaryQuestions([])
+    //setSelectedDeploymentType(deploymentTypeOptions[0])
 
-    const handleRemoveFile = (file: File ) => {
-        const uploadedFiles = files
-        const filtered = uploadedFiles.filter((i: { name: string; }) => i.name !== file.name)
-        setFiles([...filtered])
-    }
+  }, [])
 
-    const handleRemoveAllFiles = () => {
-        setFiles([])
-    }
-    const fileList = files.map((file:File) => (
-        <div>
-          <div className='file-details'>
-            <div className='file-preview'>{renderFilePreview(file)}</div>
-            <div key={file.name}>
-              {file.name}
-              &nbsp;
-                {Math.round(file.size / 100) / 10 > 1000
-                  ? (Math.round(file.size / 100) / 10000).toFixed(1) + ' MB'
-                  : (Math.round(file.size / 100) / 10).toFixed(1) + ' KB'}
-            </div>
-          </div>
-          <DefaultButton onClick={() => handleRemoveFile(file)} disabled={loading ? true : false}>Remove File</DefaultButton>
-        </div>
-    ))
-    
-    const onChainChange = (event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
-      setSelectedChain(item);
-    };
-
-    const handleUploadFiles = async () => {
-      if (uploadPassword == '') {
-        setMissingUploadPassword(true)
-        return
-      }
-
-      if (files.length > 1) {
-        setMultipleDocs(true)
-      }
-
-      setsummaryText('')
-      setIntermediateStepsText([])
-      setLoading(true)
-      await verifyPassword("upload", uploadPassword)
-      .then(async (verifyResponse:string) => {
-        if (verifyResponse == "Success") {
-          setUploadText("Password verified")
-          setUploadText('Uploading your document...')
-          let count = 0
-          await new Promise( (resolve) => {
-          files.forEach(async (element: File) => {
-            //await uploadFileToBlob(element)
-            try {
-              const formData = new FormData();
-              formData.append('file', element);
-    
-              await uploadSummaryBinaryFile(formData)
-            }
-            finally
-            {
-              count += 1
-              if (count == files.length) {
-                resolve(element)
-              }
-            }
-          })
-          })
-          setUploadText("File uploaded successfully.  Now indexing the document.")
-
-          await processSummary("files", (files.length > 1 ? "true" : "false"), 
-          files, String(selectedEmbeddingItem?.key), String(selectedChain?.key))
-          .then((response:AskResponse) => {
-            setUploadText("Document summary successfully completed.")
-            setIntermediateStepsText(response.data_points)
-            setsummaryText(response.answer)
-            setFiles([])
-            setLoading(false)
-            setMultipleDocs(false)
-          })
-          .catch((error : string) => {
-            setUploadText(error)
-            setFiles([])
-            setLoading(false)
-            setMultipleDocs(false)
-          })
-        }
-        else {
-          setUploadText(verifyResponse)
-        }
-      })
-      .catch((error : string) => {
-        setUploadText(error)
-        setFiles([])
-        setLoading(false)
-        setMultipleDocs(false)
-      })
-      setLoading(false)
-    }
-
-    const onMultipleDocs = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
-        setMultipleDocs(!!checked);
-    };
-
-    const onEmbeddingChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
-      setSelectedEmbeddingItem(item);
-    };
-
-    const onUploadPassword = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-      setUploadPassword(newValue || "");
-      if (newValue == '') {
-        setMissingUploadPassword(true)
-      }
-      else {
-        setMissingUploadPassword(false)
-      }
-    };
-
-    useEffect(() => {
-      setSelectedEmbeddingItem(embeddingOptions[0])
-      setSelectedChain(chainTypeOptions[0])
-    }, [])
-
-    return (
-        <div className={styles.chatAnalysisPanel}>
-            <Stack enableScopedSelectors tokens={outerStackTokens}>
-              <Stack enableScopedSelectors  tokens={innerStackTokens}>
-                <Stack.Item grow styles={stackItemStyles}>
-                  <Label>Embedding Model</Label>
-                  &nbsp;
-                  <Dropdown
-                      selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
-                      onChange={onEmbeddingChange}
-                      placeholder="Select an Embedding Model"
-                      options={embeddingOptions}
-                      disabled={false}
-                      styles={dropdownStyles}
-                  />
-                  &nbsp;
-                  <Label>Chain Type</Label>
-                  &nbsp;
-                  <Dropdown 
-                      onChange={onChainChange}
-                      selectedKey={selectedChain ? selectedChain.key : 'stuff'}
-                      options={chainTypeOptions}
-                      disabled={false}
-                      styles={dropdownStyles}
-                  />
-                  &nbsp;
-                  <Label>Upload Password:</Label>&nbsp;
-                  <TextField onChange={onUploadPassword}
-                      errorMessage={!missingUploadPassword ? '' : "Note - Upload Password is required for Upload Functionality"}/>
-                </Stack.Item>
-              </Stack>
-            </Stack>
-            <Stack enableScopedSelectors tokens={outerStackTokens}>
-              {/* <Stack.Item grow={2} styles={stackItemStyles}>
-                <Checkbox label="Multiple Documents" checked={multipleDocs} onChange={onMultipleDocs} />
-              </Stack.Item> */}
-            <Stack.Item grow={2} styles={stackItemStyles}>
-              <div className={styles.commandsContainer}>
-              </div>
-              <div>
-                  <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF/text/CSV/JSON/Word Document file</h2>
-                  <h2 {...getRootProps({ className: 'dropzone' })}>
-                      <input {...getInputProps()} />
-                          Drop PDF/text/CSV/JSON/Word Document file here or click to upload. (Max file size 100 MB)
-                  </h2>
-                  {files.length ? (
-                      <Card>
-                          {fileList}
-                          <br/>
-                          <CardFooter>
-                              <DefaultButton onClick={handleRemoveAllFiles} disabled={loading ? true : false}>Remove All</DefaultButton>
-                              <DefaultButton onClick={handleUploadFiles} disabled={loading ? true : false}>
-                                  <span>Upload File</span>
-                              </DefaultButton>
-                          </CardFooter>
-                      </Card>
-                  ) : null}
-                  <br/>
-                  {loading ? <div><span>Please wait, Uploading and Processing your file</span><Spinner/></div> : null}
-                  <hr />
-                  <h2 className={styles.chatEmptyStateSubtitle}>
-                    <TextField disabled={true} label={uploadError ? '' : uploadText} errorMessage={!uploadError ? '' : uploadText} />
-                  </h2>
-              </div>
+  return (
+      <div className={styles.chatAnalysisPanel}>
+          <Stack enableScopedSelectors tokens={outerStackTokens}>
+            <Stack enableScopedSelectors  tokens={innerStackTokens}>
+              <Stack.Item grow styles={stackItemStyles}>
+                <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
+                &nbsp;
+                <Dropdown
+                    selectedKey={selectedItem ? selectedItem.key : undefined}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onChange={onChange}
+                    placeholder="Select an PDF"
+                    options={options}
+                    styles={dropdownStyles}
+                />
+                &nbsp;
+                {/* <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                <Label className={styles.commandsContainer}>Chunk Size : {selectedChunkSize} / Chunk Overlap : {selectedChunkOverlap}</Label> */}
+                &nbsp;
+                <Label>Embedding Model</Label>
+                &nbsp;
+                <Dropdown
+                    selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                    onChange={onEmbeddingChange}
+                    placeholder="Select an Embedding Model"
+                    options={embeddingOptions}
+                    disabled={false}
+                    styles={dropdownStyles}
+                />
+                &nbsp;
+                <Label>Chain Type</Label>
+                &nbsp;
+                <Dropdown 
+                    onChange={onChainChange}
+                    selectedKey={selectedChain ? selectedChain.key : 'stuff'}
+                    options={chainTypeOptions}
+                    disabled={false}
+                    styles={dropdownStyles}
+                />
               </Stack.Item>
             </Stack>
-            <Stack.Item grow={2} styles={stackItemStyles}>
-              <Label>Summary&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</Label>
-              {/* <TextField style={{ resize: 'none', width: '750px', height: '500px' }} disabled={false} multiline={true}/> */}
-              <textarea
-                    style={{ resize: 'none', width: '100%', height: '500px' }}
-                    value={summaryText}
+          </Stack>
+          <Stack enableScopedSelectors styles={stackItemCenterStyles} tokens={innerStackTokens}>
+            <Stack.Item grow={2} styles={stackItemCenterStyles}>
+                {/* <PrimaryButton text="RefreshDocs" onClick={() => processSummarization()} disabled={true} />
+                <Label>Select Document:</Label>&nbsp;
+                <Dropdown
+                    selectedKey={selectedProspectus ? selectedProspectus.key : undefined}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    onChange={onProspectusChange}
+                    placeholder="Select an Prospectus"
+                    options={prospectus}
+                    styles={dropdownStyles}
+                />
+                &nbsp; */}
+                <Label>Summarization Topics</Label>
+                &nbsp;
+                <Dropdown
+                    selectedKeys={selectedSummaryTopicItem}
+                    onChange={onSummarizationTopicChanged}
+                    //defaultSelectedKeys={['RecursiveCharacterTextSplitter']}
+                    placeholder="Select Topic"
+                    options={summaryTopicOptions}
                     disabled={false}
-              />
+                    styles={dropdownStyles}
+                    multiSelect
+                />
+                &nbsp;
+                <PrimaryButton text="Summarize" onClick={() => processSummarization()} />
+                <br/>
+            </Stack.Item>
+            <Stack.Item grow={2} styles={stackItemCenterStyles}>
+                <TextField label="Prompt" multiline rows={10} value={promptTemplate} 
+                  style={{ width: 800, height: 300 }}
+                  onChange={onSummaryPromptChange} />
             </Stack.Item>
             <br/>
-            <Stack.Item grow={2} styles={stackItemStyles}>
-              <Label>Summary List</Label>
-              <textarea
-                    style={{ resize: 'none', width: '100%', height: '500px' }}
-                    value={intermediateStepsText}
-                    disabled={false}
-              />
-            </Stack.Item>
-        </div>
+            {isLoading ? (
+                <Stack.Item grow={2} styles={stackItemStyles}>
+                    <Spinner label="Processing..." ariaLive="assertive" labelPosition="right" />
+                </Stack.Item>
+                ) : (
+                <Stack.Item grow={2} styles={stackItemCenterStyles}>
+                    <DetailsList
+                        compact={false}
+                        items={summaryQuestions || []}
+                        columns={summaryColumns}
+                        selectionMode={SelectionMode.none}
+                        getKey={(item: any) => item.key}
+                        selectionPreservedOnEmptyClick={true}
+                        layoutMode={DetailsListLayoutMode.justified}
+                        ariaLabelForSelectionColumn="Toggle selection"
+                        checkButtonAriaLabel="select row"
+                        />
+                </Stack.Item>
+            )}
+        </Stack>
+      </div>
     );
 };
 

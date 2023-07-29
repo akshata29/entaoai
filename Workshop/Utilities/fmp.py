@@ -650,7 +650,7 @@ def financial_statement(
     open(filename, "wb").write(response.content)
     logging.info(f"Saving {symbol} financial statement as {filename}.")
 
-def income_statement(
+def incomeStatement(
     apikey: str,
     symbol: str,
     period: str = "annual",
@@ -680,7 +680,7 @@ def income_statement(
     else:
         return __return_json_v3(path=path, query_vars=query_vars)
 
-def balance_sheet_statement(
+def balanceSheet(
     apikey: str,
     symbol: str,
     period: str = "annual",
@@ -710,7 +710,7 @@ def balance_sheet_statement(
     else:
         return __return_json_v3(path=path, query_vars=query_vars)
 
-def cash_flow_statement(
+def cashFlow(
     apikey: str,
     symbol: str,
     period: str = "annual",

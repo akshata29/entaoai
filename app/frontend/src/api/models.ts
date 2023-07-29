@@ -57,6 +57,8 @@ export type AskRequestOverrides = {
     sessionId?: string;
     useInternet?: boolean;
     deploymentType?: string;
+    fileName?: string;
+    topics?: string[]
 };
 
 export type AskRequest = {

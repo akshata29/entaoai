@@ -20,6 +20,7 @@ from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from azure.cosmos import CosmosClient, PartitionKey
 from Utilities.fmp import *
+from distutils.util import strtobool
 
 load_dotenv()
 app = Flask(__name__)
@@ -526,6 +527,7 @@ def processDoc():
     chunkSize=request.json["chunkSize"]
     chunkOverlap=request.json["chunkOverlap"]
     promptType=request.json["promptType"]
+    deploymentType=request.json["deploymentType"]
     postBody=request.json["postBody"]
    
     try:
@@ -536,7 +538,7 @@ def processDoc():
         params = {'indexType': indexType, "indexName": indexName, "multiple": multiple , "loadType": loadType,
                   "existingIndex": existingIndex, "existingIndexNs": existingIndexNs, "embeddingModelType": embeddingModelType,
                   "textSplitter": textSplitter, "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
-                  "promptType": promptType}
+                  "promptType": promptType, "deploymentType": deploymentType}
         resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
         jsonDict = json.loads(resp.text)
         #return json.dumps(jsonDict)
@@ -571,10 +573,8 @@ def runEvaluation():
     
 @app.route("/processSummary", methods=["POST"])
 def processSummary():
-    multiple=request.json["multiple"]
-    loadType=request.json["loadType"]
-    embeddingModelType=request.json["embeddingModelType"]
-    chainType=request.json["chainType"]
+    indexNs=request.json["indexNs"]
+    indexType=request.json["indexType"]
     postBody=request.json["postBody"]
    
     try:
@@ -582,7 +582,7 @@ def processSummary():
         url = os.environ.get("PROCESSSUMMARY_URL")
 
         data = postBody
-        params = { "multiple": multiple , "loadType": loadType, "embeddingModelType": embeddingModelType, "chainType": chainType}
+        params = { "indexNs": indexNs , "indexType": indexType}
         resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
         jsonDict = json.loads(resp.text)
         return jsonify(jsonDict)
@@ -681,6 +681,11 @@ def refreshIndex():
                 except:
                     chunkOverlap = "0"
 
+                try:
+                    singleFile = bool(strtobool(str(blob.metadata["singleFile"])))
+                except:
+                    singleFile = False
+
                 blobJson.append({
                     "embedded": blob.metadata["embedded"],
                     "indexName": blob.metadata["indexName"],
@@ -691,7 +696,8 @@ def refreshIndex():
                     "indexType":blob.metadata["indexType"],
                     "promptType": promptType,
                     "chunkSize": chunkSize,
-                    "chunkOverlap": chunkOverlap
+                    "chunkOverlap": chunkOverlap,
+                    "singleFile": singleFile,
                 })
             except Exception as e:
                 pass
@@ -702,6 +708,35 @@ def refreshIndex():
         logging.exception("Exception in /refreshIndex")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/getProspectusList", methods=["GET"])
+def getProspectusList():
+   
+    try:
+        SearchService = os.environ.get("SEARCHSERVICE")
+        SearchKey = os.environ.get("SEARCHKEY")
+        searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name="prospectussummary",
+        credential=AzureKeyCredential(SearchKey))
+        try:
+            r = searchClient.search(  
+                search_text="",
+                select=["fileName"],
+                include_total_count=True
+            )
+            documentList = []
+            for document in r:
+                try:
+                    documentList.append({'fileName': document['fileName']})
+                except Exception as e:
+                    pass
+            return jsonify({"values" : documentList})
+        except Exception as e:
+            logging.exception("Exception in /getProspectusList")
+            return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        logging.exception("Exception in /getProspectusList")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/getDocumentList", methods=["GET"])
 def getDocumentList():
    

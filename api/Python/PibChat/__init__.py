@@ -143,6 +143,7 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
     systemTemplate = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
     Generate a search query based on the conversation and the new question.
     The search query should be optimized to find the answer to the question in the knowledge base.
+    If you cannot generate a search query, return just the number 0.
 
     """
 
@@ -164,9 +165,9 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
             systemTemplate,
             gptModel,
             history,
-            lastQuestion,
+            'Generate search query for: ' + lastQuestion,
             [],
-            tokenLimit - len(lastQuestion)
+            tokenLimit - len('Generate search query for: ' + lastQuestion)
             )
 
     if (embeddingModelType == 'azureopenai'):
