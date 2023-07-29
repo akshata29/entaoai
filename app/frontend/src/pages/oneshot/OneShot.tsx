@@ -671,12 +671,11 @@ const OneShot = () => {
         const prospectusPrompt = `"""You are an AI assistant tasked with summarizing documents from large documents that contains information about Initial Public Offerings. 
         IPO document contains sections with information about the company, its business, strategies, risk, management structure, financial, and other information.
         Your summary should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
-        Please generate a concise and comprehensive summary that includes details. 
-        Ensure that the summary is easy to understand and provides an accurate representation. 
-        Begin the summary with a brief introduction, followed by the main points.
-        Generate the summary with minimum of 7 paragraphs and maximum of 10 paragraphs.
         Please remember to use clear language and maintain the integrity of the original information without missing any important details:
-        {text}
+        QUESTION: {question}
+        =========
+        {summaries}
+        =========
 
         """`
 

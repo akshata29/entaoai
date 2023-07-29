@@ -233,7 +233,10 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
     try:
         # userToken = completion.usage.total_tokens
         # totalTokens = totalTokens + userToken
-        q = completion.choices[0].message.content
+        if len(history) > 1:
+            q = completion.choices[0].message.content
+        else:
+            q = lastQuestion
         logging.info("Question " + str(q))
         if q.strip() == "0":
             q = history[-1]["user"]
