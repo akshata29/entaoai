@@ -1,13 +1,49 @@
 import logging, json, os, urllib
 import azure.functions as func
 import openai
-from langchain.llms.openai import AzureOpenAI, OpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 import os
 from langchain.agents import create_sql_agent
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.sql_database import SQLDatabase
 from langchain.schema import AgentAction
 from Utilities.envVars import *
+from typing import Dict
+
+def parseAnswer(result: Dict) -> Dict:
+    sql_cmd_key = "sql_cmd"
+    sql_result_key = "sql_result"
+    table_info_key = "table_info"
+    input_key = "input"
+    final_answer_key = "answer"
+
+    _example = {
+        "input": result.get("query"),
+    }
+
+    steps = result.get("intermediate_steps")
+    answer_key = sql_cmd_key # the first one
+    for step in steps:
+        # The steps are in pairs, a dict (input) followed by a string (output).
+        # Unfortunately there is no schema but you can look at the input key of the
+        # dict to see what the output is supposed to be
+        if isinstance(step, dict):
+            # Grab the table info from input dicts in the intermediate steps once
+            if table_info_key not in _example:
+                _example[table_info_key] = step.get(table_info_key)
+
+            if input_key in step:
+                if step[input_key].endswith("SQLQuery:"):
+                    answer_key = sql_cmd_key # this is the SQL generation input
+                if step[input_key].endswith("Answer:"):
+                    answer_key = final_answer_key # this is the final answer input
+            elif sql_cmd_key in step:
+                _example[sql_cmd_key] = step[sql_cmd_key]
+                answer_key = sql_result_key # this is SQL execution input
+        elif isinstance(step, str):
+            # The preceding element should have set the answer_key
+            _example[answer_key] = step
+    return _example
 
 def SqlAgentAnswer(topK, question, embeddingModelType, value):
     logging.info("Calling SqlAgentAnswer Open AI")
@@ -63,10 +99,14 @@ def SqlAgentAnswer(topK, question, embeddingModelType, value):
             openai.api_version = OpenAiVersion
             openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-            llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                    temperature=os.environ['Temperature'] or 0,
-                    openai_api_key=OpenAiKey,
-                    max_tokens=1000)
+            llm = AzureChatOpenAI(
+                        openai_api_base=openai.api_base,
+                        openai_api_version=OpenAiVersion,
+                        deployment_name=OpenAiChat,
+                        temperature=0,
+                        openai_api_key=OpenAiKey,
+                        openai_api_type="azure",
+                        max_tokens=1000)
 
             logging.info("LLM Setup done")
         elif embeddingModelType == "openai":
@@ -74,8 +114,10 @@ def SqlAgentAnswer(topK, question, embeddingModelType, value):
             openai.api_base = "https://api.openai.com/v1"
             openai.api_version = '2020-11-07' 
             openai.api_key = OpenAiApiKey
-            llm = OpenAI(temperature=os.environ['Temperature'] or 0,
-                    openai_api_key=OpenAiApiKey)
+            llm = ChatOpenAI(temperature=0,
+                openai_api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
+                max_tokens=1000)
 
         logging.info("LLM Setup done")
 
@@ -96,6 +138,7 @@ def SqlAgentAnswer(topK, question, embeddingModelType, value):
      
         logging.info("Agent Setup done")
         answer = agentExecutor._call({"input":question})
+        parsedResult = parseAnswer(answer)
         intermediateSteps = answer['intermediate_steps']
         toolInput = ''
         observation = ''

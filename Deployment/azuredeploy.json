@@ -376,25 +376,48 @@
                 "zoneRedundant": false
             }
         },
-        // {
-        //     "type": "Microsoft.CognitiveServices/accounts/deployments",
-        //     "apiVersion": "2022-12-01",
-        //     "name": "[concat(variables('aoaiSvcName'), '/chat')]",
-        //     "dependsOn": [
-        //         "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
-        //     ],
-        //     "properties": {
-        //         "model": {
-        //             "format": "OpenAI",
-        //             "name": "gpt-35-turbo",
-        //             "version": "0301"
-        //         },
-        //         "scaleSettings": {
-        //             "scaleType": "Standard"
-        //         },
-        //         "raiPolicyName": "Microsoft.Default"
-        //     }
-        // },      
+        {
+            "type": "Microsoft.CognitiveServices/accounts/deployments",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(variables('aoaiSvcName'), '/chat')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
+            ],
+            "sku": {
+                "name": "Standard",
+                "capacity": 30
+            },
+            "properties": {
+                "model": {
+                    "format": "OpenAI",
+                    "name": "gpt-35-turbo",
+                    "version": "0613"
+                },
+                "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
+                "raiPolicyName": "Microsoft.Default"
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/deployments",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(variables('aoaiSvcName'), '/chat16k')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
+            ],
+            "sku": {
+                "name": "Standard",
+                "capacity": 30
+            },
+            "properties": {
+                "model": {
+                    "format": "OpenAI",
+                    "name": "gpt-35-turbo-16k",
+                    "version": "0613"
+                },
+                "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
+                "raiPolicyName": "Microsoft.Default"
+            }
+        },      
         {
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "2020-10-01",
@@ -411,25 +434,6 @@
                 "retentionInterval": "PT1H"
             }
         },
-        // {
-        //     "type": "Microsoft.CognitiveServices/accounts/deployments",
-        //     "apiVersion": "2022-12-01",
-        //     "name": "[concat(variables('aoaiSvcName'), '/davinci')]",
-        //     "dependsOn": [
-        //         "[resourceId('Microsoft.Resources/deploymentScripts','Wait5s')]"
-        //     ],
-        //     "properties": {
-        //         "model": {
-        //             "format": "OpenAI",
-        //             "name": "text-davinci-003",
-        //             "version": "1"
-        //         },
-        //         "scaleSettings": {
-        //             "scaleType": "Standard"
-        //         },
-        //         "raiPolicyName": "Microsoft.Default"
-        //     }
-        // },
         {
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "2020-10-01",
@@ -448,20 +452,22 @@
         },
         {
             "type": "Microsoft.CognitiveServices/accounts/deployments",
-            "apiVersion": "2022-12-01",
-            "name": "[concat(variables('aoaiSvcName'), '/text-embedding-ada-002')]",
+            "apiVersion": "2023-05-01",
+            "name": "[concat(variables('aoaiSvcName'), '/embedding')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deploymentScripts','Wait10s')]"
             ],
+            "sku": {
+                "name": "Standard",
+                "capacity": 30
+            },
             "properties": {
                 "model": {
                     "format": "OpenAI",
                     "name": "text-embedding-ada-002",
                     "version": "2"
                 },
-                "scaleSettings": {
-                    "scaleType": "Standard"
-                },
+                "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
                 "raiPolicyName": "Microsoft.Default"
             }
         },
@@ -867,10 +873,6 @@
 			{
 			  "name": "OpenAiChat",
 			  "value": "chat"
-			},
-			{
-			  "name": "OpenAiDavinci",
-			  "value": "davinci"
 			},
 			{
 			  "name": "OpenAiDocContainer",

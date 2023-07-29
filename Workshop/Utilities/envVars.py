@@ -8,7 +8,6 @@ load_dotenv(dotenv_path='./.env')
 try:
     OpenAiKey = os.getenv('OpenAiKey')
     OpenAiVersion = os.getenv('OpenAiVersion', "2023-05-15")
-    OpenAiDavinci = os.getenv('OpenAiDavinci')
     OpenAiChat = os.getenv('OpenAiChat')
     OpenAiService = os.getenv('OpenAiService', '')
     OpenAiBase = f"https://{OpenAiService}.openai.azure.com"

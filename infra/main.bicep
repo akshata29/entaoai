@@ -30,8 +30,6 @@ param applicationInsightsName string = '${prefix}appisg'
 
 param openAiSkuName string = 'S0'
 
-param gptDeploymentName string = 'davinci'
-param gptModelName string = 'text-davinci-003'
 param chatGptDeploymentName string = 'chat'
 param chatGptModelName string = 'gpt-35-turbo'
 param textEmbeddingDeploymentName string = 'text-embedding-ada-002'
@@ -130,17 +128,6 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
     }
     deployments: [
       {
-        name: gptDeploymentName
-        model: {
-          format: 'OpenAI'
-          name: gptModelName
-          version: '1'
-        }
-        scaleSettings: {
-          scaleType: 'Standard'
-        }
-      }
-      {
         name: chatGptDeploymentName
         model: {
           format: 'OpenAI'
@@ -211,7 +198,6 @@ module function 'core/host/function.bicep' = {
       OpenAiService:openAi.outputs.name
       OpenAiEndPoint:openAi.outputs.endpoint
       OpenAiVersion:'2022-12-01'
-      OpenAiDavinci:gptDeploymentName
       OpenAiEmbedding:textEmbeddingDeploymentName
       OpenAiKey:openAi.outputs.key
       MaxTokens:500
@@ -305,7 +291,6 @@ output AZURE_TENANT_ID string = tenant().tenantId
 output AZURE_RESOURCE_GROUP string = resourceGroup.name
 
 output AZURE_OPENAI_SERVICE string = openAi.outputs.name
-output AZURE_OPENAI_GPT_DEPLOYMENT string = gptDeploymentName
 output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
 
 output AZURE_SEARCH_SERVICE string = searchService.outputs.name

@@ -1,7 +1,7 @@
 import logging, json, os
 import azure.functions as func
 import openai
-from langchain.llms.openai import AzureOpenAI, OpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 import os
 from langchain.vectorstores import Pinecone
@@ -17,6 +17,9 @@ from langchain.schema import (
 )
 from Utilities.envVars import *
 from langchain.vectorstores.redis import Redis
+from langchain.chains.question_answering import load_qa_chain
+from langchain.prompts import PromptTemplate
+from langchain.docstore.document import Document
 
 def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, returnDirect, topK):
     if indexType == "pinecone":
@@ -62,11 +65,14 @@ def AgentQaAnswer(question, overrides):
             openai.api_version = OpenAiVersion
             openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-            llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                    temperature=temperature,
-                    openai_api_key=OpenAiKey,
-                    max_tokens=tokenLength,
-                    batch_size=10)
+            llm = AzureChatOpenAI(
+                        openai_api_base=openai.api_base,
+                        openai_api_version=OpenAiVersion,
+                        deployment_name=OpenAiChat,
+                        temperature=temperature,
+                        openai_api_key=OpenAiKey,
+                        openai_api_type="azure",
+                        max_tokens=tokenLength)
 
             embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
             logging.info("Azure OpenAI LLM Setup done")
@@ -75,10 +81,10 @@ def AgentQaAnswer(question, overrides):
             openai.api_base = "https://api.openai.com/v1"
             openai.api_version = '2020-11-07' 
             openai.api_key = OpenAiApiKey
-            llm = OpenAI(temperature=os.environ['Temperature'] or 0.3,
-                    openai_api_key=OpenAiApiKey,
-                    verbose=True,
-                    max_tokens=tokenLength)
+            llm = ChatOpenAI(temperature=temperature,
+                openai_api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
+                max_tokens=tokenLength)
             embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
             logging.info("OpenAI LLM Setup done")
         
@@ -91,52 +97,30 @@ def AgentQaAnswer(question, overrides):
             tools.append(tool)
 
         logging.info("Index Setup done")
-        agent = initialize_agent(tools, llm, agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION, 
-                    verbose=False, return_intermediate_steps=True, early_stopping_method="generate")
+        agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
+                    verbose=False, return_intermediate_steps=True)
         answer = agent({"input":question})
+        logging.info(answer)
         action = answer['intermediate_steps']
+
         sources = ''
         for a, data in action:
             sources = a.tool
             break;
         
-        followupQaPromptTemplate = """Generate three very brief follow-up questions from the answer {answer} that the user would likely ask next.
+        followupQaPromptTemplate = """Generate three very brief follow-up questions from the answer that the user would likely ask next.
         Use double angle brackets to reference the questions, e.g. <Is there a more details on that?>.
         Try not to repeat questions that have already been asked.
-        Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'"""
+        Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'
 
-        finalPrompt = followupQaPromptTemplate.format(answer = answer['output'])
-        try:
+        {context} 
+        """
 
-            if (embeddingModelType == 'azureopenai'):
-                openai.api_type = "azure"
-                openai.api_key = OpenAiKey
-                openai.api_version = OpenAiVersion
-                openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-
-                completion = openai.Completion.create(
-                    engine=OpenAiDavinci,
-                    prompt=finalPrompt,
-                    temperature=temperature,
-                    max_tokens=tokenLength,
-                    n=1)
-                logging.info("Azure Open AI LLM Setup done")
-            elif embeddingModelType == "openai":
-                openai.api_type = "open_ai"
-                openai.api_base = "https://api.openai.com/v1"
-                openai.api_version = '2020-11-07' 
-                openai.api_key = OpenAiApiKey
-                completion = openai.Completion.create(
-                    engine="text-davinci-003",
-                    prompt=finalPrompt,
-                    temperature=temperature,
-                    max_tokens=tokenLength,
-                    n=1)
-                logging.info("OpenAI LLM Setup done")
-            nextQuestions = completion.choices[0].text
-        except Exception as e:
-            logging.error(e)
-            nextQuestions =  ''
+        docs = [Document(page_content=answer['output'])]
+        followupPrompt = PromptTemplate(template=followupQaPromptTemplate, input_variables=["context"])
+        followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
+        nextQuestions = followupChain({"input_documents": docs, "question": ''}, return_only_outputs=True)
+        nextQuestions = nextQuestions['output_text']
     
         return {"data_points": [], "answer": answer['output'].replace("Answer: ", ''), "thoughts": answer['intermediate_steps'], "sources": sources, "nextQuestions":nextQuestions, "error": ""}
 

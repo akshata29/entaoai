@@ -8,7 +8,6 @@
 |OpenAiService||Name of the OpenAI Service deployed in Azure
 |OpenAiEndPoint||Fully qualified endpoint for Azure OpenAI <br>(https://<yourresource>.openai.azure.com/)
 |OpenAiVersion|2022-12-01|API Version of the Azure OpenAI
-|OpenAiDavinci|davinci|Deployment name of text-davinci-003 <br>model in Azure OpenAI
 |OpenAiEmbedding|text-embedding-ada-002|Deployment name of <br>text-embedding-ada-002 model in Azure OpenAI
 |MaxTokens|500|Maximum Tokens
 |Temperature|0.3|Temperature

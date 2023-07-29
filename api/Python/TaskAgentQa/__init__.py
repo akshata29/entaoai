@@ -19,6 +19,9 @@ from langchain.vectorstores.base import VectorStore
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from Utilities.envVars import *
 from langchain.vectorstores.redis import Redis
+from langchain.chains.question_answering import load_qa_chain
+from langchain.prompts import PromptTemplate
+from langchain.docstore.document import Document
 
 taskNamespace = "AgiTask"
 
@@ -323,13 +326,13 @@ def TaskAgentQaAnswer(question, overrides):
             openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
             llm = AzureChatOpenAI(
-                openai_api_base="https://{OpenAiService}.openai.azure.com",
+                openai_api_base=openai.api_base,
                 openai_api_version=OpenAiVersion,
                 deployment_name=OpenAiChat,
-                temperature=0,
+                temperature=temperature,
                 openai_api_key=OpenAiKey,
                 openai_api_type="azure",
-                max_tokens=1000)
+                max_tokens=tokenLength)
 
             embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
             logging.info("Azure Open AI LLM Setup done")
@@ -339,8 +342,9 @@ def TaskAgentQaAnswer(question, overrides):
             openai.api_version = '2020-11-07' 
             openai.api_key = OpenAiApiKey
             llm = ChatOpenAI(temperature=temperature,
-                    openai_api_key=OpenAiApiKey,
-                    max_tokens=1000)
+                openai_api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
+                max_tokens=tokenLength)
             embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
             logging.info("Open AI LLM Setup done")
 
@@ -395,38 +399,11 @@ def TaskAgentQaAnswer(question, overrides):
         Try not to repeat questions that have already been asked.
         Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'"""
 
-        finalPrompt = followupQaPromptTemplate.format(answer=finalAnswer)
-        try:
-            if (embeddingModelType == 'azureopenai'):
-                openai.api_type = "azure"
-                openai.api_key = OpenAiKey
-                openai.api_version = OpenAiVersion
-                openai.api_base = f"https://{OpenAiService}.openai.azure.com"
-
-                completion = openai.Completion.create(
-                    engine=OpenAiDavinci,
-                    prompt=finalPrompt,
-                    temperature=temperature,
-                    max_tokens=tokenLength,
-                    n=1)
-                logging.info("Azure Open AI LLM Setup done")
-            elif embeddingModelType == "openai":
-                openai.api_type = "open_ai"
-                openai.api_base = "https://api.openai.com/v1"
-                openai.api_version = '2020-11-07' 
-                openai.api_key = OpenAiApiKey
-                completion = openai.Completion.create(
-                    engine="text-davinci-003",
-                    prompt=finalPrompt,
-                    temperature=temperature,
-                    max_tokens=tokenLength,
-                    n=1)
-                logging.info("OpenAI LLM Setup done")
-
-            nextQuestions = completion.choices[0].text
-        except Exception as e:
-            logging.error(e)
-            nextQuestions =  ''
+        docs = [Document(page_content=answer['output'])]
+        followupPrompt = PromptTemplate(template=followupQaPromptTemplate, input_variables=["context"])
+        followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
+        nextQuestions = followupChain({"input_documents": docs, "question": ''}, return_only_outputs=True)
+        nextQuestions = nextQuestions['output_text']
     
         if ((finalAnswer.find("I don't know") >= 0) or (finalAnswer.find("I'm not sure") >= 0)):
             sources = ''

@@ -41,7 +41,6 @@ const OneShot = () => {
     const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
     const [useAutoSpeakAnswers, setUseAutoSpeakAnswers] = useState<boolean>(false);
 
-
     const [options, setOptions] = useState<any>([])
     const [selectedItem, setSelectedItem] = useState<IDropdownOption>();
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
@@ -376,6 +375,7 @@ const OneShot = () => {
                 }
             };
             const result = await askAgentApi(request);
+            console.log(result);
             //setAgentAnswer(result);
             setAgentAnswer([result, null]);
             if(useAutoSpeakAnswers) {

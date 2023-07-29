@@ -4,7 +4,6 @@ import logging
 try:
     OpenAiKey = os.environ['OpenAiKey']
     OpenAiVersion = os.environ['OpenAiVersion']
-    OpenAiDavinci = os.environ['OpenAiDavinci']
     OpenAiChat = os.environ['OpenAiChat']
     OpenAiService = os.environ['OpenAiService']
     OpenAiDocStorName = os.environ['OpenAiDocStorName']

@@ -438,6 +438,7 @@ export async function pibChatGptApi(options: ChatRequest, symbol: string, indexN
             {
               recordId: 0,
               data: {
+                text: '',
                 history: options.history,
                 approach: 'rrr',
                 overrides: {

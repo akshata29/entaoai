@@ -8,11 +8,11 @@ import numpy as np
 import pandas as pd
 from Utilities.redisIndex import createRedisIndex, chunkAndEmbed, performRedisSearch
 from langchain.docstore.document import Document
-from langchain.llms.openai import OpenAI, AzureOpenAI
 from langchain.chains.summarize import load_summarize_chain
 from langchain.chains import AnalyzeDocumentChain
 from Utilities.envVars import *
 from Utilities.cogSearch import performCogSearch
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 
 redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
 
@@ -25,18 +25,24 @@ def SecSearch(indexType, indexName,  question, top, embeddingModelType):
             openai.api_version = OpenAiVersion
             openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-            llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                    temperature=os.environ['Temperature'] or 0.3,
-                    openai_api_key=OpenAiKey,
-                    max_tokens=1024,
-                    batch_size=10)
+            llm = AzureChatOpenAI(
+                        openai_api_base=openai.api_base,
+                        openai_api_version=OpenAiVersion,
+                        deployment_name=OpenAiChat,
+                        temperature=0.3,
+                        openai_api_key=OpenAiKey,
+                        openai_api_type="azure",
+                        max_tokens=1000)
+                        
         elif embeddingModelType == "openai":
             openai.api_type = "open_ai"
             openai.api_base = "https://api.openai.com/v1"
             openai.api_version = '2020-11-07' 
             openai.api_key = OpenAiApiKey
-            llm = OpenAI(temperature=os.environ['Temperature'] or 0.3,
-                    openai_api_key=OpenAiApiKey)
+            llm = ChatOpenAI(temperature=0.3,
+                openai_api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
+                max_tokens=1000)
             
         logging.info("LLM Setup done")
 

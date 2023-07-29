@@ -736,6 +736,9 @@ const Upload = () => {
 
     const onChunkSizeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
       setSelectedChunkSizeItem(item);
+      if (Number(item?.key) > 4000) {
+        setSelectedDeploymentType(deploymentTypeOptions[1])
+      }
     };
 
     const onPromptTypeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {

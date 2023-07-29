@@ -10,7 +10,6 @@ from langchain.prompts import PromptTemplate
 from langchain.embeddings.openai import OpenAIEmbeddings
 import pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.llms.openai import AzureOpenAI, OpenAI
 from redis import Redis
 import numpy as np
 from langchain.docstore.document import Document
@@ -21,6 +20,7 @@ from Utilities.cogSearch import performCogSearch
 from Utilities.envVars import *
 from langchain.agents import create_csv_agent
 from Utilities.azureBlob import getLocalBlob, getFullPath
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -200,12 +200,14 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
             openai.api_version = OpenAiVersion
             openai.api_base = f"https://{OpenAiService}.openai.azure.com"
 
-            llm = AzureOpenAI(deployment_name=OpenAiDavinci,
-                    temperature=temperature,
-                    openai_api_key=OpenAiKey,
-                    max_tokens=tokenLength,
-                    batch_size=10, 
-                    max_retries=12)
+            llm = AzureChatOpenAI(
+                openai_api_base=openai.api_base,
+                openai_api_version=OpenAiVersion,
+                deployment_name=OpenAiChat,
+                temperature=temperature,
+                openai_api_key=OpenAiKey,
+                openai_api_type="azure",
+                max_tokens=tokenLength)
 
             logging.info("LLM Setup done")
             embeddings = OpenAIEmbeddings(model=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
@@ -214,9 +216,10 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType, question, ind
             openai.api_base = "https://api.openai.com/v1"
             openai.api_version = '2020-11-07' 
             openai.api_key = OpenAiApiKey
-            llm = OpenAI(temperature=temperature,
-                    openai_api_key=OpenAiApiKey,
-                    max_tokens=tokenLength)
+            llm = ChatOpenAI(temperature=temperature,
+                openai_api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
+                max_tokens=tokenLength)
             embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
 
         

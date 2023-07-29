@@ -14,7 +14,6 @@
       "OpenAiService": "", // Name of Azure Open AI Service
       "OpenAiEndPoint": "", // FQDN of Azure Open AI Service
       "OpenAiVersion": "2023-05-15",
-      "OpenAiDavinci": "", // Deployment name of Davinci-003
       "OpenAiEmbedding": "", // Deployment name of Ada-003
       "FormRecognizerEndPoint": "", // Form Recognizer Endpoint
       "FormRecognizerKey": "",  // Form Recognizer Key

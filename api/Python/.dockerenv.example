@@ -6,7 +6,6 @@ OpenAiKey=
 OpenAiService=dataaioaics
 OpenAiEndPoint=https://dataaioaics.openai.azure.com/
 OpenAiVersion=2022-12-01
-OpenAiDavinci=davinci
 OpenAiEmbedding=text-embedding-ada-002
 MaxTokens=500
 Temperature=0.3

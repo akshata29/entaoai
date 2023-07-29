@@ -285,26 +285,6 @@ const Speech = () => {
             String(selectedChain?.key), String(selectedEmbeddingItem?.key))
             setGptPromptSummary(summary)
         }
-
-        // const url = "https://dataaioaics.openai.azure.com/openai/deployments/davinci/completions?api-version=2022-12-01" 
-
-        // const headers = { 'Content-Type': 'application/json', 'api-key': "8b08d4ba474545c8a93a09847e7298db" }
-
-        // const params = {
-        //   prompt: "This is some random text. and some garbage stuff. I am trying to see if this works. tl;dr",
-        //   max_tokens: 1000,
-        //   temperature: 1,
-        // }
-
-        // axios
-        //   .post(url, params, { headers: headers })
-        //   .then((response: { data: { choices: { text: SetStateAction<string | undefined>; }[]; }; }) => {
-        //     setGptPromptSummary(response.data.choices[0].text)
-        //   })
-        //   .catch((error: string) => {
-        //     setGptPromptSummary('FATAL_ERROR amc: ' + error)
-        //     console.log(error)
-        //   })
     }
 
     const setPromptTypes = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {

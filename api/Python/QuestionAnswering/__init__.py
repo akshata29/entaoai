@@ -36,7 +36,19 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
         promptTemplate = overrides.get('promptTemplate') or ''
         deploymentType = overrides.get('deploymentType') or 'gpt35'
 
-        logging.info("Search for Top " + str(topK) + " and chainType is " + str(overrideChain))
+        logging.info("TopK: " + str(topK))
+        logging.info("ChainType: " + str(overrideChain))
+        logging.info("Temperature: " + str(temperature))
+        logging.info("TokenLength: " + str(tokenLength))
+        logging.info("EmbeddingModelType: " + str(embeddingModelType))
+        logging.info("PromptTemplate: " + str(promptTemplate))
+        logging.info("DeploymentType: " + str(deploymentType))
+        logging.info("OpenAiService: " + str(OpenAiService))
+        logging.info("OpenAiChat: " + str(OpenAiChat))
+        logging.info("OpenAiChat16k: " + str(OpenAiChat16k))
+        logging.info("OpenAiEmbedding: " + str(OpenAiEmbedding))
+        
+        
         thoughtPrompt = ''
 
         if (embeddingModelType == 'azureopenai'):
@@ -336,7 +348,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                     
                     indexDocs(SearchService, SearchKey, KbIndexName, kbData)
                 except Exception as e:
-                    logging.info("Error in KB Indexing: " + str(e))
+                    logging.error("Error in KB Indexing: " + str(e))
                     pass
 
                 return outputFinalAnswer            
@@ -473,47 +485,10 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
     
 
     except Exception as e:
-      logging.info("Error in QaAnswer Open AI : " + str(e))
+      logging.error("Error in QaAnswer Open AI : " + str(e))
       return {"data_points": "", "answer": "Exception during finding answers - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
 
     #return answer
-
-def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
-    logging.info(f'{context.function_name} HTTP trigger function processed a request.')
-    if hasattr(context, 'retry_context'):
-        logging.info(f'Current retry count: {context.retry_context.retry_count}')
-
-        if context.retry_context.retry_count == context.retry_context.max_retry_count:
-            logging.info(
-                f"Max retries of {context.retry_context.max_retry_count} for "
-                f"function {context.function_name} has been reached")
-
-    try:
-        chainType = req.params.get('chainType')
-        question = req.params.get('question')
-        indexType = req.params.get('indexType')
-        indexNs = req.params.get('indexNs')
-        logging.info("Input parameters : " + chainType + " " + question + " " + indexType)
-        body = json.dumps(req.get_json())
-    except ValueError:
-        return func.HttpResponse(
-             "Invalid body",
-             status_code=400
-        )
-
-    if body:
-        if len(PineconeKey) > 10 and len(PineconeEnv) > 10:
-            pinecone.init(
-                api_key=PineconeKey,  # find at app.pinecone.io
-                environment=PineconeEnv  # next to api key in console
-            )
-        result = ComposeResponse(chainType, question, indexType, body, indexNs)
-        return func.HttpResponse(result, mimetype="application/json")
-    else:
-        return func.HttpResponse(
-             "Invalid body",
-             status_code=400
-        )
 
 def ComposeResponse(chainType, question, indexType, jsonData, indexNs):
     values = json.loads(jsonData)['values']
@@ -573,9 +548,55 @@ def TransformValue(chainType, question, indexType, record, indexNs):
             "data": answer
             })
 
-    except:
+    except Exception as error:
+        logging.error("Error in Transform Value: " + str(error))
         return (
             {
             "recordId": recordId,
             "errors": [ { "message": "Could not complete operation for record." }   ]
             })
+
+def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
+    logging.info(f'{context.function_name} HTTP trigger function processed a request.')
+    if hasattr(context, 'retry_context'):
+        logging.info(f'Current retry count: {context.retry_context.retry_count}')
+
+        if context.retry_context.retry_count == context.retry_context.max_retry_count:
+            logging.info(
+                f"Max retries of {context.retry_context.max_retry_count} for "
+                f"function {context.function_name} has been reached")
+
+    try:
+        chainType = req.params.get('chainType')
+        question = req.params.get('question')
+        indexType = req.params.get('indexType')
+        indexNs = req.params.get('indexNs')
+        logging.info("chainType: " + chainType)
+        logging.info("question: " + question)
+        logging.info("indexType: " + indexType)
+        logging.info("indexNs: " + indexNs)
+
+        body = json.dumps(req.get_json())
+    except ValueError:
+        return func.HttpResponse(
+             "Invalid body",
+             status_code=400
+        )
+
+    if body:
+        try:
+            if len(PineconeKey) > 10 and len(PineconeEnv) > 10:
+                pinecone.init(
+                    api_key=PineconeKey,  # find at app.pinecone.io
+                    environment=PineconeEnv  # next to api key in console
+                )
+        except Exception as e:
+            logging.error("Error in Pinecone Init: " + str(e))
+            pass
+        result = ComposeResponse(chainType, question, indexType, body, indexNs)
+        return func.HttpResponse(result, mimetype="application/json")
+    else:
+        return func.HttpResponse(
+             "Invalid body",
+             status_code=400
+        )
