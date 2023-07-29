@@ -538,7 +538,7 @@ const Upload = () => {
               s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '',
               String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key),
               selectedChunkSizeItem?.key, selectedChunkOverlapItem?.key,
-              String(selectedPromptTypeItem?.key))
+              String(selectedPromptTypeItem?.key), String(selectedDeploymentType?.key))
               .then((response) => {
                 if (response == "Success") {
                   setUploadText("Completed Successfully.  You can now search for your document.")
@@ -644,7 +644,7 @@ const Upload = () => {
                 s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '',
                 String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key),
                 selectedChunkSizeItem?.key, selectedChunkOverlapItem?.key,
-                String(selectedPromptTypeItem?.key))  
+                String(selectedPromptTypeItem?.key), String(selectedDeploymentType?.key))  
                 .then((response) => {
                   if (response == "Success") {
                     setUploadText("Completed Successfully.  You can now search for your document.")
