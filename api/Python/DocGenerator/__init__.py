@@ -119,7 +119,7 @@ def summarizeGenerateQa(docs, embeddingModelType, deploymentType):
 
     try:
         summaryChain = load_summarize_chain(llm, chain_type="map_reduce")
-        summary = summaryChain.run(docs)
+        summary = summaryChain.run(docs[:5])
         logging.info("Document Summary completed")
     except Exception as e:
         logging.error("Exception during summary" + str(e))
@@ -340,6 +340,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                                     "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                     "promptType": promptType,
                                     "singleFile": singleFile}
+                        logging.info(str(metadata))
                         upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
                         try:
                             metadata = {'summary': summary.replace("-", "_"), 'qa': qa.replace("-", "_")}

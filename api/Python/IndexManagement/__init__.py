@@ -98,7 +98,7 @@ def IndexManagement(indexType, indexName, blobName, indexNs, operation, record):
                     index.delete(delete_all=True, namespace=indexNs)
             elif indexType == "redis":
                 Redis.drop_index(index_name=indexNs, delete_documents=True, redis_url=redisUrl)
-            elif indexType == "cogsearch":
+            elif indexType == "cogsearch" or indexType == "cogsearchvs":
                 deleteSearchIndex(indexNs)
             blobList = getAllBlobs(OpenAiDocConnStr, OpenAiDocContainer)
             for blob in blobList:
