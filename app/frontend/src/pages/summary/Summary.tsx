@@ -28,6 +28,22 @@ const Summary = () => {
   const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string;  summary:string; qa:string; chunkSize:string; chunkOverlap:string; promptType:string, singleFile:boolean, fileName:string}[]>();
   const [selectedPromptTypeItem, setSelectedPromptTypeItem] = useState<IDropdownOption>();
   const [promptTemplate, setPromptTemplate] = useState<string>("");
+  const [customTopic, setCustomTopic] = useState<string>("");
+  const [selectedDeploymentType, setSelectedDeploymentType] = useState<IDropdownOption>();
+  const [selectedChunkSize, setSelectedChunkSize] = useState<string>()
+
+  const dropdownShortStyles: Partial<IDropdownStyles> = { dropdown: { width: 200 } };
+
+  const deploymentTypeOptions = [
+    {
+      key: 'gpt35',
+      text: 'GPT 3.5 Turbo'
+    },
+    {
+      key: 'gpt3516k',
+      text: 'GPT 3.5 Turbo - 16k'
+    }
+  ]
 
   const chainTypeOptions = [
     { key: 'stuff', text: 'Stuff'},
@@ -304,18 +320,24 @@ const Summary = () => {
             setSelectedIndex(item.iType)
             setSelectedPromptTypeItem(promptTypeOptions.find(x => x.key === item.promptType))
             setSelectedDocument(item.fileName)
+            setSelectedChunkSize(item.chunkSize)
             updatePrompt(item.promptType)
 
-            // if (Number(item.chunkSize) > 4000) {
-            //     setSelectedDeploymentType(deploymentTypeOptions[1])
-            // }
+            if (Number(item.chunkSize) > 4000) {
+                setSelectedDeploymentType(deploymentTypeOptions[1])
+            }
         }
     }
     setIndexMapping(uniqIndexType)
   }
 
-  const processSummarization = async () => {
+  const onDeploymentTypeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+    setSelectedDeploymentType(item);
+  };
+
+  const processedSummary = async () => {
     try {
+
         const request: AskRequest = {
             question : '',
             approach: Approaches.ReadDecomposeAsk,
@@ -328,12 +350,11 @@ const Summary = () => {
                 temperature: 0.3,
                 tokenLength: 1500,
                 top: 3,
-                deploymentType: 'gpt3516k',
+                deploymentType: String(selectedDeploymentType?.key),
             }
         };
-
-        setIsLoading(true);    
-        await processSummary(String(selectedItem?.key), String(selectedIndex), request)
+        setIsLoading(true);
+        await processSummary(String(selectedItem?.key), String(selectedIndex), "true", request)
         .then(async (response: { answer: any; }) => {
                 const answer = JSON.parse(JSON.stringify(response.answer));
                   const tQuestions = []
@@ -355,6 +376,66 @@ const Summary = () => {
     }
   }
 
+  const processSummarization = async () => {
+    try {
+
+        if (customTopic != '') {
+          const addTopic = customTopic.split(",")
+          if (addTopic.length > 0) {
+            for (let i = 0; i < addTopic.length; i++) {
+                if (addTopic[i] != '') {
+                  selectedSummaryTopicItem.push(addTopic[i])
+                }
+            }
+          } else {
+            selectedSummaryTopicItem.push(customTopic)
+          }
+        }
+        const uniqTopics = [...new Set(selectedSummaryTopicItem)]
+        setSelectedSummaryTopicItem(uniqTopics)
+
+        const request: AskRequest = {
+            question : '',
+            approach: Approaches.ReadDecomposeAsk,
+            overrides: {
+                promptTemplate: promptTemplate,
+                fileName: String(selectedDocument),
+                topics: uniqTopics.length === 0 ? undefined : uniqTopics,
+                embeddingModelType: String(selectedEmbeddingItem?.key),
+                chainType: String(selectedChain?.key),
+                temperature: 0.3,
+                tokenLength: 1500,
+                top: 3,
+                deploymentType: String(selectedDeploymentType?.key),
+            }
+        };
+        setIsLoading(true);
+        await processSummary(String(selectedItem?.key), String(selectedIndex), "false", request)
+        .then(async (response: { answer: any; }) => {
+                const answer = JSON.parse(JSON.stringify(response.answer));
+                  const tQuestions = []
+                  for (let i = 0; i < answer.length; i++) {
+                      tQuestions.push({
+                          "question": answer[i]['topic'],
+                          "answer": answer[i]['summary'],
+                      });
+                      setSummaryQuestions(tQuestions);
+                  }
+            }
+        )
+        setIsLoading(false);
+      } catch (e) {
+        setError(e);
+        setIsLoading(false);
+    } finally {
+        setIsLoading(false);
+    }
+  }
+
+  const onCustomTopicChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+    setCustomTopic(newValue || "");
+  };
+
   const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
     setSelectedItem(item);
     const defaultKey = item?.key
@@ -363,15 +444,15 @@ const Summary = () => {
             setSelectedIndex(item.iType)
             setSelectedDocument(item.fileName)
             setSummaryQuestions([])
-            // setSelectedChunkSize(item.chunkSize)
+            setSelectedChunkSize(item.chunkSize)
             // setSelectedChunkOverlap(item.chunkOverlap)
             //setSelectedPromptType(item.promptType)
             setSelectedPromptTypeItem(promptTypeOptions.find(x => x.key === item.promptType))
             updatePrompt(item.promptType)
 
-            // if (Number(item.chunkSize) > 4000) {
-            //     setSelectedDeploymentType(deploymentTypeOptions[1])
-            // }
+            if (Number(item.chunkSize) > 4000) {
+                setSelectedDeploymentType(deploymentTypeOptions[1])
+            }
         }
     })
   };
@@ -402,7 +483,7 @@ const Summary = () => {
     refreshBlob()
     setSelectedEmbeddingItem(embeddingOptions[0])
     setSummaryQuestions([])
-    //setSelectedDeploymentType(deploymentTypeOptions[0])
+    setSelectedDeploymentType(deploymentTypeOptions[0])
 
   }, [])
 
@@ -433,7 +514,19 @@ const Summary = () => {
                     placeholder="Select an Embedding Model"
                     options={embeddingOptions}
                     disabled={false}
-                    styles={dropdownStyles}
+                    styles={dropdownShortStyles}
+                />
+                &nbsp;
+                <Label>Deployment Type</Label>
+                &nbsp;
+                <Dropdown
+                        selectedKey={selectedDeploymentType ? selectedDeploymentType.key : undefined}
+                        onChange={onDeploymentTypeChange}
+                        //defaultSelectedKey="azureopenai"
+                        placeholder="Select an Deployment Type"
+                        options={deploymentTypeOptions}
+                        disabled={((selectedEmbeddingItem?.key == "openai" ? true : false) || (Number(selectedChunkSize) > 4000 ? true : false))}
+                        styles={dropdownShortStyles}
                 />
                 &nbsp;
                 <Label>Chain Type</Label>
@@ -443,7 +536,7 @@ const Summary = () => {
                     selectedKey={selectedChain ? selectedChain.key : 'stuff'}
                     options={chainTypeOptions}
                     disabled={false}
-                    styles={dropdownStyles}
+                    styles={dropdownShortStyles}
                 />
               </Stack.Item>
             </Stack>
@@ -474,7 +567,13 @@ const Summary = () => {
                     multiSelect
                 />
                 &nbsp;
+                <Label>Custom Topics</Label>
+                &nbsp;
+                <TextField value={customTopic} onChange={onCustomTopicChange} />
+                &nbsp;
                 <PrimaryButton text="Summarize" onClick={() => processSummarization()} />
+                &nbsp;
+                <PrimaryButton text="Show Processed Summary" onClick={() => processedSummary()} />
                 <br/>
             </Stack.Item>
             <Stack.Item grow={2} styles={stackItemCenterStyles}>

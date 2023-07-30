@@ -861,3 +861,22 @@ def findTopicSummaryInIndex(SearchService, SearchKey, indexName, fileName, docTy
         print(e)
 
     return None
+
+def findSummaryInIndex(SearchService, SearchKey, indexName, fileName, docType, returnFields=["id", "fileName", "docType", 'topic', "summary"]):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    
+    try:
+        r = searchClient.search(
+            search_text="",
+            filter="fileName eq '" + fileName + "' and docType eq '" + docType + "'",
+            select=returnFields,
+            semantic_configuration_name="semanticConfig",
+            include_total_count=True
+        )
+        return r
+    except Exception as e:
+        print(e)
+
+    return None

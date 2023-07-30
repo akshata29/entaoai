@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { DefaultButton, Spinner, TextField, SpinButton, Stack, ITextStyles} from "@fluentui/react";
+import { DefaultButton, Spinner, TextField, SpinButton, Stack, ITextStyles, SearchBox} from "@fluentui/react";
 import { News16Filled, ShieldLockRegular } from "@fluentui/react-icons";
 import { SparkleFilled } from "@fluentui/react-icons";
 
@@ -32,6 +32,7 @@ import { Image, ImageFit } from '@fluentui/react/lib/Image';
 import { Link } from '@fluentui/react/lib/Link';
 import {  LineChart, GroupedVerticalBarChart, IGroupedVerticalBarChartProps } from '@fluentui/react-charting';
 import pptxgen from "pptxgenjs";
+import Downshift from "downshift"
 
 const Pib = () => {
 
@@ -1026,6 +1027,7 @@ const Pib = () => {
 
     useEffect(() => chatMessageStreamEnd.current?.scrollIntoView({ behavior: "smooth" }), [isLoading]);
 
+
     return (
         <div className={styles.root}>
             {showAuthMessage ? (
@@ -1112,7 +1114,55 @@ const Pib = () => {
                                             multiSelect={false}
                                         /> */}
                                         &nbsp;
-                                         <Label>Symbol :</Label>
+                                        {/* <Downshift
+                                            onStateChange={({ inputValue }) => {
+                                                console.log(inputValue)
+                                            }}
+                                            selectedItem={selectedCompany}
+                                            onChange={selection => alert(`You selected ${selection}`)}
+                                            >
+                                            {({
+                                                getInputProps,
+                                                getItemProps,
+                                                getLabelProps,
+                                                isOpen,
+                                                inputValue,
+                                                highlightedIndex,
+                                                selectedItem
+                                            }) => (
+                                                <div>
+                                                <label {...getLabelProps()}>Select a Company</label>
+                                                <input {...getInputProps()} />
+                                                {isOpen ? (
+                                                    <div>
+                                                    {nasdaqTickers
+                                                        .filter(i => !inputValue || i.text.includes(inputValue))
+                                                        .map((item, index) => (
+                                                        <div
+                                                            {...getItemProps({
+                                                            key: item.text,
+                                                            index,
+                                                            item,
+                                                            style: {
+                                                                backgroundColor:
+                                                                highlightedIndex === index
+                                                                    ? "lightgray"
+                                                                    : "white",
+                                                                fontWeight:
+                                                                selectedItem === item ? "bold" : "normal"
+                                                            }
+                                                            })}
+                                                        >
+                                                            {item.text}
+                                                        </div>
+                                                        ))}
+                                                    </div>
+                                                ) : null}
+                                                </div>
+                                            )}
+                                        </Downshift> */}
+
+                                        <Label>Symbol :</Label>
                                         &nbsp;
                                         <TextField onChange={onSymbolChange}  value={symbol} required={true} 
                                             errorMessage={!missingSymbol ? '' : "Symbol is required for PIB Functionality"}/>

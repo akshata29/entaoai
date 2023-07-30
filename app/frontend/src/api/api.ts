@@ -889,7 +889,7 @@ export async function runEvaluation(overlap: string[], chunkSize : string[], spl
   }
   return parsedResponse.values[0].data.statusUri
 }
-export async function processSummary(indexNs: string, indexType: string, options : AskRequest) : Promise<AskResponse> {
+export async function processSummary(indexNs: string, indexType: string, existingSummary : string, options : AskRequest) : Promise<AskResponse> {
   const response = await fetch('/processSummary', {
     method: "POST",
     headers: {
@@ -898,6 +898,7 @@ export async function processSummary(indexNs: string, indexType: string, options
     body: JSON.stringify({
       indexNs:indexNs,
       indexType: indexType,
+      existingSummary: existingSummary,
       postBody: {
         values: [
           {

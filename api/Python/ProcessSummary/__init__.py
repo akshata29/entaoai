@@ -19,7 +19,7 @@ from typing import List
 from Utilities.envVars import *
 #from langchain.document_loaders import JSONLoader
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
-from Utilities.pibCopilot import createSearchIndex, indexSections, findFileInIndex, performCogSearch, mergeDocs, createProspectusSummary, findTopicSummaryInIndex
+from Utilities.pibCopilot import createSearchIndex, indexSections, findSummaryInIndex, performCogSearch, mergeDocs, createProspectusSummary, findTopicSummaryInIndex
 from langchain.docstore.document import Document
 import uuid
 import pinecone
@@ -61,6 +61,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     try:
         indexNs = req.params.get('indexNs')
         indexType = req.params.get('indexType')
+        existingSummary = req.params.get('existingSummary')
         logging.info(f'indexNs: {indexNs}')
         logging.info(f'indexType: {indexType}')
         body = json.dumps(req.get_json())
@@ -71,7 +72,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         )
 
     if body:
-        result = ComposeResponse(indexNs, indexType, body)
+        result = ComposeResponse(indexNs, indexType, existingSummary, body)
         return func.HttpResponse(result, mimetype="application/json")
     else:
         return func.HttpResponse(
@@ -79,7 +80,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
              status_code=400
         )
 
-def ComposeResponse(indexNs, indexType, jsonData):
+def ComposeResponse(indexNs, indexType, existingSummary, jsonData):
     values = json.loads(jsonData)['values']
 
     logging.info("Calling Compose Response")
@@ -88,7 +89,7 @@ def ComposeResponse(indexNs, indexType, jsonData):
     results["values"] = []
 
     for value in values:
-        outputRecord = TransformValue(indexNs, indexType, value)
+        outputRecord = TransformValue(indexNs, indexType, existingSummary, value)
         if outputRecord != None:
             results["values"].append(outputRecord)
     return json.dumps(results, ensure_ascii=False)
@@ -143,7 +144,8 @@ def summarizeTopic(llm, query, promptTemplate, embeddings, embeddingModelType, i
         outputAnswer = summary['output_text']
         return outputAnswer 
 
-def processTopicSummary(llm, fileName, indexNs, indexType, prospectusSummaryIndexName, embeddings, embeddingModelType, selectedTopics, summaryPromptTemplate, topK):
+def processTopicSummary(llm, fileName, indexNs, indexType, prospectusSummaryIndexName, embeddings, embeddingModelType, selectedTopics, 
+                        summaryPromptTemplate, topK, existingSummary):
     # r = findFileInIndex(SearchService, SearchKey, prospectusIndexName, fileName)
     # if r.get_count() == 0:
     #     rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
@@ -158,33 +160,47 @@ def processTopicSummary(llm, fileName, indexNs, indexType, prospectusSummaryInde
 
     createProspectusSummary(SearchService, SearchKey, prospectusSummaryIndexName)
     topicSummary = []
-    for topic in selectedTopics:
-        r = findTopicSummaryInIndex(SearchService, SearchKey, prospectusSummaryIndexName, fileName, 'prospectus', topic)
-        if r.get_count() == 0:
-            logging.info(f"Summarize on Topic: {topic}")
-            answer = summarizeTopic(llm, topic, summaryPromptTemplate, embeddings, embeddingModelType, indexNs, indexType, topK)
-            if "I don't know" not in answer:
-                topicSummary.append({
-                    'id' : str(uuid.uuid4()),
-                    'fileName': fileName,
-                    'docType': 'prospectus',
-                    'topic': topic,
-                    'summary': answer
-            })
-        else:
-            for s in r:
-                topicSummary.append(
-                    {
-                        'id' : s['id'],
-                        'fileName': s['fileName'],
-                        'docType': s['docType'],
-                        'topic': s['topic'],
-                        'summary': s['summary']
-                    })
-    mergeDocs(SearchService, SearchKey, prospectusSummaryIndexName, topicSummary)
+    logging.info(f"Existing Summary: {existingSummary}")
+    if existingSummary == "true":
+        logging.info(f"Found existing summary")
+        r = findSummaryInIndex(SearchService, SearchKey, prospectusSummaryIndexName, fileName, 'prospectus')
+        for s in r:
+            topicSummary.append(
+                {
+                    'id' : s['id'],
+                    'fileName': s['fileName'],
+                    'docType': s['docType'],
+                    'topic': s['topic'],
+                    'summary': s['summary']
+                })
+    else:
+        for topic in selectedTopics:
+            r = findTopicSummaryInIndex(SearchService, SearchKey, prospectusSummaryIndexName, fileName, 'prospectus', topic)
+            if r.get_count() == 0:
+                logging.info(f"Summarize on Topic: {topic}")
+                answer = summarizeTopic(llm, topic, summaryPromptTemplate, embeddings, embeddingModelType, indexNs, indexType, topK)
+                if "I don't know" not in answer:
+                    topicSummary.append({
+                        'id' : str(uuid.uuid4()),
+                        'fileName': fileName,
+                        'docType': 'prospectus',
+                        'topic': topic,
+                        'summary': answer
+                })
+            else:
+                for s in r:
+                    topicSummary.append(
+                        {
+                            'id' : s['id'],
+                            'fileName': s['fileName'],
+                            'docType': s['docType'],
+                            'topic': s['topic'],
+                            'summary': s['summary']
+                        })
+        mergeDocs(SearchService, SearchKey, prospectusSummaryIndexName, topicSummary)
     return topicSummary
 
-def summarizeTopics(indexNs, indexType, overrides):
+def summarizeTopics(indexNs, indexType, existingSummary, overrides):
     prospectusSummaryIndexName = 'summary'
 
     embeddingModelType = overrides.get("embeddingModelType") or 'azureopenai'
@@ -258,13 +274,13 @@ def summarizeTopics(indexNs, indexType, overrides):
 
 
     summaryTopicData = processTopicSummary(llm, fileName, indexNs, indexType, prospectusSummaryIndexName, embeddings, embeddingModelType, 
-                            selectedTopics, summaryPromptTemplate, topK)
+                            selectedTopics, summaryPromptTemplate, topK, existingSummary)
     outputFinalAnswer = {"data_points": '', "answer": summaryTopicData, 
                     "thoughts": '',
                         "sources": '', "nextQuestions": '', "error": ""}
     return outputFinalAnswer
 
-def TransformValue(indexNs, indexType, record):
+def TransformValue(indexNs, indexType, existingSummary, record):
     logging.info("Calling Transform Value")
     try:
         recordId = record['recordId']
@@ -300,7 +316,7 @@ def TransformValue(indexNs, indexType, record):
         # Getting the items from the values/data/text
         value = data['text']
         overrides = data['overrides']
-        summaryResponse = summarizeTopics(indexNs, indexType, overrides)
+        summaryResponse = summarizeTopics(indexNs, indexType, existingSummary, overrides)
         return ({
             "recordId": recordId,
             "data": summaryResponse

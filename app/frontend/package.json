@@ -27,6 +27,7 @@
     "botframework-webchat": "^4.15.7",
     "botframework-webchat-core": "^4.15.7",
     "dompurify": "^3.0.1",
+    "downshift": "^8.0.0",
     "jotai": "^2.1.0",
     "langchain": "^0.0.36",
     "microsoft-cognitiveservices-speech-sdk": "^1.18.0",

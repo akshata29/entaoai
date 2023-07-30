@@ -527,6 +527,7 @@ def runEvaluation():
 def processSummary():
     indexNs=request.json["indexNs"]
     indexType=request.json["indexType"]
+    existingSummary=request.json["existingSummary"]
     postBody=request.json["postBody"]
    
     try:
@@ -534,7 +535,7 @@ def processSummary():
         url = os.environ.get("PROCESSSUMMARY_URL")
 
         data = postBody
-        params = { "indexNs": indexNs , "indexType": indexType}
+        params = { "indexNs": indexNs , "indexType": indexType, "existingSummary": existingSummary}
         resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
         jsonDict = json.loads(resp.text)
         return jsonify(jsonDict)
