@@ -21,7 +21,7 @@ export type ChatSession = {
     id: string; // Guid
     type: string; // "Session"
     sessionId: string ; // Guid
-    feature: string; // "chat" || "ask" || "sql" || "chat3"
+    feature: string; // "chat" || "ask" || "sql"
     tokenUsed: number; // Number of tokens in all the message
     name: string;
     timestamp: string; // ISO 8601

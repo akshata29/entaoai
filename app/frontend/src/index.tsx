@@ -8,7 +8,6 @@ import "./index.css";
 import Layout from "./pages/layout/Layout";
 import NoPage from "./pages/NoPage";
 import ChatGpt from "./pages/chatgpt/ChatGpt";
-import Chat from './pages/chat/Chat';
 import OneShot from "./pages/oneshot/OneShot";
 import SqlAgent from "./pages/sqlagent/SqlAgent";
 import Upload from "./pages/upload/Upload";
@@ -31,7 +30,6 @@ export default function App() {
             <Routes>
                 <Route path="/" element={<Layout />}>
                     <Route path="upload" element={<Upload />} />
-                    {/* <Route path="chat" element={<Chat />} /> */}
                     <Route path="qa" element={<OneShot />} />
                     <Route path="sql" element={<SqlAgent />} />
                     <Route path="summary" element={<Summary />} />

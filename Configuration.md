@@ -7,7 +7,7 @@
 |OpenAiKey||Your Azure OpenAI Key.  <br>You can get the OpenAI Key from Azure Portal for your deployed OpenAI service.
 |OpenAiService||Name of the OpenAI Service deployed in Azure
 |OpenAiEndPoint||Fully qualified endpoint for Azure OpenAI <br>(https://<yourresource>.openai.azure.com/)
-|OpenAiVersion|2022-12-01|API Version of the Azure OpenAI
+|OpenAiVersion|2023-05-15|API Version of the Azure OpenAI
 |OpenAiEmbedding|text-embedding-ada-002|Deployment name of <br>text-embedding-ada-002 model in Azure OpenAI
 |MaxTokens|500|Maximum Tokens
 |Temperature|0.3|Temperature
@@ -40,7 +40,6 @@
 AGENTQA_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/AgentQa?code=<yourcode>)
 BLOB_CONNECTION_STRING||Blob Connection string for the storage account
 BLOB_CONTAINER_NAME||Blob container name where all PDF are uploaded
-CHAT3_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/Chat?code=<yourcode>)
 CHAT_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/ChatGpt?code=<yourcode>)
 DOCGENERATOR_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/DocGenerator?code=<yourcode>)
 INDEXMANAGEMENT_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/IndexManagement?code=<yourcode>)
@@ -51,7 +50,6 @@ SPEECH_REGION||Region where speech service is deployed <br> (i.e. eastus, southc
 SQLCHAIN_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/SqlChain?code=<yourcode>)
 SQLCHAT_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/SqlChat?code=<yourcode>)
 SUMMARIZER_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/Summarizer?code=<yourcode>)
-SUMMARYQA_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/SampleQaSummary?code=<yourcode>)
 TASKAGENTQA_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/TaskAgentQa?code=<yourcode>)
 TEXTANALYTICS_KEY||Text Analytics(Language) Service Key
 TEXTANALYTICS_REGION||Region where Text Analytics(Language) is deployed <br> (i.e. eastus, southcentralus)

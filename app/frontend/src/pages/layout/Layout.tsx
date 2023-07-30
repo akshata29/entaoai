@@ -57,11 +57,6 @@ const Layout = () => {
                                     Bot Chat&nbsp;&nbsp;
                                 </NavLink>
                             </li> */}
-                            {/* <li>
-                                <NavLink to="/chat" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}> 
-                                    Chat Stream&nbsp;&nbsp;
-                                </NavLink>
-                            </li> */}
                             <li>
                                 <NavLink to="/" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Chat

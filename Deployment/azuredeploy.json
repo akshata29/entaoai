@@ -648,10 +648,6 @@
                 "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/IndexManagement?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
             },
 			{
-			  "name": "CHAT3_URL",
-			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Chat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-			},
-			{
 			  "name": "CHAT_URL",
 			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ChatGpt?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
 			},
@@ -678,10 +674,6 @@
 			{
 			  "name": "SQLCHAT_URL",
 			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-			},
-			{
-			  "name": "SUMMARYQA_URL",
-			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SampleQaSummary?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
 			},
             {
                 "name": "SPEECH_REGION",
@@ -928,7 +920,7 @@
 			},
 			{
 			  "name": "OpenAiVersion",
-			  "value": "2022-12-01"
+			  "value": "2023-05-15"
 			},
 			{
 			  "name": "PineconeEnv",

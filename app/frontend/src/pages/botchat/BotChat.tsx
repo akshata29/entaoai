@@ -9,7 +9,7 @@ import styles from "./BotChat.module.css";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
-import { chatJsApi, refreshIndex, AskResponse, ChatRequest, ChatTurn } from "../../api";
+import { refreshIndex, AskResponse, ChatRequest, ChatTurn } from "../../api";
 import { ClearChatButton } from "../../components/ClearChatButton";
 
 //const directLine = useMemo(() => createDirectLine({ token: 'xPuhSjJIjLg.Tn4pvBAvKuuGv3RQMCoh2-HtyRxUniqErFbtsbQpJQs' }), []);

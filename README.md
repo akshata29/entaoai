@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 7/30/2023 - Removed unused Code - SummaryAndQa and Chat
 * 7/28/2023 - Started removing the Davinci model usage.  For now removed the usage from all functionality except workshop.  Refactored Summarization functionality based on the feedback to allow user to specify the prompt and pre-defined Topics to summarize it on.
 * 7/26/2023 - Remove OpenAI Playground from Developer Tools as advanced features of that are available in ChatGPT section.
 * 7/25/2023 - Add tab for the Chat capabilities to support ChatGpt capability directly from the model instead of "Chat on Data".  You will need to add `CHATGPT_URL` property in Azure App Service (Webapp) to enable the feature outside of deploying the new Azure Function.

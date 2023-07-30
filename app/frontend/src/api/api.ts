@@ -639,45 +639,6 @@ export async function getIndexSessionDetail(sessionId: string): Promise<Any> {
   }
   return parsedResponse;
 }
-export async function chatGpt3Api(question: string, options: ChatRequest, indexNs: string, indexType:string): Promise<AskResponse> {
-  const response = await fetch('/chat3', {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        indexType:indexType,
-        indexNs: indexNs,
-        question:question,
-        postBody: {
-          values: [
-            {
-              recordId: 0,
-              data: {
-                history: options.history,
-                approach: 'rrr',
-                overrides: {
-                  top: options.overrides?.top,
-                  temperature: options.overrides?.temperature,
-                  promptTemplate: options.overrides?.promptTemplate,
-                  suggest_followup_questions: options.overrides?.suggestFollowupQuestions,
-                  embeddingModelType: options.overrides?.embeddingModelType,
-                  deploymentType: options.overrides?.deploymentType,
-                  chainType: options.overrides?.chainType,
-                }
-              }
-            }
-          ]
-        }
-      })
-  });
-
-  const parsedResponse: ChatResponse = await response.json();
-  if (response.status > 299 || !response.ok) {
-      throw Error(parsedResponse.values[0].data.error || "Unknown error");
-  }
-  return parsedResponse.values[0].data;
-}
 export async function refreshIndex() : Promise<any> {
   
   const response = await fetch('/refreshIndex', {
@@ -1039,42 +1000,6 @@ export async function indexManagement(indexType:string, indexName:string, blobNa
   
   // return "Success";
 }
-export async function chatJsApi(question: string, history: never[], indexNs: string, indexType:string): Promise<AskResponse> { 
-  const response = {
-    answer: "Success",
-    thoughts: "No Thoughts",
-    data_points: [],
-    error : ""
-  }
-  return response
-  
-  // const pineconeClient = new PineconeClient();
-  // await pineconeClient.init({
-  //   environment: process.env.VITE_PINECONE_ENV || '',
-  //   apiKey: process.env.VITE_PINECONE_KEY || '',
-  // });
-  // const pineconeIndex = pineconeClient.Index(process.env.VITE_PINECONE_INDEX || 'oaiembed') 
-  
-  // const vectorStore = await PineconeStore.fromExistingIndex(new OpenAIEmbeddings({openAIApiKey:process.env.VITE_OPENAI_KEY}), 
-  //   {pineconeIndex,namespace:indexNs})
-
-  // const model = new OpenAI({openAIApiKey:process.env.VITE_OPENAI_KEY});
-  // const chain = ChatVectorDBQAChain.fromLLM(model, vectorStore);
-
-  // const answer = await chain.call({
-  //     question: question,
-  //     chat_history: history
-  // })
-
-  // const chatHistory = question + answer["text"];
-  // const followUpRes = await chain.call({
-  //   question: question,
-  //   chat_history: chatHistory,
-  // });
-
-
-  // return followUpRes["text"]
-}
 export async function secSearch(indexType: string,  indexName: string, question:string, top: string, 
   embeddingModelType:string): Promise<any> {
   const response = await fetch('/secSearch' , {
@@ -1275,45 +1200,6 @@ export async function summarizer(options: AskRequest, requestText: string, promp
     throw Error("Unknown error");
   }
   return parsedResponse.values[0].data.text
-}
-export async function summaryAndQa(indexType: string, indexNs:string, embeddingModelType: string, requestType: string, 
-  chainType:string): Promise<string> {
-  const response = await fetch('/summaryAndQa' , {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        indexType: indexType,
-        indexNs: indexNs,
-        embeddingModelType: embeddingModelType,
-        requestType: requestType,
-        chainType: chainType,
-        postBody: {
-          values: [
-            {
-              recordId: 0,
-              data: {
-                text: ''
-              }
-            }
-          ]
-        }
-    })
-  });
-
-  const parsedResponse: any = await response.json();
-  if (response.status > 299 || !response.ok) {
-    throw Error("Unknown error");
-  }
-  if (requestType === 'summary') {
-    return parsedResponse.values[0].summary
-  }
-  else if (requestType === 'qa') {
-    return parsedResponse.values[0].qa
-  }
-  else
-    return ''
 }
 export async function textAnalytics(documentText: string): Promise<string> {
   const response = await fetch('/textAnalytics' , {

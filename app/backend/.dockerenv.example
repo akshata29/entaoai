@@ -2,7 +2,6 @@ AGENTQA_URL=http://localhost:7071/api/AgentQa?code=
 BLOB_CONNECTION_STRING=
 BLOB_CONTAINER_NAME=chatpdf
 BLOB_SUMMARY_CONTAINER_NAME=summary
-CHAT3_URL=http://localhost:7071/api/Chat?code=
 CHAT_URL=http://localhost:7071/api/ChatGpt?code=
 CONVERTCODE_URL=http://localhost:7071/api/ConvertCode?code=
 DOCGENERATOR_URL=http://localhost:7071/api/DocGenerator?code=
@@ -21,7 +20,6 @@ SQLCHAIN_URL=http://localhost:7071/api/SqlChain?code=
 SQLCHAT_URL=http://localhost:7071/api/SqlChat?code=
 SQLVISUAL_URL=http://localhost:7071/api/SqlVisual?code=
 SUMMARIZER_URL=http://localhost:7071/api/Summarizer?code=
-SUMMARYQA_URL=http://localhost:7071/api/SampleQaSummary?code=
 TASKAGENTQA_URL=http://localhost:7071/api/TaskAgentQa?code=
 TEXTANALYTICS_KEY=
 TEXTANALYTICS_REGION=eastus

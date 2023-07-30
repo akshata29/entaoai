@@ -7,7 +7,7 @@ import styles from "./OneShot.module.css";
 import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
 import { askApi, askAgentApi, askTaskAgentApi, Approaches, AskResponse, AskRequest, refreshIndex, getSpeechApi, 
-    summaryAndQa, refreshQuestions, getUserInfo } from "../../api";
+    refreshQuestions, getUserInfo } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
