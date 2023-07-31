@@ -17,14 +17,14 @@ export function parseAnswerToHtml(answer: string,
 
     // Extract any follow-up questions that might be in the answer
     nextQuestions.replace(/<([^>]+)>/g, (match, content) => {
-        followupQuestions.push(content);
+        followupQuestions.push(content.replace(/^\d+\.\s*/, '').replace('<', '').replace('>', ''));
         return "";
     });
 
     if (followupQuestions.length == 0) {
         nextQuestions.split('\n').map((part, index) => {
             if (part.trim().length > 0) {
-                followupQuestions.push(part);
+                followupQuestions.push(part.replace(/^\d+\.\s*/, '').replace('<', '').replace('>', ''));
             }
         });
     }

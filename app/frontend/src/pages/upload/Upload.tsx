@@ -186,6 +186,10 @@ const Upload = () => {
         text: 'financial'
       },
       {
+        key: 'financialtable',
+        text: 'financialtable'
+      },
+      {
         key: 'prospectus',
         text: 'prospectus'
       },

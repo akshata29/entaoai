@@ -326,6 +326,9 @@ const Summary = () => {
             if (Number(item.chunkSize) > 4000) {
                 setSelectedDeploymentType(deploymentTypeOptions[1])
             }
+            else {
+                setSelectedDeploymentType(deploymentTypeOptions[0])
+            }
         }
     }
     setIndexMapping(uniqIndexType)
@@ -452,6 +455,9 @@ const Summary = () => {
 
             if (Number(item.chunkSize) > 4000) {
                 setSelectedDeploymentType(deploymentTypeOptions[1])
+            }
+            else {
+                setSelectedDeploymentType(deploymentTypeOptions[0])
             }
         }
     })

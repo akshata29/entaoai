@@ -145,5 +145,12 @@
         "State location": "CA",
         "State of Inc": "DE",
         "Fiscal Year End": "1231"
+    },
+    "200406": {
+        "Company Name": "JOHNSON & JOHNSON",
+        "SIC": "2834",
+        "State location": "NJ",
+        "State of Inc": "NJ",
+        "Fiscal Year End": "1231"
     }
 }
