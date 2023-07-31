@@ -1,14 +1,15 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { DefaultButton, Spinner, TextField, SpinButton, Stack, ITextStyles, SearchBox} from "@fluentui/react";
+import { DefaultButton, Spinner, TextField, SpinButton, Stack, ITextStyles, Checkbox, Panel} from "@fluentui/react";
 import { News16Filled, ShieldLockRegular } from "@fluentui/react-icons";
 import { SparkleFilled } from "@fluentui/react-icons";
 
 import styles from "./Pib.module.css";
 import { Dropdown, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
-import { AskResponse,  getPib, getUserInfo, Approaches, getNews, getSocialSentiment, getIncomeStatement, getCashFlow } from "../../api";
+import { AskResponse,  chatGpt, getPib, getUserInfo, Approaches, getNews, getSocialSentiment, getIncomeStatement, getCashFlow } from "../../api";
 import { pibChatGptApi, ChatRequest, ChatTurn, getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession, renameIndexSession } from "../../api";
-
+import { SettingsButton } from "../../components/SettingsButton";
+import { AnswerChat } from "../../components/Answer/AnswerChat";
 import { Label } from '@fluentui/react/lib/Label';
 import { Pivot, PivotItem } from '@fluentui/react';
 import { IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
@@ -83,9 +84,116 @@ const Pib = () => {
     const [incomeStatement, setIncomeStatement] = useState<any>();
     const [cashFlow, setCashFlow] = useState<any>();
 
+    const [answersGpt, setAnswersGpt] = useState<[user: string, response: string, speechUrl: string | null][]>([]);
+    const [chatSessionGpt, setChatSessionGpt] = useState<ChatSession | null>(null);
+    const [sessionListGpt, setSessionListGpt] = useState<any[]>();
+    const lastQuestionRefGpt = useRef<string>("");
+    const [useInternet, setUseInternet] = useState(false);
+    const [isConfigPanelOpenGpt, setIsConfigPanelOpenGpt] = useState(false);
+    const [promptTemplateGpt, setPromptTemplateGpt] = useState<string>("");
+    const [sessionIdGpt, setSessionIdGpt] = useState<string>();
+    const [sessionNameGpt, setSessionNameGpt] = useState<string>('');
+    const [oldSessionNameGpt, setOldSessionNameGpt] = useState<string>('');
+    const [selectedDeploymentTypeGpt, setSelectedDeploymentTypeGpt] = useState<IDropdownOption>();
+    const [selectedPromptTypeItemGpt, setSelectedPromptTypeItemGpt] = useState<IDropdownOption>();    
+    const [selectedItemsGpt, setSelectedItemsGpt] = useState<any[]>([]);
+    const [selectedEmbeddingItemGpt, setSelectedEmbeddingItemGpt] = useState<IDropdownOption>();
+    const [temperatureGpt, setTemperatureGpt] = useState<number>(0.7);
+    const [tokenLengthGpt, setTokenLengthGpt] = useState<number>(750);
+
     const lineMargins = { left: 35, top: 20, bottom: 35, right: 20 };
     const textStyles: Partial<ITextStyles> = { root: { width: 1200, height: 300 } };
 
+    const deploymentTypeGptOptions = [
+        {
+          key: 'gpt35',
+          text: 'GPT 3.5 Turbo'
+        },
+        {
+          key: 'gpt3516k',
+          text: 'GPT 3.5 Turbo - 16k'
+        }
+    ]
+    const embeddingGptOptions = [
+        {
+          key: 'azureopenai',
+          text: 'Azure Open AI'
+        },
+        {
+          key: 'openai',
+          text: 'Open AI'
+        }
+        // {
+        //   key: 'local',
+        //   text: 'Local Embedding'
+        // }
+    ]
+    const promptTypeGptOptions = [
+        {
+          key: 'custom',
+          text: 'custom'
+        },
+        {
+          key: 'linuxTerminal',
+          text: 'Linux Terminal'
+        },
+        {
+          key: 'accountant',
+          text: 'Accountant'
+        },
+        {
+          key: 'realEstateAgent',
+          text: 'Real Estate Agent'
+        },
+        {
+            key: 'careerCounseler',
+            text: 'Career Counseler'
+        },
+        {
+            key: 'personalTrainer',
+            text: 'Personal Trainer'
+        }
+    ]
+    const selectionGpt = useMemo(
+        () =>
+        new Selection({
+            onSelectionChanged: () => {
+            setSelectedItemsGpt(selection.getSelection());
+        },
+        selectionMode: SelectionMode.single,
+        }),
+    []);
+    const sessionListGptColumn = [
+        {
+          key: 'Session Name',
+          name: 'Session Name',
+          fieldName: 'Session Name',
+          minWidth: 100,
+          maxWidth: 200, 
+          isResizable: false,
+        }
+    ]
+    const detailsListGpt = useMemo(
+        () => (
+            <MarqueeSelection selection={selectionGpt}>
+                <DetailsList
+                    className={styles.example}
+                    items={sessionListGpt || []}
+                    columns={sessionListGptColumn}
+                    selectionMode={SelectionMode.single}
+                    //getKey={(item: any) => item.key}
+                    setKey="single"
+                    onActiveItemChanged={(item:any) => onSessionGptClicked(item)}
+                    layoutMode={DetailsListLayoutMode.fixedColumns}
+                    ariaLabelForSelectionColumn="Toggle selection"
+                    checkButtonAriaLabel="select row"
+                    selection={selectionGpt}
+                    selectionPreservedOnEmptyClick={false}
+                 />
+             </MarqueeSelection>
+         ),
+         [selectionGpt, sessionListGptColumn, sessionListGpt]
+    );
     const exchangeOptions = [
         {
             key: 'AMEX',
@@ -100,7 +208,6 @@ const Pib = () => {
             text: 'NYSE'
         }
     ]
-
     const docOptions = [
         {
             key: 'latestearningcalls',
@@ -111,19 +218,15 @@ const Pib = () => {
             text: 'SEC Filings'
         }
     ]
-
     const amexTickers =  Amex.Tickers.map((ticker) => {
         return {key: ticker.key, text: ticker.text}
     })
-
     const nasdaqTickers = Nasdaq.Tickers.map((ticker) => {
         return {key: ticker.key, text: ticker.text}
     })
-
     const nyseTickers = Nyse.Tickers.map((ticker) => {
         return {key: ticker.key, text: ticker.text}
     })
-
     function stockNewsRenderColumn(item?: any, index?: number, column?: IColumn) {
         const fieldContent = item[column?.fieldName as keyof any] as string;
       
@@ -138,7 +241,6 @@ const Pib = () => {
             return <span>{fieldContent}</span>;
         }
     }
-
     const stockNewsColumns = [
         {
             key: 'thumbnail',
@@ -165,7 +267,6 @@ const Pib = () => {
           minWidth: 300, maxWidth: 300, isResizable: false, isMultiline: true
         }
     ]
-
     const biographyColumns = [
         {
           key: 'Name',
@@ -186,7 +287,6 @@ const Pib = () => {
             minWidth: 900, maxWidth: 1200, isResizable: false, isMultiline: true
         }
     ]
-
     const transcriptQuestionsColumns = [
         {
           key: 'Question',
@@ -201,7 +301,6 @@ const Pib = () => {
           minWidth: 700, maxWidth: 900, isResizable: false, isMultiline: true
         }
     ]
-
     const pressReleasesColumns = [
         {
           key: 'releaseDate',
@@ -234,7 +333,6 @@ const Pib = () => {
             minWidth: 100, maxWidth: 150, isResizable: false, isMultiline: true
         }
     ]
-
     const secFilingsColumns = [
         {
           key: 'section',
@@ -255,7 +353,6 @@ const Pib = () => {
             minWidth: 700, maxWidth: 900, isResizable: false, isMultiline: true
         }
     ]
-
     const researchReportColumns = [
         {
           key: 'key',
@@ -270,7 +367,6 @@ const Pib = () => {
           minWidth: 250, maxWidth: 300, isResizable: false, isMultiline: true
         }
     ]
-
     const stackItemStyles: IStackItemStyles = {
         root: {
             alignItems: 'left',
@@ -280,7 +376,6 @@ const Pib = () => {
             justifyContent: 'left',
         },
     };
-
     const stackItemCenterStyles: IStackItemStyles = {
         root: {
             alignItems: 'center',
@@ -288,14 +383,12 @@ const Pib = () => {
             justifyContent: 'left',
         },
     };
-    
     const stackStyles: IStackStyles = {
         root: {
           // background: DefaultPalette.white,
           height: 450,
         },
     };
-
     const sessionListColumn = [
         {
           key: 'Session Name',
@@ -306,14 +399,12 @@ const Pib = () => {
           isResizable: false,
         }
     ]
-
     // Tokens definition
     const outerStackTokens: IStackTokens = { childrenGap: 5 };
     const innerStackTokens: IStackTokens = {
         childrenGap: 5,
         padding: 10,
     };
-
     const selection = useMemo(
         () =>
         new Selection({
@@ -323,7 +414,6 @@ const Pib = () => {
         selectionMode: SelectionMode.single,
         }),
     []);
-
     const detailsList = useMemo(
         () => (
             <MarqueeSelection selection={selection}>
@@ -332,7 +422,7 @@ const Pib = () => {
                     items={sessionList || []}
                     columns={sessionListColumn}
                     selectionMode={SelectionMode.single}
-                    getKey={(item: any) => item.key}
+                    //getKey={(item: any) => item.key}
                     setKey="single"
                     onActiveItemChanged={(item:any) => onSessionClicked(item)}
                     layoutMode={DetailsListLayoutMode.fixedColumns}
@@ -345,7 +435,6 @@ const Pib = () => {
          ),
          [selection, sessionListColumn, sessionList]
     );
-
     const onExchangeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         setSelectedExchange(item);
         if (item?.key === "AMEX") {
@@ -356,17 +445,14 @@ const Pib = () => {
             setSelectedCompany(nyseTickers[0])
         }
     }
-
     const onDocChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         setSelectedDoc(item);
         clearChat();
         getCosmosSession(String(item?.key), String(symbol))
     }
-
     const onCompanyChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         setSymbol(String(item?.key));
     };
-
     const onSymbolChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
         setSymbol(newValue || "");
         if (newValue == '') {
@@ -378,7 +464,6 @@ const Pib = () => {
         getCosmosSession(String(selectedDoc?.key), String(newValue))
         clearChat();
     };
-
     const getUserInfoList = async () => {
         const userInfoList = await getUserInfo();
         if (userInfoList.length === 0 && window.location.hostname !== "localhost") {
@@ -388,7 +473,6 @@ const Pib = () => {
             setShowAuthMessage(false);
         }
     }
-
     const generatePresentation = async () => {
         let pptx = new pptxgen();
         let slide = null;
@@ -528,7 +612,6 @@ const Pib = () => {
         pptx.writeFile();
 
     }
-
     const processPib = async (step: string) => {
         try {
             setIsLoading(true);    
@@ -785,7 +868,6 @@ const Pib = () => {
             setIsLoading(false);
         }
     }
-
     const clearChat = () => {
         lastQuestionRef.current = "";
         error && setError(undefined);
@@ -796,7 +878,16 @@ const Pib = () => {
         setSelectedItems([])
         setSessionName('');
     };
-
+    const clearChatGpt = () => {
+        lastQuestionRefGpt.current = "";
+        error && setError(undefined);
+        setChatSessionGpt(null)
+        setAnswersGpt([]);
+        setSelectedItemsGpt([])
+        setSessionNameGpt('');
+        setSelectedPromptTypeItemGpt(promptTypeGptOptions[0])
+        setPromptTemplateGpt('')
+    };
     const getCosmosSession = async (indexNs : string, indexType: string) => {
         try {
             await getAllIndexSessions(indexNs, indexType, 'chat', 'Session')
@@ -814,7 +905,11 @@ const Pib = () => {
                         });    
                     }
                 }
-                setSessionList(sessionLists)
+                if (indexNs == "chatgpt") {
+                    setSessionListGpt(sessionLists)
+                } else {
+                    setSessionList(sessionLists)
+                }
             })
         } catch (e) {
             setError(e);
@@ -822,7 +917,6 @@ const Pib = () => {
             setIsLoading(false);
         }
     };
-
     const deleteSession = async () => {
         //const sessionName = String(selectedItems[0]?.['Session Name'])
         if (sessionName === 'No Sessions found' || sessionName === "" || sessionName === undefined) {
@@ -835,7 +929,17 @@ const Pib = () => {
         })
 
     };
+    const deleteSessionGpt = async () => {
+        if (sessionNameGpt === 'No Sessions found' || sessionNameGpt === "" || sessionNameGpt === undefined) {
+            alert("Select Session to delete")
+        }
+        await deleteIndexSession("chatgpt", "cogsearchvs", sessionNameGpt)
+            .then(async (sessionResponse:any) => {
+                getCosmosSession("chatgpt", "cogsearchvs")
+                clearChatGpt();
+        })
 
+    };
     const renameSession = async () => {
         if (oldSessionName === 'No Sessions found' || oldSessionName === undefined || sessionName === "" || sessionName === undefined
         || oldSessionName === "" || sessionName === 'No Sessions found') {
@@ -849,7 +953,19 @@ const Pib = () => {
             })
         }
     };
-
+    const renameSessionGpt = async () => {
+        if (oldSessionNameGpt === 'No Sessions found' || oldSessionNameGpt === undefined || sessionNameGpt === "" || sessionNameGpt === undefined
+        || oldSessionNameGpt === "" || oldSessionNameGpt === 'No Sessions found') {
+            alert("Select valid session to rename")
+        }
+        else {
+            await renameIndexSession(oldSessionNameGpt, sessionNameGpt)
+                .then(async (sessionResponse:any) => {
+                    getCosmosSession("chatgpt", "cogsearchvs")
+                    clearChatGpt();
+            })
+        }
+    };
     const onSessionNameChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
         const oldSessionName = String(selectedItems[0]?.['Session Name'])
         if (newValue === undefined || newValue === "") {
@@ -857,7 +973,13 @@ const Pib = () => {
         }
         setSessionName(newValue || oldSessionName);
     };
-
+    const onSessionNameChangeGpt = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
+        const oldSessionNameGpt = String(selectedItemsGpt[0]?.['Session Name'])
+        if (newValue === undefined || newValue === "") {
+            alert("Provide session name")
+        }
+        setSessionNameGpt(newValue || oldSessionNameGpt);
+    };
     const onSessionClicked = async (sessionFromList: any) => {
         //makeApiRequest(sessionFromList.name);
         const sessionName = sessionFromList["Session Name"]
@@ -906,7 +1028,54 @@ const Pib = () => {
             }
         }
     }
-
+    const onSessionGptClicked = async (sessionFromList: any) => {
+        //makeApiRequest(sessionFromList.name);
+        const sessionName = sessionFromList["Session Name"]
+        setSessionNameGpt(sessionName)
+        setOldSessionNameGpt(sessionName)
+        if (sessionName != "No Session Found") {
+            try {
+                await getIndexSession("chatgpt", "cogsearchvs", sessionName)
+                .then(async (sessionResponse:any) => {
+                    const sessionId = sessionResponse[0].sessionId
+                    const newSession: ChatSession = {
+                        id: sessionResponse[0].id,
+                        type: sessionResponse[0].type,
+                        sessionId: sessionResponse[0].sessionId,
+                        name: sessionResponse[0].name,
+                        chainType: sessionResponse[0].chainType,
+                        feature: sessionResponse[0].feature,
+                        indexId: sessionResponse[0].indexId,
+                        indexType: sessionResponse[0].indexType,
+                        indexName: sessionResponse[0].indexName,
+                        llmModel: sessionResponse[0].llmModel,
+                        timestamp: sessionResponse[0].timestamp,
+                        tokenUsed: sessionResponse[0].tokenUsed,
+                        embeddingModelType: sessionResponse[0].embeddingModelType
+                      };
+                    setChatSessionGpt(newSession);
+                    await getIndexSessionDetail(sessionId)
+                    .then(async (response:any) => {
+                        const rows = response.reduce(function (rows: any[][], key: any, index: number) { 
+                            return (index % 2 == 0 ? rows.push([key]) 
+                            : rows[rows.length-1].push(key)) && rows;
+                        }, []);
+                        const sessionLists: [string, string, string | null][] = [];
+                        for (const session of rows)
+                        {
+                            sessionLists.push([session[0].content, session[1].content, null]);
+                        }
+                        lastQuestionRefGpt.current = sessionLists[sessionLists.length - 1][0];
+                        setAnswersGpt(sessionLists);
+                    })
+                })
+            } catch (e) {
+                setError(e);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    }
     const onShowCitation = (citation: string, index: number) => {
         if (citation.indexOf('http') > -1 || citation.indexOf('https') > -1) {
             window.open(citation.replace('/content/', '').trim(), '_blank');
@@ -920,12 +1089,10 @@ const Pib = () => {
         }
         setSelectedAnswer(index);
     };
-
     const generateQuickGuid = () => {
         return Math.random().toString(36).substring(2, 15) +
             Math.random().toString(36).substring(2, 15);
     }
-
     const handleNewConversation = () => {
         const sessId = generateQuickGuid(); //uuidv4();
         setSessionId(sessId);
@@ -948,7 +1115,28 @@ const Pib = () => {
         setChatSession(newSession);
         return newSession;
     };
+    const handleNewConversationGpt = () => {
+        const sessId = generateQuickGuid(); //uuidv4();
+        setSessionIdGpt(sessId);
 
+        const newSession: ChatSession = {
+          id: generateQuickGuid(),
+          type: 'Session',
+          sessionId: sessId,
+          name: sessId,
+          chainType: 'stuff',
+          feature: 'chat',
+          indexId: "chatgpt",
+          indexType: "cogsearchvs",
+          indexName: "Chat GPT",
+          llmModel: 'gpt3.5',
+          timestamp: String(new Date().getTime()),
+          tokenUsed: 0,
+          embeddingModelType: String(selectedEmbeddingItemGpt?.key)
+        };
+        setChatSessionGpt(newSession);
+        return newSession;
+    };
     const onToggleTab = (tab: AnalysisPanelTabs, index: number) => {
         if (activeAnalysisPanelTab === tab && selectedAnswer === index) {
             setActiveAnalysisPanelTab(undefined);
@@ -958,7 +1146,6 @@ const Pib = () => {
 
         setSelectedAnswer(index);
     };
-
     const makeApiRequest = async (question: string) => {
         let  currentSession = chatSession;
         let firstSession = false;
@@ -1006,10 +1193,140 @@ const Pib = () => {
             setIsLoading(false);
         }
     };
+    const makeApiRequestGpt = async (question: string) => {
+        let  currentSession = chatSessionGpt;
+        let firstSession = false;
+        if (!lastQuestionRefGpt.current || currentSession === null) {
+            currentSession = handleNewConversationGpt()
+            firstSession = true;
+            let sessionLists = sessionListGpt;
+            sessionLists?.unshift({
+                "Session Name": currentSession.sessionId,
+            });
+            setSessionListGpt(sessionLists)
+        }
+        lastQuestionRefGpt.current = question;
 
+        error && setError(undefined);
+        setIsLoading(true);
+
+        try {
+            const history: ChatTurn[] = answersGpt.map(a => ({ user: a[0], bot: a[1] }));
+            const request: ChatRequest = {
+                history: [...history, { user: question, bot: undefined }],
+                approach: Approaches.ReadRetrieveRead,
+                overrides: {
+                    promptTemplate: promptTemplateGpt.length === 0 ? undefined : promptTemplateGpt,
+                    temperature: temperatureGpt,
+                    tokenLength: tokenLengthGpt,
+                    embeddingModelType: String(selectedEmbeddingItemGpt?.key),
+                    firstSession: firstSession,
+                    session: JSON.stringify(currentSession),
+                    sessionId: currentSession.sessionId,
+                    deploymentType: String(selectedDeploymentTypeGpt?.key),
+                    useInternet:useInternet
+                }
+            };
+            const result = await chatGpt(request, 'chatgpt', 'cogsearchvs');
+            setAnswersGpt([...answersGpt, [question, result.answer, null]]);
+        } catch (e) {
+            setError(e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
     const startOrStopSynthesis = async (answerType:string, url: string | null, index: number) => {
     };
+    const updatePromptGpt = (promptType: string) => {       
+        const linuxTerminal = `i want you to act as a linux terminal. I will type commands and you will reply with 
+        what the terminal should show. I want you to only reply with the terminal output inside one unique code block, 
+        and nothing else. do not write explanations. do not type commands unless I instruct you to do so. 
+        when i need to tell you something in english, i will do so by putting text inside curly brackets {like this}. 
+        my first command is pwd
+        `
 
+        const accountant = `I want you to act as an accountant and come up with creative ways to manage finances. 
+        You'll need to consider budgeting, investment strategies and risk management when creating a financial plan 
+        for your client. In some cases, you may also need to provide advice on taxation laws and regulations in 
+        order to help them maximize their profits. 
+        My first suggestion request is "Create a financial plan for a small business that focuses on cost savings and long-term investments".
+        `
+
+        const realEstateAgent = `I want you to act as a real estate agent. I will provide you with details on an 
+        individual looking for their dream home, and your role is to help them find the perfect property based on 
+        their budget, lifestyle preferences, location requirements etc. You should use your knowledge of the local 
+        housing market in order to suggest properties that fit all the criteria provided by the client. 
+        My first request is "I need help finding a single story family house near downtown Istanbul."
+        `
+
+        const careerCounseler = `I want you to act as a career counselor. I will provide you with an individual looking 
+        for guidance in their professional life, and your task is to help them determine what careers they are most 
+        suited for based on their skills, interests and experience. You should also conduct research into the various 
+        options available, explain the job market trends in different industries and advice on which qualifications
+        would be beneficial for pursuing particular fields. 
+        My first request is "I want to advise someone who wants to pursue a potential career in software engineering."
+        `
+        
+        const personalTrainer = `I want you to act as a personal trainer. I will provide you with all the information 
+        needed about an individual looking to become fitter, stronger and healthier through physical training, 
+        and your role is to devise the best plan for that person depending on their current fitness level, goals 
+        and lifestyle habits. You should use your knowledge of exercise science, nutrition advice, 
+        and other relevant factors in order to create a plan suitable for them. 
+        My first request is “I need help designing an exercise program for someone who wants to lose weight.”
+        `
+        if (promptType == "linuxTerminal") {
+            setPromptTemplateGpt(linuxTerminal)
+            makeApiRequestGpt(linuxTerminal)
+        }
+        else if (promptType == "accountant") {
+            setPromptTemplateGpt(accountant)
+            makeApiRequestGpt(accountant)
+        } else if (promptType == "realEstateAgent") {
+            setPromptTemplateGpt(realEstateAgent)
+            makeApiRequestGpt(realEstateAgent)
+        } else if (promptType == "careerCounseler") {
+            setPromptTemplateGpt(careerCounseler)
+            makeApiRequestGpt(careerCounseler)
+        } else if (promptType == "personalTrainer") {
+            setPromptTemplateGpt(personalTrainer)
+            makeApiRequestGpt(personalTrainer)
+        } else if (promptType == "custom") {
+            setPromptTemplateGpt("")
+        }
+    }
+    const onPromptTemplateChangeGpt = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+        setPromptTemplateGpt(newValue || "");
+    };
+    const onTemperatureChangeGpt = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
+        setTemperatureGpt(parseInt(newValue || "0.3"));
+    };
+    const onTokenLengthChangeGpt = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
+        setTokenLengthGpt(parseInt(newValue || "500"));
+    };
+    const onEmbeddingChangeGpt = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedEmbeddingItemGpt(item);
+    };
+    const onDeploymentTypeChangeGpt = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        setSelectedDeploymentTypeGpt(item);
+    };
+    const onPromptTypeChangeGpt = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+        clearChatGpt()
+        setSelectedPromptTypeItemGpt(item);
+        updatePromptGpt(String(item?.key));
+    };
+    const onUseInternetChanged = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
+        setUseInternet(!!checked);
+    };
+    const onTabChange = (item?: PivotItem | undefined, ev?: React.MouseEvent<HTMLElement, MouseEvent> | undefined): void => {
+        if (item?.props.headerText === "Chat Pib") {
+            clearChat()
+            setSelectedDoc(docOptions[0])
+            getCosmosSession(docOptions[0]?.key, String(symbol))
+        } 
+        if (item?.props.headerText === "Chat Gpt") {
+            getCosmosSession("chatgpt", "cogsearchvs")
+        } 
+    };
     useEffect(() => {
         if (window.location.hostname != "localhost") {
             getUserInfoList();
@@ -1020,13 +1337,14 @@ const Pib = () => {
         
         setSelectedExchange(exchangeOptions[0])
         setSelectedCompany(amexTickers[0]);
-
         setSelectedDoc(docOptions[0]);
-        getCosmosSession(docOptions[0]?.key, String(symbol))
+        
+        setSelectedEmbeddingItemGpt(embeddingGptOptions[0])
+        setSelectedDeploymentTypeGpt(deploymentTypeGptOptions[0])
+        setSelectedPromptTypeItemGpt(promptTypeGptOptions[0])
     }, [])
 
     useEffect(() => chatMessageStreamEnd.current?.scrollIntoView({ behavior: "smooth" }), [isLoading]);
-
 
     return (
         <div className={styles.root}>
@@ -1045,7 +1363,7 @@ const Pib = () => {
                 </Stack>
             ) : (
             <div className={styles.oneshotContainer}>
-            <Pivot aria-label="QA">
+                <Pivot aria-label="Pib" onLinkClick={onTabChange}>
                     <PivotItem
                         headerText="Profile & Bio"
                         headerButtonProps={{
@@ -1692,7 +2010,7 @@ const Pib = () => {
                                                 disabled={isLoading}
                                                 onSend={question => makeApiRequest(question)}
                                             />
-                                        </div>
+                                        </div>                                        
                                     </div>
                                 ) : (
                                     <div className={styles.chatMessageStream}>
@@ -1770,6 +2088,157 @@ const Pib = () => {
                         </div>
                     </div>
 
+                    </PivotItem>
+                    <PivotItem
+                        headerText="Chat Gpt"
+                        headerButtonProps={{
+                        'data-order': 11,
+                        }}
+                    >
+                        <div className={styles.root}>
+                            <br/>
+                            <div className={styles.commandsContainer}>
+                                <ClearChatButton className={styles.commandButton} onClick={clearChatGpt}  text="Clear chat" disabled={!lastQuestionRefGpt.current || isLoading} />
+                                <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpenGpt(!isConfigPanelOpenGpt)} />
+                                <Checkbox label="Internet Search" checked={useInternet} onChange={onUseInternetChanged} />
+                            </div>
+                            <div className={styles.commandsContainer}>
+                                <SessionButton className={styles.commandButton} onClick={clearChatGpt} />
+                                <ClearChatButton className={styles.commandButton} onClick={deleteSessionGpt}  text="Delete Session" disabled={false} />
+                                <RenameButton className={styles.commandButton}  onClick={renameSessionGpt}  text="Rename Session"/>
+                                <TextField className={styles.commandButton} value={sessionNameGpt} onChange={onSessionNameChangeGpt}
+                                    styles={{root: {width: '200px'}}} />
+                            </div>
+                            {/* <div className={styles.chatRoot}> */}
+                            <Stack horizontal className={styles.chatRoot}>
+                                {detailsListGpt}
+                                <div className={styles.chatContainer}>
+                                    {!lastQuestionRefGpt.current ? (
+                                        <Stack className={styles.chatEmptyState}>
+                                            <h1 className={styles.chatEmptyStateTitle}>Start chatting</h1>
+                                            <h2 className={styles.chatEmptyStateSubtitle}>This chatbot is configured to answer your questions</h2>
+                                            <div className={styles.chatInput}>
+                                                <QuestionInput
+                                                    clearOnSend
+                                                    placeholder="Type a new question"
+                                                    disabled={isLoading}
+                                                    onSend={question => makeApiRequestGpt(question)}
+                                                />
+                                            </div>
+                                        </Stack>
+                                    ) : (
+                                        <div className={styles.chatMessageStream} style={{ marginBottom: isLoading ? "40px" : "0px"}} role="log">
+                                            {answersGpt.map((answer, index) => (
+                                                <div key={index}>
+                                                    <UserChatMessage message={answer[0]} />
+                                                    <div className={styles.chatMessageGpt}>
+                                                        <AnswerChat
+                                                            key={index}
+                                                            answer={answer[1]}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {isLoading && (
+                                                <>
+                                                    <UserChatMessage message={lastQuestionRefGpt.current} />
+                                                    <div className={styles.chatMessageGptMinWidth}>
+                                                        <AnswerLoading />
+                                                    </div>
+                                                </>
+                                            )}
+                                            {error ? (
+                                                <>
+                                                    <UserChatMessage message={lastQuestionRefGpt.current} />
+                                                    <div className={styles.chatMessageGptMinWidth}>
+                                                        <AnswerError error={error.toString()} onRetry={() => makeApiRequestGpt(lastQuestionRefGpt.current)} />
+                                                    </div>
+                                                </>
+                                            ) : null}
+                                            <div ref={chatMessageStreamEnd} />
+                                            <div className={styles.chatInput}>
+                                                <QuestionInput
+                                                    clearOnSend
+                                                    placeholder="Type a new question"
+                                                    disabled={isLoading}
+                                                    onSend={question => makeApiRequestGpt(question)}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                </Stack>
+                            {/* </div> */}
+
+                            <Panel
+                                headerText="Configure Chat Interaction"
+                                isOpen={isConfigPanelOpenGpt}
+                                isBlocking={false}
+                                onDismiss={() => setIsConfigPanelOpenGpt(false)}
+                                closeButtonAriaLabel="Close"
+                                onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpenGpt(false)}>Close</DefaultButton>}
+                                isFooterAtBottom={true}
+                            >
+                                <br/>
+                                <div>
+                                    <Label>LLM Model</Label>
+                                    <Dropdown
+                                        selectedKey={selectedEmbeddingItemGpt ? selectedEmbeddingItemGpt.key : undefined}
+                                        onChange={onEmbeddingChangeGpt}
+                                        placeholder="Select an LLM Model"
+                                        options={embeddingGptOptions}
+                                        disabled={false}
+                                        styles={dropdownStyles}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Deployment Type</Label>
+                                    <Dropdown
+                                            selectedKey={selectedDeploymentTypeGpt ? selectedDeploymentTypeGpt.key : undefined}
+                                            onChange={onDeploymentTypeChangeGpt}
+                                            placeholder="Select an Deployment Type"
+                                            options={deploymentTypeGptOptions}
+                                            disabled={((selectedEmbeddingItemGpt?.key == "openai" ? true : false))}
+                                            styles={dropdownStyles}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Prompt Type</Label>
+                                    <Dropdown
+                                            selectedKey={selectedPromptTypeItemGpt ? selectedPromptTypeItemGpt.key : undefined}
+                                            onChange={onPromptTypeChangeGpt}
+                                            placeholder="Prompt Type"
+                                            options={promptTypeGptOptions}
+                                            disabled={false}
+                                            styles={dropdownStyles}
+                                    />
+                                    <TextField
+                                        className={styles.oneshotSettingsSeparator}
+                                        value={promptTemplateGpt}
+                                        label="Override prompt template"
+                                        multiline
+                                        autoAdjustHeight
+                                        onChange={onPromptTemplateChangeGpt}
+                                    />
+                                </div>
+                                <SpinButton
+                                    className={styles.oneshotSettingsSeparator}
+                                    label="Set the Temperature:"
+                                    min={0.0}
+                                    max={1.0}
+                                    defaultValue={temperatureGpt.toString()}
+                                    onChange={onTemperatureChangeGpt}
+                                />
+                                <SpinButton
+                                    className={styles.oneshotSettingsSeparator}
+                                    label="Max Length (Tokens):"
+                                    min={0}
+                                    max={4000}
+                                    defaultValue={tokenLengthGpt.toString()}
+                                    onChange={onTokenLengthChangeGpt}
+                                />
+                            </Panel>
+                        </div>
                     </PivotItem>
                 </Pivot>
             </div>

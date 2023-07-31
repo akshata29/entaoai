@@ -697,7 +697,7 @@ def crawl(
 
 	# https://www.sec.gov/cgi-bin/browse-edgar?CIK=0001000228
 	# https://data.sec.gov/submissions/CIK0001000228.json
-	with open(os.path.join('', 'companies_info.json')) as f:
+	with open(os.path.join(tempfile.gettempdir(), 'companies_info.json')) as f:
 		company_info_dict = json.load(fp=f)
 
 	cik = series['CIK']
@@ -747,7 +747,7 @@ def crawl(
 				if 'Fiscal Year End' in str(content):
 					company_info_dict[cik]['Fiscal Year End'] = str(content).split()[-1]
 
-		with open(os.path.join('', 'companies_info.json'), 'w') as f:
+		with open(os.path.join(tempfile.gettempdir(), 'companies_info.json'), 'w') as f:
 			json.dump(obj=company_info_dict, fp=f, indent=4)
 
 	if pd.isna(series['SIC']):
@@ -988,8 +988,8 @@ def EdgarIngestion(value):
         if not os.path.isdir(raw_filings_folder):
             os.mkdir(raw_filings_folder)
 
-        if not os.path.isfile(os.path.join('', 'companies_info.json')):
-            with open(os.path.join('', 'companies_info.json'), 'w') as f:
+        if not os.path.isfile(os.path.join(tempfile.gettempdir(), 'companies_info.json')):
+            with open(os.path.join(tempfile.gettempdir(), 'companies_info.json'), 'w') as f:
                 json.dump(obj={}, fp=f)
 
         downloadIndices(

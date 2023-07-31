@@ -17,7 +17,6 @@ const Summary = () => {
   const [selectedDocument, setSelectedDocument] = useState<string>('')
   const [selectedProspectus, setSelectedProspectus] = useState<IDropdownOption>();
   const [selectedSummaryTopicItem, setSelectedSummaryTopicItem] = useState<string[]>([]);
-  const [summaryPrompt, setSummaryPrompt] = useState('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<unknown>();
   const [selectedItems, setSelectedItems] = useState<any[]>([]);
@@ -463,10 +462,8 @@ const Summary = () => {
     })
   };
 
-  const onSummaryPromptChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-    if (newValue != '') {
-      setSummaryPrompt(newValue || "");
-    }
+  const onPromptTemplateChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+    setPromptTemplate(newValue || "");
   };
 
   useEffect(() => {
@@ -482,7 +479,7 @@ const Summary = () => {
 
         """`
     
-    setSummaryPrompt(defaultSummaryPrompt)
+    setPromptTemplate(defaultSummaryPrompt)
     setSelectedEmbeddingItem(embeddingOptions[0])
     setSelectedChain(chainTypeOptions[1])
     setSelectedSummaryTopicItem(['Strengths', 'Growth Strategy'])
@@ -585,7 +582,7 @@ const Summary = () => {
             <Stack.Item grow={2} styles={stackItemCenterStyles}>
                 <TextField label="Prompt" multiline rows={10} value={promptTemplate} 
                   style={{ width: 800, height: 300 }}
-                  onChange={onSummaryPromptChange} />
+                  onChange={onPromptTemplateChange} />
             </Stack.Item>
             <br/>
             {isLoading ? (
