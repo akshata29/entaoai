@@ -100,7 +100,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     tokenLength = overrides.get('tokenLength') or 500
     firstSession = overrides.get('firstSession') or False
     sessionId = overrides.get('sessionId')
-    promptTemplate = overrides.get('promptTemplate') or ''
+    promptTemplate = overrides.get('promptTemplate') or 'You are an AI assistant that helps people find information.'
     deploymentType = overrides.get('deploymentType') or 'gpt35'
     useInternet = overrides.get('useInternet') or False
     os.environ['BING_SUBSCRIPTION_KEY'] = BingKey
@@ -303,7 +303,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     
     tokenLimit = getTokenLimit(gptModel)
     messages = getMessagesFromHistory(
-            "You are an AI assistant that helps people find information.",
+            promptTemplate,
             gptModel,
             history,
             lastQuestion,

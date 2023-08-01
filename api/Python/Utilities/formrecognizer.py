@@ -27,7 +27,7 @@ def chunk_paragraphs(paragraphs: List[str], fullPath:str,  max_words: int = 300)
             # start a new chunk
             if (
                 sum([list(c.values())[0] for c in chunks[-1]]) + list(p.values())[0]
-                > max_words
+                > int(max_words)
             ):
                 chunks.append([p])
             # If adding the next paragraph will not exceed the max word

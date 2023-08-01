@@ -1205,6 +1205,18 @@ const Pib = () => {
             });
             setSessionListGpt(sessionLists)
         }
+
+        let promptTemplate = "";
+        if (firstSession) {
+            if (selectedPromptTypeItemGpt?.key == "custom")
+                setPromptTemplateGpt(question);
+
+            promptTemplate = question;
+        }
+        else {
+            promptTemplate = promptTemplateGpt;
+        }
+
         lastQuestionRefGpt.current = question;
 
         error && setError(undefined);
@@ -1216,7 +1228,7 @@ const Pib = () => {
                 history: [...history, { user: question, bot: undefined }],
                 approach: Approaches.ReadRetrieveRead,
                 overrides: {
-                    promptTemplate: promptTemplateGpt.length === 0 ? undefined : promptTemplateGpt,
+                    promptTemplate: promptTemplate,
                     temperature: temperatureGpt,
                     tokenLength: tokenLengthGpt,
                     embeddingModelType: String(selectedEmbeddingItemGpt?.key),
