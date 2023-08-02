@@ -1214,7 +1214,14 @@ const Pib = () => {
             promptTemplate = question;
         }
         else {
-            promptTemplate = promptTemplateGpt;
+            // if (selectedPromptTypeItemGpt?.key == "custom")
+            // {
+            //     promptTemplate = answersGpt[0][0]
+            //     setPromptTemplateGpt(answersGpt[0][0]);
+            // }
+
+            //promptTemplate = promptTemplateGpt;
+            promptTemplate = answersGpt[0][0];
         }
 
         lastQuestionRefGpt.current = question;

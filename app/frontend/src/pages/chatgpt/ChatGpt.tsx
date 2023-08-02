@@ -382,7 +382,8 @@ const ChatGpt = () => {
             promptTemplate = question;
         }
         else {
-            promptTemplate = promptTemplateGpt;
+            //promptTemplate = promptTemplateGpt;
+            promptTemplate = answersGpt[0][0];
         }
         lastQuestionRefGpt.current = question;
 

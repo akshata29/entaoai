@@ -308,9 +308,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             history,
             lastQuestion,
             [],
-            tokenLimit - len(lastQuestion)
+            tokenLimit - len(lastQuestion) - tokenLength,
             )
-
     if (embeddingModelType == 'azureopenai'):
         baseUrl = f"https://{OpenAiService}.openai.azure.com"
         openai.api_type = "azure"

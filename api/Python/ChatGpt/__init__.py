@@ -199,7 +199,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             history,
             'Generate search query for: ' + lastQuestion,
             [],
-            tokenLimit - len('Generate search query for: ' + lastQuestion)
+            tokenLimit - len('Generate search query for: ' + lastQuestion) - tokenLength
             )
     
     if (embeddingModelType == 'azureopenai'):
