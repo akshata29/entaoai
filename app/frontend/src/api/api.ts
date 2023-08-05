@@ -343,7 +343,7 @@ export async function askTaskAgentApi(options: AskRequest): Promise<AskResponse>
   return parsedResponse.values[0].data
 
 }
-export async function chatGptApi(options: ChatRequest, indexNs: string, indexType:string): Promise<AskResponse> {
+export async function chat(options: ChatRequest, indexNs: string, indexType:string): Promise<AskResponse> {
     const response = await fetch('/chat' , {
         method: "POST",
         headers: {
@@ -383,6 +383,41 @@ export async function chatGptApi(options: ChatRequest, indexNs: string, indexTyp
         throw Error(parsedResponse.values[0].data.error || "Unknown error");
     }
     return parsedResponse.values[0].data;
+}
+export async function chatStream(options: ChatRequest, indexNs: string, indexType:string): Promise<Response> {
+    return await fetch('/chatStream' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        indexType:indexType,
+        indexNs: indexNs,
+        postBody: {
+          values: [
+            {
+              recordId: 0,
+              data: {
+                history: options.history,
+                approach: 'rrr',
+                overrides: {
+                  top: options.overrides?.top,
+                  temperature: options.overrides?.temperature,
+                  promptTemplate: options.overrides?.promptTemplate,
+                  suggest_followup_questions: options.overrides?.suggestFollowupQuestions,
+                  embeddingModelType: options.overrides?.embeddingModelType,
+                  firstSession:options.overrides?.firstSession,
+                  session:options.overrides?.session,
+                  sessionId:options.overrides?.sessionId,
+                  deploymentType: options.overrides?.deploymentType,
+                  chainType: options.overrides?.chainType,
+                }
+              }
+            }
+          ]
+        }
+      })
+  });
 }
 export async function chatGpt(options: ChatRequest, indexNs: string, indexType:string): Promise<AskResponse> {
   const response = await fetch('/chatGpt' , {

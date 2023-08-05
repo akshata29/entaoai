@@ -9,8 +9,8 @@ import styles from "./ChatGpt.module.css";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
-import { chatGptApi, Approaches, AskResponse, ChatRequest, ChatTurn, refreshIndex, getSpeechApi, chatGpt,
-    getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession, renameIndexSession, getUserInfo } from "../../api";
+import { chat, Approaches, AskResponse, ChatRequest, ChatTurn, refreshIndex, getSpeechApi, chatGpt,
+    getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession, renameIndexSession, getUserInfo, chatStream } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { AnswerChat } from "../../components/Answer/AnswerChat";
 import { QuestionInput } from "../../components/QuestionInput";
@@ -31,6 +31,7 @@ var audio = new Audio();
 const ChatGpt = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [isConfigPanelOpenGpt, setIsConfigPanelOpenGpt] = useState(false);
+    const [isConfigPanelOpenStream, setIsConfigPanelOpenStream] = useState(false);
     const [promptTemplate, setPromptTemplate] = useState<string>("");
     const [promptTemplateGpt, setPromptTemplateGpt] = useState<string>("");
     const [retrieveCount, setRetrieveCount] = useState<number>(3);
@@ -51,6 +52,7 @@ const ChatGpt = () => {
 
     const lastQuestionRef = useRef<string>("");
     const lastQuestionRefGpt = useRef<string>("");
+    const lastQuestionRefStream = useRef<string>("");
     const chatMessageStreamEnd = useRef<HTMLDivElement | null>(null);
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -61,6 +63,7 @@ const ChatGpt = () => {
 
     const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
     const [answers, setAnswers] = useState<[user: string, response: AskResponse, speechUrl: string | null][]>([]);
+    const [answerStream, setAnswersStream] = useState<[user: string, response: AskResponse, speechUrl: string | null][]>([]);
     const [runningIndex, setRunningIndex] = useState<number>(-1);
     const [answersGpt, setAnswersGpt] = useState<[user: string, response: string, speechUrl: string | null][]>([]);
     
@@ -347,7 +350,7 @@ const ChatGpt = () => {
                     chainType: String(selectedChain?.key),
                 }
             };
-            const result = await chatGptApi(request, String(selectedItem?.key), String(selectedIndex));
+            const result = await chat(request, String(selectedItem?.key), String(selectedIndex));
             //setAnswers([...answers, [question, result]]);
             setAnswers([...answers, [question, result, null]]);
             if(useAutoSpeakAnswers){
@@ -361,7 +364,90 @@ const ChatGpt = () => {
             setIsLoading(false);
         }
     };
+    const makeApiStreamRequest = async (question: string) => {
+        // let  currentSession = chatSession;
+        // let firstSession = false;
+        // if (!lastQuestionRef.current || currentSession === null) {
+        //     currentSession = handleNewConversation();
+        //     firstSession = true;
+        //     let sessionLists = sessionList;
+        //     sessionLists?.unshift({
+        //         "Session Name": currentSession.sessionId,
+        //     });
+        //     setSessionList(sessionLists)
+        // }
+        lastQuestionRefStream.current = question;
 
+        error && setError(undefined);
+        setIsLoading(true);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+
+        try {
+            const history: ChatTurn[] = answerStream.map(a => ({ user: a[0], bot: a[1].answer }));
+            const request: ChatRequest = {
+                history: [...history, { user: question, bot: undefined }],
+                approach: Approaches.ReadRetrieveRead,
+                overrides: {
+                    promptTemplate: promptTemplate.length === 0 ? undefined : promptTemplate,
+                    excludeCategory: excludeCategory.length === 0 ? undefined : excludeCategory,
+                    top: retrieveCount,
+                    temperature: temperature,
+                    semanticRanker: useSemanticRanker,
+                    semanticCaptions: useSemanticCaptions,
+                    suggestFollowupQuestions: useSuggestFollowupQuestions,
+                    tokenLength: tokenLength,
+                    autoSpeakAnswers: useAutoSpeakAnswers,
+                    embeddingModelType: String(selectedEmbeddingItem?.key),
+                    //firstSession: firstSession,
+                    //session: JSON.stringify(currentSession),
+                    //sessionId: currentSession.sessionId,
+                    deploymentType: String(selectedDeploymentType?.key),
+                    chainType: String(selectedChain?.key),
+                }
+            };
+            let result: any = {};
+            let answer: string = '';
+            const response = await chatStream(request,String(selectedItem?.key), String(selectedIndex));
+            let askResponse: AskResponse = {} as AskResponse;
+            if (response?.body) {
+                const reader = response.body.getReader();
+                let runningText = "";
+                while (true) {
+                    const {done, value} = await reader.read();
+                    if (done) break;
+
+                    var text = new TextDecoder("utf-8").decode(value);
+                    const objects = text.split("\n");
+                    objects.forEach(async (obj) => {
+                        try {
+                            runningText += obj;
+                            result = JSON.parse(runningText);
+                            if (result["data_points"]) {
+                                askResponse = result;
+                            } else if (result["choices"] && result["choices"][0]["delta"]["content"]) {
+                                answer += result["choices"][0]["delta"]["content"];
+                                let latestResponse: AskResponse = {...askResponse, answer: answer};
+                                setIsLoading(false);
+                                setAnswersStream([...answerStream, [question, latestResponse, null]]);
+                                if(useAutoSpeakAnswers){
+                                    const speechUrl = await getSpeechApi(result.answer);
+                                    setAnswersStream([...answerStream, [question, latestResponse, speechUrl]]);
+                                    startOrStopSynthesis("gpt35", speechUrl, answerStream.length);
+                                }
+                            }
+                            runningText = "";
+                        }
+                        catch { }
+                    });
+                }
+            }
+        } catch (e) {
+            setError(e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
     const makeApiRequestGpt = async (question: string) => {
         let  currentSession = chatSessionGpt;
         let firstSession = false;
@@ -458,6 +544,15 @@ const ChatGpt = () => {
         setSessionName('');
     };
 
+    const clearStreamChat = () => {
+        lastQuestionRefStream.current = "";
+        error && setError(undefined);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+        setAnswersStream([]);
+        setSelectedItems([])
+    };
+
     const clearChatGpt = () => {
         lastQuestionRefGpt.current = "";
         error && setError(undefined);
@@ -468,7 +563,6 @@ const ChatGpt = () => {
         setSelectedPromptTypeItemGpt(promptTypeGptOptions[0])
         setPromptTemplateGpt('')
     };
-
     const deleteSession = async () => {
         //const sessionName = String(selectedItems[0]?.['Session Name'])
         if (sessionName === 'No Sessions found' || sessionName === "" || sessionName === undefined) {
@@ -518,7 +612,6 @@ const ChatGpt = () => {
         })
 
     };
-
     const renameSessionGpt = async () => {
         if (oldSessionNameGpt === 'No Sessions found' || oldSessionNameGpt === undefined || sessionNameGpt === "" || sessionNameGpt === undefined
         || oldSessionNameGpt === "" || oldSessionNameGpt === 'No Sessions found') {
@@ -555,6 +648,10 @@ const ChatGpt = () => {
 
     const onExampleClicked = (example: string) => {
         makeApiRequest(example);
+    };
+
+    const onExampleStreamClicked = (example: string) => {
+        makeApiStreamRequest(example);
     };
 
     const startOrStopSynthesis = async (answerType:string, url: string | null, index: number) => {
@@ -1343,9 +1440,222 @@ const ChatGpt = () => {
                     </div>
                     </PivotItem>
                     <PivotItem
+                        headerText="Chat on Data - Stream"
+                        headerButtonProps={{
+                        'data-order': 2,
+                        }}
+                    >
+                    <div className={styles.root}>
+                        <br/>
+                        <div className={styles.commandsContainer}>
+                            <ClearChatButton className={styles.commandButton} onClick={clearStreamChat}  text="Clear chat" disabled={!lastQuestionRefStream.current || isLoading} />
+                            <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpenStream(!isConfigPanelOpenStream)} />
+                            <div className={styles.commandButton}>{selectedItem ? 
+                                "Document Name : "  + selectedItem.text : undefined}</div>
+                        </div>
+                        <div className={styles.chatRoot}>
+                            <div className={styles.chatContainer}>
+                                {!lastQuestionRefStream.current ? (
+                                    <div className={styles.chatEmptyState}>
+                                        <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
+                                        <h3 className={styles.chatEmptyStateTitle}>Chat with your data - Stream</h3>
+                                        <div className={styles.example}>
+                                            <p className={styles.exampleText}><b>Document Summary</b> : {summary}</p>
+                                        </div>
+                                        <h4 className={styles.chatEmptyStateSubtitle}>Ask anything or try from following example</h4>
+                                        <div className={styles.chatInput}>
+                                            <QuestionInput
+                                                clearOnSend
+                                                placeholder="Type a new question"
+                                                disabled={isLoading}
+                                                onSend={question => makeApiStreamRequest(question)}
+                                            />
+                                        </div>
+                                        {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
+                                        <ExampleList onExampleClicked={onExampleStreamClicked}
+                                        EXAMPLES={
+                                            exampleList
+                                        } />
+                                    </div>
+                                ) : (
+                                    <div className={styles.chatMessageStream}>
+                                        {answerStream.map((answer, index) => (
+                                            <div key={index}>
+                                                <UserChatMessage message={answer[0]} />
+                                                <div className={styles.chatMessageGpt}>
+                                                    <Answer
+                                                        key={index}
+                                                        answer={answer[1]}
+                                                        isSpeaking = {runningIndex === index}
+                                                        isSelected={selectedAnswer === index && activeAnalysisPanelTab !== undefined}
+                                                        onCitationClicked={c => onShowCitation(c, index)}
+                                                        onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
+                                                        onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
+                                                        onFollowupQuestionClicked={q => makeApiStreamRequest(q)}
+                                                        onSpeechSynthesisClicked={() => startOrStopSynthesis("gpt35", answer[2], index)}
+                                                        showFollowupQuestions={useSuggestFollowupQuestions && answers.length - 1 === index}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {isLoading && (
+                                            <>
+                                                <UserChatMessage message={lastQuestionRefStream.current} />
+                                                <div className={styles.chatMessageGptMinWidth}>
+                                                    <AnswerLoading />
+                                                </div>
+                                            </>
+                                        )}
+                                        {error ? (
+                                            <>
+                                                <UserChatMessage message={lastQuestionRefStream.current} />
+                                                <div className={styles.chatMessageGptMinWidth}>
+                                                    <AnswerError error={error.toString()} onRetry={() => makeApiStreamRequest(lastQuestionRefStream.current)} />
+                                                </div>
+                                            </>
+                                        ) : null}
+                                        <div ref={chatMessageStreamEnd} />
+                                        <div className={styles.chatInput}>
+                                            <QuestionInput
+                                                clearOnSend
+                                                placeholder="Type a new question"
+                                                disabled={isLoading}
+                                                onSend={question => makeApiStreamRequest(question)}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {answers.length > 0 && activeAnalysisPanelTab && (
+                                <AnalysisPanel
+                                    className={styles.chatAnalysisPanel}
+                                    activeCitation={activeCitation}
+                                    onActiveTabChanged={x => onToggleTab(x, selectedAnswer)}
+                                    citationHeight="810px"
+                                    answer={answers[selectedAnswer][1]}
+                                    activeTab={activeAnalysisPanelTab}
+                                />
+                            )}
+
+                            <Panel
+                                headerText="Configure Chat Interaction"
+                                isOpen={isConfigPanelOpenStream}
+                                isBlocking={false}
+                                onDismiss={() => setIsConfigPanelOpenStream(false)}
+                                closeButtonAriaLabel="Close"
+                                onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpenStream(false)}>Close</DefaultButton>}
+                                isFooterAtBottom={true}
+                            >
+                                <br/>
+                                <div>
+                                    <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>
+                                    <Dropdown
+                                        selectedKey={selectedItem ? selectedItem.key : undefined}
+                                        // eslint-disable-next-line react/jsx-no-bind
+                                        onChange={onChange}
+                                        placeholder="Select an PDF"
+                                        options={options}
+                                        styles={dropdownStyles}
+                                    />
+                                    &nbsp;
+                                    <Label className={styles.commandsContainer}>Index Type : {selectedIndex}</Label>
+                                    <Label className={styles.commandsContainer}>Chunk Size : {selectedChunkSize} / Chunk Overlap : {selectedChunkOverlap}</Label>
+                                </div>
+                                <br/>
+                                <div>
+                                    <Label>LLM Model</Label>
+                                    <Dropdown
+                                        selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
+                                        onChange={onEmbeddingChange}
+                                        placeholder="Select an LLM Model"
+                                        options={embeddingOptions}
+                                        disabled={false}
+                                        styles={dropdownStyles}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Deployment Type</Label>
+                                    <Dropdown
+                                            selectedKey={selectedDeploymentType ? selectedDeploymentType.key : undefined}
+                                            onChange={onDeploymentTypeChange}
+                                            placeholder="Select an Deployment Type"
+                                            options={deploymentTypeOptions}
+                                            disabled={((selectedEmbeddingItem?.key == "openai" ? true : false) || (Number(selectedChunkSize) > 4000 ? true : false))}
+                                            styles={dropdownStyles}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Prompt Type</Label>
+                                    <Dropdown
+                                            selectedKey={selectedPromptTypeItem ? selectedPromptTypeItem.key : undefined}
+                                            onChange={onPromptTypeChange}
+                                            placeholder="Prompt Type"
+                                            options={promptTypeOptions}
+                                            disabled={false}
+                                            styles={dropdownStyles}
+                                    />
+                                    <TextField
+                                        className={styles.oneshotSettingsSeparator}
+                                        value={promptTemplate}
+                                        label="Override prompt template"
+                                        multiline
+                                        autoAdjustHeight
+                                        onChange={onPromptTemplateChange}
+                                    />
+                                </div>
+                                <SpinButton
+                                    className={styles.chatSettingsSeparator}
+                                    label="Retrieve this many documents from search:"
+                                    min={1}
+                                    max={7}
+                                    defaultValue={retrieveCount.toString()}
+                                    onChange={onRetrieveCountChange}
+                                />
+                                <SpinButton
+                                    className={styles.oneshotSettingsSeparator}
+                                    label="Set the Temperature:"
+                                    min={0.0}
+                                    max={1.0}
+                                    defaultValue={temperature.toString()}
+                                    onChange={onTemperatureChange}
+                                />
+                                <SpinButton
+                                    className={styles.oneshotSettingsSeparator}
+                                    label="Max Length (Tokens):"
+                                    min={0}
+                                    max={4000}
+                                    defaultValue={tokenLength.toString()}
+                                    onChange={onTokenLengthChange}
+                                />
+                                <Dropdown 
+                                    label="Chain Type"
+                                    onChange={onChainChange}
+                                    selectedKey={selectedChain ? selectedChain.key : 'stuff'}
+                                    options={chainTypeOptions}
+                                    defaultSelectedKey={'stuff'}
+                                    styles={dropdownStyles}
+                                />
+                                <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useSuggestFollowupQuestions}
+                                    label="Suggest follow-up questions"
+                                    onChange={onUseSuggestFollowupQuestionsChange}
+                                />
+                                <Checkbox
+                                    className={styles.chatSettingsSeparator}
+                                    checked={useAutoSpeakAnswers}
+                                    label="Automatically speak answers"
+                                    onChange={onEnableAutoSpeakAnswersChange}
+                                />
+                            </Panel>
+                        </div>
+                    </div>
+                    </PivotItem>
+                    <PivotItem
                         headerText="Chat Gpt"
                         headerButtonProps={{
-                        'data-order': 1,
+                        'data-order': 3,
                         }}
                     >
                         <div className={styles.root}>

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, Response
 import requests
 import json
 from dotenv import load_dotenv
@@ -21,6 +21,7 @@ from azure.core.credentials import AzureKeyCredential
 from azure.cosmos import CosmosClient, PartitionKey
 from Utilities.fmp import *
 from distutils.util import strtobool
+from Utilities.ChatGptStream import *
 
 load_dotenv()
 app = Flask(__name__)
@@ -201,6 +202,93 @@ def chat():
         return jsonify(jsonDict)
     except Exception as e:
         logging.exception("Exception in /chat")
+        return jsonify({"error": str(e)}), 500
+
+def formatNdJson(r):
+    for data in r:
+        yield json.dumps(data).replace("\n", "\\n") + "\n"
+
+@app.route("/chatStream", methods=["POST"])
+def chatStream():
+    indexType=request.json["indexType"]
+    indexNs=request.json["indexNs"]
+    postBody=request.json["postBody"]
+ 
+    logging.info(f"indexType: {indexType}")
+    logging.info(f"indexNs: {indexNs}")
+    
+    try:
+
+        OpenAiKey = os.environ['OpenAiKey']
+        OpenAiVersion = os.environ['OpenAiVersion']
+        OpenAiChat = os.environ['OpenAiChat']
+        OpenAiService = os.environ['OpenAiService']
+
+        if "OpenAiChat16k" in os.environ: 
+            OpenAiChat16k = os.getenv('OpenAiChat16k')
+        else:
+            OpenAiChat16k = "chat16k"
+
+        if "OpenAiApiKey" in os.environ: 
+            OpenAiApiKey = os.getenv('OpenAiApiKey')
+        else:
+            OpenAiApiKey = ""
+
+        if "SEARCHKEY" in os.environ: 
+            SearchKey = os.environ['SEARCHKEY']
+        else:
+            SearchKey = ""
+
+        if "SEARCHSERVICE" in os.environ: 
+            SearchService = os.environ['SEARCHSERVICE']
+        else:
+            SearchService = ""
+
+        if "OpenAiEmbedding" in os.environ: 
+            OpenAiEmbedding = os.environ['OpenAiEmbedding']
+        else:
+            OpenAiEmbedding = "embedding"
+
+        if "RedisAddress" in os.environ: 
+            RedisAddress = os.environ['RedisAddress']
+        else:
+            RedisAddress = ""
+
+        if "RedisPort" in os.environ: 
+            RedisPort = os.environ['RedisPort']
+        else:
+            RedisPort = ""
+
+        if "RedisPassword" in os.environ: 
+            RedisPassword = os.environ['RedisPassword']
+        else:
+            RedisPassword = "embedding"
+
+        if "PineconeEnv" in os.environ: 
+            PineconeEnv = os.environ['PineconeEnv']
+        else:
+            PineconeEnv = ""
+
+        if "PineconeKey" in os.environ: 
+            PineconeKey = os.environ['PineconeKey']
+        else:
+            PineconeKey = ""
+
+        if "PineconeIndex" in os.environ: 
+            PineconeIndex = os.environ['PineconeIndex']
+        else:
+            PineconeIndex = ""
+
+        # data = postBody
+        # params = {'indexType': indexType, "indexNs": indexNs }
+        # resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        chatStream = ChatGptStream(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiChat, OpenAiChat16k, OpenAiApiKey, OpenAiEmbedding,
+                                    SearchService, SearchKey, RedisAddress, RedisPort, RedisPassword,
+                                    PineconeKey, PineconeEnv, PineconeIndex)
+        r = chatStream.run(indexType=indexType, indexNs=indexNs, postBody=postBody)
+        return Response(formatNdJson(r), mimetype='text/event-stream')
+    except Exception as e:
+        logging.exception("Exception in /chatStream")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/chatGpt", methods=["POST"])

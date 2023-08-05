@@ -22,6 +22,7 @@ export default defineConfig({
             "/askAgent": "http://127.0.0.1:5000",
             "/askTaskAgent": "http://127.0.0.1:5000",
             "/chat": "http://127.0.0.1:5000",
+            "/chatStream": "http://127.0.0.1:5000",
             "/chatGpt": "http://127.0.0.1:5000",
             "/content": "http://127.0.0.1:5000",
             "/convertCode": "http://127.0.0.1:5000",

@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 8/5/2023 - Added Chat Interface with "Stream" Option.  This feature allows you to stream the conversation to the client.  You will need to add `OpenAiChat`, `OpenAiChat16k`, `OpenAiEmbedding`, `OpenAiEndPoint`, `OpenAiKey`, `OpenAiApiKey`, `OpenAiService`, `OpenAiVersion`, `PineconeEnv`, `PineconeIndex`, `PineconeKey`, `RedisAddress`, `RedisPassword`, `RedisPort` property in Azure App Service (Webapp) to enable the feature for existing deployment.
 * 7/30/2023 - Removed unused Code - SummaryAndQa and Chat
 * 7/28/2023 - Started removing the Davinci model usage.  For now removed the usage from all functionality except workshop.  Refactored Summarization functionality based on the feedback to allow user to specify the prompt and pre-defined Topics to summarize it on.
 * 7/26/2023 - Remove OpenAI Playground from Developer Tools as advanced features of that are available in ChatGPT section.

@@ -1,1489 +1,1542 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "prefix": {
-            "type": "string"
-        },
-		"location": {
-            "type": "string",
-		  "defaultValue": "[resourceGroup().location]",
-		  "metadata": {
-			"description": "Specifies the Azure location where the app configuration store should be created."
-		  }
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "prefix": {
+      "type": "string"
     },
-    "variables": {
-	"langSvcName": "[concat(parameters('prefix'), 'lang')]",
-        "bingSvcName": "[concat(parameters('prefix'), 'bing')]",
-        "frSvcName": "[concat(parameters('prefix'), 'fr')]",
-        "speechSvcName": "[concat(parameters('prefix'), 'speech')]",
-	"aoaiSvcName": "[concat(parameters('prefix'), 'aoai')]",
-	"appInsightName": "[concat(parameters('prefix'), 'aisg')]",
-	"searchSvcName": "[concat(parameters('prefix'), 'azs')]",
-	"sqlSrvName": "[concat(parameters('prefix'), 'srv')]",
-	"funcStorageName": "[concat(parameters('prefix'), 'funcsa')]",
-	"storageName": "[concat(parameters('prefix'), 'stor')]",
-	"aspName": "[concat(parameters('prefix'), 'asp')]",
-	"backendName": "[concat(parameters('prefix'), 'app')]",
-	"funcAppName": "[concat(parameters('prefix'), 'func')]",
-	"funcAppId": "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]",
-        "cosmosDbName": "[concat(parameters('prefix'), 'cosmos')]",
-        "cosmosDb": "aoai",
-        "cosmosContainer": "chatgpt"
-	},
-    "resources": [
-        {
-            "type": "Microsoft.DocumentDB/databaseAccounts",
-            "apiVersion": "2022-08-15",
-            "name": "[variables('cosmosDbName')]",
-            "location": "[parameters('location')]",
-            "kind": "GlobalDocumentDB",
-            "properties": {
-              "consistencyPolicy": {
-                "defaultConsistencyLevel": "Session"
-              },
-              "databaseAccountOfferType": "Standard",
-              "enableFreeTier": false,
-              "locations": [
-                {
-                  "failoverPriority": 0,
-                  "isZoneRedundant": false,
-                  "locationName": "[parameters('location')]"
-                }
-              ]
-            }
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Specifies the Azure location where the app configuration store should be created."
+      }
+    }
+  },
+  "variables": {
+    "langSvcName": "[concat(parameters('prefix'), 'lang')]",
+    "bingSvcName": "[concat(parameters('prefix'), 'bing')]",
+    "frSvcName": "[concat(parameters('prefix'), 'fr')]",
+    "speechSvcName": "[concat(parameters('prefix'), 'speech')]",
+    "aoaiSvcName": "[concat(parameters('prefix'), 'aoai')]",
+    "appInsightName": "[concat(parameters('prefix'), 'aisg')]",
+    "searchSvcName": "[concat(parameters('prefix'), 'azs')]",
+    "sqlSrvName": "[concat(parameters('prefix'), 'srv')]",
+    "funcStorageName": "[concat(parameters('prefix'), 'funcsa')]",
+    "storageName": "[concat(parameters('prefix'), 'stor')]",
+    "aspName": "[concat(parameters('prefix'), 'asp')]",
+    "backendName": "[concat(parameters('prefix'), 'app')]",
+    "funcAppName": "[concat(parameters('prefix'), 'func')]",
+    "funcAppId": "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]",
+    "cosmosDbName": "[concat(parameters('prefix'), 'cosmos')]",
+    "cosmosDb": "aoai",
+    "cosmosContainer": "chatgpt"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts",
+      "apiVersion": "2022-08-15",
+      "name": "[variables('cosmosDbName')]",
+      "location": "[parameters('location')]",
+      "kind": "GlobalDocumentDB",
+      "properties": {
+        "consistencyPolicy": {
+          "defaultConsistencyLevel": "Session"
         },
-        {
-            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
-            "apiVersion": "2022-08-15",
-            "name": "[format('{0}/{1}', variables('cosmosDbName'), variables('cosmosDb'))]",
-            "properties": {
-              "resource": {
-                "id": "[variables('cosmosDb')]"
-              }
-            },
-            "dependsOn": [
-              "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName'))]"
-            ]
-        },
-        {
-            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
-            "apiVersion": "2022-08-15",
-            "name": "[format('{0}/{1}/{2}', variables('cosmosDbName'), variables('cosmosDb'), variables('cosmosContainer'))]",
-            "properties": {
-              "resource": {
-                "id": "[variables('cosmosContainer')]",
-                "partitionKey": {
-                  "paths": [
-                    "/sessionId"
-                  ],
-                  "kind": "Hash",
-                  "version": 2
-                },
-                "indexingPolicy": {
-                  "indexingMode": "Consistent",
-                  "automatic": true,
-                  "includedPaths": [
-                    {
-                      "path": "/sessionId/?"
-                    },
-                    {
-                      "path": "/type/?"
-                    }
-                  ],
-                  "excludedPaths": [
-                    {
-                      "path": "/*"
-                    }
-                  ]
-                }
-              },
-              "options": {
-                "throughput": 400
-              }
-            },
-            "dependsOn": [
-              "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosDbName'), variables('cosmosDb'))]"
-            ]
-        },
-        {
-            "type": "Microsoft.CognitiveServices/accounts",
-            "apiVersion": "2022-12-01",
-            "name": "[variables('langSvcName')]",
-            "location": "[parameters('location')]",
-            "sku": {
-                "name": "S"
-            },
-            "kind": "TextAnalytics",
-            "identity": {
-                "type": "SystemAssigned"
-            },
-            "properties": {
-                "apiProperties": {},
-                "customSubDomainName": "[variables('langSvcName')]",
-                "networkAcls": {
-                    "defaultAction": "Allow",
-                    "virtualNetworkRules": [],
-                    "ipRules": []
-                },
-                "publicNetworkAccess": "Enabled"
-            }
-        },
-        {
-            "type": "Microsoft.Bing/accounts",
-            "apiVersion": "2020-06-10",
-            "name": "[variables('bingSvcName')]",
-            "location": "global",
-            "sku": {
-                "name": "S1"
-            },
-            "kind": "Bing.Search.v7",
-            "properties": {}
-        },
-        {
-            "type": "Microsoft.CognitiveServices/accounts",
-            "apiVersion": "2022-12-01",
-            "name": "[variables('frSvcName')]",
-            "location": "[parameters('location')]",
-            "sku": {
-                "name": "S0"
-            },
-            "kind": "FormRecognizer",
-            "identity": {
-                "type": "SystemAssigned"
-            },
-            "properties": {
-                "apiProperties": {},
-                "customSubDomainName": "[variables('frSvcName')]",
-                "networkAcls": {
-                    "defaultAction": "Allow",
-                    "virtualNetworkRules": [],
-                    "ipRules": []
-                },
-                "publicNetworkAccess": "Enabled"
-            }
-        },
-        {
-            "type": "Microsoft.CognitiveServices/accounts",
-            "apiVersion": "2022-12-01",
-            "name": "[variables('aoaiSvcName')]",
-            "location": "[parameters('location')]",
-            "tags": {
-                "azd-env-name": "aoaipdf"
-            },
-            "sku": {
-                "name": "S0"
-            },
-            "kind": "OpenAI",
-            "properties": {
-                "customSubDomainName": "[variables('aoaiSvcName')]",
-                "publicNetworkAccess": "Enabled"
-            }
-        },
-        {
-            "type": "Microsoft.CognitiveServices/accounts",
-            "apiVersion": "2022-12-01",
-            "name": "[variables('speechSvcName')]",
-            "location": "[parameters('location')]",
-            "sku": {
-                "name": "F0"
-            },
-            "kind": "SpeechServices",
-            "identity": {
-                "type": "None"
-            },
-            "properties": {
-                "networkAcls": {
-                    "defaultAction": "Allow",
-                    "virtualNetworkRules": [],
-                    "ipRules": []
-                },
-                "publicNetworkAccess": "Enabled"
-            }
-        },
-        {
-            "type": "microsoft.insights/components",
-            "apiVersion": "2020-02-02",
-            "name": "[variables('appInsightName')]",
-            "location": "[parameters('location')]",
-            "tags": {
-                "azd-env-name": "aoaipdf"
-            },
-            "kind": "web",
-            "properties": {
-                "Application_Type": "web",
-                "RetentionInDays": 90,
-                "IngestionMode": "ApplicationInsights",
-                "publicNetworkAccessForIngestion": "Enabled",
-                "publicNetworkAccessForQuery": "Enabled"
-            }
-        },
-        {
-            "type": "Microsoft.Search/searchServices",
-            "apiVersion": "2022-09-01",
-            "name": "[variables('searchSvcName')]",
-            "location": "[parameters('location')]",
-            "tags": {
-                "azd-env-name": "[parameters('prefix')]"
-            },
-            "sku": {
-                "name": "standard"
-            },
-            "identity": {
-                "type": "SystemAssigned"
-            },
-            "properties": {
-                "replicaCount": 1,
-                "partitionCount": 1,
-                "semanticSearch": "free",
-                "hostingMode": "default",
-                "publicNetworkAccess": "Enabled",
-                "networkRuleSet": {
-                    "ipRules": []
-                },
-                "encryptionWithCmk": {
-                    "enforcement": "Unspecified"
-                },
-                "disableLocalAuth": false,
-                "authOptions": {
-                    "aadOrApiKey": {
-                        "aadAuthFailureMode": "http401WithBearerChallenge"
-                    }
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Sql/servers",
-            "apiVersion": "2022-08-01-preview",
-            "name": "[variables('sqlSrvName')]",
-            "location": "[parameters('location')]",
-            "kind": "v12.0",
-            "properties": {
-                "administratorLogin": "azureadmin",
-				"administratorLoginPassword": "P@ssw0rd",
-                "version": "12.0",
-                "minimalTlsVersion": "1.2",
-                "publicNetworkAccess": "Enabled",
-                "restrictOutboundNetworkAccess": "Disabled"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "2022-09-01",
-            "name": "[variables('funcStorageName')]",
-            "location": "[parameters('location')]",
-            "sku": {
-                "name": "Standard_LRS",
-                "tier": "Standard"
-            },
-            "kind": "Storage",
-            "properties": {
-                "minimumTlsVersion": "TLS1_0",
-                "allowBlobPublicAccess": true,
-                "networkAcls": {
-                    "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
-                    "defaultAction": "Allow"
-                },
-                "supportsHttpsTrafficOnly": true,
-                "encryption": {
-                    "services": {
-                        "file": {
-                            "keyType": "Account",
-                            "enabled": true
-                        },
-                        "blob": {
-                            "keyType": "Account",
-                            "enabled": true
-                        }
-                    },
-                    "keySource": "Microsoft.Storage"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "2022-09-01",
-            "name": "[variables('storageName')]",
-            "location": "[parameters('location')]",
-            "tags": {
-                "azd-env-name": "aoaipdf"
-            },
-            "sku": {
-                "name": "Standard_LRS",
-                "tier": "Standard"
-            },
-            "kind": "StorageV2",
-            "properties": {
-                "dnsEndpointType": "Standard",
-                "defaultToOAuthAuthentication": false,
-                "publicNetworkAccess": "Enabled",
-                "allowCrossTenantReplication": true,
-                "minimumTlsVersion": "TLS1_2",
-                "allowBlobPublicAccess": false,
-                "allowSharedKeyAccess": true,
-                "networkAcls": {
-                    "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
-                    "defaultAction": "Allow"
-                },
-                "supportsHttpsTrafficOnly": true,
-                "encryption": {
-                    "services": {
-                        "file": {
-                            "keyType": "Account",
-                            "enabled": true
-                        },
-                        "blob": {
-                            "keyType": "Account",
-                            "enabled": true
-                        }
-                    },
-                    "keySource": "Microsoft.Storage"
-                },
-                "accessTier": "Hot"
-            }
-        },
-        {
-            "type": "Microsoft.Web/serverfarms",
-            "apiVersion": "2022-09-01",
-            "name": "[variables('aspName')]",
-            "location": "[parameters('location')]",
-            "tags": {
-                "azd-env-name": "[parameters('prefix')]"
-            },
-            "sku": {
-                "name": "B1",
-                "tier": "Basic",
-                "size": "B1",
-                "family": "B",
-                "capacity": 1
-            },
-            "kind": "linux",
-            "properties": {
-                "perSiteScaling": false,
-                "elasticScaleEnabled": false,
-                "maximumElasticWorkerCount": 1,
-                "isSpot": false,
-                "reserved": true,
-                "isXenon": false,
-                "hyperV": false,
-                "targetWorkerCount": 0,
-                "targetWorkerSizeId": 0,
-                "zoneRedundant": false
-            }
-        },
-        {
-            "type": "Microsoft.CognitiveServices/accounts/deployments",
-            "apiVersion": "2023-05-01",
-            "name": "[concat(variables('aoaiSvcName'), '/chat')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
-            ],
-            "sku": {
-                "name": "Standard",
-                "capacity": 30
-            },
-            "properties": {
-                "model": {
-                    "format": "OpenAI",
-                    "name": "gpt-35-turbo",
-                    "version": "0613"
-                },
-                "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
-                "raiPolicyName": "Microsoft.Default"
-            }
-        },
-        {
-            "type": "Microsoft.CognitiveServices/accounts/deployments",
-            "apiVersion": "2023-05-01",
-            "name": "[concat(variables('aoaiSvcName'), '/chat16k')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
-            ],
-            "sku": {
-                "name": "Standard",
-                "capacity": 30
-            },
-            "properties": {
-                "model": {
-                    "format": "OpenAI",
-                    "name": "gpt-35-turbo-16k",
-                    "version": "0613"
-                },
-                "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
-                "raiPolicyName": "Microsoft.Default"
-            }
-        },      
-        {
-            "type": "Microsoft.Resources/deploymentScripts",
-            "apiVersion": "2020-10-01",
-            "kind": "AzurePowerShell",
-            "name": "Wait5s",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
-            ],
-            "properties": {
-                "azPowerShellVersion": "9.7",
-                "scriptContent": "start-sleep -Seconds 5",
-                "cleanupPreference": "Always",
-                "retentionInterval": "PT1H"
-            }
-        },
-        {
-            "type": "Microsoft.Resources/deploymentScripts",
-            "apiVersion": "2020-10-01",
-            "kind": "AzurePowerShell",
-            "name": "Wait10s",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
-            ],
-            "properties": {
-                "azPowerShellVersion": "9.7",
-                "scriptContent": "start-sleep -Seconds 10",
-                "cleanupPreference": "Always",
-                "retentionInterval": "PT1H"
-            }
-        },
-        {
-            "type": "Microsoft.CognitiveServices/accounts/deployments",
-            "apiVersion": "2023-05-01",
-            "name": "[concat(variables('aoaiSvcName'), '/embedding')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deploymentScripts','Wait10s')]"
-            ],
-            "sku": {
-                "name": "Standard",
-                "capacity": 30
-            },
-            "properties": {
-                "model": {
-                    "format": "OpenAI",
-                    "name": "text-embedding-ada-002",
-                    "version": "2"
-                },
-                "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
-                "raiPolicyName": "Microsoft.Default"
-            }
-        },
-        {
-            "type": "Microsoft.Sql/servers/databases",
-            "apiVersion": "2022-08-01-preview",
-            "name": "[concat(variables('sqlSrvName'), '/northwind')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', variables('sqlSrvName'))]"
-            ],
-            "sku": {
-                "name": "Basic",
-                "tier": "Basic",
-                "capacity": 5
-            },
-            "kind": "v12.0,user",
-            "properties": {
-                "collation": "SQL_Latin1_General_CP1_CI_AS",
-                "maxSizeBytes": 2147483648,
-                "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
-                "zoneRedundant": false,
-                "readScale": "Disabled",
-                "requestedBackupStorageRedundancy": "Geo",
-                "isLedgerOn": false,
-                "availabilityZone": "NoPreference"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/blobServices",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('storageName'), '/default')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
-            ],
-            "sku": {
-                "name": "Standard_LRS",
-                "tier": "Standard"
-            },
-            "properties": {
-                "cors": {
-                    "corsRules": []
-                },
-                "deleteRetentionPolicy": {
-                    "allowPermanentDelete": false,
-                    "enabled": false
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/blobServices",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('funcStorageName'), '/default')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName'))]"
-            ],
-            "sku": {
-                "name": "Standard_LRS",
-                "tier": "Standard"
-            },
-            "properties": {
-                "cors": {
-                    "corsRules": []
-                },
-                "deleteRetentionPolicy": {
-                    "allowPermanentDelete": false,
-                    "enabled": true,
-                    "days": 2
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites",
-            "apiVersion": "2022-09-01",
-            "name": "[variables('backendName')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
-				"[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
-            ],
-            "tags": {
-                "azd-env-name": "[parameters('prefix')]",
-                "azd-service-name": "backend"
-            },
-            "kind": "app,linux",
-            "identity": {
-                "type": "SystemAssigned"
-            },
-            "properties": {
-                "enabled": true,
-                "hostNameSslStates": [
-                    {
-                        "name": "[concat(variables('backendName'), '.azurewebsites.net')]",
-                        "sslState": "Disabled",
-                        "hostType": "Standard"
-                    },
-                    {
-                        "name": "[concat(variables('backendName'), '.scm.azurewebsites.net')]",
-                        "sslState": "Disabled",
-                        "hostType": "Repository"
-                    }
-                ],
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
-                "reserved": true,
-                "isXenon": false,
-                "hyperV": false,
-                "vnetRouteAllEnabled": false,
-                "vnetImagePullEnabled": false,
-                "vnetContentShareEnabled": false,
-                "siteConfig": {
-                    "numberOfWorkers": 1,
-                    "linuxFxVersion": "python|3.9",
-                    "acrUseManagedIdentityCreds": false,
-                    "alwaysOn": true,
-                    "http20Enabled": false,
-                    "functionAppScaleLimit": 0,
-                    "minimumElasticInstanceCount": 0,
-		    "appSettings": [
-			{
-			  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-			  "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
-			},
-			{
-			  "name": "BLOB_CONNECTION_STRING",
-			  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value)]"
-			},
-			{
-			  "name": "BLOB_CONTAINER_NAME",
-			  "value": "chatpdf"
-			},
-            {
-                "name": "BLOB_SUMMARY_CONTAINER_NAME",
-                "value": "summary"
-            },
-            {
-                "name": "BLOB_EVALUATOR_CONTAINER_NAME",
-                "value": "evaluator"
-            },
-			{
-			  "name": "ENABLE_ORYX_BUILD",
-			  "value": "True"
-			},
-			{
-			  "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-			  "value": "True"
-			},
-            {
-                "name": "VERIFYPASS_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/VerifyPassword?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-                "name":"RUNEVALUATION_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Evaluator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-                "name": "SMARTAGENT_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SmartAgent?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-                "name": "TASKAGENTQA_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/TaskAgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-                
-            },
-            {
-                "name": "CONVERTCODE_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ConvertCode?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-                "name": "PROMPTGURU_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/PromptGuru?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-			{
-			  "name": "AGENTQA_URL",
-			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/AgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-			},
-            {
-                "name": "INDEXMANAGEMENT_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/IndexManagement?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-			{
-			  "name": "CHAT_URL",
-			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ChatGpt?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-			},
-			{
-			  "name": "DOCGENERATOR_URL",
-			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/DocGenerator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-			},
-			{
-			  "name": "QA_URL",
-			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/QuestionAnswering?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-			},
-			{
-			  "name": "SECSEARCH_URL",
-			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecSearch?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-			},
-			{
-			  "name": "SQLCHAIN_URL",
-			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChain?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-			},
-            {
-                "name": "SQLVISUAL_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlVisual?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-            },
-			{
-			  "name": "SQLCHAT_URL",
-			  "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]" 
-			},
-            {
-                "name": "SPEECH_REGION",
-                "value": "[parameters('location')]"
-            },
-            {
-                "name": "SPEECH_KEY",
-                "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('speechSvcName')), '2022-12-01').key1]"
-            },
-            {
-                "name": "TEXTANALYTICS_KEY",
-                "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('langSvcName')), '2022-12-01').key1]"
-            },
-            {
-                "name": "TEXTANALYTICS_REGION",
-                "value": "[parameters('location')]"
-            },
-            {
-                "name": "SUMMARIZER_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Summarizer?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-                "name": "SEARCHKEY",
-                "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
-            },
-            {
-                "name": "SEARCHSERVICE",
-                "value": "[variables('searchSvcName')]"
-            },
-            {
-                "name": "KBINDEXNAME",
-                "value": "aoaikb"
-            },
-            {
-                "name": "COSMOSENDPOINT",
-                "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
-            },
-            {
-                "name": "COSMOSKEY",
-                "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
-            },
-            {
-                "name": "COSMOSDATABASE",
-                "value": "[variables('cosmosDb')]"
-            },
-            {
-                "name": "COSMOSCONTAINER",
-                "value": "[variables('cosmosContainer')]"
-            },
-            {
-                "name": "PIB_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Pib?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-                "name": "PIBCHAT_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/PibChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-                "name": "SECDOCPERSIST_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecDocPersist?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-                "name": "SECEXTRACTION_URL",
-                "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecExtraction?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            }
-		    ]
-                },
-                "scmSiteAlsoStopped": false,
-                "clientAffinityEnabled": false,
-                "clientCertEnabled": false,
-                "clientCertMode": "Required",
-                "hostNamesDisabled": false,
-                "containerSize": 0,
-                "dailyMemoryTimeQuota": 0,
-                "httpsOnly": true,
-                "redundancyMode": "None",
-                "storageAccountRequired": false,
-                "keyVaultReferenceIdentity": "SystemAssigned"
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites",
-            "apiVersion": "2022-09-01",
-            "name": "[variables('funcAppName')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
-		"[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]",
-                "[resourceId('Microsoft.Bing/accounts', variables('bingsvcName'))]",
-		"[resourceId('Microsoft.Search/searchServices', variables('searchSvcName'))]",
-		"[resourceId('Microsoft.Sql/servers', variables('sqlSrvName'))]",
-		"[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
-		"[resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName'))]"
-            ],
-            "tags": {
-                "azd-env-name": "[parameters('prefix')]",
-                "azd-service-name": "functionapp"
-            },
-            "kind": "functionapp,linux",
-            "identity": {
-                "type": "SystemAssigned"
-            },
-            "properties": {
-                "enabled": true,
-                "hostNameSslStates": [
-                    {
-                        "name": "[concat(variables('funcAppName'), '.azurewebsites.net')]",
-                        "sslState": "Disabled",
-                        "hostType": "Standard"
-                    },
-                    {
-                        "name": "[concat(variables('funcAppName'), '.scm.azurewebsites.net')]",
-                        "sslState": "Disabled",
-                        "hostType": "Repository"
-                    }
-                ],
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
-                "reserved": true,
-                "isXenon": false,
-                "hyperV": false,
-                "vnetRouteAllEnabled": false,
-                "vnetImagePullEnabled": false,
-                "vnetContentShareEnabled": false,
-                "siteConfig": {
-                    "numberOfWorkers": 1,
-                    "linuxFxVersion": "python|3.9",
-                    "acrUseManagedIdentityCreds": false,
-                    "alwaysOn": true,
-                    "http20Enabled": false,
-                    "functionAppScaleLimit": 0,
-                    "minimumElasticInstanceCount": 0,
-		    "appSettings": [
-			{
-			  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-			  "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
-			},
-                        {
-                            "name": "AzureWebJobsFeatureFlags",
-                            "value": "EnableWorkerIndexing"
-                        },
-			{
-			  "name": "AzureWebJobsStorage",
-			  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"
-			},
-			{
-			  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-			  "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"
-			},
-			{
-			  "name": "ENABLE_ORYX_BUILD",
-			  "value": "True"
-			},
-			{
-			  "name": "FUNCTIONS_EXTENSION_VERSION",
-			  "value": "~4"
-			},
-			{
-			  "name": "FUNCTIONS_WORKER_RUNTIME",
-			  "value": "python"
-			},
-                        {
-                            "name": "BingUrl",
-                            "value": "https://api.bing.microsoft.com/v7.0/search"
-                        },
-                        {
-                            "name": "BingKey",
-                            "value": "[listKeys(resourceId('Microsoft.Bing/accounts', variables('bingsvcName')), '2020-06-10').key1]"
-                        },
-                        {
-                            "name": "UploadPassword",
-                            "value": "P@ssw0rd"
-                        },
-                        {
-                            "name": "AdminPassword",
-                            "value": "P@ssw0rd"
-                        },
-                        {
-                            "name": "ChromaUrl",
-                            "value": "Dummy"
-                        },
-                        {
-                            "name": "ChromaPort",
-                            "value": "Dummy"
-                        },
-			{
-			  "name": "MaxTokens",
-			  "value": "500"
-			},
-			{
-			  "name": "OpenAiChat",
-			  "value": "chat"
-			},
-			{
-			  "name": "OpenAiDocContainer",
-			  "value": "chatpdf"
-			},
-                        {
-                            "name": "OpenAiSummaryContainer",
-                            "value": "summary"
-                        },
-                        {
-                            "name": "OpenAiEvaluatorContainer",
-                            "value": "evaluator"
-                        },
-                        {
-                            "name": "OpenAiDocStorConnString",
-                            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value)]"
-                        },
-			{
-			  "name": "OpenAiDocStorKey",
-			  "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value]"
-			},
-			{
-			  "name": "OpenAiDocStorName",
-			  "value": "[variables('storageName')]"
-			},
-			{
-			  "name": "OpenAiEmbedding",
-			  "value": "text-embedding-ada-002"
-			},
-                        {
-                            "name": "FormRecognizerEndPoint",
-                            "value": "[concat('https://', variables('frSvcName'), '.cognitiveservices.azure.com/')]"
-                        },
-                        {
-                            "name": "FormRecognizerKey",
-                            "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('frSvcName')), '2022-12-01').key1]"
-                        },
-			{
-			  "name": "OpenAiEndPoint",
-			  "value": "[concat('https://', variables('aoaiSvcName'), '.openai.azure.com/')]"
-			},
-			{
-			  "name": "OpenAiKey",
-			  "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName')), '2022-12-01').key1]"
-			},
-                        {
-                            "name": "OpenAiApiKey",
-                            "value": "Dummy"
-                        },                        
-			{
-			  "name": "OpenAiService",
-			  "value": "[variables('aoaiSvcName')]"
-			},
-			{
-			  "name": "OpenAiVersion",
-			  "value": "2023-05-15"
-			},
-			{
-			  "name": "PineconeEnv",
-			  "value": "env"
-			},
-			{
-			  "name": "PineconeKey",
-			  "value": "key"
-			},
-			{
-			  "name": "RedisAddress",
-			  "value": "http://localhost"
-			},
-			{
-			  "name": "RedisPassword",
-			  "value": "Password"
-			},
-			{
-			  "name": "RedisPort",
-			  "value": "6379"
-			},
-			{
-			  "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-			  "value": "1"
-			},
-			{
-			  "name": "SearchKey",
-			  "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
-			},
-			{
-			  "name": "SearchService",
-			  "value": "[variables('searchSvcName')]"
-			},
-			{
-			  "name": "SecDocContainer",
-			  "value": "secdoc"
-			},
-			{
-			  "name": "SynapseName",
-			  "value": "[concat(variables('sqlSrvName'), '.database.windows.net,1433')]"
-			},
-			{
-			  "name": "SynapsePassword",
-			  "value": "P@ssw0rd"
-			},
-			{
-			  "name": "SynapsePool",
-			  "value": "northwind"
-			},
-			{
-			  "name": "SynapseUser",
-			  "value": "azureadmin"
-			},
-			{
-			  "name": "Temperature",
-			  "value": "0.3"
-			},
-			{
-			  "name": "VsIndexName",
-			  "value": "dummy"
-			},
-                        {
-                            "name": "CosmosEndpoint",
-                            "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
-                        },
-                        {
-                            "name": "CosmosKey",
-                            "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
-                        },
-                        {
-                            "name": "CosmosDatabase",
-                            "value": "[variables('cosmosDb')]"
-                        },
-                        {
-                            "name": "CosmosContainer",
-                            "value": "[variables('cosmosContainer')]"
-                        },
-			{
-			  "name": "WEBSITE_CONTENTSHARE",
-			  "value": "[toLower(variables('funcAppName'))]"
-			},
-			{
-			  "name": "RealTimeSpeechPrompt",
-			  "value": "'\"'\"'\"Write a concise summary of the following: \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RealTimeSpeechPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsBankingPrompt",
-			  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsBankingPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsCapMarketPrompt",
-			  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsCapMarketPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsComplexPrompt",
-			  "value": "'\"'\"'\"You must extract the following information from the phone conversation below: \n\n 1. Call reason (key: reason) \n 2. Cause of incident (key: cause) \n 3. Name of caller (key: caller) \n 4. Account number (key: account_id) \n 5. Follow-up Flag(key: followupind) \n 6. A short, yet detailed summary (key: summary) \n\n Make sure fields 1 to 4 are answered very short. Field 5 is a boolean flag which indicates whether the caller incident was resolved, 1 if follow up required, 0 if resolved.  Please answer in JSON machine-readable format, using the keys from above. Format the output as JSON object. Pretty print the JSON and make sure that is properly closed at the end. \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsComplexPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsFollowupPrompt",
-			  "value": "'\"'\"'\"Generate list of call follow up tasks from following text \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsFollowupPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsGeneralPrompt",
-			  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. What are the action items and follow-ups? \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsGeneralPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsHealthcarePrompt",
-			  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. What health condition was discussed? \n4. Was any medication mentioned in the conversation?\n5. Identify medical entities such as symptoms, medications, diagnosis from this conversaion. \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsHealthcarePromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsInsurancePrompt",
-			  "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. Where the accident happened?\n4. How did the accident happen?\n5. What was the weather like when the accident happened?\n6. What is customer's phone number?\n7. Was the airbag deployed when accident happened? \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsParticipantsPrompt",
-			  "value": "'\"'\"'\"Extract list of call participants in list format from the following text \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsParticipantsPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsPharmacyPrompt",
-			  "value": "'\"'\"'\"Provide list of medications, dose, and form discussed in the following text \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsPharmacyPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsPiiPrompt",
-			  "value": "'\"'\"'\"List of all PII and named entities and what is overall sentiment of the conversation \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsPiiPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsSummaryNotesPrompt",
-			  "value": "'\"'\"'\"Generate detailed call summary notes in list format from the following text \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsSummaryNotesPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "RtsTopicsPrompt",
-			  "value": "'\"'\"'\"Generate list of topics discussed from text \r\n \r\n{text}'\"'\"'\""
-			},
-			{
-			  "name": "RtsTopicsPromptIv",
-			  "value": "text"
-			},
-			{
-			  "name": "OpenAiQuestionPrompt",
-			  "value": "'\"'\"'\"Please reply to the question using only the information present in the text above. If you can't find it, reply 'Not in the text'.\nQuestion: _QUESTION_\nAnswer:'\"'\"'\""
-			},
-                        {
-                            "name": "KbIndexName",
-                            "value": "aoaikb"
-                        }
-		]
-                },
-                "scmSiteAlsoStopped": false,
-                "clientAffinityEnabled": false,
-                "clientCertEnabled": false,
-                "clientCertMode": "Required",
-                "hostNamesDisabled": false,
-                "containerSize": 1536,
-                "dailyMemoryTimeQuota": 0,
-                "httpsOnly": true,
-                "redundancyMode": "None",
-                "storageAccountRequired": false,
-                "keyVaultReferenceIdentity": "SystemAssigned"
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('backendName'), '/ftp')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('backendName'))]"
-            ],
-            "tags": {
-                "azd-env-name": "[parameters('prefix')]",
-                "azd-service-name": "backend"
-            },
-            "properties": {
-                "allow": true
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('funcAppName'), '/ftp')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
-            ],
-            "tags": {
-                "azd-env-name": "[parameters('prefix')]",
-                "azd-service-name": "functionapp"
-            },
-            "properties": {
-                "allow": true
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('backendName'), '/scm')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('backendName'))]"
-            ],
-            "tags": {
-                "azd-env-name": "[parameters('prefix')]",
-                "azd-service-name": "backend"
-            },
-            "properties": {
-                "allow": true
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('funcAppName'), '/scm')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
-            ],
-            "tags": {
-                "azd-env-name": "[parameters('prefix')]",
-                "azd-service-name": "functionapp"
-            },
-            "properties": {
-                "allow": true
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites/config",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('backendName'), '/web')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('backendName'))]"
-            ],
-            "tags": {
-                "azd-env-name": "[parameters('prefix')]",
-                "azd-service-name": "backend"
-            },
-            "properties": {
-                "numberOfWorkers": 1,
-                "defaultDocuments": [
-                    "Default.htm",
-                    "Default.html",
-                    "Default.asp",
-                    "index.htm",
-                    "index.html",
-                    "iisstart.htm",
-                    "default.aspx",
-                    "index.php",
-                    "hostingstart.html"
-                ],
-                "netFrameworkVersion": "v4.0",
-                "linuxFxVersion": "python|3.9",
-                "requestTracingEnabled": true,
-                "requestTracingExpirationTime": "9999-12-31T23:59:00Z",
-                "remoteDebuggingEnabled": false,
-                "httpLoggingEnabled": true,
-                "acrUseManagedIdentityCreds": false,
-                "logsDirectorySizeLimit": 35,
-                "detailedErrorLoggingEnabled": true,
-                "publishingUsername": "[concat('$', parameters('prefix'), variables('backendName'))]",
-                "scmType": "None",
-                "use32BitWorkerProcess": false,
-                "webSocketsEnabled": false,
-                "alwaysOn": true,
-                "managedPipelineMode": "Integrated",
-                "virtualApplications": [
-                    {
-                        "virtualPath": "/",
-                        "physicalPath": "site\\wwwroot",
-                        "preloadEnabled": true
-                    }
-                ],
-                "loadBalancing": "LeastRequests",
-                "experiments": {
-                    "rampUpRules": []
-                },
-                "autoHealEnabled": false,
-                "vnetRouteAllEnabled": false,
-                "vnetPrivatePortsCount": 0,
-                "cors": {
-                    "allowedOrigins": [
-                        "https://portal.azure.com",
-                        "https://ms.portal.azure.com"
-                    ],
-                    "supportCredentials": false
-                },
-                "localMySqlEnabled": false,
-                "managedServiceIdentityId": 3433,
-                "ipSecurityRestrictions": [
-                    {
-                        "ipAddress": "Any",
-                        "action": "Allow",
-                        "priority": 2147483647,
-                        "name": "Allow all",
-                        "description": "Allow all access"
-                    }
-                ],
-                "scmIpSecurityRestrictions": [
-                    {
-                        "ipAddress": "Any",
-                        "action": "Allow",
-                        "priority": 2147483647,
-                        "name": "Allow all",
-                        "description": "Allow all access"
-                    }
-                ],
-                "scmIpSecurityRestrictionsUseMain": false,
-                "http20Enabled": false,
-                "minTlsVersion": "1.2",
-                "scmMinTlsVersion": "1.2",
-                "ftpsState": "FtpsOnly",
-                "preWarmedInstanceCount": 0,
-                "elasticWebAppScaleLimit": 0,
-                "functionsRuntimeScaleMonitoringEnabled": false,
-                "minimumElasticInstanceCount": 0,
-                "azureStorageAccounts": {}
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites/config",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('funcAppName'), '/web')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
-            ],
-            "tags": {
-                "azd-env-name": "[parameters('prefix')]",
-                "azd-service-name": "functionapp"
-            },
-            "properties": {
-                "numberOfWorkers": 1,
-                "defaultDocuments": [
-                    "Default.htm",
-                    "Default.html",
-                    "Default.asp",
-                    "index.htm",
-                    "index.html",
-                    "iisstart.htm",
-                    "default.aspx",
-                    "index.php"
-                ],
-                "netFrameworkVersion": "v4.0",
-                "linuxFxVersion": "python|3.9",
-                "requestTracingEnabled": true,
-                "requestTracingExpirationTime": "9999-12-31T23:59:00Z",
-                "remoteDebuggingEnabled": false,
-                "httpLoggingEnabled": true,
-                "acrUseManagedIdentityCreds": false,
-                "logsDirectorySizeLimit": 35,
-                "detailedErrorLoggingEnabled": true,
-                "publishingUsername": "[concat('$', parameters('prefix'), variables('funcAppName'))]",
-                "scmType": "None",
-                "use32BitWorkerProcess": false,
-                "webSocketsEnabled": false,
-                "alwaysOn": true,
-                "managedPipelineMode": "Integrated",
-                "virtualApplications": [
-                    {
-                        "virtualPath": "/",
-                        "physicalPath": "site\\wwwroot",
-                        "preloadEnabled": true
-                    }
-                ],
-                "loadBalancing": "LeastRequests",
-                "experiments": {
-                    "rampUpRules": []
-                },
-                "autoHealEnabled": false,
-                "vnetRouteAllEnabled": false,
-                "vnetPrivatePortsCount": 0,
-                "cors": {
-                    "allowedOrigins": [
-                        "https://portal.azure.com",
-                        "https://ms.portal.azure.com"
-                    ],
-                    "supportCredentials": false
-                },
-                "localMySqlEnabled": false,
-                "managedServiceIdentityId": 3431,
-                "ipSecurityRestrictions": [
-                    {
-                        "ipAddress": "Any",
-                        "action": "Allow",
-                        "priority": 2147483647,
-                        "name": "Allow all",
-                        "description": "Allow all access"
-                    }
-                ],
-                "scmIpSecurityRestrictions": [
-                    {
-                        "ipAddress": "Any",
-                        "action": "Allow",
-                        "priority": 2147483647,
-                        "name": "Allow all",
-                        "description": "Allow all access"
-                    }
-                ],
-                "scmIpSecurityRestrictionsUseMain": false,
-                "http20Enabled": false,
-                "minTlsVersion": "1.2",
-                "scmMinTlsVersion": "1.2",
-                "ftpsState": "FtpsOnly",
-                "preWarmedInstanceCount": 0,
-                "functionAppScaleLimit": 0,
-                "functionsRuntimeScaleMonitoringEnabled": false,
-                "minimumElasticInstanceCount": 0,
-                "azureStorageAccounts": {}
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites/hostNameBindings",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('backendName'), '/', variables('backendName'), '.azurewebsites.net')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('backendName'))]"
-            ],
-            "properties": {
-                "siteName": "[concat(parameters('prefix'), variables('backendName'))]",
-                "hostNameType": "Verified"
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites/hostNameBindings",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('funcAppName'), '/', variables('funcAppName'), '.azurewebsites.net')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
-            ],
-            "properties": {
-                "siteName": "[concat(parameters('prefix'), variables('funcAppName'))]",
-                "hostNameType": "Verified"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('storageName'), '/default/azure-webjobs-hosts')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
-            ],
-            "properties": {
-                "immutableStorageWithVersioning": {
-                    "enabled": false
-                },
-                "defaultEncryptionScope": "$account-encryption-key",
-                "denyEncryptionScopeOverride": false,
-                "publicAccess": "None"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('storageName'), '/default/azure-webjobs-secrets')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
-            ],
-            "properties": {
-                "immutableStorageWithVersioning": {
-                    "enabled": false
-                },
-                "defaultEncryptionScope": "$account-encryption-key",
-                "denyEncryptionScopeOverride": false,
-                "publicAccess": "None"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('storageName'), '/default/chatpdf')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
-            ],
-            "properties": {
-                "immutableStorageWithVersioning": {
-                    "enabled": false
-                },
-                "defaultEncryptionScope": "$account-encryption-key",
-                "denyEncryptionScopeOverride": false,
-                "publicAccess": "None"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('storageName'), '/default/summary')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
-            ],
-            "properties": {
-                "immutableStorageWithVersioning": {
-                    "enabled": false
-                },
-                "defaultEncryptionScope": "$account-encryption-key",
-                "denyEncryptionScopeOverride": false,
-                "publicAccess": "None"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
-            "apiVersion": "2022-09-01",
-            "name": "[concat(variables('storageName'), '/default/secdoc')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
-            ],
-            "properties": {
-                "immutableStorageWithVersioning": {
-                    "enabled": false
-                },
-                "defaultEncryptionScope": "$account-encryption-key",
-                "denyEncryptionScopeOverride": false,
-                "publicAccess": "None"
-            }
+        "databaseAccountOfferType": "Standard",
+        "enableFreeTier": false,
+        "locations": [
+          {
+            "failoverPriority": 0,
+            "isZoneRedundant": false,
+            "locationName": "[parameters('location')]"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+      "apiVersion": "2022-08-15",
+      "name": "[format('{0}/{1}', variables('cosmosDbName'), variables('cosmosDb'))]",
+      "properties": {
+        "resource": {
+          "id": "[variables('cosmosDb')]"
         }
-    ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+      "apiVersion": "2022-08-15",
+      "name": "[format('{0}/{1}/{2}', variables('cosmosDbName'), variables('cosmosDb'), variables('cosmosContainer'))]",
+      "properties": {
+        "resource": {
+          "id": "[variables('cosmosContainer')]",
+          "partitionKey": {
+            "paths": ["/sessionId"],
+            "kind": "Hash",
+            "version": 2
+          },
+          "indexingPolicy": {
+            "indexingMode": "Consistent",
+            "automatic": true,
+            "includedPaths": [
+              {
+                "path": "/sessionId/?"
+              },
+              {
+                "path": "/type/?"
+              }
+            ],
+            "excludedPaths": [
+              {
+                "path": "/*"
+              }
+            ]
+          }
+        },
+        "options": {
+          "throughput": 400
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosDbName'), variables('cosmosDb'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2022-12-01",
+      "name": "[variables('langSvcName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "S"
+      },
+      "kind": "TextAnalytics",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "apiProperties": {},
+        "customSubDomainName": "[variables('langSvcName')]",
+        "networkAcls": {
+          "defaultAction": "Allow",
+          "virtualNetworkRules": [],
+          "ipRules": []
+        },
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Bing/accounts",
+      "apiVersion": "2020-06-10",
+      "name": "[variables('bingSvcName')]",
+      "location": "global",
+      "sku": {
+        "name": "S1"
+      },
+      "kind": "Bing.Search.v7",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2022-12-01",
+      "name": "[variables('frSvcName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "S0"
+      },
+      "kind": "FormRecognizer",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "apiProperties": {},
+        "customSubDomainName": "[variables('frSvcName')]",
+        "networkAcls": {
+          "defaultAction": "Allow",
+          "virtualNetworkRules": [],
+          "ipRules": []
+        },
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2022-12-01",
+      "name": "[variables('aoaiSvcName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "azd-env-name": "aoaipdf"
+      },
+      "sku": {
+        "name": "S0"
+      },
+      "kind": "OpenAI",
+      "properties": {
+        "customSubDomainName": "[variables('aoaiSvcName')]",
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2022-12-01",
+      "name": "[variables('speechSvcName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "F0"
+      },
+      "kind": "SpeechServices",
+      "identity": {
+        "type": "None"
+      },
+      "properties": {
+        "networkAcls": {
+          "defaultAction": "Allow",
+          "virtualNetworkRules": [],
+          "ipRules": []
+        },
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "microsoft.insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "azd-env-name": "aoaipdf"
+      },
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "RetentionInDays": 90,
+        "IngestionMode": "ApplicationInsights",
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Search/searchServices",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('searchSvcName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "azd-env-name": "[parameters('prefix')]"
+      },
+      "sku": {
+        "name": "standard"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "replicaCount": 1,
+        "partitionCount": 1,
+        "semanticSearch": "free",
+        "hostingMode": "default",
+        "publicNetworkAccess": "Enabled",
+        "networkRuleSet": {
+          "ipRules": []
+        },
+        "encryptionWithCmk": {
+          "enforcement": "Unspecified"
+        },
+        "disableLocalAuth": false,
+        "authOptions": {
+          "aadOrApiKey": {
+            "aadAuthFailureMode": "http401WithBearerChallenge"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2022-08-01-preview",
+      "name": "[variables('sqlSrvName')]",
+      "location": "[parameters('location')]",
+      "kind": "v12.0",
+      "properties": {
+        "administratorLogin": "azureadmin",
+        "administratorLoginPassword": "P@ssw0rd",
+        "version": "12.0",
+        "minimalTlsVersion": "1.2",
+        "publicNetworkAccess": "Enabled",
+        "restrictOutboundNetworkAccess": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('funcStorageName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "Storage",
+      "properties": {
+        "minimumTlsVersion": "TLS1_0",
+        "allowBlobPublicAccess": true,
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "keyType": "Account",
+              "enabled": true
+            },
+            "blob": {
+              "keyType": "Account",
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('storageName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "azd-env-name": "aoaipdf"
+      },
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "dnsEndpointType": "Standard",
+        "defaultToOAuthAuthentication": false,
+        "publicNetworkAccess": "Enabled",
+        "allowCrossTenantReplication": true,
+        "minimumTlsVersion": "TLS1_2",
+        "allowBlobPublicAccess": false,
+        "allowSharedKeyAccess": true,
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "keyType": "Account",
+              "enabled": true
+            },
+            "blob": {
+              "keyType": "Account",
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        },
+        "accessTier": "Hot"
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('aspName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "azd-env-name": "[parameters('prefix')]"
+      },
+      "sku": {
+        "name": "B1",
+        "tier": "Basic",
+        "size": "B1",
+        "family": "B",
+        "capacity": 1
+      },
+      "kind": "linux",
+      "properties": {
+        "perSiteScaling": false,
+        "elasticScaleEnabled": false,
+        "maximumElasticWorkerCount": 1,
+        "isSpot": false,
+        "reserved": true,
+        "isXenon": false,
+        "hyperV": false,
+        "targetWorkerCount": 0,
+        "targetWorkerSizeId": 0,
+        "zoneRedundant": false
+      }
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2023-05-01",
+      "name": "[concat(variables('aoaiSvcName'), '/chat')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
+      ],
+      "sku": {
+        "name": "Standard",
+        "capacity": 30
+      },
+      "properties": {
+        "model": {
+          "format": "OpenAI",
+          "name": "gpt-35-turbo",
+          "version": "0613"
+        },
+        "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
+        "raiPolicyName": "Microsoft.Default"
+      }
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2023-05-01",
+      "name": "[concat(variables('aoaiSvcName'), '/chat16k')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
+      ],
+      "sku": {
+        "name": "Standard",
+        "capacity": 30
+      },
+      "properties": {
+        "model": {
+          "format": "OpenAI",
+          "name": "gpt-35-turbo-16k",
+          "version": "0613"
+        },
+        "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
+        "raiPolicyName": "Microsoft.Default"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deploymentScripts",
+      "apiVersion": "2020-10-01",
+      "kind": "AzurePowerShell",
+      "name": "Wait5s",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
+      ],
+      "properties": {
+        "azPowerShellVersion": "9.7",
+        "scriptContent": "start-sleep -Seconds 5",
+        "cleanupPreference": "Always",
+        "retentionInterval": "PT1H"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deploymentScripts",
+      "apiVersion": "2020-10-01",
+      "kind": "AzurePowerShell",
+      "name": "Wait10s",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]"
+      ],
+      "properties": {
+        "azPowerShellVersion": "9.7",
+        "scriptContent": "start-sleep -Seconds 10",
+        "cleanupPreference": "Always",
+        "retentionInterval": "PT1H"
+      }
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2023-05-01",
+      "name": "[concat(variables('aoaiSvcName'), '/embedding')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deploymentScripts','Wait10s')]"
+      ],
+      "sku": {
+        "name": "Standard",
+        "capacity": 30
+      },
+      "properties": {
+        "model": {
+          "format": "OpenAI",
+          "name": "embedding",
+          "version": "2"
+        },
+        "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
+        "raiPolicyName": "Microsoft.Default"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases",
+      "apiVersion": "2022-08-01-preview",
+      "name": "[concat(variables('sqlSrvName'), '/northwind')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', variables('sqlSrvName'))]"
+      ],
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic",
+        "capacity": 5
+      },
+      "kind": "v12.0,user",
+      "properties": {
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "maxSizeBytes": 2147483648,
+        "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+        "zoneRedundant": false,
+        "readScale": "Disabled",
+        "requestedBackupStorageRedundancy": "Geo",
+        "isLedgerOn": false,
+        "availabilityZone": "NoPreference"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('storageName'), '/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ],
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "properties": {
+        "cors": {
+          "corsRules": []
+        },
+        "deleteRetentionPolicy": {
+          "allowPermanentDelete": false,
+          "enabled": false
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('funcStorageName'), '/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName'))]"
+      ],
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "properties": {
+        "cors": {
+          "corsRules": []
+        },
+        "deleteRetentionPolicy": {
+          "allowPermanentDelete": false,
+          "enabled": true,
+          "days": 2
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('backendName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
+        "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
+      ],
+      "tags": {
+        "azd-env-name": "[parameters('prefix')]",
+        "azd-service-name": "backend"
+      },
+      "kind": "app,linux",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "enabled": true,
+        "hostNameSslStates": [
+          {
+            "name": "[concat(variables('backendName'), '.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "[concat(variables('backendName'), '.scm.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "hostType": "Repository"
+          }
+        ],
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
+        "reserved": true,
+        "isXenon": false,
+        "hyperV": false,
+        "vnetRouteAllEnabled": false,
+        "vnetImagePullEnabled": false,
+        "vnetContentShareEnabled": false,
+        "siteConfig": {
+          "numberOfWorkers": 1,
+          "linuxFxVersion": "python|3.9",
+          "acrUseManagedIdentityCreds": false,
+          "alwaysOn": true,
+          "http20Enabled": false,
+          "functionAppScaleLimit": 0,
+          "minimumElasticInstanceCount": 0,
+          "appSettings": [
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
+            },
+            {
+              "name": "BLOB_CONNECTION_STRING",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value)]"
+            },
+            {
+              "name": "BLOB_CONTAINER_NAME",
+              "value": "chatpdf"
+            },
+            {
+              "name": "BLOB_SUMMARY_CONTAINER_NAME",
+              "value": "summary"
+            },
+            {
+              "name": "BLOB_EVALUATOR_CONTAINER_NAME",
+              "value": "evaluator"
+            },
+            {
+              "name": "ENABLE_ORYX_BUILD",
+              "value": "True"
+            },
+            {
+              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+              "value": "True"
+            },
+            {
+              "name": "VERIFYPASS_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/VerifyPassword?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "RUNEVALUATION_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Evaluator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "SMARTAGENT_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SmartAgent?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "TASKAGENTQA_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/TaskAgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "CONVERTCODE_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ConvertCode?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "PROMPTGURU_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/PromptGuru?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "AGENTQA_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/AgentQa?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "INDEXMANAGEMENT_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/IndexManagement?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "CHAT_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ChatGpt?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "DOCGENERATOR_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/DocGenerator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "QA_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/QuestionAnswering?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "SECSEARCH_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecSearch?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "SQLCHAIN_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChain?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "SQLVISUAL_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlVisual?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "SQLCHAT_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "SPEECH_REGION",
+              "value": "[parameters('location')]"
+            },
+            {
+              "name": "SPEECH_KEY",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('speechSvcName')), '2022-12-01').key1]"
+            },
+            {
+              "name": "TEXTANALYTICS_KEY",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('langSvcName')), '2022-12-01').key1]"
+            },
+            {
+              "name": "TEXTANALYTICS_REGION",
+              "value": "[parameters('location')]"
+            },
+            {
+              "name": "SUMMARIZER_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Summarizer?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "SEARCHKEY",
+              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
+            },
+            {
+              "name": "SEARCHSERVICE",
+              "value": "[variables('searchSvcName')]"
+            },
+            {
+              "name": "KBINDEXNAME",
+              "value": "aoaikb"
+            },
+            {
+              "name": "COSMOSENDPOINT",
+              "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
+            },
+            {
+              "name": "COSMOSKEY",
+              "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
+            },
+            {
+              "name": "COSMOSDATABASE",
+              "value": "[variables('cosmosDb')]"
+            },
+            {
+              "name": "COSMOSCONTAINER",
+              "value": "[variables('cosmosContainer')]"
+            },
+            {
+              "name": "PIB_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Pib?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "PIBCHAT_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/PibChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "SECDOCPERSIST_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecDocPersist?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "SECEXTRACTION_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecExtraction?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "OpenAiChat",
+              "value": "chat"
+            },
+            {
+              "name": "OpenAiChat16k",
+              "value": "chat16k"
+            },
+            {
+              "name": "OpenAiEmbedding",
+              "value": "embedding"
+            },
+            {
+              "name": "OpenAiEndPoint",
+              "value": "[concat('https://', variables('aoaiSvcName'), '.openai.azure.com/')]"
+            },
+            {
+              "name": "OpenAiKey",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName')), '2022-12-01').key1]"
+            },
+            {
+              "name": "OpenAiApiKey",
+              "value": "Dummy"
+            },
+            {
+              "name": "OpenAiService",
+              "value": "[variables('aoaiSvcName')]"
+            },
+            {
+              "name": "OpenAiVersion",
+              "value": "2023-05-15"
+            },
+            {
+              "name": "PineconeEnv",
+              "value": "env"
+            },
+            {
+              "name": "PineconeIndex",
+              "value": "index"
+            },
+            {
+              "name": "PineconeKey",
+              "value": "key"
+            },
+            {
+              "name": "RedisAddress",
+              "value": "http://localhost"
+            },
+            {
+              "name": "RedisPassword",
+              "value": "Password"
+            },
+            {
+              "name": "RedisPort",
+              "value": "6379"
+            }
+          ]
+        },
+        "scmSiteAlsoStopped": false,
+        "clientAffinityEnabled": false,
+        "clientCertEnabled": false,
+        "clientCertMode": "Required",
+        "hostNamesDisabled": false,
+        "containerSize": 0,
+        "dailyMemoryTimeQuota": 0,
+        "httpsOnly": true,
+        "redundancyMode": "None",
+        "storageAccountRequired": false,
+        "keyVaultReferenceIdentity": "SystemAssigned"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('funcAppName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]",
+        "[resourceId('Microsoft.Bing/accounts', variables('bingsvcName'))]",
+        "[resourceId('Microsoft.Search/searchServices', variables('searchSvcName'))]",
+        "[resourceId('Microsoft.Sql/servers', variables('sqlSrvName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName'))]"
+      ],
+      "tags": {
+        "azd-env-name": "[parameters('prefix')]",
+        "azd-service-name": "functionapp"
+      },
+      "kind": "functionapp,linux",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "enabled": true,
+        "hostNameSslStates": [
+          {
+            "name": "[concat(variables('funcAppName'), '.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "[concat(variables('funcAppName'), '.scm.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "hostType": "Repository"
+          }
+        ],
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
+        "reserved": true,
+        "isXenon": false,
+        "hyperV": false,
+        "vnetRouteAllEnabled": false,
+        "vnetImagePullEnabled": false,
+        "vnetContentShareEnabled": false,
+        "siteConfig": {
+          "numberOfWorkers": 1,
+          "linuxFxVersion": "python|3.9",
+          "acrUseManagedIdentityCreds": false,
+          "alwaysOn": true,
+          "http20Enabled": false,
+          "functionAppScaleLimit": 0,
+          "minimumElasticInstanceCount": 0,
+          "appSettings": [
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
+            },
+            {
+              "name": "AzureWebJobsFeatureFlags",
+              "value": "EnableWorkerIndexing"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('funcStorageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName')), '2022-05-01').keys[0].value)]"
+            },
+            {
+              "name": "ENABLE_ORYX_BUILD",
+              "value": "True"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "python"
+            },
+            {
+              "name": "BingUrl",
+              "value": "https://api.bing.microsoft.com/v7.0/search"
+            },
+            {
+              "name": "BingKey",
+              "value": "[listKeys(resourceId('Microsoft.Bing/accounts', variables('bingsvcName')), '2020-06-10').key1]"
+            },
+            {
+              "name": "UploadPassword",
+              "value": "P@ssw0rd"
+            },
+            {
+              "name": "AdminPassword",
+              "value": "P@ssw0rd"
+            },
+            {
+              "name": "ChromaUrl",
+              "value": "Dummy"
+            },
+            {
+              "name": "ChromaPort",
+              "value": "Dummy"
+            },
+            {
+              "name": "MaxTokens",
+              "value": "500"
+            },
+            {
+              "name": "OpenAiChat",
+              "value": "chat"
+            },
+            {
+              "name": "OpenAiDocContainer",
+              "value": "chatpdf"
+            },
+            {
+              "name": "OpenAiSummaryContainer",
+              "value": "summary"
+            },
+            {
+              "name": "OpenAiEvaluatorContainer",
+              "value": "evaluator"
+            },
+            {
+              "name": "OpenAiDocStorConnString",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value)]"
+            },
+            {
+              "name": "OpenAiDocStorKey",
+              "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2022-05-01').keys[0].value]"
+            },
+            {
+              "name": "OpenAiDocStorName",
+              "value": "[variables('storageName')]"
+            },
+            {
+              "name": "OpenAiEmbedding",
+              "value": "embedding"
+            },
+            {
+              "name": "FormRecognizerEndPoint",
+              "value": "[concat('https://', variables('frSvcName'), '.cognitiveservices.azure.com/')]"
+            },
+            {
+              "name": "FormRecognizerKey",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('frSvcName')), '2022-12-01').key1]"
+            },
+            {
+              "name": "OpenAiEndPoint",
+              "value": "[concat('https://', variables('aoaiSvcName'), '.openai.azure.com/')]"
+            },
+            {
+              "name": "OpenAiKey",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName')), '2022-12-01').key1]"
+            },
+            {
+              "name": "OpenAiApiKey",
+              "value": "Dummy"
+            },
+            {
+              "name": "OpenAiService",
+              "value": "[variables('aoaiSvcName')]"
+            },
+            {
+              "name": "OpenAiVersion",
+              "value": "2023-05-15"
+            },
+            {
+              "name": "PineconeEnv",
+              "value": "env"
+            },
+            {
+              "name": "PineconeKey",
+              "value": "key"
+            },
+            {
+              "name": "RedisAddress",
+              "value": "http://localhost"
+            },
+            {
+              "name": "RedisPassword",
+              "value": "Password"
+            },
+            {
+              "name": "RedisPort",
+              "value": "6379"
+            },
+            {
+              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+              "value": "1"
+            },
+            {
+              "name": "SearchKey",
+              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
+            },
+            {
+              "name": "SearchService",
+              "value": "[variables('searchSvcName')]"
+            },
+            {
+              "name": "SecDocContainer",
+              "value": "secdoc"
+            },
+            {
+              "name": "SynapseName",
+              "value": "[concat(variables('sqlSrvName'), '.database.windows.net,1433')]"
+            },
+            {
+              "name": "SynapsePassword",
+              "value": "P@ssw0rd"
+            },
+            {
+              "name": "SynapsePool",
+              "value": "northwind"
+            },
+            {
+              "name": "SynapseUser",
+              "value": "azureadmin"
+            },
+            {
+              "name": "Temperature",
+              "value": "0.3"
+            },
+            {
+              "name": "VsIndexName",
+              "value": "dummy"
+            },
+            {
+              "name": "CosmosEndpoint",
+              "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
+            },
+            {
+              "name": "CosmosKey",
+              "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
+            },
+            {
+              "name": "CosmosDatabase",
+              "value": "[variables('cosmosDb')]"
+            },
+            {
+              "name": "CosmosContainer",
+              "value": "[variables('cosmosContainer')]"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(variables('funcAppName'))]"
+            },
+            {
+              "name": "RealTimeSpeechPrompt",
+              "value": "'\"'\"'\"Write a concise summary of the following: \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RealTimeSpeechPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsBankingPrompt",
+              "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsBankingPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsCapMarketPrompt",
+              "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsCapMarketPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsComplexPrompt",
+              "value": "'\"'\"'\"You must extract the following information from the phone conversation below: \n\n 1. Call reason (key: reason) \n 2. Cause of incident (key: cause) \n 3. Name of caller (key: caller) \n 4. Account number (key: account_id) \n 5. Follow-up Flag(key: followupind) \n 6. A short, yet detailed summary (key: summary) \n\n Make sure fields 1 to 4 are answered very short. Field 5 is a boolean flag which indicates whether the caller incident was resolved, 1 if follow up required, 0 if resolved.  Please answer in JSON machine-readable format, using the keys from above. Format the output as JSON object. Pretty print the JSON and make sure that is properly closed at the end. \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsComplexPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsFollowupPrompt",
+              "value": "'\"'\"'\"Generate list of call follow up tasks from following text \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsFollowupPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsGeneralPrompt",
+              "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. What are the action items and follow-ups? \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsGeneralPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsHealthcarePrompt",
+              "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. What health condition was discussed? \n4. Was any medication mentioned in the conversation?\n5. Identify medical entities such as symptoms, medications, diagnosis from this conversaion. \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsHealthcarePromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsInsurancePrompt",
+              "value": "'\"'\"'\"Extract the following from the conversation:\n1. Main reason of the conversation\n2. Sentiment of the customer\n3. Where the accident happened?\n4. How did the accident happen?\n5. What was the weather like when the accident happened?\n6. What is customer's phone number?\n7. Was the airbag deployed when accident happened? \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsParticipantsPrompt",
+              "value": "'\"'\"'\"Extract list of call participants in list format from the following text \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsParticipantsPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsPharmacyPrompt",
+              "value": "'\"'\"'\"Provide list of medications, dose, and form discussed in the following text \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsPharmacyPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsPiiPrompt",
+              "value": "'\"'\"'\"List of all PII and named entities and what is overall sentiment of the conversation \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsPiiPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsSummaryNotesPrompt",
+              "value": "'\"'\"'\"Generate detailed call summary notes in list format from the following text \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsSummaryNotesPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "RtsTopicsPrompt",
+              "value": "'\"'\"'\"Generate list of topics discussed from text \r\n \r\n{text}'\"'\"'\""
+            },
+            {
+              "name": "RtsTopicsPromptIv",
+              "value": "text"
+            },
+            {
+              "name": "OpenAiQuestionPrompt",
+              "value": "'\"'\"'\"Please reply to the question using only the information present in the text above. If you can't find it, reply 'Not in the text'.\nQuestion: _QUESTION_\nAnswer:'\"'\"'\""
+            },
+            {
+              "name": "KbIndexName",
+              "value": "aoaikb"
+            }
+          ]
+        },
+        "scmSiteAlsoStopped": false,
+        "clientAffinityEnabled": false,
+        "clientCertEnabled": false,
+        "clientCertMode": "Required",
+        "hostNamesDisabled": false,
+        "containerSize": 1536,
+        "dailyMemoryTimeQuota": 0,
+        "httpsOnly": true,
+        "redundancyMode": "None",
+        "storageAccountRequired": false,
+        "keyVaultReferenceIdentity": "SystemAssigned"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('backendName'), '/ftp')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('backendName'))]"
+      ],
+      "tags": {
+        "azd-env-name": "[parameters('prefix')]",
+        "azd-service-name": "backend"
+      },
+      "properties": {
+        "allow": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('funcAppName'), '/ftp')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
+      ],
+      "tags": {
+        "azd-env-name": "[parameters('prefix')]",
+        "azd-service-name": "functionapp"
+      },
+      "properties": {
+        "allow": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('backendName'), '/scm')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('backendName'))]"
+      ],
+      "tags": {
+        "azd-env-name": "[parameters('prefix')]",
+        "azd-service-name": "backend"
+      },
+      "properties": {
+        "allow": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('funcAppName'), '/scm')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
+      ],
+      "tags": {
+        "azd-env-name": "[parameters('prefix')]",
+        "azd-service-name": "functionapp"
+      },
+      "properties": {
+        "allow": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('backendName'), '/web')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('backendName'))]"
+      ],
+      "tags": {
+        "azd-env-name": "[parameters('prefix')]",
+        "azd-service-name": "backend"
+      },
+      "properties": {
+        "numberOfWorkers": 1,
+        "defaultDocuments": [
+          "Default.htm",
+          "Default.html",
+          "Default.asp",
+          "index.htm",
+          "index.html",
+          "iisstart.htm",
+          "default.aspx",
+          "index.php",
+          "hostingstart.html"
+        ],
+        "netFrameworkVersion": "v4.0",
+        "linuxFxVersion": "python|3.9",
+        "requestTracingEnabled": true,
+        "requestTracingExpirationTime": "9999-12-31T23:59:00Z",
+        "remoteDebuggingEnabled": false,
+        "httpLoggingEnabled": true,
+        "acrUseManagedIdentityCreds": false,
+        "logsDirectorySizeLimit": 35,
+        "detailedErrorLoggingEnabled": true,
+        "publishingUsername": "[concat('$', parameters('prefix'), variables('backendName'))]",
+        "scmType": "None",
+        "use32BitWorkerProcess": false,
+        "webSocketsEnabled": false,
+        "alwaysOn": true,
+        "managedPipelineMode": "Integrated",
+        "virtualApplications": [
+          {
+            "virtualPath": "/",
+            "physicalPath": "site\\wwwroot",
+            "preloadEnabled": true
+          }
+        ],
+        "loadBalancing": "LeastRequests",
+        "experiments": {
+          "rampUpRules": []
+        },
+        "autoHealEnabled": false,
+        "vnetRouteAllEnabled": false,
+        "vnetPrivatePortsCount": 0,
+        "cors": {
+          "allowedOrigins": [
+            "https://portal.azure.com",
+            "https://ms.portal.azure.com"
+          ],
+          "supportCredentials": false
+        },
+        "localMySqlEnabled": false,
+        "managedServiceIdentityId": 3433,
+        "ipSecurityRestrictions": [
+          {
+            "ipAddress": "Any",
+            "action": "Allow",
+            "priority": 2147483647,
+            "name": "Allow all",
+            "description": "Allow all access"
+          }
+        ],
+        "scmIpSecurityRestrictions": [
+          {
+            "ipAddress": "Any",
+            "action": "Allow",
+            "priority": 2147483647,
+            "name": "Allow all",
+            "description": "Allow all access"
+          }
+        ],
+        "scmIpSecurityRestrictionsUseMain": false,
+        "http20Enabled": false,
+        "minTlsVersion": "1.2",
+        "scmMinTlsVersion": "1.2",
+        "ftpsState": "FtpsOnly",
+        "preWarmedInstanceCount": 0,
+        "elasticWebAppScaleLimit": 0,
+        "functionsRuntimeScaleMonitoringEnabled": false,
+        "minimumElasticInstanceCount": 0,
+        "azureStorageAccounts": {}
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('funcAppName'), '/web')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
+      ],
+      "tags": {
+        "azd-env-name": "[parameters('prefix')]",
+        "azd-service-name": "functionapp"
+      },
+      "properties": {
+        "numberOfWorkers": 1,
+        "defaultDocuments": [
+          "Default.htm",
+          "Default.html",
+          "Default.asp",
+          "index.htm",
+          "index.html",
+          "iisstart.htm",
+          "default.aspx",
+          "index.php"
+        ],
+        "netFrameworkVersion": "v4.0",
+        "linuxFxVersion": "python|3.9",
+        "requestTracingEnabled": true,
+        "requestTracingExpirationTime": "9999-12-31T23:59:00Z",
+        "remoteDebuggingEnabled": false,
+        "httpLoggingEnabled": true,
+        "acrUseManagedIdentityCreds": false,
+        "logsDirectorySizeLimit": 35,
+        "detailedErrorLoggingEnabled": true,
+        "publishingUsername": "[concat('$', parameters('prefix'), variables('funcAppName'))]",
+        "scmType": "None",
+        "use32BitWorkerProcess": false,
+        "webSocketsEnabled": false,
+        "alwaysOn": true,
+        "managedPipelineMode": "Integrated",
+        "virtualApplications": [
+          {
+            "virtualPath": "/",
+            "physicalPath": "site\\wwwroot",
+            "preloadEnabled": true
+          }
+        ],
+        "loadBalancing": "LeastRequests",
+        "experiments": {
+          "rampUpRules": []
+        },
+        "autoHealEnabled": false,
+        "vnetRouteAllEnabled": false,
+        "vnetPrivatePortsCount": 0,
+        "cors": {
+          "allowedOrigins": [
+            "https://portal.azure.com",
+            "https://ms.portal.azure.com"
+          ],
+          "supportCredentials": false
+        },
+        "localMySqlEnabled": false,
+        "managedServiceIdentityId": 3431,
+        "ipSecurityRestrictions": [
+          {
+            "ipAddress": "Any",
+            "action": "Allow",
+            "priority": 2147483647,
+            "name": "Allow all",
+            "description": "Allow all access"
+          }
+        ],
+        "scmIpSecurityRestrictions": [
+          {
+            "ipAddress": "Any",
+            "action": "Allow",
+            "priority": 2147483647,
+            "name": "Allow all",
+            "description": "Allow all access"
+          }
+        ],
+        "scmIpSecurityRestrictionsUseMain": false,
+        "http20Enabled": false,
+        "minTlsVersion": "1.2",
+        "scmMinTlsVersion": "1.2",
+        "ftpsState": "FtpsOnly",
+        "preWarmedInstanceCount": 0,
+        "functionAppScaleLimit": 0,
+        "functionsRuntimeScaleMonitoringEnabled": false,
+        "minimumElasticInstanceCount": 0,
+        "azureStorageAccounts": {}
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/hostNameBindings",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('backendName'), '/', variables('backendName'), '.azurewebsites.net')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('backendName'))]"
+      ],
+      "properties": {
+        "siteName": "[concat(parameters('prefix'), variables('backendName'))]",
+        "hostNameType": "Verified"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/hostNameBindings",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('funcAppName'), '/', variables('funcAppName'), '.azurewebsites.net')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
+      ],
+      "properties": {
+        "siteName": "[concat(parameters('prefix'), variables('funcAppName'))]",
+        "hostNameType": "Verified"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('storageName'), '/default/azure-webjobs-hosts')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ],
+      "properties": {
+        "immutableStorageWithVersioning": {
+          "enabled": false
+        },
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('storageName'), '/default/azure-webjobs-secrets')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ],
+      "properties": {
+        "immutableStorageWithVersioning": {
+          "enabled": false
+        },
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('storageName'), '/default/chatpdf')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ],
+      "properties": {
+        "immutableStorageWithVersioning": {
+          "enabled": false
+        },
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('storageName'), '/default/summary')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ],
+      "properties": {
+        "immutableStorageWithVersioning": {
+          "enabled": false
+        },
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('storageName'), '/default/secdoc')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ],
+      "properties": {
+        "immutableStorageWithVersioning": {
+          "enabled": false
+        },
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
+    }
+  ]
 }
