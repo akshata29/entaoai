@@ -28,6 +28,7 @@ export function parseAnswerToHtml(answer: string,
             }
         });
     }
+
     // var expression = /(https?:\/\/[^ ]*)/;
     var expression = /(?:[^/][\d\w\.]+)$(?<=\.\w{3,4})/;
 
@@ -60,8 +61,7 @@ export function parseAnswerToHtml(answer: string,
     //             </a>
     //         );
     //     }
-    // });
-
+    // });    
     let parts = sources.split(',');
     parts = sources.split('\n');
     parts.map((part, index) => {

@@ -831,13 +831,13 @@ const Upload = () => {
             <Stack enableScopedSelectors tokens={outerStackTokens}>
               <Stack enableScopedSelectors  tokens={innerStackTokens}>
                 <Stack.Item grow styles={stackItemStyles}>
-                  <Label>Index Type</Label>
+                  <Label>Vector DB</Label>
                   &nbsp;
                   <Dropdown
                       selectedKey={selectedItem ? selectedItem.key : undefined}
                       onChange={onChange}
                       defaultSelectedKey="pinecone"
-                      placeholder="Select an Index Type"
+                      placeholder="Select an Vector Database"
                       options={options}
                       disabled={false}
                       styles={dropdownStyles}

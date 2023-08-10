@@ -462,7 +462,7 @@
       "properties": {
         "model": {
           "format": "OpenAI",
-          "name": "embedding",
+          "name": "text-embedding-ada-002",
           "version": "2"
         },
         "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
@@ -766,7 +766,7 @@
             },
             {
               "name": "OpenAiVersion",
-              "value": "2023-05-15"
+              "value": "2023-07-01-preview"
             },
             {
               "name": "PineconeEnv",
@@ -973,7 +973,7 @@
             },
             {
               "name": "OpenAiVersion",
-              "value": "2023-05-15"
+              "value": "2023-07-01-preview"
             },
             {
               "name": "PineconeEnv",

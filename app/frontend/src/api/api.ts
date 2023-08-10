@@ -444,7 +444,7 @@ export async function chatGpt(options: ChatRequest, indexNs: string, indexType:s
                   session:options.overrides?.session,
                   sessionId:options.overrides?.sessionId,
                   deploymentType: options.overrides?.deploymentType,
-                  useInternet: options.overrides?.useInternet,
+                  functionCall: options.overrides?.functionCall,
                 }
               }
             }

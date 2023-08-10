@@ -12,6 +12,7 @@ from redis.commands.search.query import Query
 from typing import Mapping
 from redis import Redis
 import pinecone
+from functools import reduce
 
 class ChatGptStream:
 
@@ -95,7 +96,7 @@ class ChatGptStream:
                                     semantic_configuration_name="default", 
                                     top=k, 
                                     query_caption="extractive|highlight-false")
-            return r
+            return r       
         except Exception as e:
             logging.info(e)
             return None
@@ -311,41 +312,50 @@ class ChatGptStream:
             else:
                 template = promptTemplate
 
-            # followupTemplate = """Generate three very brief follow-up questions that the user would likely ask next about their healthcare plan and employee handbook. 
-            # Use double angle brackets to reference the questions, e.g. <<Are there exclusions for prescriptions?>>.
-            # Try not to repeat questions that have already been asked.
-            # Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'"""
-
-            followupTemplate = """Generate three very brief follow-up questions that the user would likely ask next.
-            Use double angle brackets to reference the questions, e.g. <>.
+            followupTemplate = """
+            Generate three very brief follow-up questions that the user would likely ask next. 
+            Use double angle brackets to reference the questions, e.g. <<>>.
             Try not to repeat questions that have already been asked.
-
-            Return the questions in the following format:
-            <>
-            <>
-            <>
-
-            ALWAYS return a "NEXT QUESTIONS" part in your answer.
+            Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'
             """
+
             results = []
 
+            uniqueSources = []
             if indexType == 'redis':
                 returnField = ["metadata", "content", "vector_score"]
                 vectorField = "content_vector"
                 r = self.performRedisSearch(q, indexNs, topK, returnField, vectorField, embeddingModelType)
                 results = [" : " + self.noNewLines(result.content) for result in r.docs]
+                sources = [result.metadata.source for result in r.docs]
+                uniqueSources = list(set(sources))
             elif indexType == 'pinecone':
                 r = self.performPineconeSearch(q, indexNs, topK, embeddingModelType)
-                results = [result['metadata']['source'] + " : " + self.noNewLines(result['metadata']['text']) for result in r['matches']]
+                #results = [result['metadata']['source'] + " : " + self.noNewLines(result['metadata']['text']) for result in r['matches']]
+                results = [self.noNewLines(result['metadata']['text']) for result in r['matches']]
+                sources = [result['metadata']['source'] for result in r['matches']]
+                uniqueSources = list(set(sources))
             elif indexType == "cogsearch" or indexType == "cogsearchvs":
                 r = self.performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
-                results = [doc["sourcefile"] + ": " + self.noNewLines(doc["content"]) for doc in r]
+                sr = self.performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
+                sources = [doc["sourcefile"] for doc in sr]
+                #results = [doc["sourcefile"] + " : " + self.noNewLines(doc["content"]) for doc in r]
+                results = [self.noNewLines(doc["content"]) for doc in r]
+                uniqueSources = list(set(sources))
+
+            if len(uniqueSources) > 1:
+                finalSources = reduce(lambda x, y: str(x) + "," + str(y), uniqueSources)
+            elif len(uniqueSources) == 1:
+                finalSources = uniqueSources[0]
+            else:
+                finalSources = ""
 
             content = "\n".join(results)
             systemTemplate = template.replace("Question: ", "").replace("QUESTION: ", "").format(summaries="", question=followupTemplate)
 
             messages = self.getStreamMessageFromHistory(
-                systemTemplate + "\n\nSources:\n" + content,
+                #systemTemplate + "\n\nSources:\n" + content,
+                systemTemplate + "\n" + content,
                 gptModel,
                 history,
                 lastQuestion,
@@ -357,7 +367,7 @@ class ChatGptStream:
 
             yield {"answer": "", "data_points": results, 
                 "thoughts": f"Searched for:<br>{lastQuestion}<br><br>Conversations:<br>" + msgToDisplay.replace('\n', '<br>'),
-                "sources": '', "nextQuestions": '', "error": ""}
+                "sources": finalSources, "nextQuestions": '', "error": ""}
     
             if (embeddingModelType == 'azureopenai'):
                 openai.api_type = "azure"

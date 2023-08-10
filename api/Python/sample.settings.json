@@ -13,7 +13,7 @@
       "OpenAiKey": "", // Azure Open AI Key
       "OpenAiService": "", // Name of Azure Open AI Service
       "OpenAiEndPoint": "", // FQDN of Azure Open AI Service
-      "OpenAiVersion": "2023-05-15",
+      "OpenAiVersion": "2023-07-01-preview",
       "OpenAiEmbedding": "", // Deployment name of Ada-003
       "FormRecognizerEndPoint": "", // Form Recognizer Endpoint
       "FormRecognizerKey": "",  // Form Recognizer Key
@@ -24,6 +24,11 @@
       "CosmosKey":"",
       "CosmosDatabase":"aoai",
       "CosmosContainer":"chatgpt",
+      "WeatherEndPoint": "https://yahoo-weather5.p.rapidapi.com/weather",
+      "WeatherHost": "yahoo-weather5.p.rapidapi.com",
+      "StockEndPoint": "https://alpha-vantage.p.rapidapi.com/query",
+      "StockHost": "alpha-vantage.p.rapidapi.com",
+      "RapidApiKey": "",
       "OpenAiChat": "", // GPT 3.5 deployment name
       "OpenAiChat16k": "chat16k",
       "PineconeKey": "", // Pinecone key

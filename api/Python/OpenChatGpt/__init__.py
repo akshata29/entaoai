@@ -12,7 +12,90 @@ from typing import Any, Sequence
 from langchain.utilities import BingSearchAPIWrapper
 from langchain.agents import AgentType, initialize_agent, Tool
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
+import pytz
+import math
+import inspect
+import requests
 
+def getCurrentTime(location):
+    try:
+        # Get the timezone for the city
+        timezone = pytz.timezone(location)
+
+        # Get the current time in the timezone
+        now = datetime.now(timezone)
+        current_time = now.strftime("%I:%M:%S %p")
+
+        return current_time
+    except:
+        return "Sorry, I couldn't find the timezone for that location."      
+    
+def calculator(num1, num2, operator):
+    if operator == '+':
+        return str(num1 + num2)
+    elif operator == '-':
+        return str(num1 - num2)
+    elif operator == '*':
+        return str(num1 * num2)
+    elif operator == '/':
+        return str(num1 / num2)
+    elif operator == '**':
+        return str(num1 ** num2)
+    elif operator == 'sqrt':
+        return str(math.sqrt(num1))
+    else:
+        return "Invalid operator"
+    
+def getBingSearchResults(query):
+    mkt = 'en-US'
+    params = { 'q': query, 'mkt': mkt ,"count":1, "answerCount":1 ,"textDecorations": True, "textFormat": "HTML","responseFilter":"webpages" }
+    headers = { 'Ocp-Apim-Subscription-Key': BingKey }
+    try:
+        response = requests.get(BingUrl, headers=headers, params=params)
+        response.raise_for_status()
+        data= (response.json())
+        name = data['webPages']['value'][0]['name']  
+        url = data['webPages']['value'][0]['url']  
+        return name + ' ' + url
+    except Exception as ex:
+        raise ex
+
+def getStockPrice(symbol):
+    try:
+        url = StockEndPoint
+        
+        querystring = {"function": "GLOBAL_QUOTE", "symbol": "{}", "datatype": "json"}  
+        querystring["symbol"] = symbol  
+        headers = {
+        "X-RapidAPI-Key": RapidApiKey,
+        "X-RapidAPI-Host": StockHost}
+        response = requests.get(url, headers=headers, params=querystring)
+        #print(response.json())
+        return('Price for '+ response.json()['Global Quote']['01. symbol'] + ' is ' + response.json()['Global Quote']['05. price'])
+        #data = json.loads(response.json()) 
+        
+    except:
+        return "Sorry, I couldn't find the stock price."
+    
+def getWeather(location):
+    try:
+        url = WeatherEndPoint
+        querystring = {"location":"{}","format":"json","u":"f"}
+        querystring["location"] = location 
+        headers = {
+            "X-RapidAPI-Key": RapidApiKey,
+            "X-RapidAPI-Host": WeatherHost
+            }
+        response = requests.get(url, headers=headers, params=querystring)
+        data=response.json()
+        location = data['location']['city']  
+        temperature = data['current_observation']['condition']['temperature']  
+        result = f"The weather in {location} is {temperature}F"  
+        return(result)  
+        #return (response.json())
+    except:
+        return "Sorry, I couldn't find the weather for that location."
+    
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
     if hasattr(context, 'retry_context'):
@@ -94,6 +177,173 @@ def insertMessage(sessionId, type, role, totalTokens, tokens, response, cosmosCo
     }
     cosmosContainer.create_item(body=aiMessage)
 
+def checkFunctionArgs(function, args):
+    sig = inspect.signature(function)
+    params = sig.parameters
+
+    #Check if there are extra arguments
+    for name in args:
+        if name not in params:
+            return False
+    #Check if the required arguments are provided 
+    for name, param in params.items():
+        if param.default is param.empty and name not in args:
+            return False
+
+    return True
+
+def runFunctionConversation(messages, functions, availableFunctions, embeddingModelType, deploymentType, gptModel):
+    #Step 1: send the conversation and available functions to GPT
+    if (embeddingModelType == 'azureopenai'):
+        baseUrl = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_type = "azure"
+        openai.api_key = OpenAiKey
+        openai.api_version = OpenAiVersion
+        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        if deploymentType == 'gpt35':
+            response = openai.ChatCompletion.create(
+                deployment_id=OpenAiChat,
+                model=gptModel,
+                messages=messages,
+                functions=functions,
+                function_call="auto",
+                temperature=0.7,
+                max_tokens=700,
+                top_p=0.95,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None
+            )
+            
+        elif deploymentType == "gpt3516k":
+            response = openai.ChatCompletion.create(
+                deployment_id=OpenAiChat16k,
+                model=gptModel,
+                messages=messages,
+                functions=functions,
+                function_call="auto",
+                temperature=0.7,
+                max_tokens=700,
+                top_p=0.95,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None
+            )
+    elif embeddingModelType == "openai":
+        openai.api_type = "open_ai"
+        openai.api_base = "https://api.openai.com/v1"
+        openai.api_version = '2020-11-07' 
+        openai.api_key = OpenAiApiKey
+        response = openai.ChatCompletion.create(
+                deployment_id=OpenAiChat,
+                model=gptModel,
+                messages=messages, 
+                functions=functions,
+                function_call="auto",
+                temperature=0.7,
+                max_tokens=700,
+                top_p=0.95,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None)
+            
+    
+    respMessage = response["choices"][0]["message"]  
+
+    #Step 2: check if GPT wanted to call a function
+    if respMessage.get("function_call"):
+        logging.info("Recommended Function call:")
+        logging.info(respMessage.get("function_call"))
+        
+        #Step 3: call the function
+        #Note: the JSON response may not always be valid; be sure to handle errors
+        functionName = respMessage["function_call"]["name"]
+        
+        #verify function exists
+        if functionName not in availableFunctions:
+            return "Function " + functionName + " does not exist"
+        functionToCall = availableFunctions[functionName]  
+        
+        #verify function has correct number of arguments
+        function_args = json.loads(respMessage["function_call"]["arguments"])
+        if checkFunctionArgs(functionToCall, function_args) is False:
+            return "Invalid number of arguments for function: " + functionName
+        funcResponse = functionToCall(**function_args)
+        
+        logging.info("Output of function call:")
+        logging.info(funcResponse)
+
+        #Step 4: send the info on the function call and function response to GPT        
+        #adding assistant response to messages
+        messages.append(
+            {
+                "role": respMessage["role"],
+                "name": respMessage["function_call"]["name"],
+                "content": respMessage["function_call"]["arguments"],
+            }
+        )
+
+        #adding function response to messages
+        messages.append(
+            {
+                "role": "function",
+                "name": functionName,
+                "content": funcResponse,
+            }
+        )  #extend conversation with function response
+
+        logging.info("Messages in second request:")
+        for message in messages:
+            logging.info(message)
+
+        if (embeddingModelType == 'azureopenai'):
+            baseUrl = f"https://{OpenAiService}.openai.azure.com"
+            openai.api_type = "azure"
+            openai.api_key = OpenAiKey
+            openai.api_version = OpenAiVersion
+            openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+            if deploymentType == 'gpt35':
+                finalResp = openai.ChatCompletion.create(
+                    messages=messages,
+                    deployment_id=OpenAiChat,
+                    temperature=0.7,
+                    max_tokens=1000,
+                    top_p=0.95,
+                    frequency_penalty=0,
+                    presence_penalty=0,
+                    stop=None
+                )  # get a new response from GPT where it can see the function response
+                
+            elif deploymentType == "gpt3516k":
+                finalResp = openai.ChatCompletion.create(
+                    messages=messages,
+                    deployment_id=OpenAiChat16k,
+                    temperature=0.7,
+                    max_tokens=1000,
+                    top_p=0.95,
+                    frequency_penalty=0,
+                    presence_penalty=0,
+                    stop=None
+                )  # get a new response from GPT where it can see the function response
+        elif embeddingModelType == "openai":
+            openai.api_type = "open_ai"
+            openai.api_base = "https://api.openai.com/v1"
+            openai.api_version = '2020-11-07' 
+            openai.api_key = OpenAiApiKey
+            finalResp = openai.ChatCompletion.create(
+                    messages=messages,
+                    deployment_id=gptModel,
+                    temperature=0.7,
+                    max_tokens=1000,
+                    top_p=0.95,
+                    frequency_penalty=0,
+                    presence_penalty=0,
+                    stop=None
+                )  # get a new response from GPT where it can see the function response
+        return finalResp
+    else :
+        return(respMessage['content'])
+    
 def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     embeddingModelType = overrides.get('embeddingModelType') or 'azureopenai'
     temperature = overrides.get("temperature") or 0.3
@@ -102,7 +352,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     sessionId = overrides.get('sessionId')
     promptTemplate = overrides.get('promptTemplate') or 'You are an AI assistant that helps people find information.'
     deploymentType = overrides.get('deploymentType') or 'gpt35'
-    useInternet = overrides.get('useInternet') or False
+    functionCall = overrides.get('functionCall') or False
     os.environ['BING_SUBSCRIPTION_KEY'] = BingKey
     os.environ['BING_SEARCH_URL'] = BingUrl
 
@@ -270,37 +520,6 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     except Exception as e:
         logging.info("Error inserting session into CosmosDB: " + str(e))
 
-    if (useInternet):
-        insertMessage(sessionId, "Message", "User", 0, 0, lastQuestion, cosmosContainer)
-        tools = []
-        tools.append(
-            Tool(
-                name = "@bing",
-                func=BingSearchAPIWrapper(k=5).run,
-                description='useful when the questions includes the term: @bing.\n'
-            )
-        )
-        
-        agentExecutor = initialize_agent(tools, llmChat, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
-                          agent_kwargs={'prefix':bingPrefix})
-        for i in range(2):
-            try:
-                answer = agentExecutor.run(lastQuestion)
-                #answer = agentExecutor({"input":lastQuestion})
-                break
-            except Exception as e:
-                answer = str(e)
-                continue
-        
-        answer = answer.replace('Could not parse LLM output: ', '').replace('Is there anything else I can assist you with?', '')
-        logging.info(answer)
-        insertMessage(sessionId, "Message", "Assistant", 0, 0, answer, cosmosContainer)
-        response = {"data_points": '', "answer": answer, 
-                    "thoughts": '', 
-                    "sources": '', 
-                    "nextQuestions": ''}
-        return response
-    
     tokenLimit = getTokenLimit(gptModel)
     messages = getMessagesFromHistory(
             promptTemplate,
@@ -310,6 +529,130 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             [],
             tokenLimit - len(lastQuestion) - tokenLength,
             )
+
+    if (functionCall):
+        insertMessage(sessionId, "Message", "User", 0, 0, lastQuestion, cosmosContainer)
+
+        functions = [
+            {
+                "name": "getCurrentTime",
+                "description": "Get the current time in a given location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {
+                            "type": "string",
+                            "description": "The location name. The pytz is used to get the timezone for that location. Location names should be in a format like America/New_York, Asia/Bangkok, Europe/London",
+                        }
+                    },
+                    "required": ["location"],
+                },
+            },
+            {
+                "name": "calculator",
+                "description": "A simple calculator used to perform basic arithmetic operations",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "num1": {"type": "number"},
+                        "num2": {"type": "number"},
+                        "operator": {"type": "string", "enum": ["+", "-", "*", "/", "**", "sqrt"]},
+                    },
+                    "required": ["num1", "num2", "operator"],
+                },
+            },
+            {
+                "name": "getStockPrice",
+                "description": "Retrieve the stock price for a given stock symbol",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "symbol":  {
+                        "type": "string",
+                        "description": "Stock symbol, for example MSFT for Microsoft , AAPL for Apple"
+                        }
+                    },
+                    "required": ["symbol"],
+                },
+            },
+            {
+                "name": "getWeather",
+                "description": "Retrieve the weather  for a given location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location":  {
+                        "type": "string",
+                        "description": "location of a city, for example London , LA for Los Angeles"
+                        }
+                    },
+                    "required": ["location"],
+                },
+            },
+            {
+                "name": "getBingSearchResults",
+                "description": "Retrieve the web search results from bing api",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query":  {
+                        "type": "string",
+                        "description": "query for bing search , for example what is Azure AI"
+                        }
+                    },
+                    "required": ["query"],
+                },
+            }
+        ]
+    
+        availableFunctions = {
+                    "getCurrentTime": getCurrentTime,
+                    "calculator": calculator,
+                    "getStockPrice":getStockPrice,
+                    "getWeather":getWeather,
+                    "getBingSearchResults":getBingSearchResults
+                }
+        
+        # tools = []
+        # tools.append(
+        #     Tool(
+        #         name = "@bing",
+        #         func=BingSearchAPIWrapper(k=5).run,
+        #         description='useful when the questions includes the term: @bing.\n'
+        #     )
+        # )
+        
+        # agentExecutor = initialize_agent(tools, llmChat, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
+        #                   agent_kwargs={'prefix':bingPrefix})
+        # for i in range(2):
+        #     try:
+        #         answer = agentExecutor.run(lastQuestion)
+        #         #answer = agentExecutor({"input":lastQuestion})
+        #         break
+        #     except Exception as e:
+        #         answer = str(e)
+        #         continue
+        
+        # answer = answer.replace('Could not parse LLM output: ', '').replace('Is there anything else I can assist you with?', '')
+
+
+        asstResponse = runFunctionConversation(messages, functions, availableFunctions, embeddingModelType, deploymentType, gptModel)
+        answer = ""  
+        if 'choices' in asstResponse and len(asstResponse['choices']) > 0:  
+            firstChoice = asstResponse['choices'][0]  
+            if 'message' in firstChoice and 'content' in firstChoice['message']:  
+                answer = firstChoice['message']['content']  
+        else:  
+            answer = asstResponse
+
+        logging.info(answer)
+        insertMessage(sessionId, "Message", "Assistant", 0, 0, answer, cosmosContainer)
+        response = {"data_points": '', "answer": answer, 
+                    "thoughts": '', 
+                    "sources": '', 
+                    "nextQuestions": ''}
+        return response
+    
     if (embeddingModelType == 'azureopenai'):
         baseUrl = f"https://{OpenAiService}.openai.azure.com"
         openai.api_type = "azure"

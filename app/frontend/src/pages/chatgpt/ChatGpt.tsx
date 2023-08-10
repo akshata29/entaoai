@@ -100,7 +100,7 @@ const ChatGpt = () => {
     const [selectedPromptType, setSelectedPromptType] = useState<string>()
     const [selectedChain, setSelectedChain] = useState<IDropdownOption>();
     const [chainTypeOptions, setChainTypeOptions] = useState<any>([])
-    const [useInternet, setUseInternet] = useState(false);
+    const [functionCall, setFunctionCall] = useState(false);
 
     const generateQuickGuid = () => {
         return Math.random().toString(36).substring(2, 15) +
@@ -408,6 +408,7 @@ const ChatGpt = () => {
             };
             let result: any = {};
             let answer: string = '';
+            let nextQuestion: string = '';
             const response = await chatStream(request,String(selectedItem?.key), String(selectedIndex));
             let askResponse: AskResponse = {} as AskResponse;
             if (response?.body) {
@@ -427,7 +428,8 @@ const ChatGpt = () => {
                                 askResponse = result;
                             } else if (result["choices"] && result["choices"][0]["delta"]["content"]) {
                                 answer += result["choices"][0]["delta"]["content"];
-                                let latestResponse: AskResponse = {...askResponse, answer: answer};
+                                nextQuestion += answer.indexOf("NEXT QUESTIONS:") > -1 ? answer.substring(answer.indexOf('NEXT QUESTIONS:') + 15) : '';
+                                let latestResponse: AskResponse = {...askResponse, answer: answer, nextQuestions: nextQuestion};
                                 setIsLoading(false);
                                 setAnswersStream([...answerStream, [question, latestResponse, null]]);
                                 if(useAutoSpeakAnswers){
@@ -490,7 +492,7 @@ const ChatGpt = () => {
                     session: JSON.stringify(currentSession),
                     sessionId: currentSession.sessionId,
                     deploymentType: String(selectedDeploymentTypeGpt?.key),
-                    useInternet:useInternet
+                    functionCall:functionCall
                 }
             };
             const result = await chatGpt(request, 'chatgpt', 'cogsearchvs');
@@ -764,6 +766,7 @@ const ChatGpt = () => {
     const onChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         setSelectedItem(item);
         clearChat();
+        clearStreamChat();
 
         const defaultKey = item?.key
         let indexType = 'pinecone'
@@ -1179,8 +1182,8 @@ const ChatGpt = () => {
         updatePromptGpt(String(item?.key));
     };
 
-    const onUseInternetChanged = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
-        setUseInternet(!!checked);
+    const onFunctionCallChanged = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
+        setFunctionCall(!!checked);
     };
 
     const onTabChange = (item?: PivotItem | undefined, ev?: React.MouseEvent<HTMLElement, MouseEvent> | undefined): void => {
@@ -1527,13 +1530,13 @@ const ChatGpt = () => {
                                 )}
                             </div>
 
-                            {answers.length > 0 && activeAnalysisPanelTab && (
+                            {answerStream.length > 0 && activeAnalysisPanelTab && (
                                 <AnalysisPanel
                                     className={styles.chatAnalysisPanel}
                                     activeCitation={activeCitation}
                                     onActiveTabChanged={x => onToggleTab(x, selectedAnswer)}
                                     citationHeight="810px"
-                                    answer={answers[selectedAnswer][1]}
+                                    answer={answerStream[selectedAnswer][1]}
                                     activeTab={activeAnalysisPanelTab}
                                 />
                             )}
@@ -1663,7 +1666,7 @@ const ChatGpt = () => {
                             <div className={styles.commandsContainer}>
                                 <ClearChatButton className={styles.commandButton} onClick={clearChatGpt}  text="Clear chat" disabled={!lastQuestionRefGpt.current || isLoading} />
                                 <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpenGpt(!isConfigPanelOpenGpt)} />
-                                <Checkbox label="Internet Search" checked={useInternet} onChange={onUseInternetChanged} />
+                                <Checkbox label="Function Call" checked={functionCall} onChange={onFunctionCallChanged} />
                             </div>
                             <div className={styles.commandsContainer}>
                                 <SessionButton className={styles.commandButton} onClick={clearChatGpt} />

@@ -55,6 +55,7 @@ export type AskRequestOverrides = {
     firstSession?: boolean;
     session?: string;
     sessionId?: string;
+    functionCall?: boolean;
     useInternet?: boolean;
     deploymentType?: string;
     fileName?: string;

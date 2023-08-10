@@ -180,5 +180,31 @@ try:
         SynapsePool = os.environ['SynapsePool']
     else:
         SynapsePool = ""
+
+    if "WeatherEndPoint" in os.environ: 
+        WeatherEndPoint = os.getenv('WeatherEndPoint')
+    else:
+        WeatherEndPoint = ""
+    
+    if "WeatherHost" in os.environ: 
+        WeatherHost = os.getenv('WeatherHost')
+    else:
+        WeatherHost = ""
+
+    if "StockEndPoint" in os.environ: 
+        StockEndPoint = os.getenv('StockEndPoint')
+    else:
+        StockEndPoint = ""
+    
+    if "StockHost" in os.environ: 
+        StockHost = os.getenv('StockHost')
+    else:
+        StockHost = ""
+
+    if "RapidApiKey" in os.environ: 
+        RapidApiKey = os.getenv('RapidApiKey')
+    else:
+        RapidApiKey = ""
+
 except Exception as e:
     logging.info("Error reading environment variables: %s",e)

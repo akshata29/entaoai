@@ -88,7 +88,7 @@ const Pib = () => {
     const [chatSessionGpt, setChatSessionGpt] = useState<ChatSession | null>(null);
     const [sessionListGpt, setSessionListGpt] = useState<any[]>();
     const lastQuestionRefGpt = useRef<string>("");
-    const [useInternet, setUseInternet] = useState(false);
+    const [functionCall, setFunctionCall] = useState(false);
     const [isConfigPanelOpenGpt, setIsConfigPanelOpenGpt] = useState(false);
     const [promptTemplateGpt, setPromptTemplateGpt] = useState<string>("");
     const [sessionIdGpt, setSessionIdGpt] = useState<string>();
@@ -1243,7 +1243,7 @@ const Pib = () => {
                     session: JSON.stringify(currentSession),
                     sessionId: currentSession.sessionId,
                     deploymentType: String(selectedDeploymentTypeGpt?.key),
-                    useInternet:useInternet
+                    functionCall:functionCall
                 }
             };
             const result = await chatGpt(request, 'chatgpt', 'cogsearchvs');
@@ -1333,8 +1333,8 @@ const Pib = () => {
         setSelectedPromptTypeItemGpt(item);
         updatePromptGpt(String(item?.key));
     };
-    const onUseInternetChanged = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
-        setUseInternet(!!checked);
+    const onFunctionCallChanged = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
+        setFunctionCall(!!checked);
     };
     const onTabChange = (item?: PivotItem | undefined, ev?: React.MouseEvent<HTMLElement, MouseEvent> | undefined): void => {
         if (item?.props.headerText === "Chat Pib") {
@@ -2119,7 +2119,7 @@ const Pib = () => {
                             <div className={styles.commandsContainer}>
                                 <ClearChatButton className={styles.commandButton} onClick={clearChatGpt}  text="Clear chat" disabled={!lastQuestionRefGpt.current || isLoading} />
                                 <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpenGpt(!isConfigPanelOpenGpt)} />
-                                <Checkbox label="Internet Search" checked={useInternet} onChange={onUseInternetChanged} />
+                                <Checkbox label="Internet Search" checked={functionCall} onChange={onFunctionCallChanged} />
                             </div>
                             <div className={styles.commandsContainer}>
                                 <SessionButton className={styles.commandButton} onClick={clearChatGpt} />
