@@ -94,7 +94,7 @@ XlsxWriter==3.0.9
 yarl==1.8.2
 zipp==3.15.0
 redis==4.4.2
-fake-useragent==1.1.1
+fake-useragent==1.2.1
 bs4==0.0.1
 beautifulsoup4==4.11.2
 weaviate-client==3.15.2
