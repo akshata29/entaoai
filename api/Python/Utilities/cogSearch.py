@@ -217,12 +217,12 @@ def performSummaryQaCogSearch(indexType, embeddingModelType, question, indexName
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 # Function to generate embeddings for title and content fields, also used for query embeddings
-def generateKbEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, OpenAiEmbedding, embeddingModelType, text):
+def generateKbEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, OpenAiEmbedding, embeddingModelType, text):
     if (embeddingModelType == 'azureopenai'):
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = f"{OpenAiEndPoint}"
 
         response = openai.Embedding.create(
             input=text, engine=OpenAiEmbedding)

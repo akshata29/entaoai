@@ -171,11 +171,11 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
             )
 
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"https://{OpenAiService}.openai.azure.com"
+        baseUrl = f"{OpenAiEndPoint}"
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = f"{OpenAiEndPoint}"
 
         embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
         if deploymentType == 'gpt35':
@@ -445,7 +445,7 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
 
         if indexName == "latestsecfilings":
             filterData = "symbol eq '" + symbol + "' and filingType eq '" + "10-K" + "'"
-            r = performLatestPibDataSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
+            r = performLatestPibDataSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
                                OpenAiEmbedding, filterData, q, indexName, topK, returnFields=['id', 'content', 'latestFilingDate'])
             
             if r == None:
@@ -457,7 +457,7 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
                     ]
         elif indexName == "latestearningcalls":
             filterData = "symbol eq '" + symbol + "'"
-            r = performLatestPibDataSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
+            r = performLatestPibDataSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
                                OpenAiEmbedding, filterData, q, indexName, topK, returnFields=['id', 'content', 'callDate'])
             if r == None:
                 docs = [Document(page_content="No results found")]

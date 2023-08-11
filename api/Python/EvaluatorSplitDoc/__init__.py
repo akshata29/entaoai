@@ -99,7 +99,7 @@ def main(splitDocs: SplitDocs) -> str:
                         docs = splitter.split_documents(rawDocs)
 
                     logging.info("Index Document Data")
-                    indexEvaluatorDataSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, 
+                    indexEvaluatorDataSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, 
                                 SearchKey, embeddingModelType, OpenAiEmbedding, fileName, evaluatorDataIndexName, docs, 
                                 splitMethod, chunkSize, overlap, model, embeddingModelType, documentId)
     return documentId

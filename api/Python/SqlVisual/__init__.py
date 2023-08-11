@@ -150,11 +150,11 @@ def validateOutput(llmOutput,extractedOutput):
 def callLlm(embeddingModelType, prompt, stop):        
     try:
         if (embeddingModelType == 'azureopenai'):
-            baseUrl = f"https://{OpenAiService}.openai.azure.com"
+            baseUrl = f"{OpenAiEndPoint}"
             openai.api_type = "azure"
             openai.api_key = OpenAiKey
             openai.api_version = OpenAiVersion
-            openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+            openai.api_base = f"{OpenAiEndPoint}"
 
             completion = openai.ChatCompletion.create(
                 engine=OpenAiChat,

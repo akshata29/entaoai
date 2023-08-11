@@ -11,7 +11,6 @@
       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
       "OpenAiApiKey": "", // OpenAI Key
       "OpenAiKey": "", // Azure Open AI Key
-      "OpenAiService": "", // Name of Azure Open AI Service
       "OpenAiEndPoint": "", // FQDN of Azure Open AI Service
       "OpenAiVersion": "2023-07-01-preview",
       "OpenAiEmbedding": "", // Deployment name of Ada-003

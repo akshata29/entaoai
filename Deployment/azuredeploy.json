@@ -761,10 +761,6 @@
               "value": "Dummy"
             },
             {
-              "name": "OpenAiService",
-              "value": "[variables('aoaiSvcName')]"
-            },
-            {
               "name": "OpenAiVersion",
               "value": "2023-07-01-preview"
             },
@@ -966,10 +962,6 @@
             {
               "name": "OpenAiApiKey",
               "value": "Dummy"
-            },
-            {
-              "name": "OpenAiService",
-              "value": "[variables('aoaiSvcName')]"
             },
             {
               "name": "OpenAiVersion",

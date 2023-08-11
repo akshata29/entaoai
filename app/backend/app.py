@@ -222,7 +222,7 @@ def chatStream():
         OpenAiKey = os.environ['OpenAiKey']
         OpenAiVersion = os.environ['OpenAiVersion']
         OpenAiChat = os.environ['OpenAiChat']
-        OpenAiService = os.environ['OpenAiService']
+        OpenAiEndPoint = os.environ['OpenAiEndPoint']
 
         if "OpenAiChat16k" in os.environ: 
             OpenAiChat16k = os.getenv('OpenAiChat16k')
@@ -282,7 +282,7 @@ def chatStream():
         # data = postBody
         # params = {'indexType': indexType, "indexNs": indexNs }
         # resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
-        chatStream = ChatGptStream(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiChat, OpenAiChat16k, OpenAiApiKey, OpenAiEmbedding,
+        chatStream = ChatGptStream(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiChat, OpenAiChat16k, OpenAiApiKey, OpenAiEmbedding,
                                     SearchService, SearchKey, RedisAddress, RedisPort, RedisPassword,
                                     PineconeKey, PineconeEnv, PineconeIndex)
         r = chatStream.run(indexType=indexType, indexNs=indexNs, postBody=postBody)

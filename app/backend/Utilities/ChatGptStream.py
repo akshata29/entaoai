@@ -16,9 +16,9 @@ from functools import reduce
 
 class ChatGptStream:
 
-    def __init__(self, OpenAiService, OpenAiKey, OpenAiVersion, OpenAiChat, OpenAiChat16k, OpenAiApiKey, OpenAiEmbedding, 
+    def __init__(self, OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiChat, OpenAiChat16k, OpenAiApiKey, OpenAiEmbedding, 
                  SearchService, SearchKey, RedisAddress, RedisPort, RedisPassword, PineconeKey, PineconeEnv, PineconeIndex):
-        self.OpenAiService = OpenAiService
+        self.OpenAiEndPoint = OpenAiEndPoint
         self.OpenAiKey = OpenAiKey
         self.OpenAiVersion = OpenAiVersion
         self.OpenAiChat = OpenAiChat
@@ -39,11 +39,10 @@ class ChatGptStream:
     # Function to generate embeddings for title and content fields, also used for query embeddings
     def generateEmbeddings(self, embeddingModelType, text):
         if (embeddingModelType == 'azureopenai'):
-            baseUrl = f"https://{self.OpenAiService}.openai.azure.com"
             openai.api_type = "azure"
             openai.api_key = self.OpenAiKey
             openai.api_version = self.OpenAiVersion
-            openai.api_base = f"https://{self.OpenAiService}.openai.azure.com"
+            openai.api_base = self.OpenAiEndPoint
 
             response = openai.Embedding.create(
                 input=text, engine=self.OpenAiEmbedding)
@@ -244,11 +243,10 @@ class ChatGptStream:
                 )
         
         if (embeddingModelType == 'azureopenai'):
-            baseUrl = f"https://{self.OpenAiService}.openai.azure.com"
             openai.api_type = "azure"
             openai.api_key = self.OpenAiKey
             openai.api_version = self.OpenAiVersion
-            openai.api_base = f"https://{self.OpenAiService}.openai.azure.com"
+            openai.api_base = self.OpenAiEndPoint
 
             if deploymentType == 'gpt35':
                 completion = openai.ChatCompletion.create(
@@ -373,7 +371,7 @@ class ChatGptStream:
                 openai.api_type = "azure"
                 openai.api_key = self.OpenAiKey
                 openai.api_version = self.OpenAiVersion
-                openai.api_base = f"https://{self.OpenAiService}.openai.azure.com"
+                openai.api_base = self.OpenAiEndPoint
 
                 if deploymentType == 'gpt35':
                     yield from openai.ChatCompletion.create(

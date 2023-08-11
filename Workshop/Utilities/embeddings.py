@@ -6,11 +6,10 @@ from Utilities.envVars import *
 # Function to generate embeddings for title and content fields, also used for query embeddings
 def generateEmbeddings(embeddingModelType, text):
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"https://{OpenAiService}.openai.azure.com"
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = f"{OpenAiEndPoint}"
 
         response = openai.Embedding.create(
             input=text, engine=OpenAiEmbedding)

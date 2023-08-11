@@ -5,7 +5,6 @@
 | Key | Default Value | Detail |
 | --- | --- | ------------- |
 |OpenAiKey||Your Azure OpenAI Key.  <br>You can get the OpenAI Key from Azure Portal for your deployed OpenAI service.
-|OpenAiService||Name of the OpenAI Service deployed in Azure
 |OpenAiEndPoint||Fully qualified endpoint for Azure OpenAI <br>(https://<yourresource>.openai.azure.com/)
 |OpenAiVersion|2023-05-15|API Version of the Azure OpenAI
 |OpenAiEmbedding|text-embedding-ada-002|Deployment name of <br>text-embedding-ada-002 model in Azure OpenAI

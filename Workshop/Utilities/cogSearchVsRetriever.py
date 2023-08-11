@@ -39,7 +39,7 @@ class CognitiveSearchVsRetriever(BaseRetriever, BaseModel):
     documentId : str = ""
     embeddingModelType : str = "azureopenai"
     openAiEmbedding : str = "text-embedding-ada-002"
-    openAiService : str = ""
+    openAiEndPoint : str = ""
     openAiKey : str = ""
     openAiVersion : str = ""
     openAiApiKey : str = ""
@@ -55,11 +55,10 @@ class CognitiveSearchVsRetriever(BaseRetriever, BaseModel):
     # Function to generate embeddings for title and content fields, also used for query embeddings
     def generateEmbeddings(self, text):
         if (self.embeddingModelType == 'azureopenai'):
-            baseUrl = f"https://{self.openAiService}.openai.azure.com"
             openai.api_type = "azure"
             openai.api_key = self.openAiKey
             openai.api_version = self.openAiVersion
-            openai.api_base = f"https://{self.openAiService}.openai.azure.com"
+            openai.api_base = f"{self.openAiEndPoint}"
 
             response = openai.Embedding.create(
                 input=text, engine=self.openAiEmbedding)

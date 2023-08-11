@@ -24,13 +24,12 @@ import openai
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 # Function to generate embeddings for title and content fields, also used for query embeddings
-def generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, text):
+def generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, text):
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"https://{OpenAiService}.openai.azure.com"
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = f"{OpenAiEndPoint}"
 
         response = openai.Embedding.create(
             input=text, engine=OpenAiEmbedding)
@@ -226,20 +225,20 @@ def indexDocs(SearchService, SearchKey, indexName, docs):
         succeeded = sum([1 for r in results if r.succeeded])
         print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
 
-def createSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, fileName, docs):
+def createSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, fileName, docs):
     counter = 1
     for i in docs:
         yield {
             "id": f"{fileName}-{counter}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_").replace(",", "_").replace("&", "_"),
             "content": i.page_content,
-            "contentVector": generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, i.page_content),
+            "contentVector": generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, i.page_content),
             "sourcefile": os.path.basename(fileName)
         }
         counter += 1
 
-def indexSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, fileName, indexName, docs):
+def indexSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, fileName, indexName, docs):
     print("Total docs: " + str(len(docs)))
-    sections = createSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, fileName, docs)
+    sections = createSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, fileName, docs)
     print(f"Indexing sections from '{fileName}' into search index '{indexName}'")
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
                                     index_name=indexName,
@@ -260,14 +259,14 @@ def indexSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchS
         succeeded = sum([1 for r in results if r.succeeded])
         print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
 
-def performCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
+def performCogSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
         index_name=indexName,
         credential=AzureKeyCredential(SearchKey))
     try:
         r = searchClient.search(  
             search_text="",  
-            vector=Vector(value=generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
+            vector=Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
             select=returnFields,
             semantic_configuration_name="semanticConfig"
         )

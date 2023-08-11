@@ -3,7 +3,6 @@ AzureWebJobs.HttpTrigger1.Disabled=false
 AdminPassword=P@ssw0rd
 UploadPassword=P@ssw0rd
 OpenAiKey=
-OpenAiService=dataaioaics
 OpenAiEndPoint=https://dataaioaics.openai.azure.com/
 OpenAiVersion=2023-05-15
 OpenAiEmbedding=text-embedding-ada-002

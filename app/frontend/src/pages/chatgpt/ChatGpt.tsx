@@ -1442,7 +1442,7 @@ const ChatGpt = () => {
                         </div>
                     </div>
                     </PivotItem>
-                    <PivotItem
+                    {/* <PivotItem
                         headerText="Chat on Data - Stream"
                         headerButtonProps={{
                         'data-order': 2,
@@ -1654,7 +1654,7 @@ const ChatGpt = () => {
                             </Panel>
                         </div>
                     </div>
-                    </PivotItem>
+                    </PivotItem> */}
                     <PivotItem
                         headerText="Chat Gpt"
                         headerButtonProps={{

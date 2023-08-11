@@ -9,8 +9,7 @@ try:
     OpenAiKey = os.getenv('OpenAiKey')
     OpenAiVersion = os.getenv('OpenAiVersion', "2023-05-15")
     OpenAiChat = os.getenv('OpenAiChat')
-    OpenAiService = os.getenv('OpenAiService', '')
-    OpenAiBase = f"https://{OpenAiService}.openai.azure.com"
+    OpenAiEndPoint = os.getenv('OpenAiEndPoint', '')
     OpenAiDocStorName = os.getenv('OpenAiDocStorName')
     OpenAiDocStorKey = os.getenv('OpenAiDocStorKey')
     OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"

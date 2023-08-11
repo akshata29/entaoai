@@ -43,7 +43,6 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
         logging.info("EmbeddingModelType: " + str(embeddingModelType))
         logging.info("PromptTemplate: " + str(promptTemplate))
         logging.info("DeploymentType: " + str(deploymentType))
-        logging.info("OpenAiService: " + str(OpenAiService))
         logging.info("OpenAiChat: " + str(OpenAiChat))
         logging.info("OpenAiChat16k: " + str(OpenAiChat16k))
         logging.info("OpenAiEmbedding: " + str(OpenAiEmbedding))
@@ -55,7 +54,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
             openai.api_type = "azure"
             openai.api_key = OpenAiKey
             openai.api_version = OpenAiVersion
-            openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+            openai.api_base = f"{OpenAiEndPoint}"
 
             if deploymentType == 'gpt35':
                 llm = AzureChatOpenAI(
@@ -281,7 +280,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
 
             try:
                 # Let's verify if the questions is already answered before and check our KB first before asking LLM
-                vectorQuestion = generateKbEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, OpenAiEmbedding, embeddingModelType, question)
+                vectorQuestion = generateKbEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, OpenAiEmbedding, embeddingModelType, question)
 
                 # Let's perform the search on the KB first before asking the question to the model
                 kbSearch = performKbCogVectorSearch(vectorQuestion, 'vectorQuestion', SearchService, SearchKey, indexType, indexNs, KbIndexName, 1, ["id", "question", "indexType", "indexName", "answer"])

@@ -200,7 +200,7 @@ def SmartAgent(question, overrides):
             openai.api_type = "azure"
             openai.api_key = OpenAiKey
             openai.api_version = OpenAiVersion
-            openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+            openai.api_base = f"{OpenAiEndPoint}"
 
             llm = AzureChatOpenAI(
                 openai_api_base=openai.api_base,

@@ -25,13 +25,12 @@ import logging
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 # Function to generate embeddings for title and content fields, also used for query embeddings
-def generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, text):
+def generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, text):
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"https://{OpenAiService}.openai.azure.com"
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = f"{OpenAiEndPoint}"
 
         response = openai.Embedding.create(
             input=text, engine=OpenAiEmbedding)
@@ -210,7 +209,7 @@ def findEarningCallsBySymbol(SearchService, SearchKey, indexName, symbol, return
 
     return None
 
-def performEarningCallCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, 
+def performEarningCallCogSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, 
                                 embeddingModelType, OpenAiEmbedding, symbol, quarter, year, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
         index_name=indexName,
@@ -219,7 +218,7 @@ def performEarningCallCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiA
         r = searchClient.search(  
             search_text="",  
             filter="symbol eq '" + symbol + "' and quarter eq '" + quarter + "' and year eq '" + year + "'",
-            vector=Vector(value=generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
+            vector=Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
             select=returnFields,
             semantic_configuration_name="semanticConfig"
         )
@@ -278,7 +277,7 @@ def createEarningCallVectorIndex(SearchService, SearchKey, indexName):
     else:
         logging.info(f"Search index {indexName} already exists")
 
-def createEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
+def createEarningCallSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
                               callDate, symbol, year, quarter):
     counter = 1
     for i in docs:
@@ -289,11 +288,11 @@ def createEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApi
             "year": year,
             "callDate": callDate,
             "content": i.page_content,
-            "contentVector": generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, i.page_content)
+            "contentVector": generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, i.page_content)
         }
         counter += 1
 
-def indexEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
+def indexEarningCallSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
                              OpenAiEmbedding, indexName, docs, callDate, symbol, year, quarter):
     logging.info("Total docs: " + str(len(docs)))
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
@@ -313,7 +312,7 @@ def indexEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiK
         logging.info(f"Already indexed {r.get_count()} sections for {symbol} {year} Q{quarter}")
         return
     
-    sections = createEarningCallSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
+    sections = createEarningCallSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
                                          callDate, symbol, year, quarter)
     i = 0
     batch = []
@@ -549,7 +548,7 @@ def createSecFilingsVectorIndex(SearchService, SearchKey, indexName):
     else:
         logging.info(f"Search index {indexName} already exists")
 
-def createSecFilingsSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
+def createSecFilingsSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
                               cik, symbol, latestFilingDate, filingType):
     counter = 1
     for i in docs:
@@ -560,11 +559,11 @@ def createSecFilingsSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiK
             "latestFilingDate": latestFilingDate,
             "filingType": filingType,
             "content": i.page_content,
-            "contentVector": generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, i.page_content)
+            "contentVector": generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, i.page_content)
         }
         counter += 1
 
-def indexSecFilingsSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
+def indexSecFilingsSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
                              OpenAiEmbedding, indexName, docs, cik, symbol, latestFilingDate, filingType):
     logging.info("Total docs: " + str(len(docs)))
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
@@ -584,7 +583,7 @@ def indexSecFilingsSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKe
         logging.info(f"Already indexed {r.get_count()} sections for {symbol} {cik} {latestFilingDate} {filingType}")
         return
     
-    sections = createSecFilingsSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
+    sections = createSecFilingsSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, docs,
                                          cik, symbol, latestFilingDate, filingType)
     i = 0
     batch = []
@@ -642,7 +641,7 @@ def indexDocs(SearchService, SearchKey, indexName, docs):
         succeeded = sum([1 for r in results if r.succeeded])
         logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
 
-def performLatestPibDataSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
+def performLatestPibDataSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, 
                                OpenAiEmbedding, filterData, question, indexName, k, returnFields=["id", "content"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
         index_name=indexName,
@@ -651,7 +650,7 @@ def performLatestPibDataSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiAp
         r = searchClient.search(  
             search_text="",
             filter=filterData,
-            vector=Vector(value=generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
+            vector=Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
             select=returnFields,
             semantic_configuration_name="semanticConfig"
         )
@@ -661,14 +660,14 @@ def performLatestPibDataSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiAp
 
     return None
 
-def performCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
+def performCogSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
         index_name=indexName,
         credential=AzureKeyCredential(SearchKey))
     try:
         r = searchClient.search(  
             search_text="",  
-            vector=Vector(value=generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
+            vector=Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
             select=returnFields,
             semantic_configuration_name="semanticConfig"
         )
@@ -778,20 +777,20 @@ def createSearchIndex(SearchService, SearchKey, indexName):
     else:
         print(f"Search index {indexName} already exists")
 
-def createSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, fileName, docs):
+def createSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, fileName, docs):
     counter = 1
     for i in docs:
         yield {
             "id": f"{fileName}-{counter}".replace(".", "_").replace(" ", "_").replace(":", "_").replace("/", "_").replace(",", "_").replace("&", "_"),
             "content": i.page_content,
-            "contentVector": generateEmbeddings(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, i.page_content),
+            "contentVector": generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, i.page_content),
             "sourcefile": os.path.basename(fileName)
         }
         counter += 1
 
-def indexSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, fileName, indexName, docs):
+def indexSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, fileName, indexName, docs):
     print("Total docs: " + str(len(docs)))
-    sections = createSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, fileName, docs)
+    sections = createSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, fileName, docs)
     print(f"Indexing sections from '{fileName}' into search index '{indexName}'")
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
                                     index_name=indexName,

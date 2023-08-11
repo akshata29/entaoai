@@ -195,7 +195,6 @@ module function 'core/host/function.bicep' = {
     appSettings: {
       APPINSIGHTS_INSTRUMENTATIONKEY: monitoring.outputs.instrumentationKey
       APPLICATIONINSIGHTS_CONNECTION_STRING: monitoring.outputs.connectionString
-      OpenAiService:openAi.outputs.name
       OpenAiEndPoint:openAi.outputs.endpoint
       OpenAiVersion:'2023-05-15'
       OpenAiEmbedding:textEmbeddingDeploymentName

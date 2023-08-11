@@ -5,7 +5,7 @@ try:
     OpenAiKey = os.environ['OpenAiKey']
     OpenAiVersion = os.environ['OpenAiVersion']
     OpenAiChat = os.environ['OpenAiChat']
-    OpenAiService = os.environ['OpenAiService']
+    OpenAiEndPoint = os.environ['OpenAiEndPoint']
     OpenAiDocStorName = os.environ['OpenAiDocStorName']
     OpenAiDocStorKey = os.environ['OpenAiDocStorKey']
     OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"

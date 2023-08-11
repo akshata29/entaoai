@@ -195,11 +195,10 @@ def checkFunctionArgs(function, args):
 def runFunctionConversation(messages, functions, availableFunctions, embeddingModelType, deploymentType, gptModel):
     #Step 1: send the conversation and available functions to GPT
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"https://{OpenAiService}.openai.azure.com"
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = f"{OpenAiEndPoint}"
         if deploymentType == 'gpt35':
             response = openai.ChatCompletion.create(
                 deployment_id=OpenAiChat,
@@ -297,11 +296,10 @@ def runFunctionConversation(messages, functions, availableFunctions, embeddingMo
             logging.info(message)
 
         if (embeddingModelType == 'azureopenai'):
-            baseUrl = f"https://{OpenAiService}.openai.azure.com"
             openai.api_type = "azure"
             openai.api_key = OpenAiKey
             openai.api_version = OpenAiVersion
-            openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+            openai.api_base = f"{OpenAiEndPoint}"
             if deploymentType == 'gpt35':
                 finalResp = openai.ChatCompletion.create(
                     messages=messages,
@@ -465,11 +463,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             gptModel = "gpt-3.5-turbo-16k"
 
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"https://{OpenAiService}.openai.azure.com"
+        baseUrl = f"{OpenAiEndPoint}"
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = f"{OpenAiEndPoint}"
         if deploymentType == 'gpt35':
             llmChat = AzureChatOpenAI(
                         openai_api_base=baseUrl,
@@ -654,11 +652,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         return response
     
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"https://{OpenAiService}.openai.azure.com"
+        baseUrl = f"{OpenAiEndPoint}"
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = f"{OpenAiEndPoint}"
         if deploymentType == 'gpt35':
             completion = openai.ChatCompletion.create(
                 deployment_id=OpenAiChat,

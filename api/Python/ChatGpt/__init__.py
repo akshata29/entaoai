@@ -203,11 +203,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             )
     
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"https://{OpenAiService}.openai.azure.com"
+        baseUrl = f"{OpenAiEndPoint}"
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = baseUrl
 
         embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
         if deploymentType == 'gpt35':

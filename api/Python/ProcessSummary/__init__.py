@@ -110,7 +110,7 @@ def summarizeTopic(llm, query, promptTemplate, embeddings, embeddingModelType, i
             resultsDoc = [Document(page_content="No results found")]
         logging.info(f"Found {len(resultsDoc)} Pinecone results")
     elif indexType == 'cogsearchvs':                
-        r = performCogSearch(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, query, indexNs, topK)
+        r = performCogSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, query, indexNs, topK)
         if r == None:
             resultsDoc = [Document(page_content="No results found")]
         else :
@@ -153,7 +153,7 @@ def processTopicSummary(llm, fileName, indexNs, indexType, prospectusSummaryInde
     #     docs = textSplitter.split_documents(rawDocs)
     #     logging.info("Docs " + str(len(docs)))
     #     createSearchIndex(SearchService, SearchKey, prospectusIndexName)
-    #     indexSections(OpenAiService, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType,
+    #     indexSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType,
     #                    OpenAiEmbedding, fileName, prospectusIndexName, docs)
     # else:
     #     logging.info('Found existing data')
@@ -238,7 +238,7 @@ def summarizeTopics(indexNs, indexType, existingSummary, overrides):
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = f"{OpenAiEndPoint}"
 
         if deploymentType == 'gpt35':
             llm = AzureChatOpenAI(

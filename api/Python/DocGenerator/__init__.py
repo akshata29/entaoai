@@ -82,7 +82,7 @@ def summarizeGenerateQa(docs, embeddingModelType, deploymentType):
         openai.api_type = "azure"
         openai.api_key = OpenAiKey
         openai.api_version = OpenAiVersion
-        openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+        openai.api_base = f"{OpenAiEndPoint}"
 
         if deploymentType == 'gpt35':
             llm = AzureChatOpenAI(
@@ -197,7 +197,7 @@ def storeIndex(indexType, docs, fileName, nameSpace, embeddingModelType):
             openai.api_type = "azure"
             openai.api_key = OpenAiKey
             openai.api_version = OpenAiVersion
-            openai.api_base = f"https://{OpenAiService}.openai.azure.com"
+            openai.api_base = f"{OpenAiEndPoint}"
             embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding,
                     chunk_size=1,
                     openai_api_key=OpenAiKey)
