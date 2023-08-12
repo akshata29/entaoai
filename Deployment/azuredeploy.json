@@ -649,6 +649,18 @@
               "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ChatGpt?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
             },
             {
+              "name": "FMPKEY",
+              "value": "dummy"
+            },
+            {
+              "name": "CHATSTREAM_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/ChatGptStream?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
+              "name": "CHATGPT_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/OpenChatGpt?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
               "name": "DOCGENERATOR_URL",
               "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/DocGenerator?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
             },

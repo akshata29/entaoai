@@ -93,10 +93,12 @@ Verify http://localhost:5000 to confirm the App is running locally.
             "managementEndpointUrl": "https://management.core.windows.net/"
          }
       7. Copy and paste the json response from above Azure CLI to your GitHub Repository > Settings > Secrets > Add a new secret > AZURE_RBAC_CREDENTIALS
-      8. Replace pythonapi.yml file (stored in chatpdf/.github/workflows directory) with the content from [here](./Deployment/pythonapi.yml)
-      9. Trigger the workflow manually and verify the deployment is successful.
-      10. Replace backendapp.yml file (stored in chatpdf/.github/workflows directory) with the content from [here](./Deployment/backendapp.yml)
+      8. Setup AZURE_FUNCTIONAPP_NAME secret in your forked repository as the name of your Function App
+      9. Setup AZURE_WEBAPP_NAME secret in your forked repository as the name of your Azure App Service
+      10. Replace pythonapi.yml file (stored in chatpdf/.github/workflows directory) with the content from [here](./Deployment/pythonapi.yml)
       11. Trigger the workflow manually and verify the deployment is successful.
+      12. Replace backendapp.yml file (stored in chatpdf/.github/workflows directory) with the content from [here](./Deployment/backendapp.yml)
+      13. Trigger the workflow manually and verify the deployment is successful.
 
 
 **Note** - To debug and troubleshoot issues after the deployment, you can view the log in Live Metrics in application insights or enable running the Logs for the specific Azure Function.
