@@ -7,11 +7,12 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 import os
 from langchain.vectorstores import Pinecone
 import pinecone
+import litellm
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.docstore.document import Document
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
-from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI, ChatLiteLLM
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.prompts import PromptTemplate
 from Utilities.envVars import *
@@ -250,17 +251,30 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         openai.api_base = "https://api.openai.com/v1"
         openai.api_version = '2020-11-07' 
         openai.api_key = OpenAiApiKey
-        llmChat = ChatOpenAI(temperature=temperature,
+        llmChat = ChatLiteLLM(temperature=temperature,
                 openai_api_key=OpenAiApiKey,
                 max_tokens=tokenLength)
         embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
-        completion = openai.ChatCompletion.create(
+        completion = litellm.completion(
                 deployment_id=OpenAiChat,
                 model=gptModel,
                 messages=messages, 
                 temperature=0.0, 
                 max_tokens=32, 
                 n=1)
+    # Example usage of ChatLiteLLM
+    # elif embeddingModelType == "claude":
+    #     llmChat = ChatLiteLLM(model="claude-2"
+    #             temperature=temperature,
+    #             openai_api_key=OpenAiApiKey,
+    #             max_tokens=tokenLength)
+    #     completion = litellm.completion(
+    #             deployment_id=OpenAiChat,
+    #             model="claude-2",
+    #             messages=messages, 
+    #             temperature=0.0, 
+    #             max_tokens=32, 
+    #             n=1)
     
     try:
         # userToken = completion.usage.total_tokens

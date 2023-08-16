@@ -108,3 +108,4 @@ wrapt==1.14.1
 XlsxWriter==3.0.9
 yarl==1.8.2
 zipp==3.15.0
+litellm0==0.1.400
