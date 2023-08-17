@@ -1,0 +1,13 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+name: chatpdfenv
+image: dataaiamlwksstorcr.azurecr.io/azureml/azureml_d8f6f30a2be6a2159a2e9785e84553d7
+inference_config:
+  liveness_route:
+    port: 8080
+    path: /health
+  readiness_route:
+    port: 8080
+    path: /health
+  scoring_route:
+    port: 8080
+    path: /score

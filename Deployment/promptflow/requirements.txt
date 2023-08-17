@@ -10,8 +10,7 @@ azure-core==1.26.3
 azure-cosmos==4.4.0b1
 azure-functions-durable==1.2.4
 azure-identity==1.12.0
-#azure-search-documents==11.4.0b4
-./azure_search_documents-11.4.0b4-py3-none-any.whl
+azure-search-documents==11.4.0b8
 azure-storage-blob==12.16.0
 backoff==2.2.1
 beautifulsoup4==4.11.2
@@ -30,7 +29,7 @@ dataclasses-json==0.5.7
 Deprecated==1.2.13
 dnspython==2.3.0
 et-xmlfile==1.1.0
-fake-useragent==1.2.1
+fake-useragent==1.1.1
 filelock==3.9.0
 frozenlist==1.3.3
 greenlet==2.0.2
@@ -45,10 +44,7 @@ importlib-metadata==6.0.0
 isodate==0.6.1
 #jq==1.4.1
 joblib==1.2.0
-langchain==0.0.266
-langchain-experimental==0.0.9
-langsmith==0.0.23
-litellm==0.1.400
+langchain==0.0.177
 loguru==0.6.0
 lxml==4.9.2
 Markdown==3.4.1
@@ -64,7 +60,7 @@ mypy-extensions==1.0.0
 nltk==3.8.1
 numpy==1.23.5
 oauthlib==3.2.2
-openai==0.27.8
+openai==0.27.6
 openpyxl==3.1.2
 packaging==23.0
 pandas==1.5.3

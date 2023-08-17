@@ -12,7 +12,7 @@ from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.docstore.document import Document
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
-from langchain.chat_models import AzureChatOpenAI, ChatOpenAI, ChatLiteLLM
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.prompts import PromptTemplate
 from Utilities.envVars import *
@@ -98,24 +98,6 @@ def getMessagesFromHistory(systemPrompt: str, modelId: str, history: Sequence[di
             tokenLength += numTokenFromMessages(messages[appendIndex], modelId)
             if tokenLength > maxTokens:
                 break
-
-        # messageBuilder = MessageBuilder(systemPrompt, modelId)
-
-        # for shot in fewShots:
-        #     messageBuilder.append_message(shot.get('role'), shot.get('content'))
-
-        # userContent = userConv
-        # appendIndex = len(fewShots) + 1
-
-        # messageBuilder.append_message("user", userContent, index=appendIndex)
-
-        # for h in reversed(history[:-1]):
-        #     if h.get("bot"):
-        #         messageBuilder.append_message("assistant", h.get('bot'), index=appendIndex)
-        #     messageBuilder.append_message("user", h.get('user'), index=appendIndex)
-        #     if messageBuilder.token_length > maxTokens:
-        #         break
-        # messages = messageBuilder.messages
 
         return messages
 
@@ -251,11 +233,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         openai.api_base = "https://api.openai.com/v1"
         openai.api_version = '2020-11-07' 
         openai.api_key = OpenAiApiKey
-        llmChat = ChatLiteLLM(temperature=temperature,
+        llmChat = ChatOpenAI(temperature=temperature,
                 openai_api_key=OpenAiApiKey,
                 max_tokens=tokenLength)
         embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
-        completion = litellm.completion(
+        completion = openai.ChatCompletion.create(
                 deployment_id=OpenAiChat,
                 model=gptModel,
                 messages=messages, 

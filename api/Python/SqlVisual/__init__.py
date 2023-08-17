@@ -4,7 +4,7 @@ import openai
 import os
 from langchain.sql_database import SQLDatabase
 from langchain.prompts.prompt import PromptTemplate
-from langchain.chains import SQLDatabaseSequentialChain
+from langchain_experimental.sql import SQLDatabaseChain
 from langchain.chains import LLMChain
 from langchain.schema import AgentAction
 from Utilities.envVars import *

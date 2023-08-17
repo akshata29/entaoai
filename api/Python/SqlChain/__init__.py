@@ -5,7 +5,7 @@ from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 import os
 from langchain.sql_database import SQLDatabase
 from langchain.prompts.prompt import PromptTemplate
-from langchain.chains import SQLDatabaseSequentialChain
+from langchain_experimental.sql import SQLDatabaseChain
 from langchain.chains import LLMChain
 from langchain.schema import AgentAction
 from Utilities.envVars import *
@@ -108,7 +108,8 @@ def SqlChainAnswer(topK, question, embeddingModelType, value):
 
         # SqlDbChain = SQLDatabaseChain(llm=llm, database=db, prompt=SqlPrompt, verbose=True, return_intermediate_steps=True,
         #                               top_k=topK)
-        SqlDbChain = SQLDatabaseSequentialChain.from_llm(llm, db, verbose=True, return_intermediate_steps=True, 
+        
+        SqlDbChain = SQLDatabaseChain.from_llm(llm, db, verbose=True, return_intermediate_steps=True, 
                                                          query_prompt=SqlPrompt, top_k=topK)
         answer = SqlDbChain(question)
         parsedResult = parseAnswer(answer)
