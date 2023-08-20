@@ -1,8 +1,6 @@
 import openai
 from Utilities.envVars import *
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.llms.openai import AzureOpenAI, OpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.docstore.document import Document
 from langchain.prompts import PromptTemplate
 from langchain.utilities import BingSearchAPIWrapper
@@ -1146,7 +1144,6 @@ def PibSteps(step, symbol, embeddingModelType, overrides):
                     openai_api_type="azure",
                     max_tokens=tokenLength)
                 
-            embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
             logging.info("LLM Setup done")
         elif embeddingModelType == "openai":
             openai.api_type = "open_ai"
@@ -1157,7 +1154,6 @@ def PibSteps(step, symbol, embeddingModelType, overrides):
                 openai_api_key=OpenAiApiKey,
                 model_name="gpt-3.5-turbo",
                 max_tokens=tokenLength)
-            embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
         
         if step == "1":
             s1Data = processStep1(pibIndexName, cik, step, symbol, temperature, llm, today)

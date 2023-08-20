@@ -40,6 +40,11 @@ import boto3
 from typing import List
 from Utilities.envVars import *
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
+from langchain.text_splitter import MarkdownHeaderTextSplitter
+import glob
+import zipfile
+from pathlib import Path
+
 
 try:
     redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
@@ -198,9 +203,7 @@ def storeIndex(indexType, docs, fileName, nameSpace, embeddingModelType):
             openai.api_key = OpenAiKey
             openai.api_version = OpenAiVersion
             openai.api_base = f"{OpenAiEndPoint}"
-            embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding,
-                    chunk_size=1,
-                    openai_api_key=OpenAiKey)
+            embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, openai_api_key=OpenAiKey, openai_api_type="azure")
         elif embeddingModelType == "openai":
             #openai.debug = True
             #openai.log = 'debug'
@@ -360,6 +363,85 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
             except Exception as e:
                 logging.error("Error in processing file : " + str(e))
                 upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType,
+                                                                            "textSplitterType": textSplitterType, 
+                                                                            "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
+                                                                            "promptType": promptType, "singleFile": singleFile})
+                errorMessage = str(e)
+                return errorMessage
+        elif(loadType == "md"):
+            logging.info("Processing Markdown data")
+            filesData = GetAllFiles(value)
+            filesData = list(filter(lambda x : not x['embedded'], filesData))
+            filesData = list(map(lambda x: {'filename': x['filename']}, filesData))
+            try:
+                for file in filesData:
+                    logging.info(f"Adding {file['filename']} to Process")
+                    fileName = file['filename']
+                    if fileName.endswith('.zip'):
+                        # Download Zip File
+                        readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                        downloadPath = os.path.join(tempfile.gettempdir(), fileName)
+                        os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+                        try:
+                            with open(downloadPath, "wb") as file:
+                                file.write(readBytes)
+                        except Exception as e:
+                            errorMessage = str(e)
+                            logging.error(e)
+
+                        # Unzip the file
+                        zipDownloadPath = os.path.join(tempfile.gettempdir(), "Data\\Markdown\\" + Path(fileName).stem)
+                        os.makedirs(os.path.dirname(zipDownloadPath), exist_ok=True)
+                        try:
+                            with zipfile.ZipFile(downloadPath, 'r') as zipRef:
+                                    zipRef.extractall(zipDownloadPath)
+                        except Exception as e:
+                            print(e)
+                        markdownFiles = glob.glob(os.path.join(zipDownloadPath + "\\**", "*.md"), recursive=True)
+
+                        rawDocs = []
+                        for file in markdownFiles:
+                            try:
+                                with open(file, 'r', encoding="utf8") as f:
+                                        doc = f.read()
+
+                                headerSplit = [
+                                ("#", "Title"),
+                                ("##", "SubTitle"),
+                                ]
+                                markDownSplitter = MarkdownHeaderTextSplitter(headers_to_split_on=headerSplit)
+                                docs = markDownSplitter.split_text(doc)
+                                for doc in docs:
+                                    doc.metadata['source'] = Path(file).stem
+                                rawDocs = rawDocs + docs
+                                storeIndex(indexType, docs, Path(file).stem, indexGuId, embeddingModelType)
+                            except Exception as e:
+                                logging.info("Skipping file " + file + " as it is not a valid markdown file" + str(e))
+                                continue
+
+                        #fullPath = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                        # for doc in rawDocs:
+                        #     doc.metadata['source'] = fullPath
+
+                        logging.info("Perform Summarization and QA")
+                        qa, summary = summarizeGenerateQa(rawDocs, embeddingModelType, deploymentType)
+                        logging.info("Upsert metadata")
+                        metadata = {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, 
+                                    "indexName": indexName.replace("-", "_"),
+                                    "textSplitterType": textSplitterType, 
+                                    "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
+                                    "promptType": promptType,
+                                    "singleFile": singleFile}
+                        logging.info(str(metadata))
+                        upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                        try:
+                            metadata = {'summary': summary.replace("-", "_"), 'qa': qa.replace("-", "_")}
+                            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                        except:
+                            pass
+            except Exception as e:
+                logging.error("Error in processing file : " + str(e))
+                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType,
                                                                             "textSplitterType": textSplitterType, 
                                                                             "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                                                             "promptType": promptType, "singleFile": singleFile})

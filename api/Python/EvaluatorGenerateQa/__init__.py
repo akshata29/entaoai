@@ -26,7 +26,6 @@ import random
 import itertools
 import openai
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
 
 QaData = namedtuple('QaData', ['documentId', 'regenerateQa', 'fileName' ])
 
@@ -96,7 +95,6 @@ def main(qaData: QaData) -> list:
                     openai_api_key=OpenAiKey,
                     openai_api_type="azure",
                     max_tokens=tokenLength)
-            embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
             logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
             openai.api_type = "open_ai"
@@ -107,7 +105,6 @@ def main(qaData: QaData) -> list:
             openai_api_key=OpenAiApiKey,
             model_name="gpt-3.5-turbo",
             max_tokens=tokenLength)
-            embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
 
     # Now that we have indexed the documents, let's go ahead and create the set of the QA pairs for the document and store that in the index
     # We will use the same QA Pair for evaluating all the different chunk sizes and overlap

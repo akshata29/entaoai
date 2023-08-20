@@ -151,6 +151,10 @@ const ChatGpt = () => {
             text: 'prospectus'
         },
         {
+            key: 'productdocmd',
+            text: 'productdocmd'
+        },
+        {
           key: 'insurance',
           text: 'insurance'
         }
@@ -745,6 +749,8 @@ const ChatGpt = () => {
 
                 if (Number(item.chunkSize) > 4000) {
                     setSelectedDeploymentType(deploymentTypeOptions[1])
+                } else {
+                    setSelectedDeploymentType(deploymentTypeOptions[0])
                 }
 
                 getCosmosSession(item?.key, item?.iType)
@@ -789,6 +795,8 @@ const ChatGpt = () => {
 
                 if (Number(item.chunkSize) > 4000) {
                     setSelectedDeploymentType(deploymentTypeOptions[1])
+                } else {
+                    setSelectedDeploymentType(deploymentTypeOptions[0])
                 }
 
                 getCosmosSession(item?.key, item?.iType)
@@ -972,6 +980,18 @@ const ChatGpt = () => {
 
         """`
 
+        const productDocMdPrompt = `"""You are an AI assistant tasked with answering questions and summarizing information for 
+        product or service from documentations and knowledge base.
+        Your answer should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
+        Please generate a concise and comprehensive information that includes details about the product or service.
+        Please remember to use clear language and maintain the integrity of the original information without missing any important details
+        QUESTION: {question}
+        =========
+        {summaries}
+        =========
+
+        """`
+
         if (promptType == "generic") {
             setPromptTemplate(genericPrompt)
         }
@@ -983,6 +1003,8 @@ const ChatGpt = () => {
             setPromptTemplate(financialTablePrompt)
         } else if (promptType == "prospectus") {
             setPromptTemplate(prospectusPrompt)
+        } else if (promptType == "productdocmd") {
+            setPromptTemplate(productDocMdPrompt)
         } else if (promptType == "custom") {
             setPromptTemplate("")
         }

@@ -75,7 +75,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                         openai_api_type="azure",
                         max_tokens=tokenLength)
                 
-            embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+            embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, openai_api_key=OpenAiKey, openai_api_type="azure")
             logging.info("LLM Setup done")
         elif embeddingModelType == "openai":
             openai.api_type = "open_ai"

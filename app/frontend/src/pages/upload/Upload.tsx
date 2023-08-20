@@ -47,6 +47,7 @@ const Upload = () => {
     const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
     const [multipleDocs, setMultipleDocs] = useState(false);
+    const [isMarkDown, setIsMarkDown] = useState(false);
     const [existingIndex, setExistingIndex] = useState(false);
 
     const [indexName, setIndexName] = useState('');
@@ -194,6 +195,10 @@ const Upload = () => {
         text: 'prospectus'
       },
       {
+        key: 'productdocmd',
+        text: 'productdocmd'
+      },
+      {
         key: 'insurance',
         text: 'insurance'
       }
@@ -280,12 +285,13 @@ const Upload = () => {
 
     const { getRootProps, getInputProps } = useDropzone({
         multiple: true,
-        maxSize: 100000000,
+        maxSize: 500000000,
         accept: {
           'application/pdf': ['.pdf'],
           'application/word': ['.doc', '.docx'],
           'application/csv': ['.csv'],
-          'text/plain': ['.txt']
+          'text/plain': ['.txt'],
+          'application/zip': ['.zip'],
         },
         onDrop: acceptedFiles => {
           setFiles(acceptedFiles.map(file => Object.assign(file)))
@@ -456,7 +462,7 @@ const Upload = () => {
           })
           setUploadText("File uploaded successfully.  Now indexing the document.")
 
-          await processDoc(String(selectedItem?.key), "files", (files.length > 1 ? "true" : "false"), 
+          await processDoc(String(selectedItem?.key), isMarkDown ? "md" : "files", (files.length > 1 ? "true" : "false"), 
           existingIndex ? existingIndexName : indexName, files,
           blobConnectionString, blobContainer, blobPrefix, blobName,
           s3Bucket, s3Key, s3AccessKey, s3SecretKey, s3Prefix,
@@ -713,6 +719,10 @@ const Upload = () => {
         setMultipleDocs(!!checked);
     };
 
+    const onMarkDown = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
+      setIsMarkDown(!!checked);
+  };
+
     const onExistingIndex = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean): void => {
       setExistingIndex(!!checked);
       checked ? setIndexName(selectedPdf ? selectedPdf.text as string : optionsPdf[0].text as string) : setIndexName('')
@@ -945,6 +955,8 @@ const Upload = () => {
                   <Stack enableScopedSelectors styles={stackStyles} tokens={innerStackTokens}>
                     <Stack.Item grow={2} styles={stackItemStyles}>
                       <Checkbox label="Multiple Documents" checked={multipleDocs} onChange={onMultipleDocs} />
+                      &nbsp;
+                      <Checkbox label="Is Markdown" checked={isMarkDown} onChange={onMarkDown} />
                     </Stack.Item>
                     <Stack.Item grow={2} styles={stackItemStyles}>
                       <TextField onChange={onChangeIndexName} value={indexName}
@@ -956,10 +968,10 @@ const Upload = () => {
                 <div className={styles.commandsContainer}>
                 </div>
                 <div>
-                    <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF/text/CSV/Word Document file</h2>
+                    <h2 className={styles.chatEmptyStateSubtitle}>Upload your PDF/text/CSV/Word/Markdown(Zip) Document file</h2>
                     <h2 {...getRootProps({ className: 'dropzone' })}>
                         <input {...getInputProps()} />
-                            Drop PDF/text/CSV/Word Document file here or click to upload. (Max file size 100 MB)
+                            Drop PDF/text/CSV/Word/Markdown(Zip) Document file here or click to upload. (Max file size 100 MB)
                     </h2>
                     {files.length ? (
                         <Card>

@@ -28,7 +28,6 @@ import random
 import itertools
 import openai
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.evaluation.qa import QAEvalChain
 from Utilities.evaluator import searchEvaluatorRunIndex, createEvaluatorRunIndex, getEvaluatorResult
 
@@ -304,7 +303,6 @@ def main(runDocs: RunDocs) -> str:
                     openai_api_key=OpenAiKey,
                     openai_api_type="azure",
                     max_tokens=tokenLength)
-            embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
             logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
             openai.api_type = "open_ai"
@@ -315,7 +313,6 @@ def main(runDocs: RunDocs) -> str:
             openai_api_key=OpenAiApiKey,
             model_name="gpt-3.5-turbo",
             max_tokens=tokenLength)
-            embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
 
     # Select retriever
     createEvaluatorResultIndex(SearchService, SearchKey, evaluatorRunResultIndexName)

@@ -192,7 +192,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         openai.api_version = OpenAiVersion
         openai.api_base = baseUrl
 
-        embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
+        embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, openai_api_key=OpenAiKey, openai_api_type="azure")
         if deploymentType == 'gpt35':
             llmChat = AzureChatOpenAI(
                         openai_api_base=baseUrl,

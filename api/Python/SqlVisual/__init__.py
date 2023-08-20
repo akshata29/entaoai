@@ -8,7 +8,6 @@ from langchain_experimental.sql import SQLDatabaseChain
 from langchain.chains import LLMChain
 from langchain.schema import AgentAction
 from Utilities.envVars import *
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 import pandas as pd
 from typing import List

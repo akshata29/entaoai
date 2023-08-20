@@ -3,7 +3,6 @@ import logging, json, os
 import uuid
 import azure.functions as func
 import openai
-from langchain.embeddings.openai import OpenAIEmbeddings
 import os
 from langchain.vectorstores import Pinecone
 import pinecone
@@ -177,7 +176,6 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
         openai.api_version = OpenAiVersion
         openai.api_base = f"{OpenAiEndPoint}"
 
-        embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, chunk_size=1, openai_api_key=OpenAiKey)
         if deploymentType == 'gpt35':
             llmChat = AzureChatOpenAI(
                         openai_api_base=baseUrl,
@@ -221,7 +219,6 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
         llmChat = ChatOpenAI(temperature=temperature,
                 openai_api_key=OpenAiApiKey,
                 max_tokens=tokenLength)
-        embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
         completion = openai.ChatCompletion.create(
                 deployment_id=OpenAiChat,
                 model=gptModel,

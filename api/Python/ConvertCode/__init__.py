@@ -2,7 +2,6 @@ import logging, json, os
 import azure.functions as func
 import openai
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
 import os
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
