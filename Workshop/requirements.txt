@@ -10,7 +10,7 @@ bs4==0.0.1
 jq==1.4.1
 joblib==1.2.0
 langchain==0.0.177
-openai==0.27.6
+openai==0.27.8
 pandas==1.5.3
 pathos==0.2.9
 ./embeddingstore-0.0.101742157-py3-none-any.whl
