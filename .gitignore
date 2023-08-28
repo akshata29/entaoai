@@ -148,3 +148,5 @@ config.json
 local.settings.json
 Workshop/Data/PDF/Bumble Bee.pdf
 Workshop/Data/Markdown/security.zip
+Workshop/promptflow/chatpdf.yml
+Workshop/promptflow/dataaioaicg.yml

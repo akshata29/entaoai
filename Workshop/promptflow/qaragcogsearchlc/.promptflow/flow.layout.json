@@ -1,0 +1,65 @@
+{
+  "nodeLayouts": {
+    "inputs": {
+      "x": 666.5,
+      "y": 62,
+      "index": -1
+    },
+    "outputs": {
+      "x": 188.5,
+      "y": 832,
+      "index": -1
+    },
+    "parse_postBody": {
+      "x": 232.5,
+      "y": 172,
+      "index": 1
+    },
+    "vector_type": {
+      "x": 394.25,
+      "y": 882,
+      "index": -1
+    },
+    "extract_topk": {
+      "x": 415.5,
+      "y": 282,
+      "index": 3
+    },
+    "extract_prompttemplate": {
+      "x": 304.5,
+      "y": 502,
+      "index": 7
+    },
+    "create_llm": {
+      "x": 23,
+      "y": 502,
+      "index": 0
+    },
+    "embed_the_question": {
+      "x": 765.5,
+      "y": 282,
+      "index": 6
+    },
+    "search_question_from_vectordb": {
+      "x": 760,
+      "y": 392,
+      "index": 2
+    },
+    "generate_prompt_context": {
+      "x": 760,
+      "y": 502,
+      "index": 8
+    },
+    "answer_the_question": {
+      "x": 348.5,
+      "y": 612,
+      "index": 4
+    },
+    "followup_questions": {
+      "x": 188.5,
+      "y": 722,
+      "index": 5
+    }
+  },
+  "orientation": "Vertical"
+}

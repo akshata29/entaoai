@@ -5,6 +5,7 @@
 		}
 	],
 	"settings": {
-		"debug.internalConsoleOptions": "neverOpen"
+		"debug.internalConsoleOptions": "neverOpen",
+		"python.terminal.activateEnvironment": true
 	}
 }

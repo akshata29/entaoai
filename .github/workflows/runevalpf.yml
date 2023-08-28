@@ -1,0 +1,94 @@
+name: Test and Evaluate Prompts with PromptFlow
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+env: 
+  GROUP: ${{secrets.GROUP}}
+  WORKSPACE: ${{secrets.WORKSPACE}}
+  SUBSCRIPTION: ${{secrets.SUBSCRIPTION}}
+  RUN_NAME: qaragcogsearchlc
+  EVAL_RUN_NAME: qaragcogsearchlc_eval
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  login-and-run-and-evalpf:
+    runs-on: ubuntu-latest 
+    steps:
+    - name: check out repo
+      uses: actions/checkout@v2
+    - name: install az ml extension
+      run: az extension add -n ml -y
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_RBAC_CREDENTIALS}}
+    - name: Set up Python
+      uses: actions/setup-python@v3.0.0
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: list current directory
+      run: ls
+    - name: install promptflow
+      run: pip install -r Workshop/requirements.txt
+    - name: run promptflow
+      run: |
+        pfazure run create -f promptflow/web-classification/run.yml --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --stream > promptflow/llmops-helper/run_info.txt
+        cat promptflow/llmops-helper/run_info.txt
+    - name: set run name
+      run: |
+        echo "RUN_NAME=$(python promptflow/llmops-helper/parse_run_output.py run_info.txt)" >> "$GITHUB_ENV"
+    - name: show the current run name
+      run: echo "Run name is:" ${{env.RUN_NAME}}
+    - name: show promptflow results
+      run: pfazure run show-details --name ${{env.RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+    - name: run promptflow evaluations
+      run: pfazure run create -f promptflow/web-classification/run_evaluation.yml --run ${{env.RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --stream > promptflow/llmops-helper/eval_info.txt 
+    - name: get eval run name
+      run: export EVAL_RUN_NAME=$(python promptflow/llmops-helper/parse_run_output.py eval_info.txt)
+    - name: show promptflow details
+      run: pfazure run show-details --name ${{env.EVAL_RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+    - name: show promptflow metrics
+      run: pfazure run show-metrics --name ${{env.EVAL_RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} > promptflow/llmops-helper/eval_result.json 
+  
+  assert-and-register-model:
+    needs: login-and-run-and-evalpf
+    runs-on: ubuntu-latest 
+    steps:
+    - name: check out repo
+      uses: actions/checkout@v2
+    - name: install az ml extension
+      run: az extension add -n ml -y
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_RBAC_CREDENTIALS}}
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: set default subscription
+      run: |
+            az account set -s ${{env.SUBSCRIPTION}}
+    - name: list current directory
+      run: ls
+    - name: install promptflow
+      run: pip install -r Workshop/requirements.txt
+    - name: get assert eval results
+      id: jobMetricAssert
+      run: |
+            export ASSERT=$(python promptflow/llmops-helper/assert.py result.json 0.6) # NOTE <file>.json is the file name and decimal is the threshold for the assertion
+            echo "::debug::Assert has returned the following value: $ASSERT"
+            # assert.py will return True or False, but bash expects lowercase.
+            if ${ASSERT,,} ; then
+              echo "::debug::Prompt flow run met the quality bar and can be deployed."
+              echo "::set-output name=result::true"
+            else
+              echo "::warning::Prompt flow run didn't meet quality bar."
+              echo "::set-output name=result::false"
+            fi
+    # - name: register promptflow model
+    #   if: ${{ steps.jobMetricAssert.outputs.result == 'true' }}
+    #   run: az ml model create --file promptflow/deployment/model.yaml  -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
