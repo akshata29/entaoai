@@ -11,6 +11,7 @@ env:
   SUBSCRIPTION: ${{secrets.SUBSCRIPTION}}
   RUN_NAME: qaragcogsearchlc
   EVAL_RUN_NAME: qaragcogsearchlc_eval
+  WORKSHOP_PATH: 'Workshop'
   PYTHON_VERSION: '3.9'
 
 jobs:
@@ -25,31 +26,50 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{secrets.AZURE_RBAC_CREDENTIALS}}
-    - name: Set up Python
+
+    - name: Set up Python version
       uses: actions/setup-python@v3.0.0
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    - name: list current directory
-      run: ls
-    - name: install promptflow
-      run: pip install -r Workshop/requirements.txt
+        cache: 'pip'
+
+    - name: Create and start virtual environment
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+
+    - name: 'Resolve Project Dependencies Using Pip'
+      shell: bash
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        popd
+          
     - name: run promptflow
       run: |
         pfazure run create -f promptflow/web-classification/run.yml --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --stream > promptflow/llmops-helper/run_info.txt
         cat promptflow/llmops-helper/run_info.txt
+        
     - name: set run name
       run: |
         echo "RUN_NAME=$(python promptflow/llmops-helper/parse_run_output.py run_info.txt)" >> "$GITHUB_ENV"
+        
     - name: show the current run name
       run: echo "Run name is:" ${{env.RUN_NAME}}
+      
     - name: show promptflow results
       run: pfazure run show-details --name ${{env.RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+      
     - name: run promptflow evaluations
       run: pfazure run create -f promptflow/web-classification/run_evaluation.yml --run ${{env.RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --stream > promptflow/llmops-helper/eval_info.txt 
+      
     - name: get eval run name
       run: export EVAL_RUN_NAME=$(python promptflow/llmops-helper/parse_run_output.py eval_info.txt)
+      
     - name: show promptflow details
       run: pfazure run show-details --name ${{env.EVAL_RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+      
     - name: show promptflow metrics
       run: pfazure run show-metrics --name ${{env.EVAL_RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} > promptflow/llmops-helper/eval_result.json 
   
