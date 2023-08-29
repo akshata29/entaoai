@@ -33,7 +33,7 @@ jobs:
     - name: azure login
       uses: azure/login@v1
       with:
-        creds: ${{secrets.AZURE_CREDENTIALS}}
+        creds: ${{secrets.AZURE_RBAC_CREDENTIALS}}
 
     - name: set default subscription
       run: |
