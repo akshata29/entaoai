@@ -1,11 +1,11 @@
 $schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.schema.json
 name: blue
-endpoint_name: qaragcogsearchls-7272ff
-model: azureml:qaragcogsearchls-model:1
+endpoint_name: qaragcogsearchlc-7272ff
+model: azureml:qaragcogsearchlc-model:1
   # You can also specify model files path inline
   # path: examples/flows/chat/basic-chat
 environment: 
-  image: mcr.microsoft.com/azureml/promptflow/promptflow-runtime:20230808.v1
+  image: akshata13/chatpdfenv:latest
   # inference config is used to build a serving container for online deployments
   inference_config:
     liveness_route:
