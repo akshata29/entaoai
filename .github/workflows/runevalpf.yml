@@ -83,8 +83,8 @@ jobs:
     # - name: show promptflow details
     #   run: pfazure run show-details --name ${{env.EVAL_RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
       
-    - name: show promptflow metrics
-      run: pfazure run show-metrics --name ${{env.EVAL_RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} > promptflow/llmops-helper/eval_result.json 
+    # - name: show promptflow metrics
+    #   run: pfazure run show-metrics --name ${{env.EVAL_RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} > promptflow/llmops-helper/eval_result.json 
   
   assert-and-register-model:
     needs: login-and-run-and-evalpf
