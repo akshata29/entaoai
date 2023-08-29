@@ -48,18 +48,28 @@ jobs:
           
     - name: run promptflow
       run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
         pfazure run create -f promptflow/qaragcogsearchlc/run.yml --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --stream > promptflow/llmops-helper/run_info.txt
         cat promptflow/llmops-helper/run_info.txt
+        popd
         
     - name: set run name
       run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
         echo "RUN_NAME=$(python promptflow/llmops-helper/parse_run_output.py run_info.txt)" >> "$GITHUB_ENV"
+        popd
         
     - name: show the current run name
-      run: echo "Run name is:" ${{env.RUN_NAME}}
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
+        echo "Run name is:" ${{env.RUN_NAME}}
+        popd
       
     - name: show promptflow results
-      run: pfazure run show-details --name ${{env.RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
+        pfazure run show-details --name ${{env.RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+        popd
       
     # - name: run promptflow evaluations
     #   run: pfazure run create -f promptflow/qaragcogsearchlc/run_evaluation.yml --run ${{env.RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --stream > promptflow/llmops-helper/eval_info.txt 
