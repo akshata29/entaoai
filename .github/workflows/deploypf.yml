@@ -1,0 +1,79 @@
+name: Deploy Prompts with Promptflow
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["runevalpf"]
+    branches: [main]
+    types:
+      - completed
+
+env: 
+  GROUP: ${{secrets.GROUP}}
+  WORKSPACE: ${{secrets.WORKSPACE}}
+  SUBSCRIPTION: ${{secrets.SUBSCRIPTION}}
+  RUN_NAME: qaragcogsearchlc
+  EVAL_RUN_NAME: qaragcogsearchlc_eval
+  ENDPOINT_NAME: qaragcogsearchlc
+  WORKSHOP_PATH: 'Workshop'
+  PYTHON_VERSION: '3.9'
+
+
+jobs:
+  create-endpoint-and-deploy-pf:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }} 
+    steps:
+    - name: check out repo
+      uses: actions/checkout@v2
+
+    - name: install az ml extension
+      run: az extension add -n ml -y
+
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+
+    - name: set default subscription
+      run: |
+         az account set -s ${{env.SUBSCRIPTION}}
+
+    - name: create Hash
+      run: echo "HASH=$(echo -n $RANDOM | sha1sum | cut -c 1-6)" >> "$GITHUB_ENV"
+
+    - name: create unique endpoint name   
+      run: echo "ENDPOINT_NAME=$(echo 'qaragcogsearchlc-'$HASH)" >> "$GITHUB_ENV"
+
+    - name: display endpoint name
+      run: echo "Endpoint name is:" ${{env.ENDPOINT_NAME}}
+
+    - name: setup endpoint
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
+        az ml online-endpoint create --file promptflow/deployment/endpoint.yaml  --name ${{env.ENDPOINT_NAME}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+        popd
+
+    - name: setup deployment
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
+        az ml online-deployment create --file promptflow/deployment/deployment.yaml --endpoint-name ${{env.ENDPOINT_NAME}} --all-traffic -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+        popd
+
+    - name: check the status of the endpoint
+      run: | 
+        pushd './${{ env.WORKSHOP_PATH }}'
+        az ml online-endpoint show -n ${{env.ENDPOINT_NAME}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+        popd
+      
+    - name: check the status of the deployment
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
+        az ml online-deployment get-logs --name blue --endpoint-name ${{env.ENDPOINT_NAME}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+        popd
+
+    - name: invoke model
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
+        az ml online-endpoint invoke --name ${{env.ENDPOINT_NAME}} --request-file promptflow/deployment/sample-request.json  -g ${{env.GROUP}} -w ${{env.WORKSPACE}} 
+        popd

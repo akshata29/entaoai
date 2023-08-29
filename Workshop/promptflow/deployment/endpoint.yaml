@@ -1,3 +1,3 @@
 $schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
-name: qaragcogsearchlc-endpoint
+name: qaragcogsearchlc
 auth_mode: key
