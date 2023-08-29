@@ -144,8 +144,8 @@ nodes:
     tool: promptflow.tools.embedding.embedding
   inputs:
     connection: fpdoaoaice
-    deployment_name: embedding
     input: ${flow.question}
+    deployment_name: embedding
   aggregation: false
   use_variants: false
 - name: extract_prompttemplate
