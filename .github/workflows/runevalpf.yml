@@ -140,4 +140,7 @@ jobs:
     
     - name: register promptflow model
       if: ${{ steps.jobMetricAssert.outputs.result == 'true' }}
-      run: az ml model create --file promptflow/deployment/model.yaml  -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}' 
+        az ml model create --file promptflow/deployment/model.yaml  -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+        popd
