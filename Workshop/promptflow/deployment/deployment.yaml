@@ -25,8 +25,8 @@ environment_variables:
   PROMPTFLOW_RUN_MODE: serving
 
   # for pulling connections from workspace
-  #PRT_CONFIG_OVERRIDE: deployment.subscription_id=e2171f6d-2650-45e6-af7e-6d6e44ca92b1,deployment.resource_group=dataai,deployment.workspace_name=dataaiamlwks,deployment.endpoint_name=qaragcogsearchlc,deployment.deployment_name=blue
-  PRT_CONFIG_OVERRIDE: deployment.subscription_id=<sub-id>,deployment.resource_group=o<resource-group>,deployment.workspace_name=<workspace-name>,deployment.endpoint_name=<endpoint-name>,deployment.deployment_name=<deployment-name>
+  PRT_CONFIG_OVERRIDE: deployment.subscription_id=e2171f6d-2650-45e6-af7e-6d6e44ca92b1,deployment.resource_group=dataai,deployment.workspace_name=dataaiamlwks
+  #PRT_CONFIG_OVERRIDE: deployment.subscription_id=<sub-id>,deployment.resource_group=o<resource-group>,deployment.workspace_name=<workspace-name>,deployment.endpoint_name=<endpoint-name>,deployment.deployment_name=<deployment-name>
 
   # (Optional) When there are multiple fields in the response, using this env variable will filter the fields to expose in the response.
   # For example, if there are 2 flow outputs: "answer", "context", and I only want to have "answer" in the endpoint response, I can set this env variable to '["answer"]'.
