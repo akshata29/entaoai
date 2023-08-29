@@ -17,6 +17,7 @@ pathos==0.2.9
 ./embeddingstore-0.0.101742157-py3-none-any.whl
 ./promptflow-0.0.102743149-py3-none-any.whl
 ./promptflow_tools-0.1.0b4-py3-none-any.whl
+./promptflow_vectordb-0.1.1-py3-none-any.whl
 pdfminer.six==20221105
 Pillow==9.4.0
 regex==2022.10.31

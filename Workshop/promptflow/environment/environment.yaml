@@ -1,6 +1,6 @@
 $schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
 name: chatpdfenv
-image: dataaiamlwksstorcr.azurecr.io/azureml/azureml_d8f6f30a2be6a2159a2e9785e84553d7
+image: akshata13/chatpdfenv:latest
 inference_config:
   liveness_route:
     port: 8080

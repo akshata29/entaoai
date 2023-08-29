@@ -94,16 +94,15 @@ nodes:
 - name: search_question_from_vectordb
   type: python
   source:
-    type: package
-    tool: embeddingstore.tool.vector_db_lookup.VectorDBLookup.search
+    type: code
+    path: search_question_from_vectordb.py
   inputs:
-    connection: dataaioaicg
-    index_name: ${inputs.indexNs}
-    text_field: content
-    top_k: ${extract_topk.output}
-    vector: ${embed_the_question.output}
-    vector_field: contentVector
-  use_variants: false
+    question: ${inputs.question}
+    embeddedQuestion: ${embed_the_question.output}
+    conn: chatpdf
+    indexType: ${inputs.indexType}
+    indexNs: ${inputs.indexNs}
+    topK: ${extract_topk.output}
 - name: extract_topk
   type: python
   source:
@@ -122,7 +121,7 @@ nodes:
     overrides: ${parse_postBody.output}
     promptTemplate: ${extract_prompttemplate.output}
     question: ${inputs.question}
-    retrievedDocs: ${generate_prompt_context.output}
+    retrievedDocs: ${search_question_from_vectordb.output}
   use_variants: false
 - name: followup_questions
   type: python
@@ -135,7 +134,7 @@ nodes:
     overrides: ${parse_postBody.output}
     promptTemplate: ${extract_prompttemplate.output}
     question: ${inputs.question}
-    retrievedDocs: ${generate_prompt_context.output}
+    retrievedDocs: ${search_question_from_vectordb.output}
   use_variants: false
 - name: embed_the_question
   type: python
@@ -155,13 +154,4 @@ nodes:
     path: extract_prompttemplate.py
   inputs:
     overrides: ${parse_postBody.output}
-  use_variants: false
-- name: generate_prompt_context
-  type: python
-  source:
-    type: code
-    path: generate_prompt_context.py
-  inputs:
-    search_result: ${search_question_from_vectordb.output}
-  aggregation: false
   use_variants: false

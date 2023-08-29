@@ -1,0 +1,10 @@
+az login(optional)
+az account set --subscription "astalatiext"
+az configure --defaults workspace=dataaiamlwks group=dataai
+az ml environment create -f environment_build.yaml --subscription astalatiext -g dataai -w dataaiamlwks
+docker login dataaiamlwksstorcr.azurecr.io/azureml/azureml_8059bbe001359e5667651b2ac6ff004c (use login/password from Azure Portal -> Container Reg)
+docker pull dataaiamlwksstorcr.azurecr.io/azureml/azureml_8059bbe001359e5667651b2ac6ff004c
+docker login docker.io
+docker tag dataaiamlwksstorcr.azurecr.io/azureml/azureml_8059bbe001359e5667651b2ac6ff004c akshata13/chatpdfenv
+docker push akshata13/chatpdfenv:latest
+az ml environment create -f environment.yaml --subscription astalatiext -g dataai -w dataaiamlwks

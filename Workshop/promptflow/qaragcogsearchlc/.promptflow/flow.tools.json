@@ -54,64 +54,6 @@
       },
       "package": "promptflow-tools",
       "package_version": "0.1.0b4"
-    },
-    "embeddingstore.tool.vector_db_lookup.VectorDBLookup.search": {
-      "name": "Vector DB Lookup",
-      "description": "Search vector based query from existing Vector Database.",
-      "type": "python",
-      "module": "embeddingstore.tool.vector_db_lookup",
-      "class_name": "VectorDBLookup",
-      "function": "search",
-      "inputs": {
-        "connection": {
-          "type": [
-            "CognitiveSearchConnection"
-          ]
-        },
-        "index_name": {
-          "default": null,
-          "type": [
-            "string"
-          ]
-        },
-        "text_field": {
-          "default": null,
-          "type": [
-            "string"
-          ]
-        },
-        "vector_field": {
-          "default": null,
-          "type": [
-            "string"
-          ]
-        },
-        "search_params": {
-          "default": null,
-          "type": [
-            "object"
-          ]
-        },
-        "search_filters": {
-          "default": null,
-          "type": [
-            "object"
-          ]
-        },
-        "vector": {
-          "type": [
-            "list"
-          ]
-        },
-        "top_k": {
-          "default": "3",
-          "type": [
-            "int"
-          ]
-        }
-      },
-      "package": "embeddingstore",
-      "package_version": "0.0.101742157"
     }
   },
   "code": {
@@ -260,6 +202,43 @@
       },
       "source": "extract_topk.py",
       "function": "extractTopK"
+    },
+    "search_question_from_vectordb.py": {
+      "type": "python",
+      "inputs": {
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "embeddedQuestion": {
+          "type": [
+            "object"
+          ]
+        },
+        "indexType": {
+          "type": [
+            "string"
+          ]
+        },
+        "indexNs": {
+          "type": [
+            "string"
+          ]
+        },
+        "topK": {
+          "type": [
+            "int"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        }
+      },
+      "source": "search_question_from_vectordb.py",
+      "function": "searchVectorDb"
     }
   }
 }

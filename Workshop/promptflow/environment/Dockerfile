@@ -1,3 +1,3 @@
 FROM mcr.microsoft.com/azureml/promptflow/promptflow-runtime:latest
-COPY ./* ./
+COPY * ./
 RUN pip install -r requirements.txt
