@@ -18,10 +18,13 @@ jobs:
   login-and-run-and-evalpf:
     runs-on: ubuntu-latest 
     steps:
+    
     - name: check out repo
       uses: actions/checkout@v2
+      
     - name: install az ml extension
       run: az extension add -n ml -y
+      
     - name: azure login
       uses: azure/login@v1
       with:
@@ -134,6 +137,7 @@ jobs:
               echo "::warning::Prompt flow run didn't meet quality bar."
               echo "::set-output name=result::false"
             fi
+    
     # - name: register promptflow model
     #   if: ${{ steps.jobMetricAssert.outputs.result == 'true' }}
     #   run: az ml model create --file promptflow/deployment/model.yaml  -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
