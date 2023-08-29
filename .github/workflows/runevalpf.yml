@@ -138,6 +138,6 @@ jobs:
               echo "::set-output name=result::false"
             fi
     
-    # - name: register promptflow model
-    #   if: ${{ steps.jobMetricAssert.outputs.result == 'true' }}
-    #   run: az ml model create --file promptflow/deployment/model.yaml  -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+    - name: register promptflow model
+      if: ${{ steps.jobMetricAssert.outputs.result == 'true' }}
+      run: az ml model create --file promptflow/deployment/model.yaml  -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
