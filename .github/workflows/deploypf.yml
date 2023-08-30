@@ -42,11 +42,11 @@ jobs:
     - name: create Hash
       run: echo "HASH=$(echo -n $RANDOM | sha1sum | cut -c 1-6)" >> "$GITHUB_ENV"
 
-    - name: create unique endpoint name   
-      run: echo "ENDPOINT_NAME=$(echo 'qaragcogsearchlc-'$HASH)" >> "$GITHUB_ENV"
+    # - name: create unique endpoint name   
+    #   run: echo "ENDPOINT_NAME=$(echo 'qaragcogsearchlc-'$HASH)" >> "$GITHUB_ENV"
 
-    - name: display endpoint name
-      run: echo "Endpoint name is:" ${{env.ENDPOINT_NAME}}
+    # - name: display endpoint name
+    #   run: echo "Endpoint name is:" ${{env.ENDPOINT_NAME}}
 
     - name: setup endpoint
       run: |

@@ -1,3 +1,8 @@
 $schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
 name: qaragcogsearchlc
+identity:
+    type: user_assigned
+    user_assigned_identities:
+        - resource_id: /subscriptions/e2171f6d-2650-45e6-af7e-6d6e44ca92b1/resourcegroups/dataai/providers/Microsoft.ManagedIdentity/userAssignedIdentities/chatpdfuami
+    
 auth_mode: key
