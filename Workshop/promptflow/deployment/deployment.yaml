@@ -23,7 +23,7 @@ instance_count: 1
 environment_variables:
   # "compute" mode is the default mode, if you want to deploy to serving mode, you need to set this env variable to "serving"
   PROMPTFLOW_RUN_MODE: serving
-  UAI_CLIENT_ID: dfd89515-f588-441f-9cbd-3f0082572e5c
+  #UAI_CLIENT_ID: dfd89515-f588-441f-9cbd-3f0082572e5c
 
   # for pulling connections from workspace
   PRT_CONFIG_OVERRIDE: deployment.subscription_id=e2171f6d-2650-45e6-af7e-6d6e44ca92b1,deployment.resource_group=dataai,deployment.workspace_name=dataaiamlwks,deployment.endpoint_name=qaragcogsearchlc,deployment.deployment_name=blue,deployment.mt_service_endpoint=https://southcentralus.api.azureml.ms,deployment.runtime_name=dataaichatpdf
