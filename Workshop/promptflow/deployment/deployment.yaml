@@ -26,7 +26,7 @@ environment_variables:
   PROMPTFLOW_RUN_MODE: serving
   #UAI_CLIENT_ID: dfd89515-f588-441f-9cbd-3f0082572e5c
   AZURE_CLIENT_ID: e17108b7-9cb4-4b54-b57c-e2be41c99910
-  PROMPTFLOW_RESPONSE_INCLUDED_FIELDS: '["\output\"]'
+  PROMPTFLOW_RESPONSE_INCLUDED_FIELDS: '["output"]'
   RUN_MODE: serving
 
   # for pulling connections from workspace
