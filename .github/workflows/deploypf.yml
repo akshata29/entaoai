@@ -65,7 +65,7 @@ jobs:
       run: echo "UAMI_ID=$(echo $UAMIID)" >> "$GITHUB_ENV"
 
     - name: Get Latest Model Version
-      run: echo "MODEL_VER=$(az ml model list --max-results 1 --query "[0].version" --name qaragcogsearchlc-model --output tsv)" >> "$GITHUB_ENV"
+      run: echo "MODEL_VER=$(az ml model list --max-results 1 --query "[0].version" --name qaragcogsearchlc-model -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --output tsv)" >> "$GITHUB_ENV"
 
     - name: Build Fully qualified Model  
       run: echo "MODEL_NAME=$(echo 'azureml:qaragcogsearchlc-model:'$MODEL_VER)" >> "$GITHUB_ENV"
