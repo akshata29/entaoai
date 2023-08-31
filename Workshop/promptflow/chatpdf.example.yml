@@ -18,3 +18,6 @@ configs:
   SearchService: "<SearchServiceName>"
 secrets:  # required
   OpenAiKey: "<AOAIKey>"
+  SearchKey: "<SearchKey>""
+  PineconeKey: "<PineConeKey>""
+  RedisPassword: "<RedisPassword>"

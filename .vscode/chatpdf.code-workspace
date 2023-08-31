@@ -6,6 +6,10 @@
 	],
 	"settings": {
 		"debug.internalConsoleOptions": "neverOpen",
-		"python.terminal.activateEnvironment": true
+		"python.terminal.activateEnvironment": true,
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.black-formatter"
+		},
+		"python.formatting.provider": "none"
 	}
 }

@@ -8,6 +8,11 @@ from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.models import *
 from langchain.docstore.document import Document
+from redis.commands.search.query import Query
+from typing import Mapping
+from redis import Redis
+import numpy as np
+import json
 
 def performCogSearch(embedValue, embedField, SearchService, SearchKey, indexType, question, indexName, k, 
     returnFields=["id", "content", "sourcefile"] ):
@@ -58,121 +63,72 @@ def performCogSearch(embedValue, embedField, SearchService, SearchKey, indexType
 @tool
 def searchVectorDb(question:str, embeddedQuestion:object, indexType:str, indexNs:str, topK:int, conn:CustomConnection):
   docs = []
-  # PineconeKey = conn.PineconeKey
-  # PineconeEnv = conn.PineconeEnv
-  # VsIndexName = conn.VsIndexName
+  PineconeKey = conn.PineconeKey
+  PineconeEnv = conn.PineconeEnv
+  VsIndexName = conn.VsIndexName
   SearchService = conn.SearchService
   SearchKey = conn.SearchKey
+  RedisAddress = conn.RedisAddress
+  RedisPort = conn.RedisPort
+  RedisPassword = conn.RedisPassword
 
   if indexType == 'pinecone':
-      # pinecone.init(
-      #     api_key=PineconeKey,  # find at app.pinecone.io
-      #     environment=PineconeEnv  # next to api key in console
-      # )
-      # vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
-      # docRetriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": topK})
-      # chain = RetrievalQA(combine_documents_chain=qaChain, retriever=docRetriever, return_source_documents=True)
-      # llmAnswer = chain({"query": question}, return_only_outputs=True)
-      # docs = llmAnswer['source_documents']
-      # rawDocs = []
-      # for doc in docs:
-      #     rawDocs.append(doc.page_content)
+    try:
+        pinecone.init(
+            api_key=PineconeKey,  # find at app.pinecone.io
+            environment=PineconeEnv  # next to api key in console
+        )
+        pineConeIndex = pinecone.Index(VsIndexName)
+        results = pineConeIndex.query(
+                namespace=indexNs,
+                vector=embeddedQuestion,
+                top_k=topK,
+                include_metadata=True
+                )
+        docs = [
+                  Document(page_content=result['metadata']['text'], metadata={"id": result['id'], "source": result['metadata']['source']})
+                  for result in results['matches']
+                  ]
+    except Exception as e:
+          docs = [Document(page_content="No Results Found" + str(e), metadata={"id": "", "source": ""})]
+          pass
       
-      # if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
-      #     thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
-      # elif overrideChain == "refine":
-      #     thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
-      
-      # answer = llmAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
-      # modifiedAnswer = answer
-      
-      # # Followup questions
-      # followupChain = RetrievalQA(combine_documents_chain=followupChain, retriever=docRetriever)
-      # followupAnswer = followupChain({"query": question}, return_only_outputs=True)
-      # nextQuestions = followupAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
-      # sources = ''                
-      # if (modifiedAnswer.find("I don't know") >= 0):
-      #     sources = ''
-      #     nextQuestions = ''
-      # else:
-      #     sources = sources + "\n" + docs[0].metadata['source']
-
-      # outputFinalAnswer = {"data_points": rawDocs, "answer": modifiedAnswer, 
-      #         "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
-      #             "sources": sources, "nextQuestions": nextQuestions, "error": ""}
-      
-      # try:
-      #     kbData.append({
-      #             "id": kbId,
-      #             "question": question,
-      #             "indexType": indexType,
-      #             "indexName": indexNs,
-      #             "vectorQuestion": vectorQuestion,
-      #             "answer": json.dumps(outputFinalAnswer),
-      #         })
-          
-      #     indexDocs(SearchService, SearchKey, KbIndexName, kbData)
-      # except Exception as e:
-      #     pass
-
-      # return outputFinalAnswer
-      return docs        
+    return docs        
   elif indexType == "redis":
-      # try:
-      #     returnField = ["metadata", "content", "vector_score"]
-      #     vectorField = "content_vector"
-      #     results = performRedisSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, OpenAiEmbedding, question, indexNs, topK, returnField, vectorField, embeddingModelType)
-      #     docs = [
-      #             Document(page_content=result.content, metadata=json.loads(result.metadata))
-      #             for result in results.docs
-      #     ]
-      #     rawDocs=[]
-      #     for doc in docs:
-      #         rawDocs.append(doc.page_content)
-      #     answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-      #     answer = answer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
-      #     modifiedAnswer = answer
+        try:
+            redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword)
+            returnField = ["metadata", "content", "vector_score"]
+            vectorField = "content_vector"
+            #arrayEmbedding = np.array(embeddedQuestion)
+            hybridField = "*"
+            searchType = 'KNN'
+            baseQuery = (
+                f"{hybridField}=>[{searchType} {topK} @{vectorField} $vector AS vector_score]"
+            )
+            redisQuery = (
+                Query(baseQuery)
+                .return_fields(*returnField)
+                .sort_by("vector_score")
+                .paging(0, topK)
+                .dialect(2)
+            )
+            paramDict: Mapping[str, str] = {
+                    "vector": np.array(embeddedQuestion)  # type: ignore
+                    .astype(dtype=np.float32)
+                    .tobytes()
+            }
 
-      #     if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
-      #         thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
-      #     elif overrideChain == "refine":
-      #         thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
-          
-      #     # Followup questions
-      #     followupAnswer = followupChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-      #     nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
-      #     sources = ''                
-      #     if (modifiedAnswer.find("I don't know") >= 0):
-      #         sources = ''
-      #         nextQuestions = ''
-      #     else:
-      #         sources = sources + "\n" + docs[0].metadata['source']
-
-          
-      #     outputFinalAnswer = {"data_points": rawDocs, "answer": modifiedAnswer, 
-      #             "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
-      #                 "sources": sources, "nextQuestions": nextQuestions, "error": ""}
-          
-      #     try:
-      #         kbData.append({
-      #             "id": kbId,
-      #             "question": question,
-      #             "indexType": indexType,
-      #             "indexName": indexNs,
-      #             "vectorQuestion": vectorQuestion,
-      #             "answer": json.dumps(outputFinalAnswer),
-      #         })
-
-      #         indexDocs(SearchService, SearchKey, KbIndexName, kbData)
-      #     except Exception as e:
-      #         pass
-
-      #     return outputFinalAnswer
-                      
-      # except Exception as e:
-      #     return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
-
-      return docs
+            # perform vector search
+            results = redisConnection.ft(indexNs).search(redisQuery, paramDict)
+            docs = [
+                  Document(page_content=result.content, metadata={"id": result.id, "source": json.loads(result.metadata)["source"]})
+                  for result in results.docs
+                  ]
+        except Exception as e:
+          docs = [Document(page_content="No Results Found" + str(e), metadata={"id": "", "source": ""})]
+          pass
+        return docs
+  
   elif indexType == "cogsearch" or indexType == "cogsearchvs":
       try:
           r = performCogSearch(embeddedQuestion, "contentVector", SearchService, SearchKey, indexType, question, indexNs, topK)
