@@ -60,7 +60,7 @@ jobs:
       run: echo "UAMIID=$(az identity list --query "[?name=='$UAMI_NAME'].id" -o tsv)" >> "$GITHUB_ENV"
 
     - name: Get UAMI_ID
-      run: echo "UAMI_ID=$(echo '$UAMIID)" >> "$GITHUB_ENV"
+      run: echo "UAMI_ID=$(echo $UAMIID)" >> "$GITHUB_ENV"
       
     - name: setup endpoint
       run: |
