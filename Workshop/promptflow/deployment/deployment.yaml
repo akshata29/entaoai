@@ -41,13 +41,12 @@ liveness_probe:
 environment_variables:
   # "compute" mode is the default mode, if you want to deploy to serving mode, you need to set this env variable to "serving"
   PROMPTFLOW_RUN_MODE: serving
-  #UAI_CLIENT_ID: dfd89515-f588-441f-9cbd-3f0082572e5c
-  AZURE_CLIENT_ID: e17108b7-9cb4-4b54-b57c-e2be41c99910
+  AZURE_CLIENT_ID: temp
   PROMPTFLOW_RESPONSE_INCLUDED_FIELDS: '["output"]'
   RUN_MODE: serving
 
   # for pulling connections from workspace
-  PRT_CONFIG_OVERRIDE: deployment.subscription_id=e2171f6d-2650-45e6-af7e-6d6e44ca92b1,deployment.resource_group=dataai,deployment.workspace_name=dataaiamlwks,deployment.endpoint_name=qaragcogsearchlc,deployment.deployment_name=blue,deployment.mt_service_endpoint=https://southcentralus.api.azureml.ms,deployment.runtime_name=dataaichatpdf,storage.storage_account=dataaiamlwksstor
+  PRT_CONFIG_OVERRIDE: temp
   #PRT_CONFIG_OVERRIDE: deployment.subscription_id=<sub-id>,deployment.resource_group=o<resource-group>,deployment.workspace_name=<workspace-name>,deployment.endpoint_name=<endpoint-name>,deployment.deployment_name=<deployment-name>
 
   # (Optional) When there are multiple fields in the response, using this env variable will filter the fields to expose in the response.

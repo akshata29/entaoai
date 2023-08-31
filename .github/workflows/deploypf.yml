@@ -15,6 +15,14 @@ env:
   RUN_NAME: qaragcogsearchlc
   EVAL_RUN_NAME: qaragcogsearchlc_eval
   ENDPOINT_NAME: qaragcogsearchlc
+  UAMI_ID: temp
+  UAMI_NAME: ${{secrets.UAMI_NAME}}
+  CLIENT_ID: ${{secrets.CLIENT_ID}}
+  PRINCIPAL_ID: ${{secrets.PRINCIPAL_ID}}
+  TENANT_ID: ${{secrets.TENANT_ID}}
+  LOCATION: ${{secrets.LOCATION}}
+  RUNTIME_NAME: ${{secrets.RUNTIME_NAME}}
+  STORAGE_ACCOUNT: ${{secrets.STORAGE_ACCOUNT}}
   WORKSHOP_PATH: 'Workshop'
   PYTHON_VERSION: '3.9'
 
@@ -51,13 +59,14 @@ jobs:
     - name: setup endpoint
       run: |
         pushd './${{ env.WORKSHOP_PATH }}'
-        az ml online-endpoint create --file promptflow/deployment/endpoint.yaml  --name ${{env.ENDPOINT_NAME}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+        echo "UAMI_ID=$(az identity list --query "[?name=='$UAMI_NAME'].id" -o tsv)" >> "$GITHUB_ENV"
+        az ml online-endpoint create --file promptflow/deployment/endpoint.yaml --name ${{env.ENDPOINT_NAME}}  -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --set identity.user_assigned_identities[0].client_id=${{env.CLIENT_ID}} --set identity.user_assigned_identities[0].principal_id=${{env.PRINCIPAL_ID}} --set identity.user_assigned_identities[0].resource_id=${{env.UAMI_ID}} --set identity.principal_id=${{env.PRINCIPAL_ID}} --set identity.tenant_id=${{env.TENANT_ID}}
         popd
 
     - name: setup deployment
       run: |
         pushd './${{ env.WORKSHOP_PATH }}'
-        az ml online-deployment create --file promptflow/deployment/deployment.yaml --endpoint-name ${{env.ENDPOINT_NAME}} --all-traffic -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+        az ml online-deployment create --file promptflow/deployment/deployment.yaml --endpoint-name ${{env.ENDPOINT_NAME}}  --all-traffic -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --set environment_variables.AZURE_CLIENT_ID=${{env.CLIENT_ID}} --set environment_variables.PRT_CONFIG_OVERRIDE=deployment.subscription_id=${{env.SUBSCRIPTION}},deployment.resource_group=${{env.GROUP}},deployment.workspace_name=${{env.WORKSPACE}},deployment.endpoint_name=${{env.ENDPOINT_NAME}},deployment.deployment_name=blue,deployment.mt_service_endpoint=https://${{env.LOCATION}}.api.azureml.ms,deployment.runtime_name=${{env.RUNTIME_NAME}},storage.storage_account=${{env.STORAGE_ACCOUNT}}
         popd
 
     - name: check the status of the endpoint
