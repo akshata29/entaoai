@@ -17,6 +17,8 @@ env:
   ENDPOINT_NAME: qaragcogsearchlc
   UAMI_ID: temp
   UAMI_NAME: ${{secrets.UAMI_NAME}}
+  MODEL_NAME: temp
+  MODEL_VER: 1
   CLIENT_ID: ${{secrets.CLIENT_ID}}
   PRINCIPAL_ID: ${{secrets.PRINCIPAL_ID}}
   TENANT_ID: ${{secrets.TENANT_ID}}
@@ -61,7 +63,13 @@ jobs:
 
     - name: Get UAMI_ID
       run: echo "UAMI_ID=$(echo $UAMIID)" >> "$GITHUB_ENV"
-      
+
+    - name: Get Latest Model Version
+      run: echo "MODEL_VER=$(az ml model list --max-results 1 --query "[0].version" --name qaragcogsearchlc-model --output tsv)" >> "$GITHUB_ENV"
+
+    - name: Build Fully qualified Model  
+      run: echo "MODEL_NAME=$(echo 'azureml:qaragcogsearchlc-model:'$MODEL_VER)" >> "$GITHUB_ENV"
+
     - name: setup endpoint
       run: |
         pushd './${{ env.WORKSHOP_PATH }}'    
@@ -71,7 +79,7 @@ jobs:
     - name: setup deployment
       run: |
         pushd './${{ env.WORKSHOP_PATH }}'
-        az ml online-deployment create --file promptflow/deployment/deployment.yaml --endpoint-name ${{env.ENDPOINT_NAME}}  --all-traffic -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --set environment_variables.AZURE_CLIENT_ID=${{env.CLIENT_ID}} --set environment_variables.PRT_CONFIG_OVERRIDE=deployment.subscription_id=${{env.SUBSCRIPTION}},deployment.resource_group=${{env.GROUP}},deployment.workspace_name=${{env.WORKSPACE}},deployment.endpoint_name=${{env.ENDPOINT_NAME}},deployment.deployment_name=blue,deployment.mt_service_endpoint=https://${{env.LOCATION}}.api.azureml.ms,deployment.runtime_name=${{env.RUNTIME_NAME}},storage.storage_account=${{env.STORAGE_ACCOUNT}}
+        az ml online-deployment create --file promptflow/deployment/deployment.yaml --endpoint-name ${{env.ENDPOINT_NAME}}  --all-traffic -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --set model=${{env.MODEL_NAME}} --set environment_variables.AZURE_CLIENT_ID=${{env.CLIENT_ID}} --set environment_variables.PRT_CONFIG_OVERRIDE=deployment.subscription_id=${{env.SUBSCRIPTION}},deployment.resource_group=${{env.GROUP}},deployment.workspace_name=${{env.WORKSPACE}},deployment.endpoint_name=${{env.ENDPOINT_NAME}},deployment.deployment_name=blue,deployment.mt_service_endpoint=https://${{env.LOCATION}}.api.azureml.ms,deployment.runtime_name=${{env.RUNTIME_NAME}},storage.storage_account=${{env.STORAGE_ACCOUNT}}
         popd
 
     - name: check the status of the endpoint
