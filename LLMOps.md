@@ -82,7 +82,9 @@ Run the [UAMI Setup](./Workshop/2B0_UAMI%20Setup.ipynb) notebook to create the U
 
 1. From your GitHub project, select **Settings**:
 2. Then select **Secrets**, then **Actions**:
-3. Select **New repository secret**. Name this secret **AZURE_RBACCREDENTIALS** and paste the service principal output as the content of the secret.  
+   ![GitHub Settings](./assets/github-secrets.png)
+3. Select **New repository secret**. Name this secret **AZURE_RBACCREDENTIALS** and paste the service principal output as the content of the secret.
+   ![Add Secret](./assets/new-secret.png)
 4. Add each of the following additional GitHub secrets using the corresponding values:  
     - **GROUP**  (Resource group name)
     - **WORKSPACE**  (AML workspace name)
@@ -94,12 +96,17 @@ Run the [UAMI Setup](./Workshop/2B0_UAMI%20Setup.ipynb) notebook to create the U
     - **RUNTIME_NAME** (Promptflow runtime name)
     - **TENANT_ID** (Azure tenant ID)
     - **UAMI_NAME** (UAMI name)
+  ![Configuration](./assets/all-secrets.png)
   
 ## Setup connections for Prompt flow 
 
-Connection helps securely store and manage secret keys or other sensitive credentials required for interacting with LLM and other external tools.  For this LLMOps example we are using the Question Answering capability of the application.  In the current state all the artifacts are stored in [Prompt flow Folder](./Workshop/promptflow/).  [QaRagCogSearchLc](./Workshop/promptflow/qaragcogsearchlc/) folder implements the Question Answering capability using the PromptFlow and RAG pattern.  Within the Prompt Flow folder [Environment](./Workshop/promptflow/environment/) is what defines the runtime environment for the Prompt Flow.  Details around creating custom runtime for Prompt flow is [Documented](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/how-to-customize-environment-runtime?view=azureml-api-2#customize-environment-with-docker-context-for-runtime).  All  YAML definition for [deployment](./Workshop/promptflow/deployment/) are available in the deployment folder.
+Connection helps securely store and manage secret keys or other sensitive credentials required for interacting with LLM and other external tools.  For this LLMOps example we are using the Question Answering capability of the application.  
+
+For the LLMOps examples all the artifacts are stored in [Prompt flow Folder](./Workshop/promptflow/).  [QaRagCogSearchLc](./Workshop/promptflow/qaragcogsearchlc/) folder implements the Question Answering capability using the PromptFlow and RAG pattern.  Within the Prompt Flow folder [Environment](./Workshop/promptflow/environment/) is what defines the runtime environment for the Prompt Flow.  Details around creating custom runtime for Prompt flow is [Documented](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/how-to-customize-environment-runtime?view=azureml-api-2#customize-environment-with-docker-context-for-runtime).  All  YAML definition for [deployment](./Workshop/promptflow/deployment/) are available in the deployment folder.
+![Prompt Flow](./assets/prompt-flow.png)
 
 As a part of the workflow, there are connections that are used, which you will need to create manually (until automated). Please go to workspace portal, click `Prompt flow` -> `Connections` -> `Create`, then follow the instruction to create your own connections called `dataaioaicg`, `chatpdf` and `fpdoaoaice`. Learn more on [connections](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/concept-connections?view=azureml-api-2).  The example connections definition is available for [chatpdf](./Workshop/promptflow/chatpdf.example.yml) and [dataaioaicg](./Workshop/promptflow/dataaioaicg.example.yml) or alternatively you can use [Notebook](./Workshop/2B1_AskQuestionPromptFlow.ipynb) to create those connections using SDK or CLI.
+![Prompt Flow Connections](./assets/prompt-flow-connections.png)
 
 ## Sample Prompt Run, Evaluation and Deployment Scenario
 
@@ -132,9 +139,11 @@ In this flow, this training pipeline contains the following steps:
 Using a [GitHub Action workflow](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-github-actions-machine-learning?view=azureml-api-2&tabs=userlevel#step-5-run-your-github-actions-workflow) we will trigger actions to run a Prompt Flow job in Azure Machine learning.
 
 This pipeline will start the prompt flow run and evaluate the results. When the job is complete, the prompt flow model will be registered in the Azure Machine Learning workspace and be available for deployment.
+![Prompt Flow Run and Evaluate](./assets/run-evaluate-pf.png)
 
 1. In your GitHub project repository, select **Actions**
 2. Select the `runevalpf.yml` from the workflows listed on the left and the click **Run Workflow** to execute the Prompt flow run and evaluate workflow. This will take several minutes to run.
+   ![Prompt Flow Run and Evaluate YAML](./assets/run-evaluate-yaml.png)
 3. The workflow will only register the model for deployment, if the accuracy of the classification is greater than 60%. You can adjust the accuracy thresold in the `runevalpf.yml` file in the `jobMetricAssert` section of the workflow file. The section should look like:
 
     ```yaml
@@ -147,6 +156,8 @@ This pipeline will start the prompt flow run and evaluate the results. When the 
     You can update the current `0.6` number to fit your preferred threshold.
 
 4. Once completed, a successful run and all test were passed, it will register the Prompt Flow model in the Machine Learning workspace. With the Prompt flow model registered in the Machine learning workspace, you are ready to deploy the model for scoring.
+   ![Prompt Flow Model Registration](./assets/prompt-flow-model-1.png)
+   ![Prompt Flow Model Artifacts](./assets/prompt-flow-model-2.png)
 
 ## Deploy Prompt Flow in AzureML with GitHub Actions
 
@@ -156,8 +167,20 @@ This scenario includes prebuilt workflows for two approaches to deploying a trai
 
 1. In your GitHub project repository , select **Actions**
 2. Select the **deploypf** from the workflows listed on the left and click **Run workflow** to execute the online endpoint deployment pipeline workflow. The steps in this pipeline will create an online endpoint in your Machine Learning workspace, create a deployment of your model to this endpoint, then allocate traffic to the endpoint.
+   ![Prompt Flow Deploy](./assets/deploy-pf-1.png)
+   ![Prompt Flow Yaml Definition](./assets/deploy-pf-2.png)
 3. Once completed, you will find the online endpoint deployed in the Azure Machine Learning workspace and available for testing.
-4. To test this deployment, go to the **Endpoints** tab in your Machine Learning workspace, select the endpoint and click the **Test** Tab. You can use the sample input data located in the cloned repo at `/deployment/sample-request.json` to test the endpoint.
+   ![Prompt Flow Endpoint](./assets/pf-endpoint-1.png)
+   ![Prompt Flow Endpoint](./assets/pf-endpoint-2.png)
+4. To test this deployment, go to the **Endpoints** tab in your Machine Learning workspace, select the endpoint and click the **Test** Tab. You can use the sample input data located in the cloned repo at `/deployment/sample-request.json` to test the endpoint
+   Alternatively, run the CLI command
+
+    ```bash
+    az ml online-endpoint invoke --name ${{env.ENDPOINT_NAME}} --request-file promptflow/deployment/sample-request.json  -g ${{env.GROUP}} -w ${{env.WORKSPACE}} 
+    ```
+
+    You can also use Client like Postman to execute the Rest API
+    ![Prompt Flow Inference](./assets/inference-pf-1.png)
 
 ## Moving to production
 
