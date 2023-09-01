@@ -3,10 +3,10 @@ flow: .
 data: data.jsonl
 
 # define cloud resource
-runtime: dataaichatpdf
+runtime: entaoai
 
 #connections:
 #  embed_the_question:
-#    connection: fpdoaoaice
+#    connection: aoai
 #  search_question_from_vectordb:
 #    connection: dataaioaicg

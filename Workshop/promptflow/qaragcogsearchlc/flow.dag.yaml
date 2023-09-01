@@ -61,7 +61,7 @@ nodes:
     type: code
     path: create_llm.py
   inputs:
-    conn: chatpdf
+    conn: entaoai
     overrides: ${parse_postBody.output}
   use_variants: false
 - name: parse_postBody
@@ -80,7 +80,7 @@ nodes:
   inputs:
     question: ${inputs.question}
     embeddedQuestion: ${embed_the_question.output}
-    conn: chatpdf
+    conn: entaoai
     indexType: ${inputs.indexType}
     indexNs: ${inputs.indexNs}
     topK: ${extract_topk.output}
@@ -123,7 +123,7 @@ nodes:
     type: package
     tool: promptflow.tools.embedding.embedding
   inputs:
-    connection: fpdoaoaice
+    connection: aoai
     input: ${flow.question}
     deployment_name: embedding
   aggregation: false

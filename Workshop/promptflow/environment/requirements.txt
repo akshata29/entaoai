@@ -12,6 +12,7 @@ azure-functions-durable==1.2.4
 azure-identity==1.12.0
 #azure-search-documents==11.4.0b8
 ./azure_search_documents-11.4.0b4-py3-none-any.whl
+./dbcopilot-0.4.20230823.2-py3-none-any.whl
 azure-storage-blob==12.16.0
 backoff==2.2.1
 beautifulsoup4==4.11.2
@@ -74,6 +75,10 @@ Pillow==9.4.0
 pinecone-client==2.2.1
 portalocker==2.7.0
 protobuf==3.20.3
+# promptflow
+# promptflow-tools
+# promptflow-vectordb
+# promptflow-contentsafety
 pycparser==2.21
 pycryptodomex==3.17
 pydantic==1.10.6

@@ -29,6 +29,26 @@ For this workshop following are some of the operations we will automate:
 - [GitHub CLI](https://cli.github.com/) installed on your local machine.
 - [Python 3.9 or later](https://www.python.org/downloads/) installed on your local machine.
 - [Install Prompt Flow Extension](https://marketplace.visualstudio.com/items?itemName=prompt-flow.prompt-flow)
+- Custom Environment.  Go to Azure ML Workspace -> Assets -> Environments -> Custom Environments -> Create.  Select the following configuration
+  - Name - entaoaienv
+  - Select environment source - Use existing docker image with optional conda file
+  - Container registry image path - docker pull akshata13/chatpdfenv:latest
+  - Click Next, Next on Tags and Click Create on Review screen
+  - ![Custom Environment](./assets/custom-environment.png)
+- Create new Compute Instance (Azure ML Workspace -> Manage -> Compute -> Compute Instance -> Create).  Select the following configuration
+  - Compute name - entaoai
+  - VM Type - CPU
+  - VM Size - Selected from recommended options - Standard_DS11_v2
+  - Click Review + Create
+  - Click Create
+  - ![Compute Instance](./assets/compute-instance.png)
+- Custom Runtime (Azure ML Workspace -> Authoring -> Prompt Flow -> Runtime -> Create).  Select the following configuration.
+  - Runtime name - entaoai
+  - Select Azure ML compute instance -> entaoai
+  - Custom Application -> New
+  - Environment -> use customized environment -> entaoaienv:1
+  - Click Create
+  - ![Custom Runtime](./assets/custom-environment.png)
 
 ## Set up authentication with Azure and GitHub
 
@@ -83,7 +103,7 @@ Run the [UAMI Setup](./Workshop/2B0_UAMI%20Setup.ipynb) notebook to create the U
 1. From your GitHub project, select **Settings**:
 2. Then select **Secrets**, then **Actions**:
    ![GitHub Settings](./assets/github-secrets.png)
-3. Select **New repository secret**. Name this secret **AZURE_RBACCREDENTIALS** and paste the service principal output as the content of the secret.
+3. Select **New repository secret**. Name this secret **AZURE_RBAC_CREDENTIALS** and paste the service principal output as the content of the secret.
    ![Add Secret](./assets/new-secret.png)
 4. Add each of the following additional GitHub secrets using the corresponding values:  
     - **GROUP**  (Resource group name)
@@ -105,8 +125,28 @@ Connection helps securely store and manage secret keys or other sensitive creden
 For the LLMOps examples all the artifacts are stored in [Prompt flow Folder](./Workshop/promptflow/).  [QaRagCogSearchLc](./Workshop/promptflow/qaragcogsearchlc/) folder implements the Question Answering capability using the PromptFlow and RAG pattern.  Within the Prompt Flow folder [Environment](./Workshop/promptflow/environment/) is what defines the runtime environment for the Prompt Flow.  Details around creating custom runtime for Prompt flow is [Documented](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/how-to-customize-environment-runtime?view=azureml-api-2#customize-environment-with-docker-context-for-runtime).  All  YAML definition for [deployment](./Workshop/promptflow/deployment/) are available in the deployment folder.
 ![Prompt Flow](./assets/prompt-flow.png)
 
-As a part of the workflow, there are connections that are used, which you will need to create manually (until automated). Please go to workspace portal, click `Prompt flow` -> `Connections` -> `Create`, then follow the instruction to create your own connections called `dataaioaicg`, `chatpdf` and `fpdoaoaice`. Learn more on [connections](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/concept-connections?view=azureml-api-2).  The example connections definition is available for [chatpdf](./Workshop/promptflow/chatpdf.example.yml) and [dataaioaicg](./Workshop/promptflow/dataaioaicg.example.yml) or alternatively you can use [Notebook](./Workshop/2B1_AskQuestionPromptFlow.ipynb) to create those connections using SDK or CLI.
+As a part of the workflow, there are connections that are used, which you will need to create manually (until automated). Please go to workspace portal, click `Prompt flow` -> `Connections` -> `Create`, then follow the instruction to create your own connections called `dataaioaicg`, `chatpdf` and `aoai`. Learn more on [connections](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/concept-connections?view=azureml-api-2).  The example connections definition is available for [chatpdf](./Workshop/promptflow/chatpdf.example.yml) and [dataaioaicg](./Workshop/promptflow/dataaioaicg.example.yml) or alternatively you can use [Notebook](./Workshop/2B1_AskQuestionPromptFlow.ipynb) to create those connections using SDK or CLI.
 ![Prompt Flow Connections](./assets/prompt-flow-connections.png)
+
+`aoai` connection
+Go to Azure ML Workspace -> Prompt Flow -> Connections -> Create -> Azure OpenAI.  Select the following configuration
+- ![AOAI Connections](./assets/create-aoai.png)
+- name - aoai
+- Provider - Azure OpenAi
+- SubscriptionId - Your subscriptionId
+- Azure OpenAI Account Names - Your existing Azure OpenAI account name
+- API Key - Your Azure OpenAI API Key
+- API base - Your Azure OpenAI API base
+- API Type - Azure
+- API Version - 2023-07-01-preview
+- ![AOAI Connections](./assets/aoai-connection.png)
+
+Repeat the steps above to create the connection for Azure Cognitive Search.
+![AOAI CG Connections](./assets/aoaicg-connection.png)
+
+Repeat the steps above to create the Custom Connection with following properties.
+Note - If you are not using PineCone, Redis it can be ignored and you can enter any dummy values.  Make sure to change the deployment name of the models to match to your AOAI deployment and your configuration of Cosmos and Cognitive Search.
+![AOAI Custom Connections](./assets/custom-connection.png)
 
 ## Sample Prompt Run, Evaluation and Deployment Scenario
 

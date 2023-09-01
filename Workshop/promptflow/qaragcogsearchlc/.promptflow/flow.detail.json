@@ -1,7 +1,7 @@
 {
   "flow_runs": [
     {
-      "run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_0",
+      "run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_0",
       "status": "Completed",
       "error": null,
       "inputs": {
@@ -39,21 +39,21 @@
             "Get the Boss to Send an E-Mail \n\nNominate a Security Evangelist \n\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \n\nPrinciple #1: The defender must defend all points; the attacker can choose \nthe weakest point. \n\nPrinciple #2: The defender can defend only against known attacks; the \nattacker can probe for unknown vulnerabilities. \n\nPrinciple #3: The defender must be constantly vigilant; the attacker can \nstrike at will. \n\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \n\nSummary\n\n2\n\nThe Proactive Security Development Process \n\nProcess Improvements \n\nThe Role of Education \n\nResistance to Mandatory Training \n\nOngoing Training \n\nAdvancing the Science of Security \n\nEducation Proves the More Eyes Fallacy \n\nNow the Evidence! \n\nDesign Phase \n\nSecurity Questions During Interviews \n\nxxiii\n\n3\n\n5\n\n7\n\n7\n\n8\n\n11\n\n13\n\n14\n\n15\n\n19\n\n19\n\n20\n\n20\n\n21\n\n21\n\n23\n\n25\n\n26\n\n29\n\n29\n\n29\n\n31\n\n31\n\n32\n\n33\n\nvii\n\n\fA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\n\nviii\n\nTable of Contents\n\nDefine the Product Security Goals \n\nSecurity Is a Product Feature \n\nMaking Time for Security \n\nThreat Modeling Leads to Secure Design \n\nBuild End-of-Life Plans for Insecure Features \n\nSetting the Bug Bar \n\nSecurity Team Review \n\nDevelopment Phase \n\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \n\nSecurity Peer Review of New Code (Check-Ins Checked) \n\nDefine Secure Coding Guidelines \n\nReview Old Defects \n\nExternal Security Review \n\nSecurity Push",
             "Principle of Least Privilege\n\nClean Up After Yourself!\n\nUsing the Security Configuration Editor \n\nLow-Level Security APIs \n\nUsing the Windows Installer \n\nSummary\n\n22\n\nBuilding Privacy into Your Application\n\nMalicious vs. Annoying Invasions of Privacy \n\nMajor Privacy Legislation \n\nPersonally Identifiable Information \n\nThe EU Directives on Data Protection \n\n587\n\n588\n\n606\n\n607\n\n607\n\n609\n\n610\n\n611\n\n611\n\n611\n\n612\n\n612\n\n613\n\n615\n\n617\n\n618\n\n619\n\n620\n\n624\n\n624\n\n625\n\n625\n\n626\n\n627\n\n 628\n\n 630\n\n630\n\n638\n\n638\n\n 640\n\n  641\n\n642\n\n643\n\n643\n\n643\n\n\fA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\n\nxx\n\nTable of Contents\n\nSafe Harbor Principles \n\nOther Privacy Legislation\n\nPrivacy vs. Security \n\nBuilding a Privacy Infrastructure \n\nThe Role of the Chief Privacy Officer \n\nThe Role of the Privacy Advocate\n\nDesigning Privacy-Aware Applications\n\nIncluding Privacy in the Development Process \n\nExploring Privacy Features\n\nSummary\n\n23\n\nGeneral Good Practices \n\nDon\u2019t Tell the Attacker Anything \n\nService Best Practices \n\nSecurity, Services, and the Interactive Desktop \n\nService Account Guidelines \n\nDon\u2019t Leak Information in Banner Strings \n\nBe Careful Changing Error Messages in Fixes \n\nDouble-Check Your Error Paths \n\nKeep It Turned Off! \n\nKernel-Mode Mistakes \n\nHigh-Level Security Issues \n\nHandles \n\nSymbolic Links \n\nQuota \n\nSerialization Primitives \n\nBuffer-Handling Issues \n\nIRP Cancellation \n\nAdd Security Comments to Code \n\nLeverage the Operating System"
           ],
-          "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
+          "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
           "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Be Mindful of Your Bug Counts \\n\\nKeep Track of Bug Metrics \\n\\nNo Surprises and No Easter Eggs! \\n\\nTest Phase \\n\\nShipping and Maintenance Phases \\n\\nHow Do You Know When You\u2019re Done? \\n\\nResponse Process \\n\\nAccountability \\n\\nSummary\\n\\n3\\n\\nSecurity Principles to Live By \\n\\nSD3: Secure by Design, by Default, and in Deployment \\n\\nSecure by Design \\n\\nSecure by Default \\n\\nSecure in Deployment \\n\\nSecurity Principles \\n\\nLearn from Mistakes \\n\\nMinimize Your Attack Surface \\n\\nEmploy Secure Defaults \\n\\nUse Defense in Depth \\n\\nUse Least Privilege \\n\\nBackward Compatibility Will Always Give You Grief \\n\\n34\\n\\n37\\n\\n40\\n\\n41\\n\\n41\\n\\n41\\n\\n43\\n\\n43\\n\\n43\\n\\n44\\n\\n44\\n\\n44\\n\\n45\\n\\n45\\n\\n46\\n\\n46\\n\\n47\\n\\n47\\n\\n47\\n\\n47\\n\\n48\\n\\n49\\n\\n49\\n\\n51\\n\\n51\\n\\n51\\n\\n53\\n\\n53\\n\\n54\\n\\n54\\n\\n57\\n\\n57\\n\\n59\\n\\n60\\n\\n62\\n\\n\\x0cA05T617228.fm  Page ix  Monday, October 28, 2002  10:01 AM\\n\\nTable of Contents\\n\\nix\\n\\nAssume External Systems Are Insecure \\n\\nPlan on Failure \\n\\nFail to a Secure Mode \\n\\nRemember That Security Features != Secure Features \\n\\nNever Depend on Security Through Obscurity Alone \\n\\nDon\u2019t Mix Code and Data \\n\\nFix Security Issues Correctly \\n\\nSummary \\n\\n4\\n\\nThreat Modeling \\n\\nSecure Design Through Threat Modeling \\n\\nAssemble the Threat-Modeling Team \\n\\nDecompose the Application \\n\\nDetermine the Threats to the System \\n\\nRank the Threats by Decreasing Risk \\n\\nChoose How to Respond to the Threats \\n\\nChoose Techniques to Mitigate the Threats \\n\\nSecurity Techniques \\n\\nAuthentication \\n\\nAuthorization \\n\\nTamper-Resistant and Privacy-Enhanced Technologies \\n\\nProtect Secrets, or Better Yet, Don\u2019t Store Secrets', 'Get the Boss to Send an E-Mail \\n\\nNominate a Security Evangelist \\n\\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \\n\\nPrinciple #1: The defender must defend all points; the attacker can choose \\nthe weakest point. \\n\\nPrinciple #2: The defender can defend only against known attacks; the \\nattacker can probe for unknown vulnerabilities. \\n\\nPrinciple #3: The defender must be constantly vigilant; the attacker can \\nstrike at will. \\n\\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \\n\\nSummary\\n\\n2\\n\\nThe Proactive Security Development Process \\n\\nProcess Improvements \\n\\nThe Role of Education \\n\\nResistance to Mandatory Training \\n\\nOngoing Training \\n\\nAdvancing the Science of Security \\n\\nEducation Proves the More Eyes Fallacy \\n\\nNow the Evidence! \\n\\nDesign Phase \\n\\nSecurity Questions During Interviews \\n\\nxxiii\\n\\n3\\n\\n5\\n\\n7\\n\\n7\\n\\n8\\n\\n11\\n\\n13\\n\\n14\\n\\n15\\n\\n19\\n\\n19\\n\\n20\\n\\n20\\n\\n21\\n\\n21\\n\\n23\\n\\n25\\n\\n26\\n\\n29\\n\\n29\\n\\n29\\n\\n31\\n\\n31\\n\\n32\\n\\n33\\n\\nvii\\n\\n\\x0cA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\\n\\nviii\\n\\nTable of Contents\\n\\nDefine the Product Security Goals \\n\\nSecurity Is a Product Feature \\n\\nMaking Time for Security \\n\\nThreat Modeling Leads to Secure Design \\n\\nBuild End-of-Life Plans for Insecure Features \\n\\nSetting the Bug Bar \\n\\nSecurity Team Review \\n\\nDevelopment Phase \\n\\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \\n\\nSecurity Peer Review of New Code (Check-Ins Checked) \\n\\nDefine Secure Coding Guidelines \\n\\nReview Old Defects \\n\\nExternal Security Review \\n\\nSecurity Push', 'Principle of Least Privilege\\n\\nClean Up After Yourself!\\n\\nUsing the Security Configuration Editor \\n\\nLow-Level Security APIs \\n\\nUsing the Windows Installer \\n\\nSummary\\n\\n22\\n\\nBuilding Privacy into Your Application\\n\\nMalicious vs. Annoying Invasions of Privacy \\n\\nMajor Privacy Legislation \\n\\nPersonally Identifiable Information \\n\\nThe EU Directives on Data Protection \\n\\n587\\n\\n588\\n\\n606\\n\\n607\\n\\n607\\n\\n609\\n\\n610\\n\\n611\\n\\n611\\n\\n611\\n\\n612\\n\\n612\\n\\n613\\n\\n615\\n\\n617\\n\\n618\\n\\n619\\n\\n620\\n\\n624\\n\\n624\\n\\n625\\n\\n625\\n\\n626\\n\\n627\\n\\n 628\\n\\n 630\\n\\n630\\n\\n638\\n\\n638\\n\\n 640\\n\\n  641\\n\\n642\\n\\n643\\n\\n643\\n\\n643\\n\\n\\x0cA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\\n\\nxx\\n\\nTable of Contents\\n\\nSafe Harbor Principles \\n\\nOther Privacy Legislation\\n\\nPrivacy vs. Security \\n\\nBuilding a Privacy Infrastructure \\n\\nThe Role of the Chief Privacy Officer \\n\\nThe Role of the Privacy Advocate\\n\\nDesigning Privacy-Aware Applications\\n\\nIncluding Privacy in the Development Process \\n\\nExploring Privacy Features\\n\\nSummary\\n\\n23\\n\\nGeneral Good Practices \\n\\nDon\u2019t Tell the Attacker Anything \\n\\nService Best Practices \\n\\nSecurity, Services, and the Interactive Desktop \\n\\nService Account Guidelines \\n\\nDon\u2019t Leak Information in Banner Strings \\n\\nBe Careful Changing Error Messages in Fixes \\n\\nDouble-Check Your Error Paths \\n\\nKeep It Turned Off! \\n\\nKernel-Mode Mistakes \\n\\nHigh-Level Security Issues \\n\\nHandles \\n\\nSymbolic Links \\n\\nQuota \\n\\nSerialization Primitives \\n\\nBuffer-Handling Issues \\n\\nIRP Cancellation \\n\\nAdd Security Comments to Code \\n\\nLeverage the Operating System']<br>        Question: What are the main security principles to live by?<br>        ",
           "sources": "\nhttps://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf",
-          "nextQuestions": "<1> What are the security principles to live by?\n<2> How can we ensure secure design, by default, and in deployment?\n<3> What are some general good practices for security?",
+          "nextQuestions": "1. How can we minimize our attack surface?\n2. What are some techniques to mitigate threats?\n3. How can we build privacy into our application?",
           "error": ""
         }
       },
       "metrics": null,
       "request": null,
-      "parent_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6",
-      "root_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6",
+      "parent_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f",
+      "root_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f",
       "source_run_id": null,
       "flow_id": "default_flow_id",
-      "start_time": "2023-08-31T21:33:35.183038Z",
-      "end_time": "2023-08-31T21:33:40.320500Z",
+      "start_time": "2023-09-01T23:42:38.782774Z",
+      "end_time": "2023-09-01T23:42:41.862284Z",
       "index": 0,
       "api_calls": [
         {
@@ -94,8 +94,8 @@
             "tokenLength": 1000,
             "top": 3
           },
-          "start_time": 1693535615.185041,
-          "end_time": 1693535615.186035,
+          "start_time": 1693629758.782774,
+          "end_time": 1693629758.782774,
           "error": null,
           "children": null,
           "node_name": "parse_postBody"
@@ -104,7 +104,7 @@
           "name": "embedding",
           "type": "Tool",
           "inputs": {
-            "connection": "fpdoaoaice",
+            "connection": "aoai",
             "deployment_name": "embedding",
             "input": "What are the main security principles to live by?"
           },
@@ -1646,8 +1646,8 @@
             -0.004915167577564716,
             0.005364385899156332
           ],
-          "start_time": 1693535615.187174,
-          "end_time": 1693535615.617722,
+          "start_time": 1693629758.782774,
+          "end_time": 1693629759.556391,
           "error": null,
           "children": [
             {
@@ -3212,8 +3212,8 @@
                   "total_tokens": 10
                 }
               },
-              "start_time": 1693535615.187174,
-              "end_time": 1693535615.604629,
+              "start_time": 1693629758.782774,
+              "end_time": 1693629759.533099,
               "error": null,
               "children": null,
               "node_name": null
@@ -3225,7 +3225,7 @@
           "name": "createLlm",
           "type": "Tool",
           "inputs": {
-            "conn": "chatpdf",
+            "conn": "entaoai",
             "overrides": {
               "chainType": "stuff",
               "deploymentType": "gpt35",
@@ -3248,8 +3248,8 @@
             "engine": "chat",
             "_type": "azure-openai-chat"
           },
-          "start_time": 1693535615.193179,
-          "end_time": 1693535615.195218,
+          "start_time": 1693629758.798821,
+          "end_time": 1693629758.800835,
           "error": null,
           "children": null,
           "node_name": "create_llm"
@@ -3271,8 +3271,8 @@
             }
           },
           "output": 3,
-          "start_time": 1693535615.195218,
-          "end_time": 1693535615.196229,
+          "start_time": 1693629758.800835,
+          "end_time": 1693629758.80183,
           "error": null,
           "children": null,
           "node_name": "extract_topk"
@@ -3294,8 +3294,8 @@
             }
           },
           "output": "Given the following extracted parts of a long document and a question, create a final answer. \n        If you don't know the answer, just say that you don't know. Don't try to make up an answer. \n        If the answer is not contained within the text below, say \"I don't know\".\n\n        {summaries}\n        Question: {question}\n        ",
-          "start_time": 1693535615.196229,
-          "end_time": 1693535615.19724,
+          "start_time": 1693629758.80183,
+          "end_time": 1693629758.802829,
           "error": null,
           "children": null,
           "node_name": "extract_prompttemplate"
@@ -3304,7 +3304,7 @@
           "name": "searchVectorDb",
           "type": "Tool",
           "inputs": {
-            "conn": "chatpdf",
+            "conn": "entaoai",
             "embeddedQuestion": [
               0.026572726666927338,
               -0.008262990042567253,
@@ -4871,8 +4871,8 @@
               }
             }
           ],
-          "start_time": 1693535615.638949,
-          "end_time": 1693535615.911154,
+          "start_time": 1693629759.56855,
+          "end_time": 1693629759.815023,
           "error": null,
           "children": null,
           "node_name": "search_question_from_vectordb"
@@ -4928,9 +4928,9 @@
               }
             ]
           },
-          "output": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
-          "start_time": 1693535615.9334,
-          "end_time": 1693535619.478569,
+          "output": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
+          "start_time": 1693629759.832908,
+          "end_time": 1693629761.132877,
           "error": null,
           "children": [
             {
@@ -4956,11 +4956,11 @@
                 "api_version": "2023-07-01-preview"
               },
               "output": {
-                "id": "chatcmpl-7tjaDbqIld6wV63x6q1zCVSmwUjZz",
+                "id": "chatcmpl-7u84gOhtq9I4XMTeQG8t8d1g02Drk",
                 "object": "chat.completion",
-                "created": 1693517617,
+                "created": 1693611762,
                 "model": "gpt-35-turbo",
-                "prompt_annotations": [
+                "prompt_filter_results": [
                   {
                     "prompt_index": 0,
                     "content_filter_results": {
@@ -4989,7 +4989,7 @@
                     "finish_reason": "stop",
                     "message": {
                       "role": "assistant",
-                      "content": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly"
+                      "content": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief"
                     },
                     "content_filter_results": {
                       "hate": {
@@ -5012,13 +5012,13 @@
                   }
                 ],
                 "usage": {
-                  "completion_tokens": 181,
+                  "completion_tokens": 89,
                   "prompt_tokens": 1235,
-                  "total_tokens": 1416
+                  "total_tokens": 1324
                 }
               },
-              "start_time": 1693535615.93706,
-              "end_time": 1693535619.477584,
+              "start_time": 1693629759.832908,
+              "end_time": 1693629761.132877,
               "error": null,
               "children": null,
               "node_name": null
@@ -5040,7 +5040,7 @@
               "engine": "chat",
               "_type": "azure-openai-chat"
             },
-            "modifiedAnswer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
+            "modifiedAnswer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
             "overrides": {
               "chainType": "stuff",
               "deploymentType": "gpt35",
@@ -5084,14 +5084,14 @@
               "Get the Boss to Send an E-Mail \n\nNominate a Security Evangelist \n\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \n\nPrinciple #1: The defender must defend all points; the attacker can choose \nthe weakest point. \n\nPrinciple #2: The defender can defend only against known attacks; the \nattacker can probe for unknown vulnerabilities. \n\nPrinciple #3: The defender must be constantly vigilant; the attacker can \nstrike at will. \n\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \n\nSummary\n\n2\n\nThe Proactive Security Development Process \n\nProcess Improvements \n\nThe Role of Education \n\nResistance to Mandatory Training \n\nOngoing Training \n\nAdvancing the Science of Security \n\nEducation Proves the More Eyes Fallacy \n\nNow the Evidence! \n\nDesign Phase \n\nSecurity Questions During Interviews \n\nxxiii\n\n3\n\n5\n\n7\n\n7\n\n8\n\n11\n\n13\n\n14\n\n15\n\n19\n\n19\n\n20\n\n20\n\n21\n\n21\n\n23\n\n25\n\n26\n\n29\n\n29\n\n29\n\n31\n\n31\n\n32\n\n33\n\nvii\n\n\fA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\n\nviii\n\nTable of Contents\n\nDefine the Product Security Goals \n\nSecurity Is a Product Feature \n\nMaking Time for Security \n\nThreat Modeling Leads to Secure Design \n\nBuild End-of-Life Plans for Insecure Features \n\nSetting the Bug Bar \n\nSecurity Team Review \n\nDevelopment Phase \n\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \n\nSecurity Peer Review of New Code (Check-Ins Checked) \n\nDefine Secure Coding Guidelines \n\nReview Old Defects \n\nExternal Security Review \n\nSecurity Push",
               "Principle of Least Privilege\n\nClean Up After Yourself!\n\nUsing the Security Configuration Editor \n\nLow-Level Security APIs \n\nUsing the Windows Installer \n\nSummary\n\n22\n\nBuilding Privacy into Your Application\n\nMalicious vs. Annoying Invasions of Privacy \n\nMajor Privacy Legislation \n\nPersonally Identifiable Information \n\nThe EU Directives on Data Protection \n\n587\n\n588\n\n606\n\n607\n\n607\n\n609\n\n610\n\n611\n\n611\n\n611\n\n612\n\n612\n\n613\n\n615\n\n617\n\n618\n\n619\n\n620\n\n624\n\n624\n\n625\n\n625\n\n626\n\n627\n\n 628\n\n 630\n\n630\n\n638\n\n638\n\n 640\n\n  641\n\n642\n\n643\n\n643\n\n643\n\n\fA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\n\nxx\n\nTable of Contents\n\nSafe Harbor Principles \n\nOther Privacy Legislation\n\nPrivacy vs. Security \n\nBuilding a Privacy Infrastructure \n\nThe Role of the Chief Privacy Officer \n\nThe Role of the Privacy Advocate\n\nDesigning Privacy-Aware Applications\n\nIncluding Privacy in the Development Process \n\nExploring Privacy Features\n\nSummary\n\n23\n\nGeneral Good Practices \n\nDon\u2019t Tell the Attacker Anything \n\nService Best Practices \n\nSecurity, Services, and the Interactive Desktop \n\nService Account Guidelines \n\nDon\u2019t Leak Information in Banner Strings \n\nBe Careful Changing Error Messages in Fixes \n\nDouble-Check Your Error Paths \n\nKeep It Turned Off! \n\nKernel-Mode Mistakes \n\nHigh-Level Security Issues \n\nHandles \n\nSymbolic Links \n\nQuota \n\nSerialization Primitives \n\nBuffer-Handling Issues \n\nIRP Cancellation \n\nAdd Security Comments to Code \n\nLeverage the Operating System"
             ],
-            "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
+            "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
             "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Be Mindful of Your Bug Counts \\n\\nKeep Track of Bug Metrics \\n\\nNo Surprises and No Easter Eggs! \\n\\nTest Phase \\n\\nShipping and Maintenance Phases \\n\\nHow Do You Know When You\u2019re Done? \\n\\nResponse Process \\n\\nAccountability \\n\\nSummary\\n\\n3\\n\\nSecurity Principles to Live By \\n\\nSD3: Secure by Design, by Default, and in Deployment \\n\\nSecure by Design \\n\\nSecure by Default \\n\\nSecure in Deployment \\n\\nSecurity Principles \\n\\nLearn from Mistakes \\n\\nMinimize Your Attack Surface \\n\\nEmploy Secure Defaults \\n\\nUse Defense in Depth \\n\\nUse Least Privilege \\n\\nBackward Compatibility Will Always Give You Grief \\n\\n34\\n\\n37\\n\\n40\\n\\n41\\n\\n41\\n\\n41\\n\\n43\\n\\n43\\n\\n43\\n\\n44\\n\\n44\\n\\n44\\n\\n45\\n\\n45\\n\\n46\\n\\n46\\n\\n47\\n\\n47\\n\\n47\\n\\n47\\n\\n48\\n\\n49\\n\\n49\\n\\n51\\n\\n51\\n\\n51\\n\\n53\\n\\n53\\n\\n54\\n\\n54\\n\\n57\\n\\n57\\n\\n59\\n\\n60\\n\\n62\\n\\n\\x0cA05T617228.fm  Page ix  Monday, October 28, 2002  10:01 AM\\n\\nTable of Contents\\n\\nix\\n\\nAssume External Systems Are Insecure \\n\\nPlan on Failure \\n\\nFail to a Secure Mode \\n\\nRemember That Security Features != Secure Features \\n\\nNever Depend on Security Through Obscurity Alone \\n\\nDon\u2019t Mix Code and Data \\n\\nFix Security Issues Correctly \\n\\nSummary \\n\\n4\\n\\nThreat Modeling \\n\\nSecure Design Through Threat Modeling \\n\\nAssemble the Threat-Modeling Team \\n\\nDecompose the Application \\n\\nDetermine the Threats to the System \\n\\nRank the Threats by Decreasing Risk \\n\\nChoose How to Respond to the Threats \\n\\nChoose Techniques to Mitigate the Threats \\n\\nSecurity Techniques \\n\\nAuthentication \\n\\nAuthorization \\n\\nTamper-Resistant and Privacy-Enhanced Technologies \\n\\nProtect Secrets, or Better Yet, Don\u2019t Store Secrets', 'Get the Boss to Send an E-Mail \\n\\nNominate a Security Evangelist \\n\\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \\n\\nPrinciple #1: The defender must defend all points; the attacker can choose \\nthe weakest point. \\n\\nPrinciple #2: The defender can defend only against known attacks; the \\nattacker can probe for unknown vulnerabilities. \\n\\nPrinciple #3: The defender must be constantly vigilant; the attacker can \\nstrike at will. \\n\\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \\n\\nSummary\\n\\n2\\n\\nThe Proactive Security Development Process \\n\\nProcess Improvements \\n\\nThe Role of Education \\n\\nResistance to Mandatory Training \\n\\nOngoing Training \\n\\nAdvancing the Science of Security \\n\\nEducation Proves the More Eyes Fallacy \\n\\nNow the Evidence! \\n\\nDesign Phase \\n\\nSecurity Questions During Interviews \\n\\nxxiii\\n\\n3\\n\\n5\\n\\n7\\n\\n7\\n\\n8\\n\\n11\\n\\n13\\n\\n14\\n\\n15\\n\\n19\\n\\n19\\n\\n20\\n\\n20\\n\\n21\\n\\n21\\n\\n23\\n\\n25\\n\\n26\\n\\n29\\n\\n29\\n\\n29\\n\\n31\\n\\n31\\n\\n32\\n\\n33\\n\\nvii\\n\\n\\x0cA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\\n\\nviii\\n\\nTable of Contents\\n\\nDefine the Product Security Goals \\n\\nSecurity Is a Product Feature \\n\\nMaking Time for Security \\n\\nThreat Modeling Leads to Secure Design \\n\\nBuild End-of-Life Plans for Insecure Features \\n\\nSetting the Bug Bar \\n\\nSecurity Team Review \\n\\nDevelopment Phase \\n\\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \\n\\nSecurity Peer Review of New Code (Check-Ins Checked) \\n\\nDefine Secure Coding Guidelines \\n\\nReview Old Defects \\n\\nExternal Security Review \\n\\nSecurity Push', 'Principle of Least Privilege\\n\\nClean Up After Yourself!\\n\\nUsing the Security Configuration Editor \\n\\nLow-Level Security APIs \\n\\nUsing the Windows Installer \\n\\nSummary\\n\\n22\\n\\nBuilding Privacy into Your Application\\n\\nMalicious vs. Annoying Invasions of Privacy \\n\\nMajor Privacy Legislation \\n\\nPersonally Identifiable Information \\n\\nThe EU Directives on Data Protection \\n\\n587\\n\\n588\\n\\n606\\n\\n607\\n\\n607\\n\\n609\\n\\n610\\n\\n611\\n\\n611\\n\\n611\\n\\n612\\n\\n612\\n\\n613\\n\\n615\\n\\n617\\n\\n618\\n\\n619\\n\\n620\\n\\n624\\n\\n624\\n\\n625\\n\\n625\\n\\n626\\n\\n627\\n\\n 628\\n\\n 630\\n\\n630\\n\\n638\\n\\n638\\n\\n 640\\n\\n  641\\n\\n642\\n\\n643\\n\\n643\\n\\n643\\n\\n\\x0cA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\\n\\nxx\\n\\nTable of Contents\\n\\nSafe Harbor Principles \\n\\nOther Privacy Legislation\\n\\nPrivacy vs. Security \\n\\nBuilding a Privacy Infrastructure \\n\\nThe Role of the Chief Privacy Officer \\n\\nThe Role of the Privacy Advocate\\n\\nDesigning Privacy-Aware Applications\\n\\nIncluding Privacy in the Development Process \\n\\nExploring Privacy Features\\n\\nSummary\\n\\n23\\n\\nGeneral Good Practices \\n\\nDon\u2019t Tell the Attacker Anything \\n\\nService Best Practices \\n\\nSecurity, Services, and the Interactive Desktop \\n\\nService Account Guidelines \\n\\nDon\u2019t Leak Information in Banner Strings \\n\\nBe Careful Changing Error Messages in Fixes \\n\\nDouble-Check Your Error Paths \\n\\nKeep It Turned Off! \\n\\nKernel-Mode Mistakes \\n\\nHigh-Level Security Issues \\n\\nHandles \\n\\nSymbolic Links \\n\\nQuota \\n\\nSerialization Primitives \\n\\nBuffer-Handling Issues \\n\\nIRP Cancellation \\n\\nAdd Security Comments to Code \\n\\nLeverage the Operating System']<br>        Question: What are the main security principles to live by?<br>        ",
             "sources": "\nhttps://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf",
-            "nextQuestions": "<1> What are the security principles to live by?\n<2> How can we ensure secure design, by default, and in deployment?\n<3> What are some general good practices for security?",
+            "nextQuestions": "1. How can we minimize our attack surface?\n2. What are some techniques to mitigate threats?\n3. How can we build privacy into our application?",
             "error": ""
           },
-          "start_time": 1693535619.4877,
-          "end_time": 1693535620.3124,
+          "start_time": 1693629761.15129,
+          "end_time": 1693629761.856003,
           "error": null,
           "children": [
             {
@@ -5117,9 +5117,9 @@
                 "api_version": "2023-07-01-preview"
               },
               "output": {
-                "id": "chatcmpl-7tjaGtvA7fgiLJ9iYgtsKUGTxeVP1",
+                "id": "chatcmpl-7u84h6PSg105F3dBJLdDw14YMojLi",
                 "object": "chat.completion",
-                "created": 1693517620,
+                "created": 1693611763,
                 "model": "gpt-35-turbo",
                 "prompt_filter_results": [
                   {
@@ -5150,7 +5150,7 @@
                     "finish_reason": "stop",
                     "message": {
                       "role": "assistant",
-                      "content": "<1> What are the security principles to live by?\n<2> How can we ensure secure design, by default, and in deployment?\n<3> What are some general good practices for security?"
+                      "content": "1. How can we minimize our attack surface?\n2. What are some techniques to mitigate threats?\n3. How can we build privacy into our application?"
                     },
                     "content_filter_results": {
                       "hate": {
@@ -5173,13 +5173,13 @@
                   }
                 ],
                 "usage": {
-                  "completion_tokens": 41,
+                  "completion_tokens": 31,
                   "prompt_tokens": 1151,
-                  "total_tokens": 1192
+                  "total_tokens": 1182
                 }
               },
-              "start_time": 1693535619.494701,
-              "end_time": 1693535620.311404,
+              "start_time": 1693629761.155361,
+              "end_time": 1693629761.854997,
               "error": null,
               "children": null,
               "node_name": null
@@ -5193,8 +5193,8 @@
       "description": "",
       "tags": null,
       "system_metrics": {
-        "duration": 5.137462,
-        "total_tokens": 2618
+        "duration": 3.07951,
+        "total_tokens": 2516
       },
       "result": {
         "output": {
@@ -5203,10 +5203,10 @@
             "Get the Boss to Send an E-Mail \n\nNominate a Security Evangelist \n\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \n\nPrinciple #1: The defender must defend all points; the attacker can choose \nthe weakest point. \n\nPrinciple #2: The defender can defend only against known attacks; the \nattacker can probe for unknown vulnerabilities. \n\nPrinciple #3: The defender must be constantly vigilant; the attacker can \nstrike at will. \n\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \n\nSummary\n\n2\n\nThe Proactive Security Development Process \n\nProcess Improvements \n\nThe Role of Education \n\nResistance to Mandatory Training \n\nOngoing Training \n\nAdvancing the Science of Security \n\nEducation Proves the More Eyes Fallacy \n\nNow the Evidence! \n\nDesign Phase \n\nSecurity Questions During Interviews \n\nxxiii\n\n3\n\n5\n\n7\n\n7\n\n8\n\n11\n\n13\n\n14\n\n15\n\n19\n\n19\n\n20\n\n20\n\n21\n\n21\n\n23\n\n25\n\n26\n\n29\n\n29\n\n29\n\n31\n\n31\n\n32\n\n33\n\nvii\n\n\fA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\n\nviii\n\nTable of Contents\n\nDefine the Product Security Goals \n\nSecurity Is a Product Feature \n\nMaking Time for Security \n\nThreat Modeling Leads to Secure Design \n\nBuild End-of-Life Plans for Insecure Features \n\nSetting the Bug Bar \n\nSecurity Team Review \n\nDevelopment Phase \n\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \n\nSecurity Peer Review of New Code (Check-Ins Checked) \n\nDefine Secure Coding Guidelines \n\nReview Old Defects \n\nExternal Security Review \n\nSecurity Push",
             "Principle of Least Privilege\n\nClean Up After Yourself!\n\nUsing the Security Configuration Editor \n\nLow-Level Security APIs \n\nUsing the Windows Installer \n\nSummary\n\n22\n\nBuilding Privacy into Your Application\n\nMalicious vs. Annoying Invasions of Privacy \n\nMajor Privacy Legislation \n\nPersonally Identifiable Information \n\nThe EU Directives on Data Protection \n\n587\n\n588\n\n606\n\n607\n\n607\n\n609\n\n610\n\n611\n\n611\n\n611\n\n612\n\n612\n\n613\n\n615\n\n617\n\n618\n\n619\n\n620\n\n624\n\n624\n\n625\n\n625\n\n626\n\n627\n\n 628\n\n 630\n\n630\n\n638\n\n638\n\n 640\n\n  641\n\n642\n\n643\n\n643\n\n643\n\n\fA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\n\nxx\n\nTable of Contents\n\nSafe Harbor Principles \n\nOther Privacy Legislation\n\nPrivacy vs. Security \n\nBuilding a Privacy Infrastructure \n\nThe Role of the Chief Privacy Officer \n\nThe Role of the Privacy Advocate\n\nDesigning Privacy-Aware Applications\n\nIncluding Privacy in the Development Process \n\nExploring Privacy Features\n\nSummary\n\n23\n\nGeneral Good Practices \n\nDon\u2019t Tell the Attacker Anything \n\nService Best Practices \n\nSecurity, Services, and the Interactive Desktop \n\nService Account Guidelines \n\nDon\u2019t Leak Information in Banner Strings \n\nBe Careful Changing Error Messages in Fixes \n\nDouble-Check Your Error Paths \n\nKeep It Turned Off! \n\nKernel-Mode Mistakes \n\nHigh-Level Security Issues \n\nHandles \n\nSymbolic Links \n\nQuota \n\nSerialization Primitives \n\nBuffer-Handling Issues \n\nIRP Cancellation \n\nAdd Security Comments to Code \n\nLeverage the Operating System"
           ],
-          "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
+          "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
           "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Be Mindful of Your Bug Counts \\n\\nKeep Track of Bug Metrics \\n\\nNo Surprises and No Easter Eggs! \\n\\nTest Phase \\n\\nShipping and Maintenance Phases \\n\\nHow Do You Know When You\u2019re Done? \\n\\nResponse Process \\n\\nAccountability \\n\\nSummary\\n\\n3\\n\\nSecurity Principles to Live By \\n\\nSD3: Secure by Design, by Default, and in Deployment \\n\\nSecure by Design \\n\\nSecure by Default \\n\\nSecure in Deployment \\n\\nSecurity Principles \\n\\nLearn from Mistakes \\n\\nMinimize Your Attack Surface \\n\\nEmploy Secure Defaults \\n\\nUse Defense in Depth \\n\\nUse Least Privilege \\n\\nBackward Compatibility Will Always Give You Grief \\n\\n34\\n\\n37\\n\\n40\\n\\n41\\n\\n41\\n\\n41\\n\\n43\\n\\n43\\n\\n43\\n\\n44\\n\\n44\\n\\n44\\n\\n45\\n\\n45\\n\\n46\\n\\n46\\n\\n47\\n\\n47\\n\\n47\\n\\n47\\n\\n48\\n\\n49\\n\\n49\\n\\n51\\n\\n51\\n\\n51\\n\\n53\\n\\n53\\n\\n54\\n\\n54\\n\\n57\\n\\n57\\n\\n59\\n\\n60\\n\\n62\\n\\n\\x0cA05T617228.fm  Page ix  Monday, October 28, 2002  10:01 AM\\n\\nTable of Contents\\n\\nix\\n\\nAssume External Systems Are Insecure \\n\\nPlan on Failure \\n\\nFail to a Secure Mode \\n\\nRemember That Security Features != Secure Features \\n\\nNever Depend on Security Through Obscurity Alone \\n\\nDon\u2019t Mix Code and Data \\n\\nFix Security Issues Correctly \\n\\nSummary \\n\\n4\\n\\nThreat Modeling \\n\\nSecure Design Through Threat Modeling \\n\\nAssemble the Threat-Modeling Team \\n\\nDecompose the Application \\n\\nDetermine the Threats to the System \\n\\nRank the Threats by Decreasing Risk \\n\\nChoose How to Respond to the Threats \\n\\nChoose Techniques to Mitigate the Threats \\n\\nSecurity Techniques \\n\\nAuthentication \\n\\nAuthorization \\n\\nTamper-Resistant and Privacy-Enhanced Technologies \\n\\nProtect Secrets, or Better Yet, Don\u2019t Store Secrets', 'Get the Boss to Send an E-Mail \\n\\nNominate a Security Evangelist \\n\\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \\n\\nPrinciple #1: The defender must defend all points; the attacker can choose \\nthe weakest point. \\n\\nPrinciple #2: The defender can defend only against known attacks; the \\nattacker can probe for unknown vulnerabilities. \\n\\nPrinciple #3: The defender must be constantly vigilant; the attacker can \\nstrike at will. \\n\\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \\n\\nSummary\\n\\n2\\n\\nThe Proactive Security Development Process \\n\\nProcess Improvements \\n\\nThe Role of Education \\n\\nResistance to Mandatory Training \\n\\nOngoing Training \\n\\nAdvancing the Science of Security \\n\\nEducation Proves the More Eyes Fallacy \\n\\nNow the Evidence! \\n\\nDesign Phase \\n\\nSecurity Questions During Interviews \\n\\nxxiii\\n\\n3\\n\\n5\\n\\n7\\n\\n7\\n\\n8\\n\\n11\\n\\n13\\n\\n14\\n\\n15\\n\\n19\\n\\n19\\n\\n20\\n\\n20\\n\\n21\\n\\n21\\n\\n23\\n\\n25\\n\\n26\\n\\n29\\n\\n29\\n\\n29\\n\\n31\\n\\n31\\n\\n32\\n\\n33\\n\\nvii\\n\\n\\x0cA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\\n\\nviii\\n\\nTable of Contents\\n\\nDefine the Product Security Goals \\n\\nSecurity Is a Product Feature \\n\\nMaking Time for Security \\n\\nThreat Modeling Leads to Secure Design \\n\\nBuild End-of-Life Plans for Insecure Features \\n\\nSetting the Bug Bar \\n\\nSecurity Team Review \\n\\nDevelopment Phase \\n\\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \\n\\nSecurity Peer Review of New Code (Check-Ins Checked) \\n\\nDefine Secure Coding Guidelines \\n\\nReview Old Defects \\n\\nExternal Security Review \\n\\nSecurity Push', 'Principle of Least Privilege\\n\\nClean Up After Yourself!\\n\\nUsing the Security Configuration Editor \\n\\nLow-Level Security APIs \\n\\nUsing the Windows Installer \\n\\nSummary\\n\\n22\\n\\nBuilding Privacy into Your Application\\n\\nMalicious vs. Annoying Invasions of Privacy \\n\\nMajor Privacy Legislation \\n\\nPersonally Identifiable Information \\n\\nThe EU Directives on Data Protection \\n\\n587\\n\\n588\\n\\n606\\n\\n607\\n\\n607\\n\\n609\\n\\n610\\n\\n611\\n\\n611\\n\\n611\\n\\n612\\n\\n612\\n\\n613\\n\\n615\\n\\n617\\n\\n618\\n\\n619\\n\\n620\\n\\n624\\n\\n624\\n\\n625\\n\\n625\\n\\n626\\n\\n627\\n\\n 628\\n\\n 630\\n\\n630\\n\\n638\\n\\n638\\n\\n 640\\n\\n  641\\n\\n642\\n\\n643\\n\\n643\\n\\n643\\n\\n\\x0cA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\\n\\nxx\\n\\nTable of Contents\\n\\nSafe Harbor Principles \\n\\nOther Privacy Legislation\\n\\nPrivacy vs. Security \\n\\nBuilding a Privacy Infrastructure \\n\\nThe Role of the Chief Privacy Officer \\n\\nThe Role of the Privacy Advocate\\n\\nDesigning Privacy-Aware Applications\\n\\nIncluding Privacy in the Development Process \\n\\nExploring Privacy Features\\n\\nSummary\\n\\n23\\n\\nGeneral Good Practices \\n\\nDon\u2019t Tell the Attacker Anything \\n\\nService Best Practices \\n\\nSecurity, Services, and the Interactive Desktop \\n\\nService Account Guidelines \\n\\nDon\u2019t Leak Information in Banner Strings \\n\\nBe Careful Changing Error Messages in Fixes \\n\\nDouble-Check Your Error Paths \\n\\nKeep It Turned Off! \\n\\nKernel-Mode Mistakes \\n\\nHigh-Level Security Issues \\n\\nHandles \\n\\nSymbolic Links \\n\\nQuota \\n\\nSerialization Primitives \\n\\nBuffer-Handling Issues \\n\\nIRP Cancellation \\n\\nAdd Security Comments to Code \\n\\nLeverage the Operating System']<br>        Question: What are the main security principles to live by?<br>        ",
           "sources": "\nhttps://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf",
-          "nextQuestions": "<1> What are the security principles to live by?\n<2> How can we ensure secure design, by default, and in deployment?\n<3> What are some general good practices for security?",
+          "nextQuestions": "1. How can we minimize our attack surface?\n2. What are some techniques to mitigate threats?\n3. How can we build privacy into our application?",
           "error": ""
         }
       },
@@ -5216,8 +5216,8 @@
   "node_runs": [
     {
       "node": "parse_postBody",
-      "flow_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6",
-      "run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_parse_postBody_0",
+      "flow_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f",
+      "run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_parse_postBody_0",
       "status": "Completed",
       "inputs": {
         "postBody": {
@@ -5256,9 +5256,9 @@
       },
       "metrics": null,
       "error": null,
-      "parent_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_0",
-      "start_time": "2023-08-31T21:33:35.185041Z",
-      "end_time": "2023-08-31T21:33:35.186035Z",
+      "parent_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_0",
+      "start_time": "2023-09-01T23:42:38.782774Z",
+      "end_time": "2023-09-01T23:42:38.782774Z",
       "index": 0,
       "api_calls": [
         {
@@ -5299,8 +5299,8 @@
             "tokenLength": 1000,
             "top": 3
           },
-          "start_time": 1693535615.185041,
-          "end_time": 1693535615.186035,
+          "start_time": 1693629758.782774,
+          "end_time": 1693629758.782774,
           "error": null,
           "children": null,
           "node_name": "parse_postBody"
@@ -5314,7 +5314,7 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.000994
+        "duration": 0.0
       },
       "result": {
         "chainType": "stuff",
@@ -5330,11 +5330,11 @@
     },
     {
       "node": "embed_the_question",
-      "flow_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6",
-      "run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_embed_the_question_0",
+      "flow_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f",
+      "run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_embed_the_question_0",
       "status": "Completed",
       "inputs": {
-        "connection": "fpdoaoaice",
+        "connection": "aoai",
         "deployment_name": "embedding",
         "input": "What are the main security principles to live by?"
       },
@@ -6878,16 +6878,16 @@
       ],
       "metrics": null,
       "error": null,
-      "parent_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_0",
-      "start_time": "2023-08-31T21:33:35.187174Z",
-      "end_time": "2023-08-31T21:33:35.636363Z",
+      "parent_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_0",
+      "start_time": "2023-09-01T23:42:38.782774Z",
+      "end_time": "2023-09-01T23:42:39.566410Z",
       "index": 0,
       "api_calls": [
         {
           "name": "embedding",
           "type": "Tool",
           "inputs": {
-            "connection": "fpdoaoaice",
+            "connection": "aoai",
             "deployment_name": "embedding",
             "input": "What are the main security principles to live by?"
           },
@@ -8429,8 +8429,8 @@
             -0.004915167577564716,
             0.005364385899156332
           ],
-          "start_time": 1693535615.187174,
-          "end_time": 1693535615.617722,
+          "start_time": 1693629758.782774,
+          "end_time": 1693629759.556391,
           "error": null,
           "children": [
             {
@@ -9995,8 +9995,8 @@
                   "total_tokens": 10
                 }
               },
-              "start_time": 1693535615.187174,
-              "end_time": 1693535615.604629,
+              "start_time": 1693629758.782774,
+              "end_time": 1693629759.533099,
               "error": null,
               "children": null,
               "node_name": null
@@ -10015,7 +10015,7 @@
       "system_metrics": {
         "prompt_tokens": 10,
         "total_tokens": 10,
-        "duration": 0.449189
+        "duration": 0.783636
       },
       "result": [
         0.026572726666927338,
@@ -11558,11 +11558,11 @@
     },
     {
       "node": "create_llm",
-      "flow_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6",
-      "run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_create_llm_0",
+      "flow_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f",
+      "run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_create_llm_0",
       "status": "Completed",
       "inputs": {
-        "conn": "chatpdf",
+        "conn": "entaoai",
         "overrides": {
           "chainType": "stuff",
           "deploymentType": "gpt35",
@@ -11578,16 +11578,16 @@
       "output": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=1000, tiktoken_model_name=None, deployment_name='chat', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')",
       "metrics": null,
       "error": null,
-      "parent_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_0",
-      "start_time": "2023-08-31T21:33:35.193179Z",
-      "end_time": "2023-08-31T21:33:35.198601Z",
+      "parent_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_0",
+      "start_time": "2023-09-01T23:42:38.798821Z",
+      "end_time": "2023-09-01T23:42:38.802829Z",
       "index": 0,
       "api_calls": [
         {
           "name": "createLlm",
           "type": "Tool",
           "inputs": {
-            "conn": "chatpdf",
+            "conn": "entaoai",
             "overrides": {
               "chainType": "stuff",
               "deploymentType": "gpt35",
@@ -11610,8 +11610,8 @@
             "engine": "chat",
             "_type": "azure-openai-chat"
           },
-          "start_time": 1693535615.193179,
-          "end_time": 1693535615.195218,
+          "start_time": 1693629758.798821,
+          "end_time": 1693629758.800835,
           "error": null,
           "children": null,
           "node_name": "create_llm"
@@ -11625,14 +11625,14 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.005422
+        "duration": 0.004008
       },
       "result": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=1000, tiktoken_model_name=None, deployment_name='chat', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')"
     },
     {
       "node": "extract_topk",
-      "flow_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6",
-      "run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_extract_topk_0",
+      "flow_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f",
+      "run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_extract_topk_0",
       "status": "Completed",
       "inputs": {
         "overrides": {
@@ -11650,9 +11650,9 @@
       "output": 3,
       "metrics": null,
       "error": null,
-      "parent_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_0",
-      "start_time": "2023-08-31T21:33:35.195218Z",
-      "end_time": "2023-08-31T21:33:35.196229Z",
+      "parent_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_0",
+      "start_time": "2023-09-01T23:42:38.800835Z",
+      "end_time": "2023-09-01T23:42:38.801830Z",
       "index": 0,
       "api_calls": [
         {
@@ -11672,8 +11672,8 @@
             }
           },
           "output": 3,
-          "start_time": 1693535615.195218,
-          "end_time": 1693535615.196229,
+          "start_time": 1693629758.800835,
+          "end_time": 1693629758.80183,
           "error": null,
           "children": null,
           "node_name": "extract_topk"
@@ -11687,14 +11687,14 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.001011
+        "duration": 0.000995
       },
       "result": 3
     },
     {
       "node": "extract_prompttemplate",
-      "flow_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6",
-      "run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_extract_prompttemplate_0",
+      "flow_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f",
+      "run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_extract_prompttemplate_0",
       "status": "Completed",
       "inputs": {
         "overrides": {
@@ -11712,9 +11712,9 @@
       "output": "Given the following extracted parts of a long document and a question, create a final answer. \n        If you don't know the answer, just say that you don't know. Don't try to make up an answer. \n        If the answer is not contained within the text below, say \"I don't know\".\n\n        {summaries}\n        Question: {question}\n        ",
       "metrics": null,
       "error": null,
-      "parent_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_0",
-      "start_time": "2023-08-31T21:33:35.196229Z",
-      "end_time": "2023-08-31T21:33:35.197240Z",
+      "parent_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_0",
+      "start_time": "2023-09-01T23:42:38.801830Z",
+      "end_time": "2023-09-01T23:42:38.802829Z",
       "index": 0,
       "api_calls": [
         {
@@ -11734,8 +11734,8 @@
             }
           },
           "output": "Given the following extracted parts of a long document and a question, create a final answer. \n        If you don't know the answer, just say that you don't know. Don't try to make up an answer. \n        If the answer is not contained within the text below, say \"I don't know\".\n\n        {summaries}\n        Question: {question}\n        ",
-          "start_time": 1693535615.196229,
-          "end_time": 1693535615.19724,
+          "start_time": 1693629758.80183,
+          "end_time": 1693629758.802829,
           "error": null,
           "children": null,
           "node_name": "extract_prompttemplate"
@@ -11749,17 +11749,17 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.001011
+        "duration": 0.000999
       },
       "result": "Given the following extracted parts of a long document and a question, create a final answer. \n        If you don't know the answer, just say that you don't know. Don't try to make up an answer. \n        If the answer is not contained within the text below, say \"I don't know\".\n\n        {summaries}\n        Question: {question}\n        "
     },
     {
       "node": "search_question_from_vectordb",
-      "flow_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6",
-      "run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_search_question_from_vectordb_0",
+      "flow_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f",
+      "run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_search_question_from_vectordb_0",
       "status": "Completed",
       "inputs": {
-        "conn": "chatpdf",
+        "conn": "entaoai",
         "embeddedQuestion": [
           0.026572726666927338,
           -0.008262990042567253,
@@ -13306,16 +13306,16 @@
       "output": "[Document(page_content='Be Mindful of Your Bug Counts \\n\\nKeep Track of Bug Metrics \\n\\nNo Surprises and No Easter Eggs! \\n\\nTest Phase \\n\\nShipping and Maintenance Phases \\n\\nHow Do You Know When You\u2019re Done? \\n\\nResponse Process \\n\\nAccountability \\n\\nSummary\\n\\n3\\n\\nSecurity Principles to Live By \\n\\nSD3: Secure by Design, by Default, and in Deployment \\n\\nSecure by Design \\n\\nSecure by Default \\n\\nSecure in Deployment \\n\\nSecurity Principles \\n\\nLearn from Mistakes \\n\\nMinimize Your Attack Surface \\n\\nEmploy Secure Defaults \\n\\nUse Defense in Depth \\n\\nUse Least Privilege \\n\\nBackward Compatibility Will Always Give You Grief \\n\\n34\\n\\n37\\n\\n40\\n\\n41\\n\\n41\\n\\n41\\n\\n43\\n\\n43\\n\\n43\\n\\n44\\n\\n44\\n\\n44\\n\\n45\\n\\n45\\n\\n46\\n\\n46\\n\\n47\\n\\n47\\n\\n47\\n\\n47\\n\\n48\\n\\n49\\n\\n49\\n\\n51\\n\\n51\\n\\n51\\n\\n53\\n\\n53\\n\\n54\\n\\n54\\n\\n57\\n\\n57\\n\\n59\\n\\n60\\n\\n62\\n\\n\\x0cA05T617228.fm  Page ix  Monday, October 28, 2002  10:01 AM\\n\\nTable of Contents\\n\\nix\\n\\nAssume External Systems Are Insecure \\n\\nPlan on Failure \\n\\nFail to a Secure Mode \\n\\nRemember That Security Features != Secure Features \\n\\nNever Depend on Security Through Obscurity Alone \\n\\nDon\u2019t Mix Code and Data \\n\\nFix Security Issues Correctly \\n\\nSummary \\n\\n4\\n\\nThreat Modeling \\n\\nSecure Design Through Threat Modeling \\n\\nAssemble the Threat-Modeling Team \\n\\nDecompose the Application \\n\\nDetermine the Threats to the System \\n\\nRank the Threats by Decreasing Risk \\n\\nChoose How to Respond to the Threats \\n\\nChoose Techniques to Mitigate the Threats \\n\\nSecurity Techniques \\n\\nAuthentication \\n\\nAuthorization \\n\\nTamper-Resistant and Privacy-Enhanced Technologies \\n\\nProtect Secrets, or Better Yet, Don\u2019t Store Secrets', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:f502b06ee4314d3fb1cf240844a4e13c', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'}), Document(page_content='Get the Boss to Send an E-Mail \\n\\nNominate a Security Evangelist \\n\\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \\n\\nPrinciple #1: The defender must defend all points; the attacker can choose \\nthe weakest point. \\n\\nPrinciple #2: The defender can defend only against known attacks; the \\nattacker can probe for unknown vulnerabilities. \\n\\nPrinciple #3: The defender must be constantly vigilant; the attacker can \\nstrike at will. \\n\\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \\n\\nSummary\\n\\n2\\n\\nThe Proactive Security Development Process \\n\\nProcess Improvements \\n\\nThe Role of Education \\n\\nResistance to Mandatory Training \\n\\nOngoing Training \\n\\nAdvancing the Science of Security \\n\\nEducation Proves the More Eyes Fallacy \\n\\nNow the Evidence! \\n\\nDesign Phase \\n\\nSecurity Questions During Interviews \\n\\nxxiii\\n\\n3\\n\\n5\\n\\n7\\n\\n7\\n\\n8\\n\\n11\\n\\n13\\n\\n14\\n\\n15\\n\\n19\\n\\n19\\n\\n20\\n\\n20\\n\\n21\\n\\n21\\n\\n23\\n\\n25\\n\\n26\\n\\n29\\n\\n29\\n\\n29\\n\\n31\\n\\n31\\n\\n32\\n\\n33\\n\\nvii\\n\\n\\x0cA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\\n\\nviii\\n\\nTable of Contents\\n\\nDefine the Product Security Goals \\n\\nSecurity Is a Product Feature \\n\\nMaking Time for Security \\n\\nThreat Modeling Leads to Secure Design \\n\\nBuild End-of-Life Plans for Insecure Features \\n\\nSetting the Bug Bar \\n\\nSecurity Team Review \\n\\nDevelopment Phase \\n\\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \\n\\nSecurity Peer Review of New Code (Check-Ins Checked) \\n\\nDefine Secure Coding Guidelines \\n\\nReview Old Defects \\n\\nExternal Security Review \\n\\nSecurity Push', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:708f051377e4493f987fa2c44ddfb927', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'}), Document(page_content='Principle of Least Privilege\\n\\nClean Up After Yourself!\\n\\nUsing the Security Configuration Editor \\n\\nLow-Level Security APIs \\n\\nUsing the Windows Installer \\n\\nSummary\\n\\n22\\n\\nBuilding Privacy into Your Application\\n\\nMalicious vs. Annoying Invasions of Privacy \\n\\nMajor Privacy Legislation \\n\\nPersonally Identifiable Information \\n\\nThe EU Directives on Data Protection \\n\\n587\\n\\n588\\n\\n606\\n\\n607\\n\\n607\\n\\n609\\n\\n610\\n\\n611\\n\\n611\\n\\n611\\n\\n612\\n\\n612\\n\\n613\\n\\n615\\n\\n617\\n\\n618\\n\\n619\\n\\n620\\n\\n624\\n\\n624\\n\\n625\\n\\n625\\n\\n626\\n\\n627\\n\\n 628\\n\\n 630\\n\\n630\\n\\n638\\n\\n638\\n\\n 640\\n\\n  641\\n\\n642\\n\\n643\\n\\n643\\n\\n643\\n\\n\\x0cA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\\n\\nxx\\n\\nTable of Contents\\n\\nSafe Harbor Principles \\n\\nOther Privacy Legislation\\n\\nPrivacy vs. Security \\n\\nBuilding a Privacy Infrastructure \\n\\nThe Role of the Chief Privacy Officer \\n\\nThe Role of the Privacy Advocate\\n\\nDesigning Privacy-Aware Applications\\n\\nIncluding Privacy in the Development Process \\n\\nExploring Privacy Features\\n\\nSummary\\n\\n23\\n\\nGeneral Good Practices \\n\\nDon\u2019t Tell the Attacker Anything \\n\\nService Best Practices \\n\\nSecurity, Services, and the Interactive Desktop \\n\\nService Account Guidelines \\n\\nDon\u2019t Leak Information in Banner Strings \\n\\nBe Careful Changing Error Messages in Fixes \\n\\nDouble-Check Your Error Paths \\n\\nKeep It Turned Off! \\n\\nKernel-Mode Mistakes \\n\\nHigh-Level Security Issues \\n\\nHandles \\n\\nSymbolic Links \\n\\nQuota \\n\\nSerialization Primitives \\n\\nBuffer-Handling Issues \\n\\nIRP Cancellation \\n\\nAdd Security Comments to Code \\n\\nLeverage the Operating System', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:28cf9d370091442ba09e075eadf87067', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'})]",
       "metrics": null,
       "error": null,
-      "parent_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_0",
-      "start_time": "2023-08-31T21:33:35.637980Z",
-      "end_time": "2023-08-31T21:33:35.929382Z",
+      "parent_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_0",
+      "start_time": "2023-09-01T23:42:39.568550Z",
+      "end_time": "2023-09-01T23:42:39.829016Z",
       "index": 0,
       "api_calls": [
         {
           "name": "searchVectorDb",
           "type": "Tool",
           "inputs": {
-            "conn": "chatpdf",
+            "conn": "entaoai",
             "embeddedQuestion": [
               0.026572726666927338,
               -0.008262990042567253,
@@ -14882,8 +14882,8 @@
               }
             }
           ],
-          "start_time": 1693535615.638949,
-          "end_time": 1693535615.911154,
+          "start_time": 1693629759.56855,
+          "end_time": 1693629759.815023,
           "error": null,
           "children": null,
           "node_name": "search_question_from_vectordb"
@@ -14893,18 +14893,18 @@
       "cached_run_id": null,
       "cached_flow_run_id": null,
       "logs": {
-        "stdout": "[2023-08-31T21:33:35+0000] [Document(page_content='Be Mindful of Your Bug Counts \\n\\nKeep Track of Bug Metrics \\n\\nNo Surprises and No Easter Eggs! \\n\\nTest Phase \\n\\nShipping and Maintenance Phases \\n\\nHow Do You Know When You\u2019re Done? \\n\\nResponse Process \\n\\nAccountability \\n\\nSummary\\n\\n3\\n\\nSecurity Principles to Live By \\n\\nSD3: Secure by Design, by Default, and in Deployment \\n\\nSecure by Design \\n\\nSecure by Default \\n\\nSecure in Deployment \\n\\nSecurity Principles \\n\\nLearn from Mistakes \\n\\nMinimize Your Attack Surface \\n\\nEmploy Secure Defaults \\n\\nUse Defense in Depth \\n\\nUse Least Privilege \\n\\nBackward Compatibility Will Always Give You Grief \\n\\n34\\n\\n37\\n\\n40\\n\\n41\\n\\n41\\n\\n41\\n\\n43\\n\\n43\\n\\n43\\n\\n44\\n\\n44\\n\\n44\\n\\n45\\n\\n45\\n\\n46\\n\\n46\\n\\n47\\n\\n47\\n\\n47\\n\\n47\\n\\n48\\n\\n49\\n\\n49\\n\\n51\\n\\n51\\n\\n51\\n\\n53\\n\\n53\\n\\n54\\n\\n54\\n\\n57\\n\\n57\\n\\n59\\n\\n60\\n\\n62\\n\\n\\x0cA05T617228.fm  Page ix  Monday, October 28, 2002  10:01 AM\\n\\nTable of Contents\\n\\nix\\n\\nAssume External Systems Are Insecure \\n\\nPlan on Failure \\n\\nFail to a Secure Mode \\n\\nRemember That Security Features != Secure Features \\n\\nNever Depend on Security Through Obscurity Alone \\n\\nDon\u2019t Mix Code and Data \\n\\nFix Security Issues Correctly \\n\\nSummary \\n\\n4\\n\\nThreat Modeling \\n\\nSecure Design Through Threat Modeling \\n\\nAssemble the Threat-Modeling Team \\n\\nDecompose the Application \\n\\nDetermine the Threats to the System \\n\\nRank the Threats by Decreasing Risk \\n\\nChoose How to Respond to the Threats \\n\\nChoose Techniques to Mitigate the Threats \\n\\nSecurity Techniques \\n\\nAuthentication \\n\\nAuthorization \\n\\nTamper-Resistant and Privacy-Enhanced Technologies \\n\\nProtect Secrets, or Better Yet, Don\u2019t Store Secrets', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:f502b06ee4314d3fb1cf240844a4e13c', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'}), Document(page_content='Get the Boss to Send an E-Mail \\n\\nNominate a Security Evangelist \\n\\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \\n\\nPrinciple #1: The defender must defend all points; the attacker can choose \\nthe weakest point. \\n\\nPrinciple #2: The defender can defend only against known attacks; the \\nattacker can probe for unknown vulnerabilities. \\n\\nPrinciple #3: The defender must be constantly vigilant; the attacker can \\nstrike at will. \\n\\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \\n\\nSummary\\n\\n2\\n\\nThe Proactive Security Development Process \\n\\nProcess Improvements \\n\\nThe Role of Education \\n\\nResistance to Mandatory Training \\n\\nOngoing Training \\n\\nAdvancing the Science of Security \\n\\nEducation Proves the More Eyes Fallacy \\n\\nNow the Evidence! \\n\\nDesign Phase \\n\\nSecurity Questions During Interviews \\n\\nxxiii\\n\\n3\\n\\n5\\n\\n7\\n\\n7\\n\\n8\\n\\n11\\n\\n13\\n\\n14\\n\\n15\\n\\n19\\n\\n19\\n\\n20\\n\\n20\\n\\n21\\n\\n21\\n\\n23\\n\\n25\\n\\n26\\n\\n29\\n\\n29\\n\\n29\\n\\n31\\n\\n31\\n\\n32\\n\\n33\\n\\nvii\\n\\n\\x0cA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\\n\\nviii\\n\\nTable of Contents\\n\\nDefine the Product Security Goals \\n\\nSecurity Is a Product Feature \\n\\nMaking Time for Security \\n\\nThreat Modeling Leads to Secure Design \\n\\nBuild End-of-Life Plans for Insecure Features \\n\\nSetting the Bug Bar \\n\\nSecurity Team Review \\n\\nDevelopment Phase \\n\\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \\n\\nSecurity Peer Review of New Code (Check-Ins Checked) \\n\\nDefine Secure Coding Guidelines \\n\\nReview Old Defects \\n\\nExternal Security Review \\n\\nSecurity Push', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:708f051377e4493f987fa2c44ddfb927', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'}), Document(page_content='Principle of Least Privilege\\n\\nClean Up After Yourself!\\n\\nUsing the Security Configuration Editor \\n\\nLow-Level Security APIs \\n\\nUsing the Windows Installer \\n\\nSummary\\n\\n22\\n\\nBuilding Privacy into Your Application\\n\\nMalicious vs. Annoying Invasions of Privacy \\n\\nMajor Privacy Legislation \\n\\nPersonally Identifiable Information \\n\\nThe EU Directives on Data Protection \\n\\n587\\n\\n588\\n\\n606\\n\\n607\\n\\n607\\n\\n609\\n\\n610\\n\\n611\\n\\n611\\n\\n611\\n\\n612\\n\\n612\\n\\n613\\n\\n615\\n\\n617\\n\\n618\\n\\n619\\n\\n620\\n\\n624\\n\\n624\\n\\n625\\n\\n625\\n\\n626\\n\\n627\\n\\n 628\\n\\n 630\\n\\n630\\n\\n638\\n\\n638\\n\\n 640\\n\\n  641\\n\\n642\\n\\n643\\n\\n643\\n\\n643\\n\\n\\x0cA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\\n\\nxx\\n\\nTable of Contents\\n\\nSafe Harbor Principles \\n\\nOther Privacy Legislation\\n\\nPrivacy vs. Security \\n\\nBuilding a Privacy Infrastructure \\n\\nThe Role of the Chief Privacy Officer \\n\\nThe Role of the Privacy Advocate\\n\\nDesigning Privacy-Aware Applications\\n\\nIncluding Privacy in the Development Process \\n\\nExploring Privacy Features\\n\\nSummary\\n\\n23\\n\\nGeneral Good Practices \\n\\nDon\u2019t Tell the Attacker Anything \\n\\nService Best Practices \\n\\nSecurity, Services, and the Interactive Desktop \\n\\nService Account Guidelines \\n\\nDon\u2019t Leak Information in Banner Strings \\n\\nBe Careful Changing Error Messages in Fixes \\n\\nDouble-Check Your Error Paths \\n\\nKeep It Turned Off! \\n\\nKernel-Mode Mistakes \\n\\nHigh-Level Security Issues \\n\\nHandles \\n\\nSymbolic Links \\n\\nQuota \\n\\nSerialization Primitives \\n\\nBuffer-Handling Issues \\n\\nIRP Cancellation \\n\\nAdd Security Comments to Code \\n\\nLeverage the Operating System', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:28cf9d370091442ba09e075eadf87067', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'})]\n",
+        "stdout": "",
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.291402
+        "duration": 0.260466
       },
       "result": "[Document(page_content='Be Mindful of Your Bug Counts \\n\\nKeep Track of Bug Metrics \\n\\nNo Surprises and No Easter Eggs! \\n\\nTest Phase \\n\\nShipping and Maintenance Phases \\n\\nHow Do You Know When You\u2019re Done? \\n\\nResponse Process \\n\\nAccountability \\n\\nSummary\\n\\n3\\n\\nSecurity Principles to Live By \\n\\nSD3: Secure by Design, by Default, and in Deployment \\n\\nSecure by Design \\n\\nSecure by Default \\n\\nSecure in Deployment \\n\\nSecurity Principles \\n\\nLearn from Mistakes \\n\\nMinimize Your Attack Surface \\n\\nEmploy Secure Defaults \\n\\nUse Defense in Depth \\n\\nUse Least Privilege \\n\\nBackward Compatibility Will Always Give You Grief \\n\\n34\\n\\n37\\n\\n40\\n\\n41\\n\\n41\\n\\n41\\n\\n43\\n\\n43\\n\\n43\\n\\n44\\n\\n44\\n\\n44\\n\\n45\\n\\n45\\n\\n46\\n\\n46\\n\\n47\\n\\n47\\n\\n47\\n\\n47\\n\\n48\\n\\n49\\n\\n49\\n\\n51\\n\\n51\\n\\n51\\n\\n53\\n\\n53\\n\\n54\\n\\n54\\n\\n57\\n\\n57\\n\\n59\\n\\n60\\n\\n62\\n\\n\\x0cA05T617228.fm  Page ix  Monday, October 28, 2002  10:01 AM\\n\\nTable of Contents\\n\\nix\\n\\nAssume External Systems Are Insecure \\n\\nPlan on Failure \\n\\nFail to a Secure Mode \\n\\nRemember That Security Features != Secure Features \\n\\nNever Depend on Security Through Obscurity Alone \\n\\nDon\u2019t Mix Code and Data \\n\\nFix Security Issues Correctly \\n\\nSummary \\n\\n4\\n\\nThreat Modeling \\n\\nSecure Design Through Threat Modeling \\n\\nAssemble the Threat-Modeling Team \\n\\nDecompose the Application \\n\\nDetermine the Threats to the System \\n\\nRank the Threats by Decreasing Risk \\n\\nChoose How to Respond to the Threats \\n\\nChoose Techniques to Mitigate the Threats \\n\\nSecurity Techniques \\n\\nAuthentication \\n\\nAuthorization \\n\\nTamper-Resistant and Privacy-Enhanced Technologies \\n\\nProtect Secrets, or Better Yet, Don\u2019t Store Secrets', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:f502b06ee4314d3fb1cf240844a4e13c', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'}), Document(page_content='Get the Boss to Send an E-Mail \\n\\nNominate a Security Evangelist \\n\\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \\n\\nPrinciple #1: The defender must defend all points; the attacker can choose \\nthe weakest point. \\n\\nPrinciple #2: The defender can defend only against known attacks; the \\nattacker can probe for unknown vulnerabilities. \\n\\nPrinciple #3: The defender must be constantly vigilant; the attacker can \\nstrike at will. \\n\\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \\n\\nSummary\\n\\n2\\n\\nThe Proactive Security Development Process \\n\\nProcess Improvements \\n\\nThe Role of Education \\n\\nResistance to Mandatory Training \\n\\nOngoing Training \\n\\nAdvancing the Science of Security \\n\\nEducation Proves the More Eyes Fallacy \\n\\nNow the Evidence! \\n\\nDesign Phase \\n\\nSecurity Questions During Interviews \\n\\nxxiii\\n\\n3\\n\\n5\\n\\n7\\n\\n7\\n\\n8\\n\\n11\\n\\n13\\n\\n14\\n\\n15\\n\\n19\\n\\n19\\n\\n20\\n\\n20\\n\\n21\\n\\n21\\n\\n23\\n\\n25\\n\\n26\\n\\n29\\n\\n29\\n\\n29\\n\\n31\\n\\n31\\n\\n32\\n\\n33\\n\\nvii\\n\\n\\x0cA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\\n\\nviii\\n\\nTable of Contents\\n\\nDefine the Product Security Goals \\n\\nSecurity Is a Product Feature \\n\\nMaking Time for Security \\n\\nThreat Modeling Leads to Secure Design \\n\\nBuild End-of-Life Plans for Insecure Features \\n\\nSetting the Bug Bar \\n\\nSecurity Team Review \\n\\nDevelopment Phase \\n\\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \\n\\nSecurity Peer Review of New Code (Check-Ins Checked) \\n\\nDefine Secure Coding Guidelines \\n\\nReview Old Defects \\n\\nExternal Security Review \\n\\nSecurity Push', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:708f051377e4493f987fa2c44ddfb927', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'}), Document(page_content='Principle of Least Privilege\\n\\nClean Up After Yourself!\\n\\nUsing the Security Configuration Editor \\n\\nLow-Level Security APIs \\n\\nUsing the Windows Installer \\n\\nSummary\\n\\n22\\n\\nBuilding Privacy into Your Application\\n\\nMalicious vs. Annoying Invasions of Privacy \\n\\nMajor Privacy Legislation \\n\\nPersonally Identifiable Information \\n\\nThe EU Directives on Data Protection \\n\\n587\\n\\n588\\n\\n606\\n\\n607\\n\\n607\\n\\n609\\n\\n610\\n\\n611\\n\\n611\\n\\n611\\n\\n612\\n\\n612\\n\\n613\\n\\n615\\n\\n617\\n\\n618\\n\\n619\\n\\n620\\n\\n624\\n\\n624\\n\\n625\\n\\n625\\n\\n626\\n\\n627\\n\\n 628\\n\\n 630\\n\\n630\\n\\n638\\n\\n638\\n\\n 640\\n\\n  641\\n\\n642\\n\\n643\\n\\n643\\n\\n643\\n\\n\\x0cA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\\n\\nxx\\n\\nTable of Contents\\n\\nSafe Harbor Principles \\n\\nOther Privacy Legislation\\n\\nPrivacy vs. Security \\n\\nBuilding a Privacy Infrastructure \\n\\nThe Role of the Chief Privacy Officer \\n\\nThe Role of the Privacy Advocate\\n\\nDesigning Privacy-Aware Applications\\n\\nIncluding Privacy in the Development Process \\n\\nExploring Privacy Features\\n\\nSummary\\n\\n23\\n\\nGeneral Good Practices \\n\\nDon\u2019t Tell the Attacker Anything \\n\\nService Best Practices \\n\\nSecurity, Services, and the Interactive Desktop \\n\\nService Account Guidelines \\n\\nDon\u2019t Leak Information in Banner Strings \\n\\nBe Careful Changing Error Messages in Fixes \\n\\nDouble-Check Your Error Paths \\n\\nKeep It Turned Off! \\n\\nKernel-Mode Mistakes \\n\\nHigh-Level Security Issues \\n\\nHandles \\n\\nSymbolic Links \\n\\nQuota \\n\\nSerialization Primitives \\n\\nBuffer-Handling Issues \\n\\nIRP Cancellation \\n\\nAdd Security Comments to Code \\n\\nLeverage the Operating System', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:28cf9d370091442ba09e075eadf87067', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'})]"
     },
     {
       "node": "answer_the_question",
-      "flow_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6",
-      "run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_answer_the_question_0",
+      "flow_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f",
+      "run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_answer_the_question_0",
       "status": "Completed",
       "inputs": {
         "llm": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=1000, tiktoken_model_name=None, deployment_name='chat', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')",
@@ -14923,12 +14923,12 @@
         "question": "What are the main security principles to live by?",
         "retrievedDocs": "[Document(page_content='Be Mindful of Your Bug Counts \\n\\nKeep Track of Bug Metrics \\n\\nNo Surprises and No Easter Eggs! \\n\\nTest Phase \\n\\nShipping and Maintenance Phases \\n\\nHow Do You Know When You\u2019re Done? \\n\\nResponse Process \\n\\nAccountability \\n\\nSummary\\n\\n3\\n\\nSecurity Principles to Live By \\n\\nSD3: Secure by Design, by Default, and in Deployment \\n\\nSecure by Design \\n\\nSecure by Default \\n\\nSecure in Deployment \\n\\nSecurity Principles \\n\\nLearn from Mistakes \\n\\nMinimize Your Attack Surface \\n\\nEmploy Secure Defaults \\n\\nUse Defense in Depth \\n\\nUse Least Privilege \\n\\nBackward Compatibility Will Always Give You Grief \\n\\n34\\n\\n37\\n\\n40\\n\\n41\\n\\n41\\n\\n41\\n\\n43\\n\\n43\\n\\n43\\n\\n44\\n\\n44\\n\\n44\\n\\n45\\n\\n45\\n\\n46\\n\\n46\\n\\n47\\n\\n47\\n\\n47\\n\\n47\\n\\n48\\n\\n49\\n\\n49\\n\\n51\\n\\n51\\n\\n51\\n\\n53\\n\\n53\\n\\n54\\n\\n54\\n\\n57\\n\\n57\\n\\n59\\n\\n60\\n\\n62\\n\\n\\x0cA05T617228.fm  Page ix  Monday, October 28, 2002  10:01 AM\\n\\nTable of Contents\\n\\nix\\n\\nAssume External Systems Are Insecure \\n\\nPlan on Failure \\n\\nFail to a Secure Mode \\n\\nRemember That Security Features != Secure Features \\n\\nNever Depend on Security Through Obscurity Alone \\n\\nDon\u2019t Mix Code and Data \\n\\nFix Security Issues Correctly \\n\\nSummary \\n\\n4\\n\\nThreat Modeling \\n\\nSecure Design Through Threat Modeling \\n\\nAssemble the Threat-Modeling Team \\n\\nDecompose the Application \\n\\nDetermine the Threats to the System \\n\\nRank the Threats by Decreasing Risk \\n\\nChoose How to Respond to the Threats \\n\\nChoose Techniques to Mitigate the Threats \\n\\nSecurity Techniques \\n\\nAuthentication \\n\\nAuthorization \\n\\nTamper-Resistant and Privacy-Enhanced Technologies \\n\\nProtect Secrets, or Better Yet, Don\u2019t Store Secrets', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:f502b06ee4314d3fb1cf240844a4e13c', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'}), Document(page_content='Get the Boss to Send an E-Mail \\n\\nNominate a Security Evangelist \\n\\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \\n\\nPrinciple #1: The defender must defend all points; the attacker can choose \\nthe weakest point. \\n\\nPrinciple #2: The defender can defend only against known attacks; the \\nattacker can probe for unknown vulnerabilities. \\n\\nPrinciple #3: The defender must be constantly vigilant; the attacker can \\nstrike at will. \\n\\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \\n\\nSummary\\n\\n2\\n\\nThe Proactive Security Development Process \\n\\nProcess Improvements \\n\\nThe Role of Education \\n\\nResistance to Mandatory Training \\n\\nOngoing Training \\n\\nAdvancing the Science of Security \\n\\nEducation Proves the More Eyes Fallacy \\n\\nNow the Evidence! \\n\\nDesign Phase \\n\\nSecurity Questions During Interviews \\n\\nxxiii\\n\\n3\\n\\n5\\n\\n7\\n\\n7\\n\\n8\\n\\n11\\n\\n13\\n\\n14\\n\\n15\\n\\n19\\n\\n19\\n\\n20\\n\\n20\\n\\n21\\n\\n21\\n\\n23\\n\\n25\\n\\n26\\n\\n29\\n\\n29\\n\\n29\\n\\n31\\n\\n31\\n\\n32\\n\\n33\\n\\nvii\\n\\n\\x0cA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\\n\\nviii\\n\\nTable of Contents\\n\\nDefine the Product Security Goals \\n\\nSecurity Is a Product Feature \\n\\nMaking Time for Security \\n\\nThreat Modeling Leads to Secure Design \\n\\nBuild End-of-Life Plans for Insecure Features \\n\\nSetting the Bug Bar \\n\\nSecurity Team Review \\n\\nDevelopment Phase \\n\\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \\n\\nSecurity Peer Review of New Code (Check-Ins Checked) \\n\\nDefine Secure Coding Guidelines \\n\\nReview Old Defects \\n\\nExternal Security Review \\n\\nSecurity Push', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:708f051377e4493f987fa2c44ddfb927', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'}), Document(page_content='Principle of Least Privilege\\n\\nClean Up After Yourself!\\n\\nUsing the Security Configuration Editor \\n\\nLow-Level Security APIs \\n\\nUsing the Windows Installer \\n\\nSummary\\n\\n22\\n\\nBuilding Privacy into Your Application\\n\\nMalicious vs. Annoying Invasions of Privacy \\n\\nMajor Privacy Legislation \\n\\nPersonally Identifiable Information \\n\\nThe EU Directives on Data Protection \\n\\n587\\n\\n588\\n\\n606\\n\\n607\\n\\n607\\n\\n609\\n\\n610\\n\\n611\\n\\n611\\n\\n611\\n\\n612\\n\\n612\\n\\n613\\n\\n615\\n\\n617\\n\\n618\\n\\n619\\n\\n620\\n\\n624\\n\\n624\\n\\n625\\n\\n625\\n\\n626\\n\\n627\\n\\n 628\\n\\n 630\\n\\n630\\n\\n638\\n\\n638\\n\\n 640\\n\\n  641\\n\\n642\\n\\n643\\n\\n643\\n\\n643\\n\\n\\x0cA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\\n\\nxx\\n\\nTable of Contents\\n\\nSafe Harbor Principles \\n\\nOther Privacy Legislation\\n\\nPrivacy vs. Security \\n\\nBuilding a Privacy Infrastructure \\n\\nThe Role of the Chief Privacy Officer \\n\\nThe Role of the Privacy Advocate\\n\\nDesigning Privacy-Aware Applications\\n\\nIncluding Privacy in the Development Process \\n\\nExploring Privacy Features\\n\\nSummary\\n\\n23\\n\\nGeneral Good Practices \\n\\nDon\u2019t Tell the Attacker Anything \\n\\nService Best Practices \\n\\nSecurity, Services, and the Interactive Desktop \\n\\nService Account Guidelines \\n\\nDon\u2019t Leak Information in Banner Strings \\n\\nBe Careful Changing Error Messages in Fixes \\n\\nDouble-Check Your Error Paths \\n\\nKeep It Turned Off! \\n\\nKernel-Mode Mistakes \\n\\nHigh-Level Security Issues \\n\\nHandles \\n\\nSymbolic Links \\n\\nQuota \\n\\nSerialization Primitives \\n\\nBuffer-Handling Issues \\n\\nIRP Cancellation \\n\\nAdd Security Comments to Code \\n\\nLeverage the Operating System', metadata={'id': 'doc:00ecf719dbee4ceb879d76456967a8d8:28cf9d370091442ba09e075eadf87067', 'source': 'https://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf'})]"
       },
-      "output": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
+      "output": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
       "metrics": null,
       "error": null,
-      "parent_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_0",
-      "start_time": "2023-08-31T21:33:35.932424Z",
-      "end_time": "2023-08-31T21:33:39.484169Z",
+      "parent_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_0",
+      "start_time": "2023-09-01T23:42:39.832908Z",
+      "end_time": "2023-09-01T23:42:41.132877Z",
       "index": 0,
       "api_calls": [
         {
@@ -14982,9 +14982,9 @@
               }
             ]
           },
-          "output": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
-          "start_time": 1693535615.9334,
-          "end_time": 1693535619.478569,
+          "output": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
+          "start_time": 1693629759.832908,
+          "end_time": 1693629761.132877,
           "error": null,
           "children": [
             {
@@ -15010,11 +15010,11 @@
                 "api_version": "2023-07-01-preview"
               },
               "output": {
-                "id": "chatcmpl-7tjaDbqIld6wV63x6q1zCVSmwUjZz",
+                "id": "chatcmpl-7u84gOhtq9I4XMTeQG8t8d1g02Drk",
                 "object": "chat.completion",
-                "created": 1693517617,
+                "created": 1693611762,
                 "model": "gpt-35-turbo",
-                "prompt_annotations": [
+                "prompt_filter_results": [
                   {
                     "prompt_index": 0,
                     "content_filter_results": {
@@ -15043,7 +15043,7 @@
                     "finish_reason": "stop",
                     "message": {
                       "role": "assistant",
-                      "content": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly"
+                      "content": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief"
                     },
                     "content_filter_results": {
                       "hate": {
@@ -15066,13 +15066,13 @@
                   }
                 ],
                 "usage": {
-                  "completion_tokens": 181,
+                  "completion_tokens": 89,
                   "prompt_tokens": 1235,
-                  "total_tokens": 1416
+                  "total_tokens": 1324
                 }
               },
-              "start_time": 1693535615.93706,
-              "end_time": 1693535619.477584,
+              "start_time": 1693629759.832908,
+              "end_time": 1693629761.132877,
               "error": null,
               "children": null,
               "node_name": null
@@ -15089,21 +15089,21 @@
         "stderr": ""
       },
       "system_metrics": {
-        "completion_tokens": 181,
+        "completion_tokens": 89,
         "prompt_tokens": 1235,
-        "total_tokens": 1416,
-        "duration": 3.551745
+        "total_tokens": 1324,
+        "duration": 1.299969
       },
-      "result": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly"
+      "result": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief"
     },
     {
       "node": "followup_questions",
-      "flow_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6",
-      "run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_followup_questions_0",
+      "flow_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f",
+      "run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_followup_questions_0",
       "status": "Completed",
       "inputs": {
         "llm": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=1000, tiktoken_model_name=None, deployment_name='chat', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')",
-        "modifiedAnswer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
+        "modifiedAnswer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
         "overrides": {
           "chainType": "stuff",
           "deploymentType": "gpt35",
@@ -15125,17 +15125,17 @@
           "Get the Boss to Send an E-Mail \n\nNominate a Security Evangelist \n\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \n\nPrinciple #1: The defender must defend all points; the attacker can choose \nthe weakest point. \n\nPrinciple #2: The defender can defend only against known attacks; the \nattacker can probe for unknown vulnerabilities. \n\nPrinciple #3: The defender must be constantly vigilant; the attacker can \nstrike at will. \n\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \n\nSummary\n\n2\n\nThe Proactive Security Development Process \n\nProcess Improvements \n\nThe Role of Education \n\nResistance to Mandatory Training \n\nOngoing Training \n\nAdvancing the Science of Security \n\nEducation Proves the More Eyes Fallacy \n\nNow the Evidence! \n\nDesign Phase \n\nSecurity Questions During Interviews \n\nxxiii\n\n3\n\n5\n\n7\n\n7\n\n8\n\n11\n\n13\n\n14\n\n15\n\n19\n\n19\n\n20\n\n20\n\n21\n\n21\n\n23\n\n25\n\n26\n\n29\n\n29\n\n29\n\n31\n\n31\n\n32\n\n33\n\nvii\n\n\fA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\n\nviii\n\nTable of Contents\n\nDefine the Product Security Goals \n\nSecurity Is a Product Feature \n\nMaking Time for Security \n\nThreat Modeling Leads to Secure Design \n\nBuild End-of-Life Plans for Insecure Features \n\nSetting the Bug Bar \n\nSecurity Team Review \n\nDevelopment Phase \n\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \n\nSecurity Peer Review of New Code (Check-Ins Checked) \n\nDefine Secure Coding Guidelines \n\nReview Old Defects \n\nExternal Security Review \n\nSecurity Push",
           "Principle of Least Privilege\n\nClean Up After Yourself!\n\nUsing the Security Configuration Editor \n\nLow-Level Security APIs \n\nUsing the Windows Installer \n\nSummary\n\n22\n\nBuilding Privacy into Your Application\n\nMalicious vs. Annoying Invasions of Privacy \n\nMajor Privacy Legislation \n\nPersonally Identifiable Information \n\nThe EU Directives on Data Protection \n\n587\n\n588\n\n606\n\n607\n\n607\n\n609\n\n610\n\n611\n\n611\n\n611\n\n612\n\n612\n\n613\n\n615\n\n617\n\n618\n\n619\n\n620\n\n624\n\n624\n\n625\n\n625\n\n626\n\n627\n\n 628\n\n 630\n\n630\n\n638\n\n638\n\n 640\n\n  641\n\n642\n\n643\n\n643\n\n643\n\n\fA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\n\nxx\n\nTable of Contents\n\nSafe Harbor Principles \n\nOther Privacy Legislation\n\nPrivacy vs. Security \n\nBuilding a Privacy Infrastructure \n\nThe Role of the Chief Privacy Officer \n\nThe Role of the Privacy Advocate\n\nDesigning Privacy-Aware Applications\n\nIncluding Privacy in the Development Process \n\nExploring Privacy Features\n\nSummary\n\n23\n\nGeneral Good Practices \n\nDon\u2019t Tell the Attacker Anything \n\nService Best Practices \n\nSecurity, Services, and the Interactive Desktop \n\nService Account Guidelines \n\nDon\u2019t Leak Information in Banner Strings \n\nBe Careful Changing Error Messages in Fixes \n\nDouble-Check Your Error Paths \n\nKeep It Turned Off! \n\nKernel-Mode Mistakes \n\nHigh-Level Security Issues \n\nHandles \n\nSymbolic Links \n\nQuota \n\nSerialization Primitives \n\nBuffer-Handling Issues \n\nIRP Cancellation \n\nAdd Security Comments to Code \n\nLeverage the Operating System"
         ],
-        "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
+        "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
         "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Be Mindful of Your Bug Counts \\n\\nKeep Track of Bug Metrics \\n\\nNo Surprises and No Easter Eggs! \\n\\nTest Phase \\n\\nShipping and Maintenance Phases \\n\\nHow Do You Know When You\u2019re Done? \\n\\nResponse Process \\n\\nAccountability \\n\\nSummary\\n\\n3\\n\\nSecurity Principles to Live By \\n\\nSD3: Secure by Design, by Default, and in Deployment \\n\\nSecure by Design \\n\\nSecure by Default \\n\\nSecure in Deployment \\n\\nSecurity Principles \\n\\nLearn from Mistakes \\n\\nMinimize Your Attack Surface \\n\\nEmploy Secure Defaults \\n\\nUse Defense in Depth \\n\\nUse Least Privilege \\n\\nBackward Compatibility Will Always Give You Grief \\n\\n34\\n\\n37\\n\\n40\\n\\n41\\n\\n41\\n\\n41\\n\\n43\\n\\n43\\n\\n43\\n\\n44\\n\\n44\\n\\n44\\n\\n45\\n\\n45\\n\\n46\\n\\n46\\n\\n47\\n\\n47\\n\\n47\\n\\n47\\n\\n48\\n\\n49\\n\\n49\\n\\n51\\n\\n51\\n\\n51\\n\\n53\\n\\n53\\n\\n54\\n\\n54\\n\\n57\\n\\n57\\n\\n59\\n\\n60\\n\\n62\\n\\n\\x0cA05T617228.fm  Page ix  Monday, October 28, 2002  10:01 AM\\n\\nTable of Contents\\n\\nix\\n\\nAssume External Systems Are Insecure \\n\\nPlan on Failure \\n\\nFail to a Secure Mode \\n\\nRemember That Security Features != Secure Features \\n\\nNever Depend on Security Through Obscurity Alone \\n\\nDon\u2019t Mix Code and Data \\n\\nFix Security Issues Correctly \\n\\nSummary \\n\\n4\\n\\nThreat Modeling \\n\\nSecure Design Through Threat Modeling \\n\\nAssemble the Threat-Modeling Team \\n\\nDecompose the Application \\n\\nDetermine the Threats to the System \\n\\nRank the Threats by Decreasing Risk \\n\\nChoose How to Respond to the Threats \\n\\nChoose Techniques to Mitigate the Threats \\n\\nSecurity Techniques \\n\\nAuthentication \\n\\nAuthorization \\n\\nTamper-Resistant and Privacy-Enhanced Technologies \\n\\nProtect Secrets, or Better Yet, Don\u2019t Store Secrets', 'Get the Boss to Send an E-Mail \\n\\nNominate a Security Evangelist \\n\\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \\n\\nPrinciple #1: The defender must defend all points; the attacker can choose \\nthe weakest point. \\n\\nPrinciple #2: The defender can defend only against known attacks; the \\nattacker can probe for unknown vulnerabilities. \\n\\nPrinciple #3: The defender must be constantly vigilant; the attacker can \\nstrike at will. \\n\\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \\n\\nSummary\\n\\n2\\n\\nThe Proactive Security Development Process \\n\\nProcess Improvements \\n\\nThe Role of Education \\n\\nResistance to Mandatory Training \\n\\nOngoing Training \\n\\nAdvancing the Science of Security \\n\\nEducation Proves the More Eyes Fallacy \\n\\nNow the Evidence! \\n\\nDesign Phase \\n\\nSecurity Questions During Interviews \\n\\nxxiii\\n\\n3\\n\\n5\\n\\n7\\n\\n7\\n\\n8\\n\\n11\\n\\n13\\n\\n14\\n\\n15\\n\\n19\\n\\n19\\n\\n20\\n\\n20\\n\\n21\\n\\n21\\n\\n23\\n\\n25\\n\\n26\\n\\n29\\n\\n29\\n\\n29\\n\\n31\\n\\n31\\n\\n32\\n\\n33\\n\\nvii\\n\\n\\x0cA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\\n\\nviii\\n\\nTable of Contents\\n\\nDefine the Product Security Goals \\n\\nSecurity Is a Product Feature \\n\\nMaking Time for Security \\n\\nThreat Modeling Leads to Secure Design \\n\\nBuild End-of-Life Plans for Insecure Features \\n\\nSetting the Bug Bar \\n\\nSecurity Team Review \\n\\nDevelopment Phase \\n\\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \\n\\nSecurity Peer Review of New Code (Check-Ins Checked) \\n\\nDefine Secure Coding Guidelines \\n\\nReview Old Defects \\n\\nExternal Security Review \\n\\nSecurity Push', 'Principle of Least Privilege\\n\\nClean Up After Yourself!\\n\\nUsing the Security Configuration Editor \\n\\nLow-Level Security APIs \\n\\nUsing the Windows Installer \\n\\nSummary\\n\\n22\\n\\nBuilding Privacy into Your Application\\n\\nMalicious vs. Annoying Invasions of Privacy \\n\\nMajor Privacy Legislation \\n\\nPersonally Identifiable Information \\n\\nThe EU Directives on Data Protection \\n\\n587\\n\\n588\\n\\n606\\n\\n607\\n\\n607\\n\\n609\\n\\n610\\n\\n611\\n\\n611\\n\\n611\\n\\n612\\n\\n612\\n\\n613\\n\\n615\\n\\n617\\n\\n618\\n\\n619\\n\\n620\\n\\n624\\n\\n624\\n\\n625\\n\\n625\\n\\n626\\n\\n627\\n\\n 628\\n\\n 630\\n\\n630\\n\\n638\\n\\n638\\n\\n 640\\n\\n  641\\n\\n642\\n\\n643\\n\\n643\\n\\n643\\n\\n\\x0cA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\\n\\nxx\\n\\nTable of Contents\\n\\nSafe Harbor Principles \\n\\nOther Privacy Legislation\\n\\nPrivacy vs. Security \\n\\nBuilding a Privacy Infrastructure \\n\\nThe Role of the Chief Privacy Officer \\n\\nThe Role of the Privacy Advocate\\n\\nDesigning Privacy-Aware Applications\\n\\nIncluding Privacy in the Development Process \\n\\nExploring Privacy Features\\n\\nSummary\\n\\n23\\n\\nGeneral Good Practices \\n\\nDon\u2019t Tell the Attacker Anything \\n\\nService Best Practices \\n\\nSecurity, Services, and the Interactive Desktop \\n\\nService Account Guidelines \\n\\nDon\u2019t Leak Information in Banner Strings \\n\\nBe Careful Changing Error Messages in Fixes \\n\\nDouble-Check Your Error Paths \\n\\nKeep It Turned Off! \\n\\nKernel-Mode Mistakes \\n\\nHigh-Level Security Issues \\n\\nHandles \\n\\nSymbolic Links \\n\\nQuota \\n\\nSerialization Primitives \\n\\nBuffer-Handling Issues \\n\\nIRP Cancellation \\n\\nAdd Security Comments to Code \\n\\nLeverage the Operating System']<br>        Question: What are the main security principles to live by?<br>        ",
         "sources": "\nhttps://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf",
-        "nextQuestions": "<1> What are the security principles to live by?\n<2> How can we ensure secure design, by default, and in deployment?\n<3> What are some general good practices for security?",
+        "nextQuestions": "1. How can we minimize our attack surface?\n2. What are some techniques to mitigate threats?\n3. How can we build privacy into our application?",
         "error": ""
       },
       "metrics": null,
       "error": null,
-      "parent_run_id": "d79fe9dc-2e00-4136-874b-b54440d0d0a6_0",
-      "start_time": "2023-08-31T21:33:39.487700Z",
-      "end_time": "2023-08-31T21:33:40.314404Z",
+      "parent_run_id": "0f78d8e1-6808-4516-b11a-c53bc102222f_0",
+      "start_time": "2023-09-01T23:42:41.151290Z",
+      "end_time": "2023-09-01T23:42:41.858003Z",
       "index": 0,
       "api_calls": [
         {
@@ -15152,7 +15152,7 @@
               "engine": "chat",
               "_type": "azure-openai-chat"
             },
-            "modifiedAnswer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
+            "modifiedAnswer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
             "overrides": {
               "chainType": "stuff",
               "deploymentType": "gpt35",
@@ -15196,14 +15196,14 @@
               "Get the Boss to Send an E-Mail \n\nNominate a Security Evangelist \n\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \n\nPrinciple #1: The defender must defend all points; the attacker can choose \nthe weakest point. \n\nPrinciple #2: The defender can defend only against known attacks; the \nattacker can probe for unknown vulnerabilities. \n\nPrinciple #3: The defender must be constantly vigilant; the attacker can \nstrike at will. \n\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \n\nSummary\n\n2\n\nThe Proactive Security Development Process \n\nProcess Improvements \n\nThe Role of Education \n\nResistance to Mandatory Training \n\nOngoing Training \n\nAdvancing the Science of Security \n\nEducation Proves the More Eyes Fallacy \n\nNow the Evidence! \n\nDesign Phase \n\nSecurity Questions During Interviews \n\nxxiii\n\n3\n\n5\n\n7\n\n7\n\n8\n\n11\n\n13\n\n14\n\n15\n\n19\n\n19\n\n20\n\n20\n\n21\n\n21\n\n23\n\n25\n\n26\n\n29\n\n29\n\n29\n\n31\n\n31\n\n32\n\n33\n\nvii\n\n\fA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\n\nviii\n\nTable of Contents\n\nDefine the Product Security Goals \n\nSecurity Is a Product Feature \n\nMaking Time for Security \n\nThreat Modeling Leads to Secure Design \n\nBuild End-of-Life Plans for Insecure Features \n\nSetting the Bug Bar \n\nSecurity Team Review \n\nDevelopment Phase \n\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \n\nSecurity Peer Review of New Code (Check-Ins Checked) \n\nDefine Secure Coding Guidelines \n\nReview Old Defects \n\nExternal Security Review \n\nSecurity Push",
               "Principle of Least Privilege\n\nClean Up After Yourself!\n\nUsing the Security Configuration Editor \n\nLow-Level Security APIs \n\nUsing the Windows Installer \n\nSummary\n\n22\n\nBuilding Privacy into Your Application\n\nMalicious vs. Annoying Invasions of Privacy \n\nMajor Privacy Legislation \n\nPersonally Identifiable Information \n\nThe EU Directives on Data Protection \n\n587\n\n588\n\n606\n\n607\n\n607\n\n609\n\n610\n\n611\n\n611\n\n611\n\n612\n\n612\n\n613\n\n615\n\n617\n\n618\n\n619\n\n620\n\n624\n\n624\n\n625\n\n625\n\n626\n\n627\n\n 628\n\n 630\n\n630\n\n638\n\n638\n\n 640\n\n  641\n\n642\n\n643\n\n643\n\n643\n\n\fA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\n\nxx\n\nTable of Contents\n\nSafe Harbor Principles \n\nOther Privacy Legislation\n\nPrivacy vs. Security \n\nBuilding a Privacy Infrastructure \n\nThe Role of the Chief Privacy Officer \n\nThe Role of the Privacy Advocate\n\nDesigning Privacy-Aware Applications\n\nIncluding Privacy in the Development Process \n\nExploring Privacy Features\n\nSummary\n\n23\n\nGeneral Good Practices \n\nDon\u2019t Tell the Attacker Anything \n\nService Best Practices \n\nSecurity, Services, and the Interactive Desktop \n\nService Account Guidelines \n\nDon\u2019t Leak Information in Banner Strings \n\nBe Careful Changing Error Messages in Fixes \n\nDouble-Check Your Error Paths \n\nKeep It Turned Off! \n\nKernel-Mode Mistakes \n\nHigh-Level Security Issues \n\nHandles \n\nSymbolic Links \n\nQuota \n\nSerialization Primitives \n\nBuffer-Handling Issues \n\nIRP Cancellation \n\nAdd Security Comments to Code \n\nLeverage the Operating System"
             ],
-            "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
+            "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
             "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Be Mindful of Your Bug Counts \\n\\nKeep Track of Bug Metrics \\n\\nNo Surprises and No Easter Eggs! \\n\\nTest Phase \\n\\nShipping and Maintenance Phases \\n\\nHow Do You Know When You\u2019re Done? \\n\\nResponse Process \\n\\nAccountability \\n\\nSummary\\n\\n3\\n\\nSecurity Principles to Live By \\n\\nSD3: Secure by Design, by Default, and in Deployment \\n\\nSecure by Design \\n\\nSecure by Default \\n\\nSecure in Deployment \\n\\nSecurity Principles \\n\\nLearn from Mistakes \\n\\nMinimize Your Attack Surface \\n\\nEmploy Secure Defaults \\n\\nUse Defense in Depth \\n\\nUse Least Privilege \\n\\nBackward Compatibility Will Always Give You Grief \\n\\n34\\n\\n37\\n\\n40\\n\\n41\\n\\n41\\n\\n41\\n\\n43\\n\\n43\\n\\n43\\n\\n44\\n\\n44\\n\\n44\\n\\n45\\n\\n45\\n\\n46\\n\\n46\\n\\n47\\n\\n47\\n\\n47\\n\\n47\\n\\n48\\n\\n49\\n\\n49\\n\\n51\\n\\n51\\n\\n51\\n\\n53\\n\\n53\\n\\n54\\n\\n54\\n\\n57\\n\\n57\\n\\n59\\n\\n60\\n\\n62\\n\\n\\x0cA05T617228.fm  Page ix  Monday, October 28, 2002  10:01 AM\\n\\nTable of Contents\\n\\nix\\n\\nAssume External Systems Are Insecure \\n\\nPlan on Failure \\n\\nFail to a Secure Mode \\n\\nRemember That Security Features != Secure Features \\n\\nNever Depend on Security Through Obscurity Alone \\n\\nDon\u2019t Mix Code and Data \\n\\nFix Security Issues Correctly \\n\\nSummary \\n\\n4\\n\\nThreat Modeling \\n\\nSecure Design Through Threat Modeling \\n\\nAssemble the Threat-Modeling Team \\n\\nDecompose the Application \\n\\nDetermine the Threats to the System \\n\\nRank the Threats by Decreasing Risk \\n\\nChoose How to Respond to the Threats \\n\\nChoose Techniques to Mitigate the Threats \\n\\nSecurity Techniques \\n\\nAuthentication \\n\\nAuthorization \\n\\nTamper-Resistant and Privacy-Enhanced Technologies \\n\\nProtect Secrets, or Better Yet, Don\u2019t Store Secrets', 'Get the Boss to Send an E-Mail \\n\\nNominate a Security Evangelist \\n\\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \\n\\nPrinciple #1: The defender must defend all points; the attacker can choose \\nthe weakest point. \\n\\nPrinciple #2: The defender can defend only against known attacks; the \\nattacker can probe for unknown vulnerabilities. \\n\\nPrinciple #3: The defender must be constantly vigilant; the attacker can \\nstrike at will. \\n\\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \\n\\nSummary\\n\\n2\\n\\nThe Proactive Security Development Process \\n\\nProcess Improvements \\n\\nThe Role of Education \\n\\nResistance to Mandatory Training \\n\\nOngoing Training \\n\\nAdvancing the Science of Security \\n\\nEducation Proves the More Eyes Fallacy \\n\\nNow the Evidence! \\n\\nDesign Phase \\n\\nSecurity Questions During Interviews \\n\\nxxiii\\n\\n3\\n\\n5\\n\\n7\\n\\n7\\n\\n8\\n\\n11\\n\\n13\\n\\n14\\n\\n15\\n\\n19\\n\\n19\\n\\n20\\n\\n20\\n\\n21\\n\\n21\\n\\n23\\n\\n25\\n\\n26\\n\\n29\\n\\n29\\n\\n29\\n\\n31\\n\\n31\\n\\n32\\n\\n33\\n\\nvii\\n\\n\\x0cA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\\n\\nviii\\n\\nTable of Contents\\n\\nDefine the Product Security Goals \\n\\nSecurity Is a Product Feature \\n\\nMaking Time for Security \\n\\nThreat Modeling Leads to Secure Design \\n\\nBuild End-of-Life Plans for Insecure Features \\n\\nSetting the Bug Bar \\n\\nSecurity Team Review \\n\\nDevelopment Phase \\n\\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \\n\\nSecurity Peer Review of New Code (Check-Ins Checked) \\n\\nDefine Secure Coding Guidelines \\n\\nReview Old Defects \\n\\nExternal Security Review \\n\\nSecurity Push', 'Principle of Least Privilege\\n\\nClean Up After Yourself!\\n\\nUsing the Security Configuration Editor \\n\\nLow-Level Security APIs \\n\\nUsing the Windows Installer \\n\\nSummary\\n\\n22\\n\\nBuilding Privacy into Your Application\\n\\nMalicious vs. Annoying Invasions of Privacy \\n\\nMajor Privacy Legislation \\n\\nPersonally Identifiable Information \\n\\nThe EU Directives on Data Protection \\n\\n587\\n\\n588\\n\\n606\\n\\n607\\n\\n607\\n\\n609\\n\\n610\\n\\n611\\n\\n611\\n\\n611\\n\\n612\\n\\n612\\n\\n613\\n\\n615\\n\\n617\\n\\n618\\n\\n619\\n\\n620\\n\\n624\\n\\n624\\n\\n625\\n\\n625\\n\\n626\\n\\n627\\n\\n 628\\n\\n 630\\n\\n630\\n\\n638\\n\\n638\\n\\n 640\\n\\n  641\\n\\n642\\n\\n643\\n\\n643\\n\\n643\\n\\n\\x0cA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\\n\\nxx\\n\\nTable of Contents\\n\\nSafe Harbor Principles \\n\\nOther Privacy Legislation\\n\\nPrivacy vs. Security \\n\\nBuilding a Privacy Infrastructure \\n\\nThe Role of the Chief Privacy Officer \\n\\nThe Role of the Privacy Advocate\\n\\nDesigning Privacy-Aware Applications\\n\\nIncluding Privacy in the Development Process \\n\\nExploring Privacy Features\\n\\nSummary\\n\\n23\\n\\nGeneral Good Practices \\n\\nDon\u2019t Tell the Attacker Anything \\n\\nService Best Practices \\n\\nSecurity, Services, and the Interactive Desktop \\n\\nService Account Guidelines \\n\\nDon\u2019t Leak Information in Banner Strings \\n\\nBe Careful Changing Error Messages in Fixes \\n\\nDouble-Check Your Error Paths \\n\\nKeep It Turned Off! \\n\\nKernel-Mode Mistakes \\n\\nHigh-Level Security Issues \\n\\nHandles \\n\\nSymbolic Links \\n\\nQuota \\n\\nSerialization Primitives \\n\\nBuffer-Handling Issues \\n\\nIRP Cancellation \\n\\nAdd Security Comments to Code \\n\\nLeverage the Operating System']<br>        Question: What are the main security principles to live by?<br>        ",
             "sources": "\nhttps://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf",
-            "nextQuestions": "<1> What are the security principles to live by?\n<2> How can we ensure secure design, by default, and in deployment?\n<3> What are some general good practices for security?",
+            "nextQuestions": "1. How can we minimize our attack surface?\n2. What are some techniques to mitigate threats?\n3. How can we build privacy into our application?",
             "error": ""
           },
-          "start_time": 1693535619.4877,
-          "end_time": 1693535620.3124,
+          "start_time": 1693629761.15129,
+          "end_time": 1693629761.856003,
           "error": null,
           "children": [
             {
@@ -15229,9 +15229,9 @@
                 "api_version": "2023-07-01-preview"
               },
               "output": {
-                "id": "chatcmpl-7tjaGtvA7fgiLJ9iYgtsKUGTxeVP1",
+                "id": "chatcmpl-7u84h6PSg105F3dBJLdDw14YMojLi",
                 "object": "chat.completion",
-                "created": 1693517620,
+                "created": 1693611763,
                 "model": "gpt-35-turbo",
                 "prompt_filter_results": [
                   {
@@ -15262,7 +15262,7 @@
                     "finish_reason": "stop",
                     "message": {
                       "role": "assistant",
-                      "content": "<1> What are the security principles to live by?\n<2> How can we ensure secure design, by default, and in deployment?\n<3> What are some general good practices for security?"
+                      "content": "1. How can we minimize our attack surface?\n2. What are some techniques to mitigate threats?\n3. How can we build privacy into our application?"
                     },
                     "content_filter_results": {
                       "hate": {
@@ -15285,13 +15285,13 @@
                   }
                 ],
                 "usage": {
-                  "completion_tokens": 41,
+                  "completion_tokens": 31,
                   "prompt_tokens": 1151,
-                  "total_tokens": 1192
+                  "total_tokens": 1182
                 }
               },
-              "start_time": 1693535619.494701,
-              "end_time": 1693535620.311404,
+              "start_time": 1693629761.155361,
+              "end_time": 1693629761.854997,
               "error": null,
               "children": null,
               "node_name": null
@@ -15308,10 +15308,10 @@
         "stderr": ""
       },
       "system_metrics": {
-        "completion_tokens": 41,
+        "completion_tokens": 31,
         "prompt_tokens": 1151,
-        "total_tokens": 1192,
-        "duration": 0.826704
+        "total_tokens": 1182,
+        "duration": 0.706713
       },
       "result": {
         "data_points": [
@@ -15319,10 +15319,10 @@
           "Get the Boss to Send an E-Mail \n\nNominate a Security Evangelist \n\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \n\nPrinciple #1: The defender must defend all points; the attacker can choose \nthe weakest point. \n\nPrinciple #2: The defender can defend only against known attacks; the \nattacker can probe for unknown vulnerabilities. \n\nPrinciple #3: The defender must be constantly vigilant; the attacker can \nstrike at will. \n\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \n\nSummary\n\n2\n\nThe Proactive Security Development Process \n\nProcess Improvements \n\nThe Role of Education \n\nResistance to Mandatory Training \n\nOngoing Training \n\nAdvancing the Science of Security \n\nEducation Proves the More Eyes Fallacy \n\nNow the Evidence! \n\nDesign Phase \n\nSecurity Questions During Interviews \n\nxxiii\n\n3\n\n5\n\n7\n\n7\n\n8\n\n11\n\n13\n\n14\n\n15\n\n19\n\n19\n\n20\n\n20\n\n21\n\n21\n\n23\n\n25\n\n26\n\n29\n\n29\n\n29\n\n31\n\n31\n\n32\n\n33\n\nvii\n\n\fA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\n\nviii\n\nTable of Contents\n\nDefine the Product Security Goals \n\nSecurity Is a Product Feature \n\nMaking Time for Security \n\nThreat Modeling Leads to Secure Design \n\nBuild End-of-Life Plans for Insecure Features \n\nSetting the Bug Bar \n\nSecurity Team Review \n\nDevelopment Phase \n\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \n\nSecurity Peer Review of New Code (Check-Ins Checked) \n\nDefine Secure Coding Guidelines \n\nReview Old Defects \n\nExternal Security Review \n\nSecurity Push",
           "Principle of Least Privilege\n\nClean Up After Yourself!\n\nUsing the Security Configuration Editor \n\nLow-Level Security APIs \n\nUsing the Windows Installer \n\nSummary\n\n22\n\nBuilding Privacy into Your Application\n\nMalicious vs. Annoying Invasions of Privacy \n\nMajor Privacy Legislation \n\nPersonally Identifiable Information \n\nThe EU Directives on Data Protection \n\n587\n\n588\n\n606\n\n607\n\n607\n\n609\n\n610\n\n611\n\n611\n\n611\n\n612\n\n612\n\n613\n\n615\n\n617\n\n618\n\n619\n\n620\n\n624\n\n624\n\n625\n\n625\n\n626\n\n627\n\n 628\n\n 630\n\n630\n\n638\n\n638\n\n 640\n\n  641\n\n642\n\n643\n\n643\n\n643\n\n\fA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\n\nxx\n\nTable of Contents\n\nSafe Harbor Principles \n\nOther Privacy Legislation\n\nPrivacy vs. Security \n\nBuilding a Privacy Infrastructure \n\nThe Role of the Chief Privacy Officer \n\nThe Role of the Privacy Advocate\n\nDesigning Privacy-Aware Applications\n\nIncluding Privacy in the Development Process \n\nExploring Privacy Features\n\nSummary\n\n23\n\nGeneral Good Practices \n\nDon\u2019t Tell the Attacker Anything \n\nService Best Practices \n\nSecurity, Services, and the Interactive Desktop \n\nService Account Guidelines \n\nDon\u2019t Leak Information in Banner Strings \n\nBe Careful Changing Error Messages in Fixes \n\nDouble-Check Your Error Paths \n\nKeep It Turned Off! \n\nKernel-Mode Mistakes \n\nHigh-Level Security Issues \n\nHandles \n\nSymbolic Links \n\nQuota \n\nSerialization Primitives \n\nBuffer-Handling Issues \n\nIRP Cancellation \n\nAdd Security Comments to Code \n\nLeverage the Operating System"
         ],
-        "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Learn from Mistakes\n3. Minimize Your Attack Surface\n4. Employ Secure Defaults\n5. Use Defense in Depth\n6. Use Least Privilege\n7. Assume External Systems Are Insecure\n8. Plan on Failure\n9. Fail to a Secure Mode\n10. Remember That Security Features != Secure Features\n11. Never Depend on Security Through Obscurity Alone\n12. Don\u2019t Mix Code and Data\n13. Fix Security Issues Correctly\n14. Assume External Systems Are Insecure\n15. Plan on Failure\n16. Fail to a Secure Mode\n17. Remember That Security Features != Secure Features\n18. Never Depend on Security Through Obscurity Alone\n19. Don\u2019t Mix Code and Data\n20. Fix Security Issues Correctly",
+        "answer": "The main security principles to live by are:\n1. SD3: Secure by Design, by Default, and in Deployment\n2. Secure by Design\n3. Secure by Default\n4. Secure in Deployment\n5. Learn from Mistakes\n6. Minimize Your Attack Surface\n7. Employ Secure Defaults\n8. Use Defense in Depth\n9. Use Least Privilege\n10. Backward Compatibility Will Always Give You Grief",
         "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Be Mindful of Your Bug Counts \\n\\nKeep Track of Bug Metrics \\n\\nNo Surprises and No Easter Eggs! \\n\\nTest Phase \\n\\nShipping and Maintenance Phases \\n\\nHow Do You Know When You\u2019re Done? \\n\\nResponse Process \\n\\nAccountability \\n\\nSummary\\n\\n3\\n\\nSecurity Principles to Live By \\n\\nSD3: Secure by Design, by Default, and in Deployment \\n\\nSecure by Design \\n\\nSecure by Default \\n\\nSecure in Deployment \\n\\nSecurity Principles \\n\\nLearn from Mistakes \\n\\nMinimize Your Attack Surface \\n\\nEmploy Secure Defaults \\n\\nUse Defense in Depth \\n\\nUse Least Privilege \\n\\nBackward Compatibility Will Always Give You Grief \\n\\n34\\n\\n37\\n\\n40\\n\\n41\\n\\n41\\n\\n41\\n\\n43\\n\\n43\\n\\n43\\n\\n44\\n\\n44\\n\\n44\\n\\n45\\n\\n45\\n\\n46\\n\\n46\\n\\n47\\n\\n47\\n\\n47\\n\\n47\\n\\n48\\n\\n49\\n\\n49\\n\\n51\\n\\n51\\n\\n51\\n\\n53\\n\\n53\\n\\n54\\n\\n54\\n\\n57\\n\\n57\\n\\n59\\n\\n60\\n\\n62\\n\\n\\x0cA05T617228.fm  Page ix  Monday, October 28, 2002  10:01 AM\\n\\nTable of Contents\\n\\nix\\n\\nAssume External Systems Are Insecure \\n\\nPlan on Failure \\n\\nFail to a Secure Mode \\n\\nRemember That Security Features != Secure Features \\n\\nNever Depend on Security Through Obscurity Alone \\n\\nDon\u2019t Mix Code and Data \\n\\nFix Security Issues Correctly \\n\\nSummary \\n\\n4\\n\\nThreat Modeling \\n\\nSecure Design Through Threat Modeling \\n\\nAssemble the Threat-Modeling Team \\n\\nDecompose the Application \\n\\nDetermine the Threats to the System \\n\\nRank the Threats by Decreasing Risk \\n\\nChoose How to Respond to the Threats \\n\\nChoose Techniques to Mitigate the Threats \\n\\nSecurity Techniques \\n\\nAuthentication \\n\\nAuthorization \\n\\nTamper-Resistant and Privacy-Enhanced Technologies \\n\\nProtect Secrets, or Better Yet, Don\u2019t Store Secrets', 'Get the Boss to Send an E-Mail \\n\\nNominate a Security Evangelist \\n\\nThe Attacker\u2019s Advantage and the Defender\u2019s Dilemma \\n\\nPrinciple #1: The defender must defend all points; the attacker can choose \\nthe weakest point. \\n\\nPrinciple #2: The defender can defend only against known attacks; the \\nattacker can probe for unknown vulnerabilities. \\n\\nPrinciple #3: The defender must be constantly vigilant; the attacker can \\nstrike at will. \\n\\nPrinciple #4: The defender must play by the rules; the attacker can play dirty. \\n\\nSummary\\n\\n2\\n\\nThe Proactive Security Development Process \\n\\nProcess Improvements \\n\\nThe Role of Education \\n\\nResistance to Mandatory Training \\n\\nOngoing Training \\n\\nAdvancing the Science of Security \\n\\nEducation Proves the More Eyes Fallacy \\n\\nNow the Evidence! \\n\\nDesign Phase \\n\\nSecurity Questions During Interviews \\n\\nxxiii\\n\\n3\\n\\n5\\n\\n7\\n\\n7\\n\\n8\\n\\n11\\n\\n13\\n\\n14\\n\\n15\\n\\n19\\n\\n19\\n\\n20\\n\\n20\\n\\n21\\n\\n21\\n\\n23\\n\\n25\\n\\n26\\n\\n29\\n\\n29\\n\\n29\\n\\n31\\n\\n31\\n\\n32\\n\\n33\\n\\nvii\\n\\n\\x0cA05T617228.fm  Page viii  Monday, October 28, 2002  10:01 AM\\n\\nviii\\n\\nTable of Contents\\n\\nDefine the Product Security Goals \\n\\nSecurity Is a Product Feature \\n\\nMaking Time for Security \\n\\nThreat Modeling Leads to Secure Design \\n\\nBuild End-of-Life Plans for Insecure Features \\n\\nSetting the Bug Bar \\n\\nSecurity Team Review \\n\\nDevelopment Phase \\n\\nBe Hardcore About Who Can Check In New Code (Check-Ins Checked) \\n\\nSecurity Peer Review of New Code (Check-Ins Checked) \\n\\nDefine Secure Coding Guidelines \\n\\nReview Old Defects \\n\\nExternal Security Review \\n\\nSecurity Push', 'Principle of Least Privilege\\n\\nClean Up After Yourself!\\n\\nUsing the Security Configuration Editor \\n\\nLow-Level Security APIs \\n\\nUsing the Windows Installer \\n\\nSummary\\n\\n22\\n\\nBuilding Privacy into Your Application\\n\\nMalicious vs. Annoying Invasions of Privacy \\n\\nMajor Privacy Legislation \\n\\nPersonally Identifiable Information \\n\\nThe EU Directives on Data Protection \\n\\n587\\n\\n588\\n\\n606\\n\\n607\\n\\n607\\n\\n609\\n\\n610\\n\\n611\\n\\n611\\n\\n611\\n\\n612\\n\\n612\\n\\n613\\n\\n615\\n\\n617\\n\\n618\\n\\n619\\n\\n620\\n\\n624\\n\\n624\\n\\n625\\n\\n625\\n\\n626\\n\\n627\\n\\n 628\\n\\n 630\\n\\n630\\n\\n638\\n\\n638\\n\\n 640\\n\\n  641\\n\\n642\\n\\n643\\n\\n643\\n\\n643\\n\\n\\x0cA05T617228.fm  Page xx  Monday, October 28, 2002  10:01 AM\\n\\nxx\\n\\nTable of Contents\\n\\nSafe Harbor Principles \\n\\nOther Privacy Legislation\\n\\nPrivacy vs. Security \\n\\nBuilding a Privacy Infrastructure \\n\\nThe Role of the Chief Privacy Officer \\n\\nThe Role of the Privacy Advocate\\n\\nDesigning Privacy-Aware Applications\\n\\nIncluding Privacy in the Development Process \\n\\nExploring Privacy Features\\n\\nSummary\\n\\n23\\n\\nGeneral Good Practices \\n\\nDon\u2019t Tell the Attacker Anything \\n\\nService Best Practices \\n\\nSecurity, Services, and the Interactive Desktop \\n\\nService Account Guidelines \\n\\nDon\u2019t Leak Information in Banner Strings \\n\\nBe Careful Changing Error Messages in Fixes \\n\\nDouble-Check Your Error Paths \\n\\nKeep It Turned Off! \\n\\nKernel-Mode Mistakes \\n\\nHigh-Level Security Issues \\n\\nHandles \\n\\nSymbolic Links \\n\\nQuota \\n\\nSerialization Primitives \\n\\nBuffer-Handling Issues \\n\\nIRP Cancellation \\n\\nAdd Security Comments to Code \\n\\nLeverage the Operating System']<br>        Question: What are the main security principles to live by?<br>        ",
         "sources": "\nhttps://dataaiopenaistor.blob.core.windows.net/chatpdf/Writing%20Secure%20Code.pdf",
-        "nextQuestions": "<1> What are the security principles to live by?\n<2> How can we ensure secure design, by default, and in deployment?\n<3> What are some general good practices for security?",
+        "nextQuestions": "1. How can we minimize our attack surface?\n2. What are some techniques to mitigate threats?\n3. How can we build privacy into our application?",
         "error": ""
       }
     }

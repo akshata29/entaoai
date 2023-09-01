@@ -7,7 +7,7 @@ $RESOURCE_GROUP='dataai'
 $UAMI_NAME='chatpdfuami'
 $WORKSPACE_NAME='dataaiamlwks'
 $LOCATION='southcentralus'
-$RUNTIME_NAME='dataaichatpdf'
+$RUNTIME_NAME='entaoai'
 $STORAGE_ACCOUNT='dataaiamlwksstor'
 
 $UAMI_ID=az identity list --query "[?name=='$UAMI_NAME'].id" -o tsv
