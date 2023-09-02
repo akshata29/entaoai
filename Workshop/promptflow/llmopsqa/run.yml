@@ -1,0 +1,12 @@
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/Run.schema.json
+flow: .
+data: data.jsonl
+
+# define cloud resource
+runtime: entaoai
+
+#connections:
+#  embed_the_question:
+#    connection: aoai
+#  search_question_from_vectordb:
+#    connection: dataaioaicg

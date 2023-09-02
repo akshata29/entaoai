@@ -1,0 +1,101 @@
+name: LLMOps Deploy with Promptflow
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["runevalpf"]
+    branches: [main]
+    types:
+      - completed
+
+env: 
+  GROUP: ${{secrets.GROUP}}
+  WORKSPACE: ${{secrets.WORKSPACE}}
+  SUBSCRIPTION: ${{secrets.SUBSCRIPTION}}
+  RUN_NAME: llmopsqa
+  EVAL_RUN_NAME: llmopsqa_eval
+  ENDPOINT_NAME: llmopsqa
+  UAMI_ID: temp
+  UAMI_NAME: ${{secrets.UAMI_NAME}}
+  MODEL_NAME: temp
+  MODEL_VER: 1
+  CLIENT_ID: ${{secrets.CLIENT_ID}}
+  PRINCIPAL_ID: ${{secrets.PRINCIPAL_ID}}
+  TENANT_ID: ${{secrets.TENANT_ID}}
+  LOCATION: ${{secrets.LOCATION}}
+  RUNTIME_NAME: ${{secrets.RUNTIME_NAME}}
+  STORAGE_ACCOUNT: ${{secrets.STORAGE_ACCOUNT}}
+  WORKSHOP_PATH: 'Workshop'
+  PYTHON_VERSION: '3.9'
+
+
+jobs:
+  create-endpoint-and-deploy-pf:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }} 
+    steps:
+    - name: check out repo
+      uses: actions/checkout@v2
+
+    - name: install az ml extension
+      run: az extension add -n ml -y
+
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_RBAC_CREDENTIALS}}
+
+    - name: set default subscription
+      run: |
+         az account set -s ${{env.SUBSCRIPTION}}
+
+    - name: create Hash
+      run: echo "HASH=$(echo -n $RANDOM | sha1sum | cut -c 1-6)" >> "$GITHUB_ENV"
+
+    # - name: create unique endpoint name   
+    #   run: echo "ENDPOINT_NAME=$(echo 'llmopsqa-'$HASH)" >> "$GITHUB_ENV"
+
+    # - name: display endpoint name
+    #   run: echo "Endpoint name is:" ${{env.ENDPOINT_NAME}}
+
+    - name: Get UAMIID
+      run: echo "UAMIID=$(az identity list --query "[?name=='$UAMI_NAME'].id" -o tsv)" >> "$GITHUB_ENV"
+
+    - name: Get UAMI_ID
+      run: echo "UAMI_ID=$(echo $UAMIID)" >> "$GITHUB_ENV"
+
+    - name: Get Latest Model Version
+      run: echo "MODEL_VER=$(az ml model list --max-results 1 --query "[0].version" --name llmopsqa-model -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --output tsv)" >> "$GITHUB_ENV"
+
+    - name: Build Fully qualified Model  
+      run: echo "MODEL_NAME=$(echo 'azureml:llmopsqa-model:'$MODEL_VER)" >> "$GITHUB_ENV"
+
+    - name: setup endpoint
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'    
+        az ml online-endpoint create --file promptflow/deployment/endpoint.yaml --name ${{env.ENDPOINT_NAME}}  -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --set identity.user_assigned_identities[0].client_id=${{env.CLIENT_ID}} --set identity.user_assigned_identities[0].principal_id=${{env.PRINCIPAL_ID}} --set identity.user_assigned_identities[0].resource_id=${{env.UAMI_ID}} --set identity.principal_id=${{env.PRINCIPAL_ID}} --set identity.tenant_id=${{env.TENANT_ID}}
+        popd
+
+    - name: setup deployment
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
+        az ml online-deployment create --file promptflow/deployment/deployment.yaml --endpoint-name ${{env.ENDPOINT_NAME}}  --all-traffic -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --set model=${{env.MODEL_NAME}} --set environment_variables.AZURE_CLIENT_ID=${{env.CLIENT_ID}} --set environment_variables.PRT_CONFIG_OVERRIDE=deployment.subscription_id=${{env.SUBSCRIPTION}},deployment.resource_group=${{env.GROUP}},deployment.workspace_name=${{env.WORKSPACE}},deployment.endpoint_name=${{env.ENDPOINT_NAME}},deployment.deployment_name=blue,deployment.mt_service_endpoint=https://${{env.LOCATION}}.api.azureml.ms,deployment.runtime_name=${{env.RUNTIME_NAME}},storage.storage_account=${{env.STORAGE_ACCOUNT}}
+        popd
+
+    - name: check the status of the endpoint
+      run: | 
+        pushd './${{ env.WORKSHOP_PATH }}'
+        az ml online-endpoint show -n ${{env.ENDPOINT_NAME}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+        popd
+      
+    - name: check the status of the deployment
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
+        az ml online-deployment get-logs --name blue --endpoint-name ${{env.ENDPOINT_NAME}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}}
+        popd
+
+    - name: invoke model
+      run: |
+        pushd './${{ env.WORKSHOP_PATH }}'
+        az ml online-endpoint invoke --name ${{env.ENDPOINT_NAME}} --request-file promptflow/deployment/sample-request.json  -g ${{env.GROUP}} -w ${{env.WORKSPACE}} 
+        popd

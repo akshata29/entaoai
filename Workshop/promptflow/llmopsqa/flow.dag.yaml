@@ -1,0 +1,151 @@
+inputs:
+  question:
+    type: string
+    default: What is Azure Arc
+    is_chat_input: false
+  indexType:
+    type: string
+    default: faiss
+    is_chat_input: false
+  indexNs:
+    type: string
+    default: pfllmops
+    is_chat_input: false
+  postBody:
+    type: object
+    default:
+      values:
+      - recordId: 0
+        data:
+          text: ""
+          approach: rtr
+          overrides:
+            semantic_ranker: true
+            semantic_captions: false
+            top: 3
+            temperature: 0
+            promptTemplate: "Given the following extracted parts of a long document and a
+              question, create a final answer.\ 
+
+              \        If you don't know the answer, just say that
+              you don't know. Don't try to make up an answer.\ 
+
+              \        If the answer is not contained within the
+              text below, say \"I don't know\".
+
+
+              \        {summaries}
+
+              \        Question: {question}
+
+              \        "
+            chainType: stuff
+            tokenLength: 1000
+            embeddingModelType: azureopenai
+            deploymentType: gpt35
+    is_chat_input: false
+  chainType:
+    type: string
+    default: stuff
+    is_chat_input: false
+outputs:
+  output:
+    type: string
+    reference: ${followup_questions.output}
+    evaluation_only: false
+    is_chat_output: false
+nodes:
+- name: create_llm
+  type: python
+  source:
+    type: code
+    path: create_llm.py
+  inputs:
+    conn: llmops
+    overrides: ${parse_postBody.output}
+  use_variants: false
+- name: parse_postBody
+  type: python
+  source:
+    type: code
+    path: parse_postBody.py
+  inputs:
+    postBody: ${inputs.postBody}
+  use_variants: false
+- name: create_index
+  type: python
+  source:
+    type: code
+    path: create_index.py
+  inputs:
+    embeddings: ${create_embedding.output}
+    indexNs: ${inputs.indexNs}
+- name: search_question_from_vectordb
+  type: python
+  source:
+    type: code
+    path: search_question_from_vectordb.py
+  inputs:
+    embeddedQuestion: ${embed_the_question.output}
+    indexType: ${inputs.indexType}
+    indexNs: ${inputs.indexNs}
+    topK: ${extract_topk.output}
+    embeddings: ${create_embedding.output}
+- name: extract_topk
+  type: python
+  source:
+    type: code
+    path: extract_topk.py
+  inputs:
+    overrides: ${parse_postBody.output}
+  use_variants: false
+- name: create_embedding
+  type: python
+  source:
+    type: code
+    path: create_embedding.py
+  inputs:
+    overrides: ${inputs.postBody}
+    conn: llmops
+- name: answer_the_question
+  type: python
+  source:
+    type: code
+    path: execute_langchain.py
+  inputs:
+    llm: ${create_llm.output}
+    overrides: ${parse_postBody.output}
+    promptTemplate: ${extract_prompttemplate.output}
+    question: ${inputs.question}
+    retrievedDocs: ${search_question_from_vectordb.output}
+  use_variants: false
+- name: followup_questions
+  type: python
+  source:
+    type: code
+    path: followup_questions.py
+  inputs:
+    llm: ${create_llm.output}
+    modifiedAnswer: ${answer_the_question.output}
+    overrides: ${parse_postBody.output}
+    promptTemplate: ${extract_prompttemplate.output}
+    question: ${inputs.question}
+    retrievedDocs: ${search_question_from_vectordb.output}
+  use_variants: false
+- name: embed_the_question
+  type: python
+  source:
+    type: code
+    path: embed_the_question.py
+  inputs:
+    conn: llmops
+    question: ${inputs.question}
+    overrides: ${inputs.postBody}
+- name: extract_prompttemplate
+  type: python
+  source:
+    type: code
+    path: extract_prompttemplate.py
+  inputs:
+    overrides: ${parse_postBody.output}
+  use_variants: false

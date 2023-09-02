@@ -122,46 +122,15 @@ Run the [UAMI Setup](./Workshop/2B0_UAMI%20Setup.ipynb) notebook to create the U
 
 Connection helps securely store and manage secret keys or other sensitive credentials required for interacting with LLM and other external tools.  For this LLMOps example we are using the Question Answering capability of the application.  
 
-For the LLMOps examples all the artifacts are stored in [Prompt flow Folder](./Workshop/promptflow/).  [QuestionAnswering](./Workshop/promptflow/QuestionAnswering/) folder implements the Question Answering capability using the PromptFlow and RAG pattern.  Within the Prompt Flow folder [Environment](./Workshop/promptflow/environment/) is what defines the runtime environment for the Prompt Flow.  Details around creating custom runtime for Prompt flow is [Documented](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/how-to-customize-environment-runtime?view=azureml-api-2#customize-environment-with-docker-context-for-runtime).  All  YAML definition for [deployment](./Workshop/promptflow/deployment/) are available in the deployment folder.
+For the LLMOps examples all the artifacts are stored in [Prompt flow Folder](./Workshop/promptflow/).  [llmopsqa](./Workshop/promptflow/llmopsqa/) folder implements the Question Answering capability using the PromptFlow and RAG pattern.  Within the Prompt Flow folder [Environment](./Workshop/promptflow/environment/) is what defines the runtime environment for the Prompt Flow.  Details around creating custom runtime for Prompt flow is [Documented](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/how-to-customize-environment-runtime?view=azureml-api-2#customize-environment-with-docker-context-for-runtime).  All  YAML definition for [deployment](./Workshop/promptflow/deployment/) are available in the deployment folder.
 ![Prompt Flow](./assets/prompt-flow.png)
 
-As a part of the workflow, there are connections that are used, which you will need to create manually (until automated). Please go to workspace portal, click `Prompt flow` -> `Connections` -> `Create`, then follow the instruction to create your own connections called `aoaicg`, `entaoai` and `aoai`. Learn more on [connections](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/concept-connections?view=azureml-api-2).  The example connections definition is available for [entaoai](./Workshop/promptflow/entaoai.example.yml) and [aoaicg](./Workshop/promptflow/aoaicg.example.yml) or alternatively you can use [Notebook](./Workshop/2B1_AskQuestionPromptFlow.ipynb) to create those connections using SDK or CLI.
+As a part of the workflow, there are connections that are used, which you will need to create manually (until automated). Please go to workspace portal, click `Prompt flow` -> `Connections` -> `Create`, then follow the instruction to create your own connections called `llmops`. Learn more on [connections](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/concept-connections?view=azureml-api-2).  The example connections definition is available for [entaoai](./Workshop/promptflow/entaoai.example.yml) and [aoaicg](./Workshop/promptflow/aoaicg.example.yml) or alternatively you can use [Notebook](./Workshop/2B1_AskQuestionPromptFlow.ipynb) to create those connections using SDK or CLI.
 ![Prompt Flow Connections](./assets/prompt-flow-connections.png)
 
 `aoai` connection
-Go to Azure ML Workspace -> Prompt Flow -> Connections -> Create -> Azure OpenAI.  Select the following configuration
-- ![AOAI Connections](./assets/create-aoai.png)
-- name - aoai
-- Provider - Azure OpenAi
-- SubscriptionId - Your subscriptionId
-- Azure OpenAI Account Names - Your existing Azure OpenAI account name
-- API Key - Your Azure OpenAI API Key
-- API base - Your Azure OpenAI API base
-- API Type - Azure
-- API Version - 2023-07-01-preview
-- ![AOAI Connections](./assets/aoai-connection.png)
-
-Repeat the steps above to create the connection for Azure Cognitive Search.
-![AOAI CG Connections](./assets/aoaicg-connection.png)
-
-Repeat the steps above to create the Custom Connection with following properties.
-Note - If you are not using PineCone, Redis it can be ignored and you can enter any dummy values.  Make sure to change the deployment name of the models to match to your AOAI deployment and your configuration of Cosmos and Cognitive Search.
+Go to Azure ML Workspace -> Prompt Flow -> Connections -> Create -> Azure OpenAI.  Select the following configuration.  **Note** Ensure the model deployment name matches to what you have deployed in Azure OpenAI.
 ![AOAI Custom Connections](./assets/custom-connection.png)
-
-### Create a Sample Vector index in Cognitive Search (TBD:Automation)
-
-- Go to Azure ML Workspace -> Prompt Flow -> Vector Index -> Create.  Select the following configuration
-  - Basic Settings -> New vector index name -> pfllmops
-  - Basic Settings -> Data source type -> Local Folder -> Select [Arc](./Workshop/promptflow/arc/) folder
-  - Basic Settings -> Vector Store -> Azure Cognitive Search Index
-  - Basic Settings -> Choose Azure Cognitive Search connection -> aoaicg (connection created above)
-  - ![Create Vector 1](./assets/create-vector-1.png)
-  - Click Next
-  - Advanced Settings -> Choose Connection -> aoai
-  - ![Create Vector 2](./assets/create-vector-2.png)
-  - Click Next -> Serverless Compute
-  - Click Next -> Create
-  - ![AOAI Create Index](./assets/ingest-job.png)
 
 ## Sample Prompt Run, Evaluation and Deployment Scenario
 
@@ -197,9 +166,9 @@ This pipeline will start the prompt flow run and evaluate the results. When the 
 ![Prompt Flow Run and Evaluate](./assets/run-evaluate-pf.png)
 
 1. In your GitHub project repository, select **Actions**
-2. Select the `runevalpf.yml` from the workflows listed on the left and the click **Run Workflow** to execute the Prompt flow run and evaluate workflow. This will take several minutes to run.
+2. Select the `llmopsrunevalpf.yml` from the workflows listed on the left and the click **Run Workflow** to execute the Prompt flow run and evaluate workflow. This will take several minutes to run.
    ![Prompt Flow Run and Evaluate YAML](./assets/run-evaluate-yaml.png)
-3. The workflow will only register the model for deployment, if the accuracy of the classification is greater than 60%. You can adjust the accuracy thresold in the `runevalpf.yml` file in the `jobMetricAssert` section of the workflow file. The section should look like:
+3. The workflow will only register the model for deployment, if the accuracy of the classification is greater than 60%. You can adjust the accuracy thresold in the `llmopsrunevalpf.yml` file in the `jobMetricAssert` section of the workflow file. The section should look like:
 
     ```yaml
 
@@ -221,7 +190,7 @@ This scenario includes prebuilt workflows for two approaches to deploying a trai
 ### Online Endpoint
 
 1. In your GitHub project repository , select **Actions**
-2. Select the **deploypf** from the workflows listed on the left and click **Run workflow** to execute the online endpoint deployment pipeline workflow. The steps in this pipeline will create an online endpoint in your Machine Learning workspace, create a deployment of your model to this endpoint, then allocate traffic to the endpoint.
+2. Select the **llmopsdeploypf** from the workflows listed on the left and click **Run workflow** to execute the online endpoint deployment pipeline workflow. The steps in this pipeline will create an online endpoint in your Machine Learning workspace, create a deployment of your model to this endpoint, then allocate traffic to the endpoint.
    ![Prompt Flow Deploy](./assets/deploy-pf-1.png)
    ![Prompt Flow Yaml Definition](./assets/deploy-pf-2.png)
 3. Once completed, you will find the online endpoint deployed in the Azure Machine Learning workspace and available for testing.

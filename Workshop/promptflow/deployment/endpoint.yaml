@@ -1,5 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
-name: questionanswering
+name: llmopsqa
 auth_mode: key
 kind: Managed
 location: southcentralus

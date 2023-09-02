@@ -1,0 +1,90 @@
+{
+  "nodeLayouts": {
+    "inputs": {
+      "x": 351.16668701171875,
+      "y": -31.333335876464844,
+      "index": -1
+    },
+    "outputs": {
+      "x": 188.5,
+      "y": 832,
+      "index": -1
+    },
+    "parse_postBody": {
+      "x": 83.83331298828125,
+      "y": 84,
+      "index": 1
+    },
+    "vector_type": {
+      "x": 394.25,
+      "y": 882,
+      "index": -1
+    },
+    "extract_topk": {
+      "x": 237.5,
+      "y": 214.66665649414062,
+      "index": 4
+    },
+    "extract_prompttemplate": {
+      "x": -34.16668701171875,
+      "y": 215.33331298828125,
+      "index": 9
+    },
+    "create_llm": {
+      "x": 495.666748046875,
+      "y": 214.66665649414062,
+      "index": 0
+    },
+    "embed_the_question1": {
+      "x": 754.1666259765625,
+      "y": 210,
+      "index": -1
+    },
+    "search_question_from_vectordb": {
+      "x": 622.2500610351562,
+      "y": 355.33331298828125,
+      "index": 3
+    },
+    "generate_prompt_context": {
+      "x": 760,
+      "y": 502,
+      "index": -1
+    },
+    "answer_the_question": {
+      "x": 573.8333129882812,
+      "y": 553.3333129882812,
+      "index": 6
+    },
+    "followup_questions": {
+      "x": 363.83331298828125,
+      "y": 702.6666870117188,
+      "index": 7
+    },
+    "Vector_DB_Lookup_z33e": {
+      "x": 394.25,
+      "y": 882,
+      "index": -1
+    },
+    "extract_vectorField": {
+      "x": 359.9999694824219,
+      "y": 882,
+      "index": -1
+    },
+    "create_index": {
+      "x": 359.9999694824219,
+      "y": 882,
+      "index": 2
+    },
+    "create_embedding": {
+      "x": 359.9999694824219,
+      "y": 932,
+      "index": 5
+    },
+    "embed_the_question": {
+      "x": 359.9999694824219,
+      "y": 982,
+      "index": 8
+    }
+  },
+  "orientation": "Vertical"
+}

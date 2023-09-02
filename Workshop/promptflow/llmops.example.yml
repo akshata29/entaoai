@@ -1,0 +1,11 @@
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/CustomConnection.schema.json
+name: entaoai
+type: custom
+configs:
+  OpenAiEmbedding: "embedding"
+  OpenAiVersion: "2023-07-01-preview"
+  OpenAiChat: "chat"
+  OpenAiChat16k : "chat16k"
+  OpenAiEndPoint : "https://<YourAPI>"
+secrets:  # required
+  OpenAiKey: "<AOAIKey>"
