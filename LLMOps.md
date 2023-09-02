@@ -113,7 +113,7 @@ Run the [UAMI Setup](./Workshop/2B0_UAMI%20Setup.ipynb) notebook to create the U
     - **LOCATION** (Location of your workspace)
     - **PRINCIPAL_ID** (Service principal ID of UAMI)
     - **STORAGE_ACCOUNT** (AML storage account name)
-    - **RUNTIME_NAME** (Promptflow runtime name)
+    - **RUNTIME_NAME** (Promptflow runtime name - entaoai)
     - **TENANT_ID** (Azure tenant ID)
     - **UAMI_NAME** (UAMI name)
   ![Configuration](./assets/all-secrets.png)

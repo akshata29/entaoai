@@ -1,4 +1,4 @@
 $schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
-name: chatpdfenv
+name: entaoaienv
 build:
   path: .

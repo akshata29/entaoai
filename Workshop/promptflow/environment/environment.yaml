@@ -1,5 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
-name: chatpdfenv
+name: entaoaienv
 image: akshata13/chatpdfenv:latest
 inference_config:
   liveness_route:
