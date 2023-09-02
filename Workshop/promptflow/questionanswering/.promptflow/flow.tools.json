@@ -231,6 +231,11 @@
             "int"
           ]
         },
+        "vectorField": {
+          "type": [
+            "string"
+          ]
+        },
         "conn": {
           "type": [
             "CustomConnection"

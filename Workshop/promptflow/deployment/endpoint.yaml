@@ -1,5 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
-name: qaragcogsearchlc
+name: questionanswering
 auth_mode: key
 kind: Managed
 location: southcentralus

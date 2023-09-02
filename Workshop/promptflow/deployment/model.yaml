@@ -1,10 +1,10 @@
 $schema: https://azuremlschemas.azureedge.net/latest/model.schema.json
-name: qaragcogsearchlc-model
-path: ../qaragcogsearchlc
+name: questionanswering-model
+path: ../questionanswering
 description: register qa flow folder as a custom model
 properties:
   # In AuzreML studio UI, endpoint detail UI Test tab needs this property to know it's from prompt flow
-  azureml.promptflow.source_flow_id: qaragcogsearchlc
+  azureml.promptflow.source_flow_id: questionanswering
   
   # # Following are properties only for classification flow 
   # # endpoint detail UI Test tab needs this property to know it's a classification flow

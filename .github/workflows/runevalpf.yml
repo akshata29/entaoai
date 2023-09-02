@@ -9,8 +9,8 @@ env:
   GROUP: ${{secrets.GROUP}}
   WORKSPACE: ${{secrets.WORKSPACE}}
   SUBSCRIPTION: ${{secrets.SUBSCRIPTION}}
-  RUN_NAME: qaragcogsearchlc
-  EVAL_RUN_NAME: qaragcogsearchlc_eval
+  RUN_NAME: questionanswering
+  EVAL_RUN_NAME: questionanswering_eval
   WORKSHOP_PATH: 'Workshop'
   PYTHON_VERSION: '3.9'
 
@@ -52,7 +52,7 @@ jobs:
     - name: run promptflow
       run: |
         pushd './${{ env.WORKSHOP_PATH }}'
-        pfazure run create -f promptflow/qaragcogsearchlc/run.yml --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --stream > promptflow/llmops-helper/run_info.txt
+        pfazure run create -f promptflow/questionanswering/run.yml --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --stream > promptflow/llmops-helper/run_info.txt
         cat promptflow/llmops-helper/run_info.txt
         popd
         
@@ -75,7 +75,7 @@ jobs:
         popd
       
     # - name: run promptflow evaluations
-    #   run: pfazure run create -f promptflow/qaragcogsearchlc/run_evaluation.yml --run ${{env.RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --stream > promptflow/llmops-helper/eval_info.txt 
+    #   run: pfazure run create -f promptflow/questionanswering/run_evaluation.yml --run ${{env.RUN_NAME}} --subscription ${{env.SUBSCRIPTION}} -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --stream > promptflow/llmops-helper/eval_info.txt 
       
     # - name: get eval run name
     #   run: export EVAL_RUN_NAME=$(python promptflow/llmops-helper/parse_run_output.py eval_info.txt)

@@ -12,9 +12,9 @@ env:
   GROUP: ${{secrets.GROUP}}
   WORKSPACE: ${{secrets.WORKSPACE}}
   SUBSCRIPTION: ${{secrets.SUBSCRIPTION}}
-  RUN_NAME: qaragcogsearchlc
-  EVAL_RUN_NAME: qaragcogsearchlc_eval
-  ENDPOINT_NAME: qaragcogsearchlc
+  RUN_NAME: questionanswering
+  EVAL_RUN_NAME: questionanswering_eval
+  ENDPOINT_NAME: questionanswering
   UAMI_ID: temp
   UAMI_NAME: ${{secrets.UAMI_NAME}}
   MODEL_NAME: temp
@@ -53,7 +53,7 @@ jobs:
       run: echo "HASH=$(echo -n $RANDOM | sha1sum | cut -c 1-6)" >> "$GITHUB_ENV"
 
     # - name: create unique endpoint name   
-    #   run: echo "ENDPOINT_NAME=$(echo 'qaragcogsearchlc-'$HASH)" >> "$GITHUB_ENV"
+    #   run: echo "ENDPOINT_NAME=$(echo 'questionanswering-'$HASH)" >> "$GITHUB_ENV"
 
     # - name: display endpoint name
     #   run: echo "Endpoint name is:" ${{env.ENDPOINT_NAME}}
@@ -65,10 +65,10 @@ jobs:
       run: echo "UAMI_ID=$(echo $UAMIID)" >> "$GITHUB_ENV"
 
     - name: Get Latest Model Version
-      run: echo "MODEL_VER=$(az ml model list --max-results 1 --query "[0].version" --name qaragcogsearchlc-model -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --output tsv)" >> "$GITHUB_ENV"
+      run: echo "MODEL_VER=$(az ml model list --max-results 1 --query "[0].version" --name questionanswering-model -g ${{env.GROUP}} -w ${{env.WORKSPACE}} --output tsv)" >> "$GITHUB_ENV"
 
     - name: Build Fully qualified Model  
-      run: echo "MODEL_NAME=$(echo 'azureml:qaragcogsearchlc-model:'$MODEL_VER)" >> "$GITHUB_ENV"
+      run: echo "MODEL_NAME=$(echo 'azureml:questionanswering-model:'$MODEL_VER)" >> "$GITHUB_ENV"
 
     - name: setup endpoint
       run: |

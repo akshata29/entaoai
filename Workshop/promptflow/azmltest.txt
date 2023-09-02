@@ -1,4 +1,4 @@
-$ENDPOINT_NAME='qaragcogsearchlc1'
+$ENDPOINT_NAME='questionanswering'
 $TENANT_ID='b82069fa-ada8-453a-817b-e6348d534d88'
 $PRINCIPAL_ID='dfd89515-f588-441f-9cbd-3f0082572e5c'
 $CLIENT_ID='e17108b7-9cb4-4b54-b57c-e2be41c99910'

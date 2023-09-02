@@ -1,8 +1,8 @@
 {
-    "name": "qaragcogsearchlc_variant_1",
+    "name": "questionanswering_variant_1",
     "created_on": "2023-08-19T01:18:07.903358+00:00",
     "status": "Running",
-    "display_name": "qaragcogsearchlc_variant_1",
+    "display_name": "questionanswering_variant_1",
     "description": null,
     "tags": {},
     "properties": {
