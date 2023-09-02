@@ -125,7 +125,7 @@ Connection helps securely store and manage secret keys or other sensitive creden
 For the LLMOps examples all the artifacts are stored in [Prompt flow Folder](./Workshop/promptflow/).  [QaRagCogSearchLc](./Workshop/promptflow/qaragcogsearchlc/) folder implements the Question Answering capability using the PromptFlow and RAG pattern.  Within the Prompt Flow folder [Environment](./Workshop/promptflow/environment/) is what defines the runtime environment for the Prompt Flow.  Details around creating custom runtime for Prompt flow is [Documented](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/how-to-customize-environment-runtime?view=azureml-api-2#customize-environment-with-docker-context-for-runtime).  All  YAML definition for [deployment](./Workshop/promptflow/deployment/) are available in the deployment folder.
 ![Prompt Flow](./assets/prompt-flow.png)
 
-As a part of the workflow, there are connections that are used, which you will need to create manually (until automated). Please go to workspace portal, click `Prompt flow` -> `Connections` -> `Create`, then follow the instruction to create your own connections called `dataaioaicg`, `chatpdf` and `aoai`. Learn more on [connections](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/concept-connections?view=azureml-api-2).  The example connections definition is available for [chatpdf](./Workshop/promptflow/chatpdf.example.yml) and [dataaioaicg](./Workshop/promptflow/dataaioaicg.example.yml) or alternatively you can use [Notebook](./Workshop/2B1_AskQuestionPromptFlow.ipynb) to create those connections using SDK or CLI.
+As a part of the workflow, there are connections that are used, which you will need to create manually (until automated). Please go to workspace portal, click `Prompt flow` -> `Connections` -> `Create`, then follow the instruction to create your own connections called `aoaicg`, `entaoai` and `aoai`. Learn more on [connections](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/concept-connections?view=azureml-api-2).  The example connections definition is available for [entaoai](./Workshop/promptflow/entaoai.example.yml) and [aoaicg](./Workshop/promptflow/aoaicg.example.yml) or alternatively you can use [Notebook](./Workshop/2B1_AskQuestionPromptFlow.ipynb) to create those connections using SDK or CLI.
 ![Prompt Flow Connections](./assets/prompt-flow-connections.png)
 
 `aoai` connection
@@ -147,6 +147,21 @@ Repeat the steps above to create the connection for Azure Cognitive Search.
 Repeat the steps above to create the Custom Connection with following properties.
 Note - If you are not using PineCone, Redis it can be ignored and you can enter any dummy values.  Make sure to change the deployment name of the models to match to your AOAI deployment and your configuration of Cosmos and Cognitive Search.
 ![AOAI Custom Connections](./assets/custom-connection.png)
+
+### Create a Sample Vector index in Cognitive Search (TBD:Automation)
+
+- Go to Azure ML Workspace -> Prompt Flow -> Vector Index -> Create.  Select the following configuration
+  - Basic Settings -> New vector index name -> pfllmops
+  - Basic Settings -> Data source type -> Local Folder -> Select [Arc](./Workshop/promptflow/arc/) folder
+  - Basic Settings -> Vector Store -> Azure Cognitive Search Index
+  - Basic Settings -> Choose Azure Cognitive Search connection -> aoaicg (connection created above)
+  - ![Create Vector 1](./assets/create-vector-1.png)
+  - Click Next
+  - Advanced Settings -> Choose Connection -> aoai
+  - ![Create Vector 2](./assets/create-vector-2.png)
+  - Click Next -> Serverless Compute
+  - Click Next -> Create
+  - ![AOAI Create Index](./assets/ingest-job.png)
 
 ## Sample Prompt Run, Evaluation and Deployment Scenario
 

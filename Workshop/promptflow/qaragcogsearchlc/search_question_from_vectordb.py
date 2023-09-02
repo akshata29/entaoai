@@ -61,7 +61,7 @@ def performCogSearch(embedValue, embedField, SearchService, SearchKey, indexType
 # Adding type to arguments and return value will help the system show the types properly
 # Please update the function name/signature per need
 @tool
-def searchVectorDb(question:str, embeddedQuestion:object, indexType:str, indexNs:str, topK:int, conn:CustomConnection):
+def searchVectorDb(question:str, embeddedQuestion:object, indexType:str, indexNs:str, topK:int, vectorField:str, conn:CustomConnection):
   docs = []
   PineconeKey = conn.PineconeKey
   PineconeEnv = conn.PineconeEnv
@@ -98,7 +98,7 @@ def searchVectorDb(question:str, embeddedQuestion:object, indexType:str, indexNs
         try:
             redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword)
             returnField = ["metadata", "content", "vector_score"]
-            vectorField = "content_vector"
+            #vectorField = "content_vector"
             #arrayEmbedding = np.array(embeddedQuestion)
             hybridField = "*"
             searchType = 'KNN'
@@ -131,7 +131,7 @@ def searchVectorDb(question:str, embeddedQuestion:object, indexType:str, indexNs
   
   elif indexType == "cogsearch" or indexType == "cogsearchvs":
       try:
-          r = performCogSearch(embeddedQuestion, "contentVector", SearchService, SearchKey, indexType, question, indexNs, topK)
+          r = performCogSearch(embeddedQuestion, vectorField, SearchService, SearchKey, indexType, question, indexNs, topK)
           if r == None:
               docs = [Document(page_content="No Results Found", metadata={"id": "", "source": ""})]
           else :
