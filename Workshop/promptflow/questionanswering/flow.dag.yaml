@@ -7,10 +7,6 @@ inputs:
     type: string
     default: cogsearchvs
     is_chat_input: false
-  vectorField:
-    type: string
-    default: content_vector_open_ai
-    is_chat_input: false
   indexNs:
     type: string
     default: pfllmops
@@ -52,6 +48,9 @@ inputs:
     type: string
     default: stuff
     is_chat_input: false
+  vectorField:
+    type: string
+    default: content_vector_open_ai
 outputs:
   output:
     type: string
