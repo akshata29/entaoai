@@ -1,7 +1,7 @@
 {
   "flow_runs": [
     {
-      "run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_0",
+      "run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_0",
       "status": "Completed",
       "error": null,
       "inputs": {
@@ -40,21 +40,21 @@
             "Title: arcenabledml.pdf2   \n  Introduction  \nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \nyour overcome those challenges and harness the benefits of ML . \nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \nresponsible ML solutions that protect data and models.  \nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \nLearning anywhere . \nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \nclouds,  on premise s, or the edge .  \nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \nand industry verticals , in addition to  a case study:  \n \nRegulatory \ncompliance:   \nConsumer banking  PII and data \nsovereignty:  \nDrug discovery  Multi -cloud :  \nMedical imaging  ML on the edge:   \nRenewable -energy \ninfrastructure  \nCase study : Wolters Kluwer Health   \n  \n \n \n \n \n \n \n \n \n \n ",
             "Title: arcenabledml.pdf5   \n    \n \n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \nand latency considerations can also make on -premises ML attractive for some use cases.  \nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \ncomplexity and the need for a simpler way to harness ML for their operations.  \nAzure Arc \u2013enabled ML  \nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \nthe cloud with centralized visibil ity, operations, and compliance.  \n \nAzure Arc  \nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \n \nCapabilities  \nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \nML, and efficient ML operations on premises, in the cloud, and at the edge.  \nUnified management  \nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \nreproducibility, and audit compliance.  \nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \nLearning : \n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \nmodels.  \n2. Train \u2014With the data prepared, data scientists use it to train models.  "
           ],
-          "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+          "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
           "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Title: arcenabledml.pdf16   \\n  Appendix C: What is Azure Arc?  \\nAzure Arc is a s et of technologies that extends Azure management and services to any infrastructure . Its \\ncapabilities bring three main benefits to Azure Arc \u2013enabled ML.  \\nBuild and deploy cloud -native apps and models anywhere, at scale  \\n\u2022 Seamlessly interact with deployment targets \u2014on premises or public cloud.  \\n\u2022 Bring DevOps practices anywhere and build iteratively.  \\n\u2022 Reduce errors with consistent policy -driven app and model deployment and cluster operations at scale \\nfrom source control and templates.  \\n\u2022 Save time and red uce admin tasks by using purpose -built Azure data and application services in your \\narchitecture.  \\nGain central visibility, operations, and compliance  \\n\u2022 Centrally manage a wide range of resources including Windows and Linux servers, Microsoft SQL Server,  \\nKuber netes clusters, and Azure services.  \\n\u2022 Establish central visibility in the Azure portal.  \\n\u2022 Meet governance and compliance standards for apps, infrastructure, and data with Azure Policy.  \\nRun Azure services like Azure Machine Learning anywhere  \\n\u2022 Get started in minu tes with one -click deployment of the managed ML add -on, and train models on any \\nKubernetes cluster with Azure Machine Learning.  \\n\u2022 Take advantage of elastic scale, consistent management, and cloud -style billing models.  \\n\u2022 Take ML to environments that might have connectivity constraints, such as edge or Internet of Things \\n(IoT) scenarios.  \\nFor more information about Azure Arc, visit its product -overview page : https://azure.microsoft.com/  \\nen-us/services/azure -arc/. \\n  ', 'Title: arcenabledml.pdf2   \\n  Introduction  \\nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \\nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \\nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \\nyour overcome those challenges and harness the benefits of ML . \\nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \\nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \\nresponsible ML solutions that protect data and models.  \\nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \\nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \\noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \\nLearning anywhere . \\nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \\ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \\nclouds,  on premise s, or the edge .  \\nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \\nand industry verticals , in addition to  a case study:  \\n \\nRegulatory \\ncompliance:   \\nConsumer banking  PII and data \\nsovereignty:  \\nDrug discovery  Multi -cloud :  \\nMedical imaging  ML on the edge:   \\nRenewable -energy \\ninfrastructure  \\nCase study : Wolters Kluwer Health   \\n  \\n \\n \\n \\n \\n \\n \\n \\n \\n \\n ', 'Title: arcenabledml.pdf5   \\n    \\n \\n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \\nand latency considerations can also make on -premises ML attractive for some use cases.  \\nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \\nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \\nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \\nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \\noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \\ncomplexity and the need for a simpler way to harness ML for their operations.  \\nAzure Arc \u2013enabled ML  \\nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \\nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \\nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \\nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \\norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \\nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \\nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \\nthe cloud with centralized visibil ity, operations, and compliance.  \\n \\nAzure Arc  \\nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \\nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \\nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \\nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \\n \\nCapabilities  \\nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \\nML, and efficient ML operations on premises, in the cloud, and at the edge.  \\nUnified management  \\nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \\nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \\nreproducibility, and audit compliance.  \\nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \\nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \\nLearning : \\n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \\nmodels.  \\n2. Train \u2014With the data prepared, data scientists use it to train models.  ']<br>        Question: What is Azure Arc<br>        ",
           "sources": "\narcenabledml.pdf",
-          "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources, including Windows and Linux servers?\n3. How does Azure Machine Learning integrate with Azure Arc to enable Azure Arc-enabled ML?",
+          "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources?\n3. How does Azure Arc enable organizations to run Azure Machine Learning anywhere, including environments with connectivity constraints?",
           "error": ""
         }
       },
       "metrics": null,
       "request": null,
-      "parent_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435",
-      "root_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435",
+      "parent_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6",
+      "root_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6",
       "source_run_id": null,
       "flow_id": "default_flow_id",
-      "start_time": "2023-09-02T12:51:43.538437Z",
-      "end_time": "2023-09-02T12:51:46.861733Z",
+      "start_time": "2023-09-02T13:07:52.116218Z",
+      "end_time": "2023-09-02T13:07:56.487474Z",
       "index": 0,
       "api_calls": [
         {
@@ -95,8 +95,8 @@
             "tokenLength": 1000,
             "top": 3
           },
-          "start_time": 1693677103.538437,
-          "end_time": 1693677103.554018,
+          "start_time": 1693678072.116218,
+          "end_time": 1693678072.13124,
           "error": null,
           "children": null,
           "node_name": "parse_postBody"
@@ -1647,8 +1647,8 @@
             -0.02153158374130726,
             -0.0053360252641141415
           ],
-          "start_time": 1693677103.554018,
-          "end_time": 1693677104.092696,
+          "start_time": 1693678072.13124,
+          "end_time": 1693678072.735575,
           "error": null,
           "children": [
             {
@@ -3213,8 +3213,8 @@
                   "total_tokens": 4
                 }
               },
-              "start_time": 1693677103.554018,
-              "end_time": 1693677104.077123,
+              "start_time": 1693678072.13124,
+              "end_time": 1693678072.725585,
               "error": null,
               "children": null,
               "node_name": null
@@ -3249,8 +3249,8 @@
             "engine": "chat",
             "_type": "azure-openai-chat"
           },
-          "start_time": 1693677103.558866,
-          "end_time": 1693677103.560922,
+          "start_time": 1693678072.13124,
+          "end_time": 1693678072.13124,
           "error": null,
           "children": null,
           "node_name": "create_llm"
@@ -3272,8 +3272,8 @@
             }
           },
           "output": 3,
-          "start_time": 1693677103.560922,
-          "end_time": 1693677103.561875,
+          "start_time": 1693678072.13124,
+          "end_time": 1693678072.13124,
           "error": null,
           "children": null,
           "node_name": "extract_topk"
@@ -3295,8 +3295,8 @@
             }
           },
           "output": "Given the following extracted parts of a long document and a question, create a final answer. \n        If you don't know the answer, just say that you don't know. Don't try to make up an answer. \n        If the answer is not contained within the text below, say \"I don't know\".\n\n        {summaries}\n        Question: {question}\n        ",
-          "start_time": 1693677103.561875,
-          "end_time": 1693677103.562878,
+          "start_time": 1693678072.13124,
+          "end_time": 1693678072.13124,
           "error": null,
           "children": null,
           "node_name": "extract_prompttemplate"
@@ -4873,8 +4873,8 @@
               }
             }
           ],
-          "start_time": 1693677104.114174,
-          "end_time": 1693677104.636498,
+          "start_time": 1693678072.747562,
+          "end_time": 1693678073.259144,
           "error": null,
           "children": null,
           "node_name": "search_question_from_vectordb"
@@ -4930,9 +4930,9 @@
               }
             ]
           },
-          "output": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
-          "start_time": 1693677104.652447,
-          "end_time": 1693677105.749401,
+          "output": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+          "start_time": 1693678073.277109,
+          "end_time": 1693678074.214364,
           "error": null,
           "children": [
             {
@@ -4958,9 +4958,9 @@
                 "api_version": "2023-07-01-preview"
               },
               "output": {
-                "id": "chatcmpl-7uKOJCY3wxG6iILUhFzsgHmQXDmNm",
+                "id": "chatcmpl-7uKdvE2L8NeQakqT2HaFKYTkfdGO8",
                 "object": "chat.completion",
-                "created": 1693659107,
+                "created": 1693660075,
                 "model": "gpt-35-turbo",
                 "prompt_filter_results": [
                   {
@@ -4991,7 +4991,7 @@
                     "finish_reason": "stop",
                     "message": {
                       "role": "assistant",
-                      "content": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere."
+                      "content": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere."
                     },
                     "content_filter_results": {
                       "hate": {
@@ -5014,13 +5014,13 @@
                   }
                 ],
                 "usage": {
-                  "completion_tokens": 60,
+                  "completion_tokens": 61,
                   "prompt_tokens": 1463,
-                  "total_tokens": 1523
+                  "total_tokens": 1524
                 }
               },
-              "start_time": 1693677104.656324,
-              "end_time": 1693677105.734385,
+              "start_time": 1693678073.281154,
+              "end_time": 1693678074.213367,
               "error": null,
               "children": null,
               "node_name": null
@@ -5042,7 +5042,7 @@
               "engine": "chat",
               "_type": "azure-openai-chat"
             },
-            "modifiedAnswer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+            "modifiedAnswer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
             "overrides": {
               "chainType": "stuff",
               "deploymentType": "gpt35",
@@ -5086,14 +5086,14 @@
               "Title: arcenabledml.pdf2   \n  Introduction  \nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \nyour overcome those challenges and harness the benefits of ML . \nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \nresponsible ML solutions that protect data and models.  \nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \nLearning anywhere . \nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \nclouds,  on premise s, or the edge .  \nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \nand industry verticals , in addition to  a case study:  \n \nRegulatory \ncompliance:   \nConsumer banking  PII and data \nsovereignty:  \nDrug discovery  Multi -cloud :  \nMedical imaging  ML on the edge:   \nRenewable -energy \ninfrastructure  \nCase study : Wolters Kluwer Health   \n  \n \n \n \n \n \n \n \n \n \n ",
               "Title: arcenabledml.pdf5   \n    \n \n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \nand latency considerations can also make on -premises ML attractive for some use cases.  \nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \ncomplexity and the need for a simpler way to harness ML for their operations.  \nAzure Arc \u2013enabled ML  \nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \nthe cloud with centralized visibil ity, operations, and compliance.  \n \nAzure Arc  \nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \n \nCapabilities  \nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \nML, and efficient ML operations on premises, in the cloud, and at the edge.  \nUnified management  \nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \nreproducibility, and audit compliance.  \nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \nLearning : \n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \nmodels.  \n2. Train \u2014With the data prepared, data scientists use it to train models.  "
             ],
-            "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+            "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
             "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Title: arcenabledml.pdf16   \\n  Appendix C: What is Azure Arc?  \\nAzure Arc is a s et of technologies that extends Azure management and services to any infrastructure . Its \\ncapabilities bring three main benefits to Azure Arc \u2013enabled ML.  \\nBuild and deploy cloud -native apps and models anywhere, at scale  \\n\u2022 Seamlessly interact with deployment targets \u2014on premises or public cloud.  \\n\u2022 Bring DevOps practices anywhere and build iteratively.  \\n\u2022 Reduce errors with consistent policy -driven app and model deployment and cluster operations at scale \\nfrom source control and templates.  \\n\u2022 Save time and red uce admin tasks by using purpose -built Azure data and application services in your \\narchitecture.  \\nGain central visibility, operations, and compliance  \\n\u2022 Centrally manage a wide range of resources including Windows and Linux servers, Microsoft SQL Server,  \\nKuber netes clusters, and Azure services.  \\n\u2022 Establish central visibility in the Azure portal.  \\n\u2022 Meet governance and compliance standards for apps, infrastructure, and data with Azure Policy.  \\nRun Azure services like Azure Machine Learning anywhere  \\n\u2022 Get started in minu tes with one -click deployment of the managed ML add -on, and train models on any \\nKubernetes cluster with Azure Machine Learning.  \\n\u2022 Take advantage of elastic scale, consistent management, and cloud -style billing models.  \\n\u2022 Take ML to environments that might have connectivity constraints, such as edge or Internet of Things \\n(IoT) scenarios.  \\nFor more information about Azure Arc, visit its product -overview page : https://azure.microsoft.com/  \\nen-us/services/azure -arc/. \\n  ', 'Title: arcenabledml.pdf2   \\n  Introduction  \\nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \\nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \\nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \\nyour overcome those challenges and harness the benefits of ML . \\nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \\nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \\nresponsible ML solutions that protect data and models.  \\nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \\nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \\noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \\nLearning anywhere . \\nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \\ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \\nclouds,  on premise s, or the edge .  \\nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \\nand industry verticals , in addition to  a case study:  \\n \\nRegulatory \\ncompliance:   \\nConsumer banking  PII and data \\nsovereignty:  \\nDrug discovery  Multi -cloud :  \\nMedical imaging  ML on the edge:   \\nRenewable -energy \\ninfrastructure  \\nCase study : Wolters Kluwer Health   \\n  \\n \\n \\n \\n \\n \\n \\n \\n \\n \\n ', 'Title: arcenabledml.pdf5   \\n    \\n \\n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \\nand latency considerations can also make on -premises ML attractive for some use cases.  \\nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \\nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \\nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \\nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \\noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \\ncomplexity and the need for a simpler way to harness ML for their operations.  \\nAzure Arc \u2013enabled ML  \\nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \\nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \\nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \\nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \\norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \\nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \\nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \\nthe cloud with centralized visibil ity, operations, and compliance.  \\n \\nAzure Arc  \\nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \\nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \\nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \\nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \\n \\nCapabilities  \\nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \\nML, and efficient ML operations on premises, in the cloud, and at the edge.  \\nUnified management  \\nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \\nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \\nreproducibility, and audit compliance.  \\nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \\nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \\nLearning : \\n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \\nmodels.  \\n2. Train \u2014With the data prepared, data scientists use it to train models.  ']<br>        Question: What is Azure Arc<br>        ",
             "sources": "\narcenabledml.pdf",
-            "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources, including Windows and Linux servers?\n3. How does Azure Machine Learning integrate with Azure Arc to enable Azure Arc-enabled ML?",
+            "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources?\n3. How does Azure Arc enable organizations to run Azure Machine Learning anywhere, including environments with connectivity constraints?",
             "error": ""
           },
-          "start_time": 1693677105.750678,
-          "end_time": 1693677106.844646,
+          "start_time": 1693678074.218666,
+          "end_time": 1693678076.471971,
           "error": null,
           "children": [
             {
@@ -5119,11 +5119,11 @@
                 "api_version": "2023-07-01-preview"
               },
               "output": {
-                "id": "chatcmpl-7uKOKj89grh2BZEILbd4p8V6XgJNH",
+                "id": "chatcmpl-7uKdwqZKedXNSLhBEdbVGXpGt4J1D",
                 "object": "chat.completion",
-                "created": 1693659108,
+                "created": 1693660076,
                 "model": "gpt-35-turbo",
-                "prompt_filter_results": [
+                "prompt_annotations": [
                   {
                     "prompt_index": 0,
                     "content_filter_results": {
@@ -5152,7 +5152,7 @@
                     "finish_reason": "stop",
                     "message": {
                       "role": "assistant",
-                      "content": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources, including Windows and Linux servers?\n3. How does Azure Machine Learning integrate with Azure Arc to enable Azure Arc-enabled ML?"
+                      "content": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources?\n3. How does Azure Arc enable organizations to run Azure Machine Learning anywhere, including environments with connectivity constraints?"
                     },
                     "content_filter_results": {
                       "hate": {
@@ -5175,13 +5175,13 @@
                   }
                 ],
                 "usage": {
-                  "completion_tokens": 61,
+                  "completion_tokens": 58,
                   "prompt_tokens": 1439,
-                  "total_tokens": 1500
+                  "total_tokens": 1497
                 }
               },
-              "start_time": 1693677105.750678,
-              "end_time": 1693677106.844646,
+              "start_time": 1693678074.222165,
+              "end_time": 1693678076.471971,
               "error": null,
               "children": null,
               "node_name": null
@@ -5195,8 +5195,8 @@
       "description": "",
       "tags": null,
       "system_metrics": {
-        "duration": 3.323296,
-        "total_tokens": 3027
+        "duration": 4.371256,
+        "total_tokens": 3025
       },
       "result": {
         "output": {
@@ -5205,10 +5205,10 @@
             "Title: arcenabledml.pdf2   \n  Introduction  \nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \nyour overcome those challenges and harness the benefits of ML . \nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \nresponsible ML solutions that protect data and models.  \nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \nLearning anywhere . \nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \nclouds,  on premise s, or the edge .  \nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \nand industry verticals , in addition to  a case study:  \n \nRegulatory \ncompliance:   \nConsumer banking  PII and data \nsovereignty:  \nDrug discovery  Multi -cloud :  \nMedical imaging  ML on the edge:   \nRenewable -energy \ninfrastructure  \nCase study : Wolters Kluwer Health   \n  \n \n \n \n \n \n \n \n \n \n ",
             "Title: arcenabledml.pdf5   \n    \n \n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \nand latency considerations can also make on -premises ML attractive for some use cases.  \nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \ncomplexity and the need for a simpler way to harness ML for their operations.  \nAzure Arc \u2013enabled ML  \nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \nthe cloud with centralized visibil ity, operations, and compliance.  \n \nAzure Arc  \nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \n \nCapabilities  \nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \nML, and efficient ML operations on premises, in the cloud, and at the edge.  \nUnified management  \nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \nreproducibility, and audit compliance.  \nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \nLearning : \n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \nmodels.  \n2. Train \u2014With the data prepared, data scientists use it to train models.  "
           ],
-          "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+          "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
           "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Title: arcenabledml.pdf16   \\n  Appendix C: What is Azure Arc?  \\nAzure Arc is a s et of technologies that extends Azure management and services to any infrastructure . Its \\ncapabilities bring three main benefits to Azure Arc \u2013enabled ML.  \\nBuild and deploy cloud -native apps and models anywhere, at scale  \\n\u2022 Seamlessly interact with deployment targets \u2014on premises or public cloud.  \\n\u2022 Bring DevOps practices anywhere and build iteratively.  \\n\u2022 Reduce errors with consistent policy -driven app and model deployment and cluster operations at scale \\nfrom source control and templates.  \\n\u2022 Save time and red uce admin tasks by using purpose -built Azure data and application services in your \\narchitecture.  \\nGain central visibility, operations, and compliance  \\n\u2022 Centrally manage a wide range of resources including Windows and Linux servers, Microsoft SQL Server,  \\nKuber netes clusters, and Azure services.  \\n\u2022 Establish central visibility in the Azure portal.  \\n\u2022 Meet governance and compliance standards for apps, infrastructure, and data with Azure Policy.  \\nRun Azure services like Azure Machine Learning anywhere  \\n\u2022 Get started in minu tes with one -click deployment of the managed ML add -on, and train models on any \\nKubernetes cluster with Azure Machine Learning.  \\n\u2022 Take advantage of elastic scale, consistent management, and cloud -style billing models.  \\n\u2022 Take ML to environments that might have connectivity constraints, such as edge or Internet of Things \\n(IoT) scenarios.  \\nFor more information about Azure Arc, visit its product -overview page : https://azure.microsoft.com/  \\nen-us/services/azure -arc/. \\n  ', 'Title: arcenabledml.pdf2   \\n  Introduction  \\nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \\nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \\nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \\nyour overcome those challenges and harness the benefits of ML . \\nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \\nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \\nresponsible ML solutions that protect data and models.  \\nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \\nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \\noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \\nLearning anywhere . \\nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \\ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \\nclouds,  on premise s, or the edge .  \\nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \\nand industry verticals , in addition to  a case study:  \\n \\nRegulatory \\ncompliance:   \\nConsumer banking  PII and data \\nsovereignty:  \\nDrug discovery  Multi -cloud :  \\nMedical imaging  ML on the edge:   \\nRenewable -energy \\ninfrastructure  \\nCase study : Wolters Kluwer Health   \\n  \\n \\n \\n \\n \\n \\n \\n \\n \\n \\n ', 'Title: arcenabledml.pdf5   \\n    \\n \\n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \\nand latency considerations can also make on -premises ML attractive for some use cases.  \\nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \\nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \\nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \\nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \\noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \\ncomplexity and the need for a simpler way to harness ML for their operations.  \\nAzure Arc \u2013enabled ML  \\nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \\nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \\nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \\nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \\norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \\nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \\nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \\nthe cloud with centralized visibil ity, operations, and compliance.  \\n \\nAzure Arc  \\nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \\nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \\nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \\nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \\n \\nCapabilities  \\nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \\nML, and efficient ML operations on premises, in the cloud, and at the edge.  \\nUnified management  \\nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \\nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \\nreproducibility, and audit compliance.  \\nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \\nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \\nLearning : \\n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \\nmodels.  \\n2. Train \u2014With the data prepared, data scientists use it to train models.  ']<br>        Question: What is Azure Arc<br>        ",
           "sources": "\narcenabledml.pdf",
-          "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources, including Windows and Linux servers?\n3. How does Azure Machine Learning integrate with Azure Arc to enable Azure Arc-enabled ML?",
+          "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources?\n3. How does Azure Arc enable organizations to run Azure Machine Learning anywhere, including environments with connectivity constraints?",
           "error": ""
         }
       },
@@ -5218,8 +5218,8 @@
   "node_runs": [
     {
       "node": "parse_postBody",
-      "flow_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435",
-      "run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_parse_postBody_0",
+      "flow_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6",
+      "run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_parse_postBody_0",
       "status": "Completed",
       "inputs": {
         "postBody": {
@@ -5258,9 +5258,9 @@
       },
       "metrics": null,
       "error": null,
-      "parent_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_0",
-      "start_time": "2023-09-02T12:51:43.538437Z",
-      "end_time": "2023-09-02T12:51:43.554018Z",
+      "parent_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_0",
+      "start_time": "2023-09-02T13:07:52.116218Z",
+      "end_time": "2023-09-02T13:07:52.131240Z",
       "index": 0,
       "api_calls": [
         {
@@ -5301,8 +5301,8 @@
             "tokenLength": 1000,
             "top": 3
           },
-          "start_time": 1693677103.538437,
-          "end_time": 1693677103.554018,
+          "start_time": 1693678072.116218,
+          "end_time": 1693678072.13124,
           "error": null,
           "children": null,
           "node_name": "parse_postBody"
@@ -5316,7 +5316,7 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.015581
+        "duration": 0.015022
       },
       "result": {
         "chainType": "stuff",
@@ -5332,8 +5332,8 @@
     },
     {
       "node": "embed_the_question",
-      "flow_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435",
-      "run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_embed_the_question_0",
+      "flow_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6",
+      "run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_embed_the_question_0",
       "status": "Completed",
       "inputs": {
         "connection": "aoai",
@@ -6880,9 +6880,9 @@
       ],
       "metrics": null,
       "error": null,
-      "parent_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_0",
-      "start_time": "2023-09-02T12:51:43.554018Z",
-      "end_time": "2023-09-02T12:51:44.111396Z",
+      "parent_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_0",
+      "start_time": "2023-09-02T13:07:52.131240Z",
+      "end_time": "2023-09-02T13:07:52.745562Z",
       "index": 0,
       "api_calls": [
         {
@@ -8431,8 +8431,8 @@
             -0.02153158374130726,
             -0.0053360252641141415
           ],
-          "start_time": 1693677103.554018,
-          "end_time": 1693677104.092696,
+          "start_time": 1693678072.13124,
+          "end_time": 1693678072.735575,
           "error": null,
           "children": [
             {
@@ -9997,8 +9997,8 @@
                   "total_tokens": 4
                 }
               },
-              "start_time": 1693677103.554018,
-              "end_time": 1693677104.077123,
+              "start_time": 1693678072.13124,
+              "end_time": 1693678072.725585,
               "error": null,
               "children": null,
               "node_name": null
@@ -10017,7 +10017,7 @@
       "system_metrics": {
         "prompt_tokens": 4,
         "total_tokens": 4,
-        "duration": 0.557378
+        "duration": 0.614322
       },
       "result": [
         0.011645514518022537,
@@ -11560,8 +11560,8 @@
     },
     {
       "node": "create_llm",
-      "flow_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435",
-      "run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_create_llm_0",
+      "flow_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6",
+      "run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_create_llm_0",
       "status": "Completed",
       "inputs": {
         "conn": "entaoai",
@@ -11580,9 +11580,9 @@
       "output": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=1000, tiktoken_model_name=None, deployment_name='chat', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')",
       "metrics": null,
       "error": null,
-      "parent_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_0",
-      "start_time": "2023-09-02T12:51:43.558866Z",
-      "end_time": "2023-09-02T12:51:43.562878Z",
+      "parent_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_0",
+      "start_time": "2023-09-02T13:07:52.131240Z",
+      "end_time": "2023-09-02T13:07:52.131240Z",
       "index": 0,
       "api_calls": [
         {
@@ -11612,8 +11612,8 @@
             "engine": "chat",
             "_type": "azure-openai-chat"
           },
-          "start_time": 1693677103.558866,
-          "end_time": 1693677103.560922,
+          "start_time": 1693678072.13124,
+          "end_time": 1693678072.13124,
           "error": null,
           "children": null,
           "node_name": "create_llm"
@@ -11627,14 +11627,14 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.004012
+        "duration": 0.0
       },
       "result": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=1000, tiktoken_model_name=None, deployment_name='chat', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')"
     },
     {
       "node": "extract_topk",
-      "flow_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435",
-      "run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_extract_topk_0",
+      "flow_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6",
+      "run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_extract_topk_0",
       "status": "Completed",
       "inputs": {
         "overrides": {
@@ -11652,9 +11652,9 @@
       "output": 3,
       "metrics": null,
       "error": null,
-      "parent_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_0",
-      "start_time": "2023-09-02T12:51:43.560922Z",
-      "end_time": "2023-09-02T12:51:43.561875Z",
+      "parent_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_0",
+      "start_time": "2023-09-02T13:07:52.131240Z",
+      "end_time": "2023-09-02T13:07:52.131240Z",
       "index": 0,
       "api_calls": [
         {
@@ -11674,8 +11674,8 @@
             }
           },
           "output": 3,
-          "start_time": 1693677103.560922,
-          "end_time": 1693677103.561875,
+          "start_time": 1693678072.13124,
+          "end_time": 1693678072.13124,
           "error": null,
           "children": null,
           "node_name": "extract_topk"
@@ -11689,14 +11689,14 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.000953
+        "duration": 0.0
       },
       "result": 3
     },
     {
       "node": "extract_prompttemplate",
-      "flow_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435",
-      "run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_extract_prompttemplate_0",
+      "flow_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6",
+      "run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_extract_prompttemplate_0",
       "status": "Completed",
       "inputs": {
         "overrides": {
@@ -11714,9 +11714,9 @@
       "output": "Given the following extracted parts of a long document and a question, create a final answer. \n        If you don't know the answer, just say that you don't know. Don't try to make up an answer. \n        If the answer is not contained within the text below, say \"I don't know\".\n\n        {summaries}\n        Question: {question}\n        ",
       "metrics": null,
       "error": null,
-      "parent_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_0",
-      "start_time": "2023-09-02T12:51:43.561875Z",
-      "end_time": "2023-09-02T12:51:43.562878Z",
+      "parent_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_0",
+      "start_time": "2023-09-02T13:07:52.131240Z",
+      "end_time": "2023-09-02T13:07:52.131240Z",
       "index": 0,
       "api_calls": [
         {
@@ -11736,8 +11736,8 @@
             }
           },
           "output": "Given the following extracted parts of a long document and a question, create a final answer. \n        If you don't know the answer, just say that you don't know. Don't try to make up an answer. \n        If the answer is not contained within the text below, say \"I don't know\".\n\n        {summaries}\n        Question: {question}\n        ",
-          "start_time": 1693677103.561875,
-          "end_time": 1693677103.562878,
+          "start_time": 1693678072.13124,
+          "end_time": 1693678072.13124,
           "error": null,
           "children": null,
           "node_name": "extract_prompttemplate"
@@ -11751,14 +11751,14 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.001003
+        "duration": 0.0
       },
       "result": "Given the following extracted parts of a long document and a question, create a final answer. \n        If you don't know the answer, just say that you don't know. Don't try to make up an answer. \n        If the answer is not contained within the text below, say \"I don't know\".\n\n        {summaries}\n        Question: {question}\n        "
     },
     {
       "node": "search_question_from_vectordb",
-      "flow_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435",
-      "run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_search_question_from_vectordb_0",
+      "flow_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6",
+      "run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_search_question_from_vectordb_0",
       "status": "Completed",
       "inputs": {
         "conn": "entaoai",
@@ -13309,9 +13309,9 @@
       "output": "[Document(page_content='Title: arcenabledml.pdf16   \\n  Appendix C: What is Azure Arc?  \\nAzure Arc is a s et of technologies that extends Azure management and services to any infrastructure . Its \\ncapabilities bring three main benefits to Azure Arc \u2013enabled ML.  \\nBuild and deploy cloud -native apps and models anywhere, at scale  \\n\u2022 Seamlessly interact with deployment targets \u2014on premises or public cloud.  \\n\u2022 Bring DevOps practices anywhere and build iteratively.  \\n\u2022 Reduce errors with consistent policy -driven app and model deployment and cluster operations at scale \\nfrom source control and templates.  \\n\u2022 Save time and red uce admin tasks by using purpose -built Azure data and application services in your \\narchitecture.  \\nGain central visibility, operations, and compliance  \\n\u2022 Centrally manage a wide range of resources including Windows and Linux servers, Microsoft SQL Server,  \\nKuber netes clusters, and Azure services.  \\n\u2022 Establish central visibility in the Azure portal.  \\n\u2022 Meet governance and compliance standards for apps, infrastructure, and data with Azure Policy.  \\nRun Azure services like Azure Machine Learning anywhere  \\n\u2022 Get started in minu tes with one -click deployment of the managed ML add -on, and train models on any \\nKubernetes cluster with Azure Machine Learning.  \\n\u2022 Take advantage of elastic scale, consistent management, and cloud -style billing models.  \\n\u2022 Take ML to environments that might have connectivity constraints, such as edge or Internet of Things \\n(IoT) scenarios.  \\nFor more information about Azure Arc, visit its product -overview page : https://azure.microsoft.com/  \\nen-us/services/azure -arc/. \\n  ', metadata={'id': 'YXJjZW5hYmxlZG1sLnBkZjE1', 'source': 'arcenabledml.pdf'}), Document(page_content='Title: arcenabledml.pdf2   \\n  Introduction  \\nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \\nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \\nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \\nyour overcome those challenges and harness the benefits of ML . \\nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \\nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \\nresponsible ML solutions that protect data and models.  \\nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \\nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \\noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \\nLearning anywhere . \\nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \\ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \\nclouds,  on premise s, or the edge .  \\nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \\nand industry verticals , in addition to  a case study:  \\n \\nRegulatory \\ncompliance:   \\nConsumer banking  PII and data \\nsovereignty:  \\nDrug discovery  Multi -cloud :  \\nMedical imaging  ML on the edge:   \\nRenewable -energy \\ninfrastructure  \\nCase study : Wolters Kluwer Health   \\n  \\n \\n \\n \\n \\n \\n \\n \\n \\n \\n ', metadata={'id': 'YXJjZW5hYmxlZG1sLnBkZjE=', 'source': 'arcenabledml.pdf'}), Document(page_content='Title: arcenabledml.pdf5   \\n    \\n \\n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \\nand latency considerations can also make on -premises ML attractive for some use cases.  \\nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \\nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \\nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \\nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \\noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \\ncomplexity and the need for a simpler way to harness ML for their operations.  \\nAzure Arc \u2013enabled ML  \\nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \\nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \\nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \\nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \\norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \\nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \\nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \\nthe cloud with centralized visibil ity, operations, and compliance.  \\n \\nAzure Arc  \\nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \\nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \\nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \\nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \\n \\nCapabilities  \\nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \\nML, and efficient ML operations on premises, in the cloud, and at the edge.  \\nUnified management  \\nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \\nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \\nreproducibility, and audit compliance.  \\nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \\nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \\nLearning : \\n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \\nmodels.  \\n2. Train \u2014With the data prepared, data scientists use it to train models.  ', metadata={'id': 'YXJjZW5hYmxlZG1sLnBkZjQ=', 'source': 'arcenabledml.pdf'})]",
       "metrics": null,
       "error": null,
-      "parent_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_0",
-      "start_time": "2023-09-02T12:51:44.114174Z",
-      "end_time": "2023-09-02T12:51:44.649446Z",
+      "parent_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_0",
+      "start_time": "2023-09-02T13:07:52.747562Z",
+      "end_time": "2023-09-02T13:07:53.274105Z",
       "index": 0,
       "api_calls": [
         {
@@ -14886,8 +14886,8 @@
               }
             }
           ],
-          "start_time": 1693677104.114174,
-          "end_time": 1693677104.636498,
+          "start_time": 1693678072.747562,
+          "end_time": 1693678073.259144,
           "error": null,
           "children": null,
           "node_name": "search_question_from_vectordb"
@@ -14897,18 +14897,18 @@
       "cached_run_id": null,
       "cached_flow_run_id": null,
       "logs": {
-        "stdout": "[2023-09-02T12:51:44+0000] Performing CogSearch\n[2023-09-02T12:51:44+0000] SearchService: dataaioaicg\n[2023-09-02T12:51:44+0000] indexName: pfllmops\n",
+        "stdout": "[2023-09-02T13:07:52+0000] Performing CogSearch\n[2023-09-02T13:07:52+0000] SearchService: dataaioaicg\n[2023-09-02T13:07:52+0000] indexName: pfllmops\n",
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.535272
+        "duration": 0.526543
       },
       "result": "[Document(page_content='Title: arcenabledml.pdf16   \\n  Appendix C: What is Azure Arc?  \\nAzure Arc is a s et of technologies that extends Azure management and services to any infrastructure . Its \\ncapabilities bring three main benefits to Azure Arc \u2013enabled ML.  \\nBuild and deploy cloud -native apps and models anywhere, at scale  \\n\u2022 Seamlessly interact with deployment targets \u2014on premises or public cloud.  \\n\u2022 Bring DevOps practices anywhere and build iteratively.  \\n\u2022 Reduce errors with consistent policy -driven app and model deployment and cluster operations at scale \\nfrom source control and templates.  \\n\u2022 Save time and red uce admin tasks by using purpose -built Azure data and application services in your \\narchitecture.  \\nGain central visibility, operations, and compliance  \\n\u2022 Centrally manage a wide range of resources including Windows and Linux servers, Microsoft SQL Server,  \\nKuber netes clusters, and Azure services.  \\n\u2022 Establish central visibility in the Azure portal.  \\n\u2022 Meet governance and compliance standards for apps, infrastructure, and data with Azure Policy.  \\nRun Azure services like Azure Machine Learning anywhere  \\n\u2022 Get started in minu tes with one -click deployment of the managed ML add -on, and train models on any \\nKubernetes cluster with Azure Machine Learning.  \\n\u2022 Take advantage of elastic scale, consistent management, and cloud -style billing models.  \\n\u2022 Take ML to environments that might have connectivity constraints, such as edge or Internet of Things \\n(IoT) scenarios.  \\nFor more information about Azure Arc, visit its product -overview page : https://azure.microsoft.com/  \\nen-us/services/azure -arc/. \\n  ', metadata={'id': 'YXJjZW5hYmxlZG1sLnBkZjE1', 'source': 'arcenabledml.pdf'}), Document(page_content='Title: arcenabledml.pdf2   \\n  Introduction  \\nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \\nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \\nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \\nyour overcome those challenges and harness the benefits of ML . \\nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \\nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \\nresponsible ML solutions that protect data and models.  \\nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \\nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \\noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \\nLearning anywhere . \\nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \\ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \\nclouds,  on premise s, or the edge .  \\nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \\nand industry verticals , in addition to  a case study:  \\n \\nRegulatory \\ncompliance:   \\nConsumer banking  PII and data \\nsovereignty:  \\nDrug discovery  Multi -cloud :  \\nMedical imaging  ML on the edge:   \\nRenewable -energy \\ninfrastructure  \\nCase study : Wolters Kluwer Health   \\n  \\n \\n \\n \\n \\n \\n \\n \\n \\n \\n ', metadata={'id': 'YXJjZW5hYmxlZG1sLnBkZjE=', 'source': 'arcenabledml.pdf'}), Document(page_content='Title: arcenabledml.pdf5   \\n    \\n \\n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \\nand latency considerations can also make on -premises ML attractive for some use cases.  \\nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \\nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \\nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \\nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \\noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \\ncomplexity and the need for a simpler way to harness ML for their operations.  \\nAzure Arc \u2013enabled ML  \\nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \\nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \\nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \\nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \\norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \\nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \\nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \\nthe cloud with centralized visibil ity, operations, and compliance.  \\n \\nAzure Arc  \\nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \\nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \\nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \\nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \\n \\nCapabilities  \\nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \\nML, and efficient ML operations on premises, in the cloud, and at the edge.  \\nUnified management  \\nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \\nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \\nreproducibility, and audit compliance.  \\nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \\nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \\nLearning : \\n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \\nmodels.  \\n2. Train \u2014With the data prepared, data scientists use it to train models.  ', metadata={'id': 'YXJjZW5hYmxlZG1sLnBkZjQ=', 'source': 'arcenabledml.pdf'})]"
     },
     {
       "node": "answer_the_question",
-      "flow_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435",
-      "run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_answer_the_question_0",
+      "flow_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6",
+      "run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_answer_the_question_0",
       "status": "Completed",
       "inputs": {
         "llm": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=1000, tiktoken_model_name=None, deployment_name='chat', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')",
@@ -14927,12 +14927,12 @@
         "question": "What is Azure Arc",
         "retrievedDocs": "[Document(page_content='Title: arcenabledml.pdf16   \\n  Appendix C: What is Azure Arc?  \\nAzure Arc is a s et of technologies that extends Azure management and services to any infrastructure . Its \\ncapabilities bring three main benefits to Azure Arc \u2013enabled ML.  \\nBuild and deploy cloud -native apps and models anywhere, at scale  \\n\u2022 Seamlessly interact with deployment targets \u2014on premises or public cloud.  \\n\u2022 Bring DevOps practices anywhere and build iteratively.  \\n\u2022 Reduce errors with consistent policy -driven app and model deployment and cluster operations at scale \\nfrom source control and templates.  \\n\u2022 Save time and red uce admin tasks by using purpose -built Azure data and application services in your \\narchitecture.  \\nGain central visibility, operations, and compliance  \\n\u2022 Centrally manage a wide range of resources including Windows and Linux servers, Microsoft SQL Server,  \\nKuber netes clusters, and Azure services.  \\n\u2022 Establish central visibility in the Azure portal.  \\n\u2022 Meet governance and compliance standards for apps, infrastructure, and data with Azure Policy.  \\nRun Azure services like Azure Machine Learning anywhere  \\n\u2022 Get started in minu tes with one -click deployment of the managed ML add -on, and train models on any \\nKubernetes cluster with Azure Machine Learning.  \\n\u2022 Take advantage of elastic scale, consistent management, and cloud -style billing models.  \\n\u2022 Take ML to environments that might have connectivity constraints, such as edge or Internet of Things \\n(IoT) scenarios.  \\nFor more information about Azure Arc, visit its product -overview page : https://azure.microsoft.com/  \\nen-us/services/azure -arc/. \\n  ', metadata={'id': 'YXJjZW5hYmxlZG1sLnBkZjE1', 'source': 'arcenabledml.pdf'}), Document(page_content='Title: arcenabledml.pdf2   \\n  Introduction  \\nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \\nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \\nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \\nyour overcome those challenges and harness the benefits of ML . \\nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \\nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \\nresponsible ML solutions that protect data and models.  \\nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \\nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \\noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \\nLearning anywhere . \\nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \\ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \\nclouds,  on premise s, or the edge .  \\nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \\nand industry verticals , in addition to  a case study:  \\n \\nRegulatory \\ncompliance:   \\nConsumer banking  PII and data \\nsovereignty:  \\nDrug discovery  Multi -cloud :  \\nMedical imaging  ML on the edge:   \\nRenewable -energy \\ninfrastructure  \\nCase study : Wolters Kluwer Health   \\n  \\n \\n \\n \\n \\n \\n \\n \\n \\n \\n ', metadata={'id': 'YXJjZW5hYmxlZG1sLnBkZjE=', 'source': 'arcenabledml.pdf'}), Document(page_content='Title: arcenabledml.pdf5   \\n    \\n \\n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \\nand latency considerations can also make on -premises ML attractive for some use cases.  \\nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \\nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \\nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \\nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \\noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \\ncomplexity and the need for a simpler way to harness ML for their operations.  \\nAzure Arc \u2013enabled ML  \\nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \\nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \\nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \\nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \\norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \\nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \\nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \\nthe cloud with centralized visibil ity, operations, and compliance.  \\n \\nAzure Arc  \\nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \\nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \\nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \\nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \\n \\nCapabilities  \\nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \\nML, and efficient ML operations on premises, in the cloud, and at the edge.  \\nUnified management  \\nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \\nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \\nreproducibility, and audit compliance.  \\nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \\nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \\nLearning : \\n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \\nmodels.  \\n2. Train \u2014With the data prepared, data scientists use it to train models.  ', metadata={'id': 'YXJjZW5hYmxlZG1sLnBkZjQ=', 'source': 'arcenabledml.pdf'})]"
       },
-      "output": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+      "output": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
       "metrics": null,
       "error": null,
-      "parent_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_0",
-      "start_time": "2023-09-02T12:51:44.652447Z",
-      "end_time": "2023-09-02T12:51:45.750678Z",
+      "parent_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_0",
+      "start_time": "2023-09-02T13:07:53.277109Z",
+      "end_time": "2023-09-02T13:07:54.216523Z",
       "index": 0,
       "api_calls": [
         {
@@ -14986,9 +14986,9 @@
               }
             ]
           },
-          "output": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
-          "start_time": 1693677104.652447,
-          "end_time": 1693677105.749401,
+          "output": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+          "start_time": 1693678073.277109,
+          "end_time": 1693678074.214364,
           "error": null,
           "children": [
             {
@@ -15014,9 +15014,9 @@
                 "api_version": "2023-07-01-preview"
               },
               "output": {
-                "id": "chatcmpl-7uKOJCY3wxG6iILUhFzsgHmQXDmNm",
+                "id": "chatcmpl-7uKdvE2L8NeQakqT2HaFKYTkfdGO8",
                 "object": "chat.completion",
-                "created": 1693659107,
+                "created": 1693660075,
                 "model": "gpt-35-turbo",
                 "prompt_filter_results": [
                   {
@@ -15047,7 +15047,7 @@
                     "finish_reason": "stop",
                     "message": {
                       "role": "assistant",
-                      "content": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere."
+                      "content": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere."
                     },
                     "content_filter_results": {
                       "hate": {
@@ -15070,13 +15070,13 @@
                   }
                 ],
                 "usage": {
-                  "completion_tokens": 60,
+                  "completion_tokens": 61,
                   "prompt_tokens": 1463,
-                  "total_tokens": 1523
+                  "total_tokens": 1524
                 }
               },
-              "start_time": 1693677104.656324,
-              "end_time": 1693677105.734385,
+              "start_time": 1693678073.281154,
+              "end_time": 1693678074.213367,
               "error": null,
               "children": null,
               "node_name": null
@@ -15093,21 +15093,21 @@
         "stderr": ""
       },
       "system_metrics": {
-        "completion_tokens": 60,
+        "completion_tokens": 61,
         "prompt_tokens": 1463,
-        "total_tokens": 1523,
-        "duration": 1.098231
+        "total_tokens": 1524,
+        "duration": 0.939414
       },
-      "result": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere."
+      "result": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere."
     },
     {
       "node": "followup_questions",
-      "flow_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435",
-      "run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_followup_questions_0",
+      "flow_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6",
+      "run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_followup_questions_0",
       "status": "Completed",
       "inputs": {
         "llm": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=1000, tiktoken_model_name=None, deployment_name='chat', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')",
-        "modifiedAnswer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+        "modifiedAnswer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
         "overrides": {
           "chainType": "stuff",
           "deploymentType": "gpt35",
@@ -15129,17 +15129,17 @@
           "Title: arcenabledml.pdf2   \n  Introduction  \nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \nyour overcome those challenges and harness the benefits of ML . \nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \nresponsible ML solutions that protect data and models.  \nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \nLearning anywhere . \nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \nclouds,  on premise s, or the edge .  \nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \nand industry verticals , in addition to  a case study:  \n \nRegulatory \ncompliance:   \nConsumer banking  PII and data \nsovereignty:  \nDrug discovery  Multi -cloud :  \nMedical imaging  ML on the edge:   \nRenewable -energy \ninfrastructure  \nCase study : Wolters Kluwer Health   \n  \n \n \n \n \n \n \n \n \n \n ",
           "Title: arcenabledml.pdf5   \n    \n \n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \nand latency considerations can also make on -premises ML attractive for some use cases.  \nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \ncomplexity and the need for a simpler way to harness ML for their operations.  \nAzure Arc \u2013enabled ML  \nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \nthe cloud with centralized visibil ity, operations, and compliance.  \n \nAzure Arc  \nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \n \nCapabilities  \nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \nML, and efficient ML operations on premises, in the cloud, and at the edge.  \nUnified management  \nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \nreproducibility, and audit compliance.  \nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \nLearning : \n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \nmodels.  \n2. Train \u2014With the data prepared, data scientists use it to train models.  "
         ],
-        "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+        "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
         "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Title: arcenabledml.pdf16   \\n  Appendix C: What is Azure Arc?  \\nAzure Arc is a s et of technologies that extends Azure management and services to any infrastructure . Its \\ncapabilities bring three main benefits to Azure Arc \u2013enabled ML.  \\nBuild and deploy cloud -native apps and models anywhere, at scale  \\n\u2022 Seamlessly interact with deployment targets \u2014on premises or public cloud.  \\n\u2022 Bring DevOps practices anywhere and build iteratively.  \\n\u2022 Reduce errors with consistent policy -driven app and model deployment and cluster operations at scale \\nfrom source control and templates.  \\n\u2022 Save time and red uce admin tasks by using purpose -built Azure data and application services in your \\narchitecture.  \\nGain central visibility, operations, and compliance  \\n\u2022 Centrally manage a wide range of resources including Windows and Linux servers, Microsoft SQL Server,  \\nKuber netes clusters, and Azure services.  \\n\u2022 Establish central visibility in the Azure portal.  \\n\u2022 Meet governance and compliance standards for apps, infrastructure, and data with Azure Policy.  \\nRun Azure services like Azure Machine Learning anywhere  \\n\u2022 Get started in minu tes with one -click deployment of the managed ML add -on, and train models on any \\nKubernetes cluster with Azure Machine Learning.  \\n\u2022 Take advantage of elastic scale, consistent management, and cloud -style billing models.  \\n\u2022 Take ML to environments that might have connectivity constraints, such as edge or Internet of Things \\n(IoT) scenarios.  \\nFor more information about Azure Arc, visit its product -overview page : https://azure.microsoft.com/  \\nen-us/services/azure -arc/. \\n  ', 'Title: arcenabledml.pdf2   \\n  Introduction  \\nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \\nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \\nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \\nyour overcome those challenges and harness the benefits of ML . \\nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \\nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \\nresponsible ML solutions that protect data and models.  \\nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \\nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \\noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \\nLearning anywhere . \\nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \\ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \\nclouds,  on premise s, or the edge .  \\nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \\nand industry verticals , in addition to  a case study:  \\n \\nRegulatory \\ncompliance:   \\nConsumer banking  PII and data \\nsovereignty:  \\nDrug discovery  Multi -cloud :  \\nMedical imaging  ML on the edge:   \\nRenewable -energy \\ninfrastructure  \\nCase study : Wolters Kluwer Health   \\n  \\n \\n \\n \\n \\n \\n \\n \\n \\n \\n ', 'Title: arcenabledml.pdf5   \\n    \\n \\n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \\nand latency considerations can also make on -premises ML attractive for some use cases.  \\nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \\nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \\nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \\nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \\noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \\ncomplexity and the need for a simpler way to harness ML for their operations.  \\nAzure Arc \u2013enabled ML  \\nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \\nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \\nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \\nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \\norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \\nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \\nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \\nthe cloud with centralized visibil ity, operations, and compliance.  \\n \\nAzure Arc  \\nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \\nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \\nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \\nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \\n \\nCapabilities  \\nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \\nML, and efficient ML operations on premises, in the cloud, and at the edge.  \\nUnified management  \\nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \\nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \\nreproducibility, and audit compliance.  \\nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \\nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \\nLearning : \\n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \\nmodels.  \\n2. Train \u2014With the data prepared, data scientists use it to train models.  ']<br>        Question: What is Azure Arc<br>        ",
         "sources": "\narcenabledml.pdf",
-        "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources, including Windows and Linux servers?\n3. How does Azure Machine Learning integrate with Azure Arc to enable Azure Arc-enabled ML?",
+        "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources?\n3. How does Azure Arc enable organizations to run Azure Machine Learning anywhere, including environments with connectivity constraints?",
         "error": ""
       },
       "metrics": null,
       "error": null,
-      "parent_run_id": "f0a76655-ef35-44c0-8e69-a7c8cdb12435_0",
-      "start_time": "2023-09-02T12:51:45.750678Z",
-      "end_time": "2023-09-02T12:51:46.844646Z",
+      "parent_run_id": "5dbfb1bf-71a4-43c2-8038-7737795d17b6_0",
+      "start_time": "2023-09-02T13:07:54.218666Z",
+      "end_time": "2023-09-02T13:07:56.471971Z",
       "index": 0,
       "api_calls": [
         {
@@ -15156,7 +15156,7 @@
               "engine": "chat",
               "_type": "azure-openai-chat"
             },
-            "modifiedAnswer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+            "modifiedAnswer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
             "overrides": {
               "chainType": "stuff",
               "deploymentType": "gpt35",
@@ -15200,14 +15200,14 @@
               "Title: arcenabledml.pdf2   \n  Introduction  \nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \nyour overcome those challenges and harness the benefits of ML . \nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \nresponsible ML solutions that protect data and models.  \nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \nLearning anywhere . \nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \nclouds,  on premise s, or the edge .  \nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \nand industry verticals , in addition to  a case study:  \n \nRegulatory \ncompliance:   \nConsumer banking  PII and data \nsovereignty:  \nDrug discovery  Multi -cloud :  \nMedical imaging  ML on the edge:   \nRenewable -energy \ninfrastructure  \nCase study : Wolters Kluwer Health   \n  \n \n \n \n \n \n \n \n \n \n ",
               "Title: arcenabledml.pdf5   \n    \n \n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \nand latency considerations can also make on -premises ML attractive for some use cases.  \nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \ncomplexity and the need for a simpler way to harness ML for their operations.  \nAzure Arc \u2013enabled ML  \nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \nthe cloud with centralized visibil ity, operations, and compliance.  \n \nAzure Arc  \nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \n \nCapabilities  \nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \nML, and efficient ML operations on premises, in the cloud, and at the edge.  \nUnified management  \nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \nreproducibility, and audit compliance.  \nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \nLearning : \n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \nmodels.  \n2. Train \u2014With the data prepared, data scientists use it to train models.  "
             ],
-            "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+            "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
             "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Title: arcenabledml.pdf16   \\n  Appendix C: What is Azure Arc?  \\nAzure Arc is a s et of technologies that extends Azure management and services to any infrastructure . Its \\ncapabilities bring three main benefits to Azure Arc \u2013enabled ML.  \\nBuild and deploy cloud -native apps and models anywhere, at scale  \\n\u2022 Seamlessly interact with deployment targets \u2014on premises or public cloud.  \\n\u2022 Bring DevOps practices anywhere and build iteratively.  \\n\u2022 Reduce errors with consistent policy -driven app and model deployment and cluster operations at scale \\nfrom source control and templates.  \\n\u2022 Save time and red uce admin tasks by using purpose -built Azure data and application services in your \\narchitecture.  \\nGain central visibility, operations, and compliance  \\n\u2022 Centrally manage a wide range of resources including Windows and Linux servers, Microsoft SQL Server,  \\nKuber netes clusters, and Azure services.  \\n\u2022 Establish central visibility in the Azure portal.  \\n\u2022 Meet governance and compliance standards for apps, infrastructure, and data with Azure Policy.  \\nRun Azure services like Azure Machine Learning anywhere  \\n\u2022 Get started in minu tes with one -click deployment of the managed ML add -on, and train models on any \\nKubernetes cluster with Azure Machine Learning.  \\n\u2022 Take advantage of elastic scale, consistent management, and cloud -style billing models.  \\n\u2022 Take ML to environments that might have connectivity constraints, such as edge or Internet of Things \\n(IoT) scenarios.  \\nFor more information about Azure Arc, visit its product -overview page : https://azure.microsoft.com/  \\nen-us/services/azure -arc/. \\n  ', 'Title: arcenabledml.pdf2   \\n  Introduction  \\nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \\nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \\nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \\nyour overcome those challenges and harness the benefits of ML . \\nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \\nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \\nresponsible ML solutions that protect data and models.  \\nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \\nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \\noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \\nLearning anywhere . \\nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \\ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \\nclouds,  on premise s, or the edge .  \\nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \\nand industry verticals , in addition to  a case study:  \\n \\nRegulatory \\ncompliance:   \\nConsumer banking  PII and data \\nsovereignty:  \\nDrug discovery  Multi -cloud :  \\nMedical imaging  ML on the edge:   \\nRenewable -energy \\ninfrastructure  \\nCase study : Wolters Kluwer Health   \\n  \\n \\n \\n \\n \\n \\n \\n \\n \\n \\n ', 'Title: arcenabledml.pdf5   \\n    \\n \\n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \\nand latency considerations can also make on -premises ML attractive for some use cases.  \\nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \\nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \\nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \\nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \\noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \\ncomplexity and the need for a simpler way to harness ML for their operations.  \\nAzure Arc \u2013enabled ML  \\nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \\nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \\nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \\nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \\norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \\nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \\nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \\nthe cloud with centralized visibil ity, operations, and compliance.  \\n \\nAzure Arc  \\nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \\nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \\nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \\nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \\n \\nCapabilities  \\nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \\nML, and efficient ML operations on premises, in the cloud, and at the edge.  \\nUnified management  \\nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \\nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \\nreproducibility, and audit compliance.  \\nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \\nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \\nLearning : \\n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \\nmodels.  \\n2. Train \u2014With the data prepared, data scientists use it to train models.  ']<br>        Question: What is Azure Arc<br>        ",
             "sources": "\narcenabledml.pdf",
-            "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources, including Windows and Linux servers?\n3. How does Azure Machine Learning integrate with Azure Arc to enable Azure Arc-enabled ML?",
+            "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources?\n3. How does Azure Arc enable organizations to run Azure Machine Learning anywhere, including environments with connectivity constraints?",
             "error": ""
           },
-          "start_time": 1693677105.750678,
-          "end_time": 1693677106.844646,
+          "start_time": 1693678074.218666,
+          "end_time": 1693678076.471971,
           "error": null,
           "children": [
             {
@@ -15233,11 +15233,11 @@
                 "api_version": "2023-07-01-preview"
               },
               "output": {
-                "id": "chatcmpl-7uKOKj89grh2BZEILbd4p8V6XgJNH",
+                "id": "chatcmpl-7uKdwqZKedXNSLhBEdbVGXpGt4J1D",
                 "object": "chat.completion",
-                "created": 1693659108,
+                "created": 1693660076,
                 "model": "gpt-35-turbo",
-                "prompt_filter_results": [
+                "prompt_annotations": [
                   {
                     "prompt_index": 0,
                     "content_filter_results": {
@@ -15266,7 +15266,7 @@
                     "finish_reason": "stop",
                     "message": {
                       "role": "assistant",
-                      "content": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources, including Windows and Linux servers?\n3. How does Azure Machine Learning integrate with Azure Arc to enable Azure Arc-enabled ML?"
+                      "content": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources?\n3. How does Azure Arc enable organizations to run Azure Machine Learning anywhere, including environments with connectivity constraints?"
                     },
                     "content_filter_results": {
                       "hate": {
@@ -15289,13 +15289,13 @@
                   }
                 ],
                 "usage": {
-                  "completion_tokens": 61,
+                  "completion_tokens": 58,
                   "prompt_tokens": 1439,
-                  "total_tokens": 1500
+                  "total_tokens": 1497
                 }
               },
-              "start_time": 1693677105.750678,
-              "end_time": 1693677106.844646,
+              "start_time": 1693678074.222165,
+              "end_time": 1693678076.471971,
               "error": null,
               "children": null,
               "node_name": null
@@ -15312,10 +15312,10 @@
         "stderr": ""
       },
       "system_metrics": {
-        "completion_tokens": 61,
+        "completion_tokens": 58,
         "prompt_tokens": 1439,
-        "total_tokens": 1500,
-        "duration": 1.093968
+        "total_tokens": 1497,
+        "duration": 2.253305
       },
       "result": {
         "data_points": [
@@ -15323,10 +15323,10 @@
           "Title: arcenabledml.pdf2   \n  Introduction  \nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \nyour overcome those challenges and harness the benefits of ML . \nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \nresponsible ML solutions that protect data and models.  \nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \nLearning anywhere . \nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \nclouds,  on premise s, or the edge .  \nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \nand industry verticals , in addition to  a case study:  \n \nRegulatory \ncompliance:   \nConsumer banking  PII and data \nsovereignty:  \nDrug discovery  Multi -cloud :  \nMedical imaging  ML on the edge:   \nRenewable -energy \ninfrastructure  \nCase study : Wolters Kluwer Health   \n  \n \n \n \n \n \n \n \n \n \n ",
           "Title: arcenabledml.pdf5   \n    \n \n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \nand latency considerations can also make on -premises ML attractive for some use cases.  \nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \ncomplexity and the need for a simpler way to harness ML for their operations.  \nAzure Arc \u2013enabled ML  \nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \nthe cloud with centralized visibil ity, operations, and compliance.  \n \nAzure Arc  \nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \n \nCapabilities  \nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \nML, and efficient ML operations on premises, in the cloud, and at the edge.  \nUnified management  \nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \nreproducibility, and audit compliance.  \nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \nLearning : \n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \nmodels.  \n2. Train \u2014With the data prepared, data scientists use it to train models.  "
         ],
-        "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. It also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
+        "answer": "Azure Arc is a set of technologies that extends Azure management and services to any infrastructure. It allows organizations to build and deploy cloud-native apps and ML models anywhere, at scale. Azure Arc also provides central visibility, operations, and compliance, and enables organizations to run Azure services such as Azure Machine Learning anywhere.",
         "thoughts": "<br><br>Prompt:<br>Given the following extracted parts of a long document and a question, create a final answer. <br>        If you don't know the answer, just say that you don't know. Don't try to make up an answer. <br>        If the answer is not contained within the text below, say \"I don't know\".<br><br>        ['Title: arcenabledml.pdf16   \\n  Appendix C: What is Azure Arc?  \\nAzure Arc is a s et of technologies that extends Azure management and services to any infrastructure . Its \\ncapabilities bring three main benefits to Azure Arc \u2013enabled ML.  \\nBuild and deploy cloud -native apps and models anywhere, at scale  \\n\u2022 Seamlessly interact with deployment targets \u2014on premises or public cloud.  \\n\u2022 Bring DevOps practices anywhere and build iteratively.  \\n\u2022 Reduce errors with consistent policy -driven app and model deployment and cluster operations at scale \\nfrom source control and templates.  \\n\u2022 Save time and red uce admin tasks by using purpose -built Azure data and application services in your \\narchitecture.  \\nGain central visibility, operations, and compliance  \\n\u2022 Centrally manage a wide range of resources including Windows and Linux servers, Microsoft SQL Server,  \\nKuber netes clusters, and Azure services.  \\n\u2022 Establish central visibility in the Azure portal.  \\n\u2022 Meet governance and compliance standards for apps, infrastructure, and data with Azure Policy.  \\nRun Azure services like Azure Machine Learning anywhere  \\n\u2022 Get started in minu tes with one -click deployment of the managed ML add -on, and train models on any \\nKubernetes cluster with Azure Machine Learning.  \\n\u2022 Take advantage of elastic scale, consistent management, and cloud -style billing models.  \\n\u2022 Take ML to environments that might have connectivity constraints, such as edge or Internet of Things \\n(IoT) scenarios.  \\nFor more information about Azure Arc, visit its product -overview page : https://azure.microsoft.com/  \\nen-us/services/azure -arc/. \\n  ', 'Title: arcenabledml.pdf2   \\n  Introduction  \\nMachine learning (ML) has many applications  for organizations of all sizes \u2014and the possibilities are constantly \\nexpanding.  It can help uncover insights in business data, enhance the user experience for customers, and reduce \\nbusiness risk. And while ML can pose  unique challenge s for organizations , technologies from Microsoft can help \\nyour overcome those challenges and harness the benefits of ML . \\nAzure Machine Learning  can help your data team rapidly build and train models and then operationalize th em at \\nscale with MLOps. It also lets your data team innovate on an open and flexible platform, all while building \\nresponsible ML solutions that protect data and models.  \\nAzure Arc  is a set of technologies that extends Azure management and services to any in frastructure.  It enables \\nyou to b uild and deploy cloud -native apps and ML models anywhere, at scale . It also provides central visibility, \\noperations, and compliance , and it enables organizations like yours to r un Azure services such as  Azure Machine \\nLearning anywhere . \\nAzure Machine Learning  integrates with Azure Arc to give you Azure Arc \u2013enabled ML. With Azure Arc \u2013enabled ML \\ncapabilities, organizations like yours can make use of  Azure Machine Learning anywhere \u2014across one or more \\nclouds,  on premise s, or the edge .  \\nTo show you how these Azure Arc \u2013enabled ML capabilities work, this paper provides examples across use cases \\nand industry verticals , in addition to  a case study:  \\n \\nRegulatory \\ncompliance:   \\nConsumer banking  PII and data \\nsovereignty:  \\nDrug discovery  Multi -cloud :  \\nMedical imaging  ML on the edge:   \\nRenewable -energy \\ninfrastructure  \\nCase study : Wolters Kluwer Health   \\n  \\n \\n \\n \\n \\n \\n \\n \\n \\n \\n ', 'Title: arcenabledml.pdf5   \\n    \\n \\n property (IP) protection can require isolating ML beyond what public -cloud solutions can provide. Dat a-gravity \\nand latency considerations can also make on -premises ML attractive for some use cases.  \\nWhen data teams do make use of cloud resources, a single public cloud \u2013based service rarely meets organizations\u2019 \\nneeds as  the cloud component of a hybrid soluti on. Organizations might seek to avoid vendor lock -in by being \\nwholly dependent on a single cloud -service provider (CSP), or they might be in an industry vertical like healthcare \\nthat relies on integration between multiple organizations on different clouds.  For all of these reasons \u2014both \\noperational and data -related \u2014many businesses have thus far foregone implementing ML altogether due to \\ncomplexity and the need for a simpler way to harness ML for their operations.  \\nAzure Arc \u2013enabled ML  \\nAzure Arc \u2013enabled ML com bines the capabilities of Azure Arc and Azure Machine Learning. Azure Arc brings \\nAzure management and services to any infrastructure, providing you with a single pane of glass to manage your \\nentire Kubernetes infrastructure on premises and across clouds. A zure Machine Learning is an enterprise -grade \\nservice that enables your data scientists and developers to innovate rapidly using familiar tools and your \\norganization to operationalize ML at scale with MLOps.  Azure Machine Learning  integrates with Azure Arc to give \\nyou Azure Arc \u2013enabled ML.  Azure Arc \u2013enabled ML  capabiliti es enable your organization to run enterprise -grade \\nML workloads on Kubernetes anywhere with the same easy -to-use Azure Machine Learning experience found in \\nthe cloud with centralized visibil ity, operations, and compliance.  \\n \\nAzure Arc  \\nAzure Arc enables organizations like yours to build and deploy cloud -native apps anywhere and at scale. It permits \\nIT to gain central visibility, operations, and compliance on Kubernetes operations and to run Azure services like \\nAzure Machine Learning anyw here. For details about these benefits, see Appendix C . And for more information \\nabout Azure Arc, visit its product -overview page:  https://azure.micr osoft.com/en -us/services/azure -arc/. \\n \\nCapabilities  \\nAzure Arc \u2013enabled ML enables Azure Machine Learning to provide management for MLOps, rapid innovation for \\nML, and efficient ML operations on premises, in the cloud, and at the edge.  \\nUnified management  \\nAzure Arc  provides single -pane management through  the Azure portal. All ML models, no matter  \\nwhere they\u2019re built, can be stored and tracked in a central location in Azure Machine Learning  for sharing, \\nreproducibility, and audit compliance.  \\nML is predicated on reproducibility and reusability. This extends fr om ML models to the whole ML lifecycle. \\nRegardless of its application, ML follows a consistent lifecycle , which is supported at each stage by Azure M achine \\nLearning : \\n1. Build \u2014Data scientists create their initial models and then clean and prepare datasets to b e usable by those \\nmodels.  \\n2. Train \u2014With the data prepared, data scientists use it to train models.  ']<br>        Question: What is Azure Arc<br>        ",
         "sources": "\narcenabledml.pdf",
-        "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources, including Windows and Linux servers?\n3. How does Azure Machine Learning integrate with Azure Arc to enable Azure Arc-enabled ML?",
+        "nextQuestions": "1. How does Azure Arc enable organizations to build and deploy cloud-native apps and ML models anywhere?\n2. Can Azure Arc provide central visibility and compliance for a wide range of resources?\n3. How does Azure Arc enable organizations to run Azure Machine Learning anywhere, including environments with connectivity constraints?",
         "error": ""
       }
     }

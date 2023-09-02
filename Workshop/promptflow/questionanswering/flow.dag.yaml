@@ -83,11 +83,11 @@ nodes:
   inputs:
     question: ${inputs.question}
     embeddedQuestion: ${embed_the_question.output}
-    conn: entaoai
     indexType: ${inputs.indexType}
-    vectorField: ${inputs.vectorField}
     indexNs: ${inputs.indexNs}
     topK: ${extract_topk.output}
+    vectorField: ${inputs.vectorField}
+    conn: entaoai
 - name: extract_topk
   type: python
   source:
