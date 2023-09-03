@@ -1,0 +1,176 @@
+inputs:
+  question:
+    type: string
+    default: Summarize the consolidated financial statements
+    is_chat_input: false
+  indexType:
+    type: string
+    default: cogsearchvs
+    is_chat_input: false
+  indexNs:
+    type: string
+    default: 3738d6dc992c4229a5a52efe84af4d3d
+    is_chat_input: false
+  postBody:
+    type: object
+    default:
+      values:
+      - recordId: 0
+        data:
+          text: ""
+          approach: rtr
+          overrides:
+            semantic_ranker: true
+            semantic_captions: false
+            top: 3
+            temperature: 0
+            promptTemplate: "You are an AI assistant tasked with answering questions and
+              summarizing information from\ 
+
+              \        earning call transcripts, annual reports,
+              SEC filings and financial statements.
+
+              \        Your answer should accurately capture the
+              key information in the document while avoiding the omission of any
+              domain-specific words.\ 
+
+              \        Please generate a concise and comprehensive
+              information that includes details such as reporting year and
+              amount in millions.
+
+              \        Ensure that it is easy to understand for
+              business professionals and provides an accurate representation of
+              the financial statement history.\ 
+
+              \       \ 
+
+              \        Please remember to use clear language and
+              maintain the integrity of the original information without missing
+              any important details
+
+
+              \        QUESTION: {question}
+
+              \        =========
+
+              \        {summaries}
+
+              \        =========
+
+              \        "
+            chainType: stuff
+            tokenLength: 1000
+            embeddingModelType: azureopenai
+            deploymentType: gpt3516k
+    is_chat_input: false
+  chainType:
+    type: string
+    default: stuff
+    is_chat_input: false
+outputs:
+  output:
+    type: string
+    reference: ${followup_questions.output}
+    evaluation_only: false
+    is_chat_output: false
+nodes:
+- name: create_llm
+  type: python
+  source:
+    type: code
+    path: create_llm.py
+  inputs:
+    conn: entaoai
+    overrides: ${parse_postBody.output}
+  use_variants: false
+- name: parse_postBody
+  type: python
+  source:
+    type: code
+    path: parse_postBody.py
+  inputs:
+    postBody: ${inputs.postBody}
+  use_variants: false
+- name: search_question_from_vectordb
+  type: python
+  source:
+    type: code
+    path: search_question_from_vectordb.py
+  inputs:
+    question: ${inputs.question}
+    embeddedQuestion: ${embed_the_question.output}
+    indexType: ${inputs.indexType}
+    indexNs: ${inputs.indexNs}
+    conn: entaoai
+    overrides: ${parse_postBody.output}
+  skip:
+    when: ${check_cache_answer.output.existingAnswer}
+    is: true
+    return: ""
+- name: execute_langchain
+  type: python
+  source:
+    type: code
+    path: execute_langchain.py
+  inputs:
+    llm: ${create_llm.output}
+    overrides: ${parse_postBody.output}
+    promptTemplate: ${extract_prompttemplate.output}
+    question: ${inputs.question}
+    retrievedDocs: ${search_question_from_vectordb.output}
+  use_variants: false
+  skip:
+    when: ${check_cache_answer.output.existingAnswer}
+    is: true
+    return: ""
+- name: followup_questions
+  type: python
+  source:
+    type: code
+    path: followup_questions.py
+  inputs:
+    llm: ${create_llm.output}
+    modifiedAnswer: ${execute_langchain.output}
+    overrides: ${parse_postBody.output}
+    promptTemplate: ${extract_prompttemplate.output}
+    question: ${inputs.question}
+    retrievedDocs: ${search_question_from_vectordb.output}
+    existingAnswer: ${check_cache_answer.output.existingAnswer}
+    jsonAnswer: ${check_cache_answer.output.jsonAnswer}
+    conn: entaoai
+    indexType: ${inputs.indexType}
+    indexNs: ${inputs.indexNs}
+    embeddedQuestion: ${embed_the_question.output}
+  use_variants: false
+- name: embed_the_question
+  type: python
+  source:
+    type: code
+    path: embed_the_question.py
+  inputs:
+    conn: entaoai
+    question: ${inputs.question}
+    overrides: ${parse_postBody.output}
+- name: extract_prompttemplate
+  type: python
+  source:
+    type: code
+    path: extract_prompttemplate.py
+  inputs:
+    overrides: ${parse_postBody.output}
+  use_variants: false
+  skip:
+    when: ${check_cache_answer.output.existingAnswer}
+    is: true
+    return: ""
+- name: check_cache_answer
+  type: python
+  source:
+    type: code
+    path: check_cache_answer.py
+  inputs:
+    question: ${inputs.question}
+    embeddedQuestion: ${embed_the_question.output}
+    indexType: ${inputs.indexType}
+    indexNs: ${inputs.indexNs}
+    conn: entaoai

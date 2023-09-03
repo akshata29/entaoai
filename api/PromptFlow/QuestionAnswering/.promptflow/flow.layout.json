@@ -1,0 +1,95 @@
+{
+  "nodeLayouts": {
+    "inputs": {
+      "x": 353.42476762855813,
+      "y": -139.71789785041867,
+      "index": -1
+    },
+    "outputs": {
+      "x": 265.2723636103596,
+      "y": 887.3212179318235,
+      "index": -1
+    },
+    "parse_postBody": {
+      "x": -0.8421260538701603,
+      "y": 19.64666632796491,
+      "index": 1
+    },
+    "vector_type": {
+      "x": 394.25,
+      "y": 882,
+      "index": -1
+    },
+    "extract_topk": {
+      "x": 237.5,
+      "y": 214.66665649414062,
+      "index": -1
+    },
+    "extract_prompttemplate": {
+      "x": 118.24910326415369,
+      "y": 437.74743175114133,
+      "index": 6
+    },
+    "create_llm": {
+      "x": 267.60763446906253,
+      "y": 84.83097468254402,
+      "index": 0
+    },
+    "embed_the_question1": {
+      "x": 754.1666259765625,
+      "y": 210,
+      "index": -1
+    },
+    "search_question_from_vectordb": {
+      "x": 444.99600415548855,
+      "y": 297.7540144396183,
+      "index": 2
+    },
+    "generate_prompt_context": {
+      "x": 760,
+      "y": 502,
+      "index": -1
+    },
+    "execute_langchain": {
+      "x": 491.4157478358232,
+      "y": 586.0744999785086,
+      "index": 3
+    },
+    "followup_questions": {
+      "x": 363.83331298828125,
+      "y": 702.6666870117188,
+      "index": 4
+    },
+    "Vector_DB_Lookup_z33e": {
+      "x": 394.25,
+      "y": 882,
+      "index": -1
+    },
+    "extract_vectorField": {
+      "x": 359.9999694824219,
+      "y": 882,
+      "index": -1
+    },
+    "create_index": {
+      "x": 359.9999694824219,
+      "y": 882,
+      "index": -1
+    },
+    "create_embedding": {
+      "x": 359.9999694824219,
+      "y": 932,
+      "index": -1
+    },
+    "embed_the_question": {
+      "x": -65.63520298160142,
+      "y": 195.08293706220263,
+      "index": 5
+    },
+    "check_cache_answer": {
+      "x": -67.24015178026946,
+      "y": 309.43621905245004,
+      "index": 7
+    }
+  },
+  "orientation": "Vertical"
+}

@@ -43,15 +43,31 @@ def ask():
     logging.info(f"question: {question}")
     logging.info(f"indexType: {indexType}")
     logging.info(f"indexNs: {indexNs}")
+
+    #print(f"combinedParams: {json.dumps(combinedParams)}")
     
     try:
-        headers = {'content-type': 'application/json'}
-        url = os.environ.get("QA_URL")
+        try:
+            apiType = os.environ.get("ApiType")
+        except:
+            apiType = "Functions"
 
-        data = postBody
-        params = {'chainType': chainType, 'question': question, 'indexType': indexType, "indexNs": indexNs }
-        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
-        jsonDict = json.loads(resp.text)
+        if apiType == "PromptFlow":
+            pfQaKey = os.environ.get("PFQA_KEY")
+            headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ pfQaKey)}
+            url = os.environ.get("PFQA_URL")
+            combinedParams = {'chainType': chainType, 'question': question, 'indexType': indexType, "indexNs": indexNs, "postBody": postBody }
+            resp = requests.post(url, data=json.dumps(combinedParams), headers=headers)
+            jsonDict1 = json.loads(resp.text)
+            jsonDict = jsonDict1['output']
+        else:
+            headers = {'content-type': 'application/json'}
+            url = os.environ.get("QA_URL")
+            data = postBody
+            params = {'chainType': chainType, 'question': question, 'indexType': indexType, "indexNs": indexNs }
+            resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+            jsonDict = json.loads(resp.text)
+
         #return json.dumps(jsonDict)
         return jsonify(jsonDict)
     except Exception as e:
