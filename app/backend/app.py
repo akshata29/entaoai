@@ -58,8 +58,8 @@ def ask():
             url = os.environ.get("PFQA_URL")
             combinedParams = {'chainType': chainType, 'question': question, 'indexType': indexType, "indexNs": indexNs, "postBody": postBody }
             resp = requests.post(url, data=json.dumps(combinedParams), headers=headers)
-            jsonDict1 = json.loads(resp.text)
-            jsonDict = jsonDict1['output']
+            jsonResp = json.loads(resp.text)
+            jsonDict = jsonResp['output']
         else:
             headers = {'content-type': 'application/json'}
             url = os.environ.get("QA_URL")
@@ -207,13 +207,28 @@ def chat():
     logging.info(f"indexNs: {indexNs}")
     
     try:
-        headers = {'content-type': 'application/json'}
-        url = os.environ.get("CHAT_URL")
+        try:
+            apiType = os.environ.get("ApiType")
+        except:
+            apiType = "Functions"
 
-        data = postBody
-        params = {'indexType': indexType, "indexNs": indexNs }
-        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
-        jsonDict = json.loads(resp.text)
+        if apiType == "PromptFlow":
+            pfQaKey = os.environ.get("PFCHAT_KEY")
+            headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ pfQaKey)}
+            url = os.environ.get("PFCHAT_URL")
+            combinedParams = {'indexType': indexType, "indexNs": indexNs, "postBody": postBody }
+            resp = requests.post(url, data=json.dumps(combinedParams), headers=headers)
+            jsonResp = json.loads(resp.text)
+            jsonDict = jsonResp['output']
+        else:
+            headers = {'content-type': 'application/json'}
+            url = os.environ.get("CHAT_URL")
+
+            data = postBody
+            params = {'indexType': indexType, "indexNs": indexNs }
+            resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+            jsonDict = json.loads(resp.text)
+
         #return json.dumps(jsonDict)
         return jsonify(jsonDict)
     except Exception as e:

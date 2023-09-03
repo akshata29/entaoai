@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 9/3/2023 - Added API for Chat using the Prompt Flow.  Allow end-user to select between Azure Functions as API (ApiType Configuration in Web App) or using Prompt Flow Managed endpoint.
 * 9/2/2023 - Added API for Question Answering using the Prompt Flow.  Allow end-user to select between Azure Functions as API (ApiType Configuration in Web App) or using Prompt Flow Managed endpoint.
 * 8/31/2023 - Added example for [LLMOps](LLMOps.md) using [Prompt Flow](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/overview-what-is-prompt-flow?view=azureml-api-2).  The repo will be adding the flexibility to use the Prompt Flow Deployed Model as an alternative to current Azure Functions.
 * 8/20/2023 - Added support for the Markdown files (as zip file) and removed the chunk_size=1 from Azure OpenAiEmbedding

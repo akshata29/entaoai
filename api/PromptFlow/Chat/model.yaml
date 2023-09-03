@@ -1,0 +1,7 @@
+$schema: https://azuremlschemas.azureedge.net/latest/model.schema.json
+name: chat
+path: .
+description: register qa flow folder as a custom model
+properties:
+  # In AuzreML studio UI, endpoint detail UI Test tab needs this property to know it's from prompt flow
+  azureml.promptflow.source_flow_id: chat

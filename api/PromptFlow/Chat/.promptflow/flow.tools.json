@@ -1,0 +1,221 @@
+{
+  "package": {},
+  "code": {
+    "chat.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        },
+        "question": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "chat.jinja2"
+    },
+    "parse_postBody.py": {
+      "type": "python",
+      "inputs": {
+        "postBody": {
+          "type": [
+            "list"
+          ]
+        }
+      },
+      "source": "parse_postBody.py",
+      "function": "parseBody"
+    },
+    "create_llm.py": {
+      "type": "python",
+      "inputs": {
+        "overrides": {
+          "type": [
+            "list"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        }
+      },
+      "source": "create_llm.py",
+      "function": "createLlm"
+    },
+    "extract_question_from_history.py": {
+      "type": "python",
+      "inputs": {
+        "overrides": {
+          "type": [
+            "list"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        },
+        "history": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "extract_question_from_history.py",
+      "function": "extractQuestionFromHistory"
+    },
+    "embed_the_question.py": {
+      "type": "python",
+      "inputs": {
+        "overrides": {
+          "type": [
+            "list"
+          ]
+        },
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        }
+      },
+      "source": "embed_the_question.py",
+      "function": "embedQuestion"
+    },
+    "search_question_from_vectordb.py": {
+      "type": "python",
+      "inputs": {
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "embeddedQuestion": {
+          "type": [
+            "object"
+          ]
+        },
+        "indexType": {
+          "type": [
+            "string"
+          ]
+        },
+        "indexNs": {
+          "type": [
+            "string"
+          ]
+        },
+        "overrides": {
+          "type": [
+            "list"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        }
+      },
+      "source": "search_question_from_vectordb.py",
+      "function": "searchVectorDb"
+    },
+    "extract_prompttemplate.py": {
+      "type": "python",
+      "inputs": {
+        "overrides": {
+          "type": [
+            "list"
+          ]
+        }
+      },
+      "source": "extract_prompttemplate.py",
+      "function": "extractPrommptTemplate"
+    },
+    "augmented_chat.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "systemmessage": {
+          "type": [
+            "string"
+          ]
+        },
+        "contexts": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        },
+        "question": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "augmented_chat.jinja2"
+    },
+    "followup_questions.py": {
+      "type": "python",
+      "inputs": {
+        "retrievedDocs": {
+          "type": [
+            "list"
+          ]
+        },
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "promptTemplate": {
+          "type": [
+            "string"
+          ]
+        },
+        "overrides": {
+          "type": [
+            "list"
+          ]
+        },
+        "llm": {
+          "type": [
+            "object"
+          ]
+        },
+        "modifiedAnswer": {
+          "type": [
+            "string"
+          ]
+        },
+        "indexType": {
+          "type": [
+            "string"
+          ]
+        },
+        "indexNs": {
+          "type": [
+            "string"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        }
+      },
+      "source": "followup_questions.py",
+      "function": "generateFollowupQuestions"
+    }
+  }
+}

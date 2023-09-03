@@ -1,0 +1,8 @@
+#Register the Model
+az ml model create --file model.yaml  -g dataai -w dataaiamlwks
+
+#Create the Endpoint
+az ml online-endpoint create --file endpoint.yaml -g dataai -w dataaiamlwks
+
+#Deployment to the Endpoint
+az ml online-deployment create --file deployment.yaml --all-traffic -g dataai -w dataaiamlwks
