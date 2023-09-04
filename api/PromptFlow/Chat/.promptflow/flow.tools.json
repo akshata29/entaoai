@@ -46,28 +46,6 @@
       "source": "create_llm.py",
       "function": "createLlm"
     },
-    "extract_question_from_history.py": {
-      "type": "python",
-      "inputs": {
-        "overrides": {
-          "type": [
-            "list"
-          ]
-        },
-        "conn": {
-          "type": [
-            "CustomConnection"
-          ]
-        },
-        "history": {
-          "type": [
-            "object"
-          ]
-        }
-      },
-      "source": "extract_question_from_history.py",
-      "function": "extractQuestionFromHistory"
-    },
     "embed_the_question.py": {
       "type": "python",
       "inputs": {
@@ -216,6 +194,56 @@
       },
       "source": "followup_questions.py",
       "function": "generateFollowupQuestions"
+    },
+    "extract_query_from_history.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "extract_query_from_history.jinja2"
+    },
+    "extract_lastquestion.py": {
+      "type": "python",
+      "inputs": {
+        "history": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "extract_lastquestion.py",
+      "function": "extractLastQuestion"
+    },
+    "insert_session.py": {
+      "type": "python",
+      "inputs": {
+        "overrides": {
+          "type": [
+            "list"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        },
+        "history": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "insert_session.py",
+      "function": "extractQuestionFromHistory"
     }
   }
 }

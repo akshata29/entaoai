@@ -79,58 +79,6 @@ outputs:
     reference: ${followup_questions.output}
     is_chat_output: true
 nodes:
-- name: extract_question_from_history
-  type: python
-  source:
-    type: code
-    path: extract_question_from_history.py
-  inputs:
-    overrides: ${parse_postBody.output.overrides}
-    history: ${parse_postBody.output.history}
-    conn: entaoai
-- name: parse_postBody
-  type: python
-  source:
-    type: code
-    path: parse_postBody.py
-  inputs:
-    postBody: ${inputs.postBody}
-- name: create_llm
-  type: python
-  source:
-    type: code
-    path: create_llm.py
-  inputs:
-    overrides: ${parse_postBody.output.overrides}
-    conn: entaoai
-- name: embed_the_question
-  type: python
-  source:
-    type: code
-    path: embed_the_question.py
-  inputs:
-    overrides: ${parse_postBody.output.overrides}
-    conn: entaoai
-    question: ${extract_question_from_history.output}
-- name: search_question_from_vectordb
-  type: python
-  source:
-    type: code
-    path: search_question_from_vectordb.py
-  inputs:
-    question: ${extract_question_from_history.output}
-    embeddedQuestion: ${embed_the_question.output}
-    indexType: ${inputs.indexType}
-    indexNs: ${inputs.indexNs}
-    conn: entaoai
-    overrides: ${parse_postBody.output.overrides}
-- name: extract_prompttemplate
-  type: python
-  source:
-    type: code
-    path: extract_prompttemplate.py
-  inputs:
-    overrides: ${parse_postBody.output.overrides}
 - name: augmented_chat
   type: llm
   source:
@@ -142,7 +90,57 @@ nodes:
     systemmessage: ${extract_prompttemplate.output}
     contexts: ${search_question_from_vectordb.output}
     chat_history: ${parse_postBody.output.history}
-    question: ${extract_question_from_history.output}
+    question: ${extract_query_from_history.output}
+  provider: AzureOpenAI
+  connection: aoai
+  api: chat
+  module: promptflow.tools.aoai
+- name: create_llm
+  type: python
+  source:
+    type: code
+    path: create_llm.py
+  inputs:
+    overrides: ${parse_postBody.output.overrides}
+    conn: entaoai
+- name: parse_postBody
+  type: python
+  source:
+    type: code
+    path: parse_postBody.py
+  inputs:
+    postBody: ${inputs.postBody}
+- name: insert_session
+  type: python
+  source:
+    type: code
+    path: insert_session.py
+  inputs:
+    overrides: ${parse_postBody.output.overrides}
+    history: ${parse_postBody.output.history}
+    conn: entaoai
+- name: search_question_from_vectordb
+  type: python
+  source:
+    type: code
+    path: search_question_from_vectordb.py
+  inputs:
+    question: ${extract_query_from_history.output}
+    embeddedQuestion: ${embed_the_question.output}
+    indexType: ${inputs.indexType}
+    indexNs: ${inputs.indexNs}
+    conn: entaoai
+    overrides: ${parse_postBody.output.overrides}
+- name: extract_query_from_history
+  type: llm
+  source:
+    type: code
+    path: extract_query_from_history.jinja2
+  inputs:
+    deployment_name: chat16k
+    max_tokens: 32
+    chat_history: ${parse_postBody.output.history}
+    question: ${extract_lastquestion.output}
   provider: AzureOpenAI
   connection: aoai
   api: chat
@@ -154,11 +152,34 @@ nodes:
     path: followup_questions.py
   inputs:
     retrievedDocs: ${search_question_from_vectordb.output}
-    question: ${extract_question_from_history.output}
+    question: ${extract_query_from_history.output}
     promptTemplate: ${extract_prompttemplate.output}
     llm: ${create_llm.output}
     modifiedAnswer: ${augmented_chat.output}
     indexType: ${inputs.indexType}
     indexNs: ${inputs.indexNs}
     conn: entaoai
+    overrides: ${parse_postBody.output.overrides}
+- name: extract_lastquestion
+  type: python
+  source:
+    type: code
+    path: extract_lastquestion.py
+  inputs:
+    history: ${parse_postBody.output.history}
+- name: embed_the_question
+  type: python
+  source:
+    type: code
+    path: embed_the_question.py
+  inputs:
+    overrides: ${parse_postBody.output.overrides}
+    conn: entaoai
+    question: ${extract_query_from_history.output}
+- name: extract_prompttemplate
+  type: python
+  source:
+    type: code
+    path: extract_prompttemplate.py
+  inputs:
     overrides: ${parse_postBody.output.overrides}

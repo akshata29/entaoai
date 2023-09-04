@@ -120,89 +120,92 @@ def extractQuestionFromHistory(overrides: list, conn:CustomConnection, history: 
   except Exception as e:
     print("Error inserting session into CosmosDB: " + str(e))
 
-  systemTemplate = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
-    Generate a search query based on the conversation and the new question.
-    The search query should be optimized to find the answer to the question in the knowledge base.
-    If you cannot generate a search query, return just the number 0.
-
-    """
-
-  gptModel = "gpt-35-turbo"
-  if (embeddingModelType == 'azureopenai'):
-      if deploymentType == 'gpt35':
-          gptModel = "gpt-35-turbo"
-      elif deploymentType == 'gpt3516k':
-          gptModel = "gpt-35-turbo-16k"
-  elif embeddingModelType == 'openai':
-      if deploymentType == 'gpt35':
-          gptModel = "gpt-3.5-turbo"
-      elif deploymentType == 'gpt3516k':
-          gptModel = "gpt-3.5-turbo-16k"
-
   lastQuestion = history[-1]["user"]
-  tokenLimit = getTokenLimit(gptModel)
-  # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
-  messages = getMessagesFromHistory(
-          systemTemplate,
-          gptModel,
-          history,
-          'Generate search query for: ' + lastQuestion,
-          [],
-          tokenLimit - len('Generate search query for: ' + lastQuestion) - tokenLength
-          )
-  
-  if (embeddingModelType == 'azureopenai'):
-      baseUrl = f"{conn.OpenAiEndPoint}"
-      openai.api_type = "azure"
-      openai.api_key = conn.OpenAiKey
-      openai.api_version = conn.OpenAiVersion
-      openai.api_base = baseUrl
+  insertMessage(sessionId, "Message", "User", 0, 0, lastQuestion, cosmosContainer)
 
-      if deploymentType == 'gpt35':
-        completion = openai.ChatCompletion.create(
-            deployment_id=conn.OpenAiChat,
-            model=gptModel,
-            messages=messages, 
-            temperature=0.0, 
-            max_tokens=32, 
-            n=1)          
-      elif deploymentType == "gpt3516k":
-        completion = openai.ChatCompletion.create(
-            deployment_id=conn.OpenAiChat16k,
-            model=gptModel,
-            messages=messages, 
-            temperature=0.0, 
-            max_tokens=32, 
-            n=1)
-  elif embeddingModelType == "openai":
-      openai.api_type = "open_ai"
-      openai.api_base = "https://api.openai.com/v1"
-      openai.api_version = '2020-11-07' 
-      openai.api_key = conn.OpenAiApiKey
-      completion = openai.ChatCompletion.create(
-              deployment_id=conn.OpenAiChat,
-              model=gptModel,
-              messages=messages, 
-              temperature=0.0, 
-              max_tokens=32, 
-              n=1)
+#   systemTemplate = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
+#     Generate a search query based on the conversation and the new question.
+#     The search query should be optimized to find the answer to the question in the knowledge base.
+#     If you cannot generate a search query, return just the number 0.
+
+#     """
+
+#   gptModel = "gpt-35-turbo"
+#   if (embeddingModelType == 'azureopenai'):
+#       if deploymentType == 'gpt35':
+#           gptModel = "gpt-35-turbo"
+#       elif deploymentType == 'gpt3516k':
+#           gptModel = "gpt-35-turbo-16k"
+#   elif embeddingModelType == 'openai':
+#       if deploymentType == 'gpt35':
+#           gptModel = "gpt-3.5-turbo"
+#       elif deploymentType == 'gpt3516k':
+#           gptModel = "gpt-3.5-turbo-16k"
+
+#   lastQuestion = history[-1]["user"]
+#   tokenLimit = getTokenLimit(gptModel)
+#   # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
+#   messages = getMessagesFromHistory(
+#           systemTemplate,
+#           gptModel,
+#           history,
+#           'Generate search query for: ' + lastQuestion,
+#           [],
+#           tokenLimit - len('Generate search query for: ' + lastQuestion) - tokenLength
+#           )
   
-  try:
-      if len(history) > 1:
-          q = completion.choices[0].message.content
-      else:
-          q = lastQuestion
+#   if (embeddingModelType == 'azureopenai'):
+#       baseUrl = f"{conn.OpenAiEndPoint}"
+#       openai.api_type = "azure"
+#       openai.api_key = conn.OpenAiKey
+#       openai.api_version = conn.OpenAiVersion
+#       openai.api_base = baseUrl
+
+#       if deploymentType == 'gpt35':
+#         completion = openai.ChatCompletion.create(
+#             deployment_id=conn.OpenAiChat,
+#             model=gptModel,
+#             messages=messages, 
+#             temperature=0.0, 
+#             max_tokens=32, 
+#             n=1)          
+#       elif deploymentType == "gpt3516k":
+#         completion = openai.ChatCompletion.create(
+#             deployment_id=conn.OpenAiChat16k,
+#             model=gptModel,
+#             messages=messages, 
+#             temperature=0.0, 
+#             max_tokens=32, 
+#             n=1)
+#   elif embeddingModelType == "openai":
+#       openai.api_type = "open_ai"
+#       openai.api_base = "https://api.openai.com/v1"
+#       openai.api_version = '2020-11-07' 
+#       openai.api_key = conn.OpenAiApiKey
+#       completion = openai.ChatCompletion.create(
+#               deployment_id=conn.OpenAiChat,
+#               model=gptModel,
+#               messages=messages, 
+#               temperature=0.0, 
+#               max_tokens=32, 
+#               n=1)
+  
+#   try:
+#       if len(history) > 1:
+#           q = completion.choices[0].message.content
+#       else:
+#           q = lastQuestion
           
-      print("Question " + str(q))
-      if q.strip() == "0":
-          q = lastQuestion
+#       print("Question " + str(q))
+#       if q.strip() == "0":
+#           q = lastQuestion
 
-      if (q == ''):
-          q = lastQuestion
+#       if (q == ''):
+#           q = lastQuestion
 
-      insertMessage(sessionId, "Message", "User", 0, 0, lastQuestion, cosmosContainer)
-  except Exception as e:
-      q = lastQuestion
-      print(e)
+#       insertMessage(sessionId, "Message", "User", 0, 0, lastQuestion, cosmosContainer)
+#   except Exception as e:
+#       q = lastQuestion
+#       print(e)
   
-  return q
+#   return q
