@@ -30,9 +30,9 @@ For this workshop following are some of the operations we will automate:
 - [Python 3.9 or later](https://www.python.org/downloads/) installed on your local machine.
 - [Install Prompt Flow Extension](https://marketplace.visualstudio.com/items?itemName=prompt-flow.prompt-flow)
 - Custom Environment.  Go to Azure ML Workspace -> Assets -> Environments -> Custom Environments -> Create.  Select the following configuration
-  - Name - entaoaienv
+  - Name - entaoai
   - Select environment source - Use existing docker image with optional conda file
-  - Container registry image path - docker pull akshata13/chatpdfenv:latest
+  - Container registry image path - docker pull akshata13/entaoai:latest
   - Click Next, Next on Tags and Click Create on Review screen
   - ![Custom Environment](./assets/custom-environment.png)
 - Create new Compute Instance (Azure ML Workspace -> Manage -> Compute -> Compute Instance -> Create).  Select the following configuration
@@ -46,7 +46,7 @@ For this workshop following are some of the operations we will automate:
   - Runtime name - entaoai
   - Select Azure ML compute instance -> entaoai
   - Custom Application -> New
-  - Environment -> use customized environment -> entaoaienv:1
+  - Environment -> use customized environment -> entaoai:1
   - Click Create
   - ![Custom Runtime](./assets/custom-environment.png)
 

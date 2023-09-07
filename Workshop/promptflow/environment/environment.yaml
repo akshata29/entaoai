@@ -1,6 +1,6 @@
 $schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
-name: entaoaienv
-image: akshata13/chatpdfenv:latest
+name: entaoai
+image: akshata13/entaoai:latest
 inference_config:
   liveness_route:
     port: 8080

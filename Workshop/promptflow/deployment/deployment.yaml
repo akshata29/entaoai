@@ -6,8 +6,8 @@ type: managed
   # You can also specify model files path inline
   # path: examples/flows/chat/basic-chat
 environment: 
-  name: entaoaienv
-  image: akshata13/chatpdfenv:latest
+  #name: entaoaienv
+  image: akshata13/entaoai:latest
   # inference config is used to build a serving container for online deployments
   inference_config:
     liveness_route:
