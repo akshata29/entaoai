@@ -6,8 +6,8 @@ type: managed
   # You can also specify model files path inline
   # path: examples/flows/chat/basic-chat
 environment: 
-  name: entaoaienv
-  image: akshata13/chatpdfenv:latest
+  name: entaoaidbenv
+  image: akshata13/entaoaidbenv:latest
   # inference config is used to build a serving container for online deployments
   inference_config:
     liveness_route:
@@ -46,4 +46,4 @@ environment_variables:
   RUN_MODE: serving
 
   # for pulling connections from workspace
-  PRT_CONFIG_OVERRIDE: deployment.subscription_id=e2171f6d-2650-45e6-af7e-6d6e44ca92b1,deployment.resource_group=dataai,deployment.workspace_name=dataaiamlwks,deployment.endpoint_name=questionanswering,deployment.deployment_name=blue,deployment.mt_service_endpoint=https://southcentralus.api.azureml.ms,deployment.runtime_name=entaoai,storage.storage_account=dataaiamlwksstor
+  PRT_CONFIG_OVERRIDE: deployment.subscription_id=e2171f6d-2650-45e6-af7e-6d6e44ca92b1,deployment.resource_group=dataai,deployment.workspace_name=dataaiamlwks,deployment.endpoint_name=questionanswering,deployment.deployment_name=blue,deployment.mt_service_endpoint=https://southcentralus.api.azureml.ms,deployment.runtime_name=entaoaidb,storage.storage_account=dataaiamlwksstor
