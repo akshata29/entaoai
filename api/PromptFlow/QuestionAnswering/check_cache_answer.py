@@ -19,7 +19,7 @@ from azure.search.documents.indexes.models import (
     SearchField,  
     SemanticSettings,  
     VectorSearch,  
-    VectorSearchAlgorithmConfiguration,  
+    HnswVectorSearchAlgorithmConfiguration,  
 )
 from azure.search.documents.models import Vector
 import json
@@ -37,15 +37,15 @@ def createKbSearchIndex(SearchService, SearchKey, indexName):
                         SearchableField(name="indexType", type=SearchFieldDataType.String, searchable=True, retrievable=True, filterable=True, facetable=False),
                         SearchableField(name="indexName", type=SearchFieldDataType.String, searchable=True, retrievable=True, filterable=True, facetable=False),
                         SearchField(name="vectorQuestion", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                                    searchable=True, dimensions=1536, vector_search_configuration="vectorConfig"),
+                                    searchable=True, vector_search_dimensions=1536, vector_search_configuration="vectorConfig"),
                         SimpleField(name="answer", type=SearchFieldDataType.String),
             ],
             vector_search = VectorSearch(
                 algorithm_configurations=[
-                    VectorSearchAlgorithmConfiguration(
+                    HnswVectorSearchAlgorithmConfiguration(
                         name="vectorConfig",
                         kind="hnsw",
-                        hnsw_parameters={
+                        parameters={
                             "m": 4,
                             "efConstruction": 400,
                             "efSearch": 500,
@@ -79,7 +79,7 @@ def performKbCogVectorSearch(embedValue, embedField, SearchService, SearchKey, i
         r = searchClient.search(  
             search_text="",
             filter="indexType eq '" + indexType + "' and indexName eq '" + indexName + "'",
-            vector=Vector(value=embedValue, k=k, fields=embedField),  
+            vectors=[Vector(value=embedValue, k=k, fields=embedField)],  
             select=returnFields,
             semantic_configuration_name="semanticConfig",
             include_total_count=True

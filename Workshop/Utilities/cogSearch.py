@@ -15,8 +15,8 @@ from azure.search.documents.indexes.models import (
     SemanticField,  
     SearchField,  
     SemanticSettings,  
-    VectorSearch,  
-    VectorSearchAlgorithmConfiguration,  
+    VectorSearch,
+    HnswVectorSearchAlgorithmConfiguration
 )
 from azure.search.documents.models import Vector  
 from tenacity import retry, wait_random_exponential, stop_after_attempt  
@@ -70,15 +70,15 @@ def createSearchIndex(SearchService, SearchKey, indexName):
                         SearchableField(name="content", type=SearchFieldDataType.String,
                                         searchable=True, retrievable=True, analyzer_name="en.microsoft"),
                         SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                                    searchable=True, dimensions=1536, vector_search_configuration="vectorConfig"),
+                                    searchable=True, vector_search_dimensions=1536, vector_search_configuration="vectorConfig"),
                         SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
             ],
             vector_search = VectorSearch(
                 algorithm_configurations=[
-                    VectorSearchAlgorithmConfiguration(
+                    HnswVectorSearchAlgorithmConfiguration(
                         name="vectorConfig",
                         kind="hnsw",
-                        hnsw_parameters={
+                        parameters={
                             "m": 4,
                             "efConstruction": 400,
                             "efSearch": 500,
@@ -266,7 +266,7 @@ def performCogSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, Sea
     try:
         r = searchClient.search(  
             search_text="",  
-            vector=Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector"),  
+            vectors=[Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector")],  
             select=returnFields,
             semantic_configuration_name="semanticConfig"
         )
@@ -283,7 +283,7 @@ def performCogVectorSearch(embedValue, embedField, SearchService, SearchKey, ind
     try:
         r = searchClient.search(  
             search_text="",  
-            vector=Vector(value=embedValue, k=k, fields=embedField),  
+            vectors=[Vector(value=embedValue, k=k, fields=embedField)],  
             select=returnFields,
             semantic_configuration_name="semanticConfig",
             include_total_count=True
@@ -307,15 +307,15 @@ def createKbSearchIndex(SearchService, SearchKey, indexName):
                         SimpleField(name="indexType", type="Edm.String", searchable=True, retrievable=True, filterable=True, facetable=False),
                         SimpleField(name="indexName", type="Edm.String", searchable=True, retrievable=True, filterable=True, facetable=False),
                         SearchField(name="vectorQuestion", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                                    searchable=True, dimensions=1536, vector_search_configuration="vectorConfig"),
+                                    searchable=True, vector_search_dimensions=1536, vector_search_configuration="vectorConfig"),
                         SimpleField(name="answer", type="Edm.String", filterable=False, facetable=False),
             ],
             vector_search = VectorSearch(
                 algorithm_configurations=[
-                    VectorSearchAlgorithmConfiguration(
+                    HnswVectorSearchAlgorithmConfiguration(
                         name="vectorConfig",
                         kind="hnsw",
-                        hnsw_parameters={
+                        parameters={
                             "m": 4,
                             "efConstruction": 400,
                             "efSearch": 500,
@@ -348,7 +348,7 @@ def performKbCogVectorSearch(embedValue, embedField, SearchService, SearchKey, i
         createKbSearchIndex(SearchService, SearchKey, kbIndexName)
         r = searchClient.search(  
             search_text="",
-            vector=Vector(value=embedValue, k=k, fields=embedField),  
+            vectors=[Vector(value=embedValue, k=k, fields=embedField)],  
             filter="indexType eq '" + indexType + "' and indexName eq '" + indexName + "'",
             select=returnFields,
             semantic_configuration_name="semanticConfig",

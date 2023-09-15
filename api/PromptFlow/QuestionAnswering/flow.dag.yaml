@@ -1,7 +1,7 @@
 inputs:
   question:
     type: string
-    default: Summarize the consolidated financial statements
+    default: What is the purpose of BERT?
     is_chat_input: false
   indexType:
     type: string
@@ -9,7 +9,7 @@ inputs:
     is_chat_input: false
   indexNs:
     type: string
-    default: 3738d6dc992c4229a5a52efe84af4d3d
+    default: 8fe8ee44933240fa8bc1d72858e4d1eb
     is_chat_input: false
   postBody:
     type: object
@@ -24,38 +24,19 @@ inputs:
             semantic_captions: false
             top: 3
             temperature: 0
-            promptTemplate: "You are an AI assistant tasked with answering questions and
-              summarizing information from\ 
+            promptTemplate: "Given the following extracted parts of a long document and a
+              question, create a final answer.\ 
 
-              \        earning call transcripts, annual reports,
-              SEC filings and financial statements.
+              \        If you don't know the answer, just say that
+              you don't know. Don't try to make up an answer.\ 
 
-              \        Your answer should accurately capture the
-              key information in the document while avoiding the omission of any
-              domain-specific words.\ 
+              \        If the answer is not contained within the
+              text below, say \"I don't know\".
 
-              \        Please generate a concise and comprehensive
-              information that includes details such as reporting year and
-              amount in millions.
-
-              \        Ensure that it is easy to understand for
-              business professionals and provides an accurate representation of
-              the financial statement history.\ 
-
-              \       \ 
-
-              \        Please remember to use clear language and
-              maintain the integrity of the original information without missing
-              any important details
-
-
-              \        QUESTION: {question}
-
-              \        =========
 
               \        {summaries}
 
-              \        =========
+              \        Question: {question}
 
               \        "
             chainType: stuff
@@ -73,6 +54,12 @@ outputs:
     reference: ${followup_questions.output}
     evaluation_only: false
     is_chat_output: false
+  answer:
+    type: string
+    reference: ${followup_questions.output.values[0].data.answer}
+  context:
+    type: string
+    reference: ${followup_questions.output.values[0].data.data_points}
 nodes:
 - name: create_llm
   type: python

@@ -27,7 +27,7 @@ def performCogSearch(embedValue, embedField, SearchService, SearchKey, indexType
         if indexType == "cogsearchvs":
             r = searchClient.search(  
                 search_text="",  
-                vector=Vector(value=embedValue, k=k, fields=embedField),  
+                vectors=[Vector(value=embedValue, k=k, fields=embedField)],  
                 select=returnFields,
                 semantic_configuration_name="semanticConfig"
             )

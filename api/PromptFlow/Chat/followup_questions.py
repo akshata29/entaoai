@@ -22,7 +22,7 @@ from azure.search.documents.indexes.models import (
     SearchField,  
     SemanticSettings,  
     VectorSearch,  
-    VectorSearchAlgorithmConfiguration,  
+    HnswVectorSearchAlgorithmConfiguration,  
 )
 from azure.cosmos import CosmosClient, PartitionKey
 from azure.search.documents.models import Vector

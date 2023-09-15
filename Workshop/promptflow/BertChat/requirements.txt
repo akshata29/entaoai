@@ -1,0 +1,8 @@
+PyPDF2
+faiss-cpu
+openai
+jinja2
+python-dotenv
+tiktoken
+promptflow[azure]
+promptflow-tools

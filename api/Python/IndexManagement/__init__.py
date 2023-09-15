@@ -33,7 +33,10 @@ from azure.storage.blob import ContainerClient
 import boto3
 from Utilities.envVars import *
 
-redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+try:
+    redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+except:
+    logging.error("Chroma or Redis not configured.  Ignoring.")
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')

@@ -100,7 +100,7 @@ class CognitiveSearchVsRetriever(BaseRetriever, BaseModel):
 
         response = searchClient.search(  
             search_text="",
-            vector=Vector(value=self.generateEmbeddings(query), k=self.topK, fields=self.contentKey),
+            vectors=[Vector(value=self.generateEmbeddings(query), k=self.topK, fields=self.contentKey)],
             filter="documentId eq '" + self.documentId + "' and splitMethod eq '" + self.splitMethod + "' and model eq '" + self.model + "' and chunkSize eq '" 
                 + self.chunkSize + "' and overlap eq '" + self.overlap + "'",
             select=self.returnFields,

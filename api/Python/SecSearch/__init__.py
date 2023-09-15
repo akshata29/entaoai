@@ -14,7 +14,10 @@ from Utilities.envVars import *
 from Utilities.cogSearch import performCogSearch
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 
-redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+try:
+    redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+except:
+    logging.error("Chroma or Redis not configured.  Ignoring.")
 
 def SecSearch(indexType, indexName,  question, top, embeddingModelType):
     logging.info("Embedding text")

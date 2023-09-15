@@ -1,6 +1,6 @@
-#azure-search-documents==11.4.0b4
+azure-search-documents==11.4.0b9
 azure-cosmos==4.4.0b1
-./azure_search_documents-11.4.0b4-py3-none-any.whl
+#./azure_search_documents-11.4.0b4-py3-none-any.whl
 #./db_copilot_tool-0.1.8-py3-none-any.whl
 #./dbcopilot-0.4.20230809.3-py3-none-any.whl
 #./embeddingstore-0.1.1-py3-none-any.whl
@@ -19,7 +19,7 @@ importlib-metadata==6.0.0
 isodate==0.6.1
 #jq==1.4.1
 joblib==1.2.0
-langchain==0.0.266
+langchain==0.0.289
 langchain-experimental==0.0.9
 langsmith==0.0.23
 litellm==0.1.400

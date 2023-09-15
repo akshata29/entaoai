@@ -31,7 +31,11 @@ from html.parser import HTMLParser
 from Utilities.azureBlob import upsertMetadata, uploadBlob
 from Utilities.envVars import *
 
-redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+try:
+    redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+except:
+    logging.error("Chroma or Redis not configured.  Ignoring.")
+    
 regex_flags = re.IGNORECASE | re.DOTALL | re.MULTILINE
 
 class HtmlStripper(HTMLParser):

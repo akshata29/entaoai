@@ -52,6 +52,7 @@ def ask():
         except:
             apiType = "Functions"
 
+        print(apiType)
         if apiType == "PromptFlow":
             pfQaKey = os.environ.get("PFQA_KEY")
             headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ pfQaKey)}
@@ -59,6 +60,7 @@ def ask():
             combinedParams = {'chainType': chainType, 'question': question, 'indexType': indexType, "indexNs": indexNs, "postBody": postBody }
             resp = requests.post(url, data=json.dumps(combinedParams), headers=headers)
             jsonResp = json.loads(resp.text)
+            #Ignore additional output that are used in PromptFlow for Evaluation (like answer, context)
             jsonDict = jsonResp['output']
         else:
             headers = {'content-type': 'application/json'}

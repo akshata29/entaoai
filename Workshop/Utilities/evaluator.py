@@ -16,7 +16,7 @@ from azure.search.documents.indexes.models import (
     SearchField,  
     SemanticSettings,  
     VectorSearch,  
-    VectorSearchAlgorithmConfiguration,  
+    HnswVectorSearchAlgorithmConfiguration,  
 )
 from azure.search.documents.models import Vector  
 from tenacity import retry, wait_random_exponential, stop_after_attempt  
@@ -315,15 +315,15 @@ def createEvaluatorDataSearchIndex(SearchService, SearchKey, indexName):
                         SearchableField(name="content", type=SearchFieldDataType.String,
                                         searchable=True, retrievable=True, analyzer_name="en.microsoft"),
                         SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                                    searchable=True, dimensions=1536, vector_search_configuration="vectorConfig"),
+                                    searchable=True, vector_search_dimensions=1536, vector_search_configuration="vectorConfig"),
                         SimpleField(name="sourceFile", type=SearchFieldDataType.String, filterable=True, facetable=True),
             ],
             vector_search = VectorSearch(
                 algorithm_configurations=[
-                    VectorSearchAlgorithmConfiguration(
+                    HnswVectorSearchAlgorithmConfiguration(
                         name="vectorConfig",
                         kind="hnsw",
-                        hnsw_parameters={
+                        parameters={
                             "m": 4,
                             "efConstruction": 400,
                             "efSearch": 500,

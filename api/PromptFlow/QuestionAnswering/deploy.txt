@@ -6,3 +6,6 @@ az ml online-endpoint create --file endpoint.yaml -g dataai -w dataaiamlwks
 
 #Deployment to the Endpoint
 az ml online-deployment create --file deployment.yaml --all-traffic -g dataai -w dataaiamlwks
+
+#Update the deployment
+az ml online-deployment update --file deployment.yaml -g dataai -w dataaiamlwks

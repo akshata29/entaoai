@@ -1,0 +1,51 @@
+{
+  "package": {},
+  "code": {
+    "calc_groundedness.py": {
+      "type": "python",
+      "inputs": {
+        "gpt_score": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "calc_groundedness.py",
+      "function": "parse_score"
+    },
+    "aggregate.py": {
+      "type": "python",
+      "inputs": {
+        "groundedness_scores": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "description": "This tool aggregates the processed result of all lines to the variant level and log metric for each variant.\n\n:param processed_results: List of the output of line_process node.\n:param variant_ids: List of variant ids that can be used to group the results by variant.\n:param line_numbers: List of line numbers of the variants. If provided, this can be used to\n                    group the results by line number.",
+      "source": "aggregate.py",
+      "function": "aggregate"
+    },
+    "gpt_groundedness.md": {
+      "type": "llm",
+      "inputs": {
+        "answer": {
+          "type": [
+            "string"
+          ]
+        },
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "context": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "gpt_groundedness.md"
+    }
+  }
+}

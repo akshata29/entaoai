@@ -7,7 +7,7 @@ attrs==22.2.0
 azure-common==1.1.28
 azure-core==1.26.3
 azure-identity==1.12.0
-azure-search-documents==11.4.0b3
+azure-search-documents==11.4.0b9
 azure-storage-blob==12.14.1
 backoff==2.2.1
 blobfile==2.0.1
@@ -35,7 +35,7 @@ idna==3.4
 importlib-metadata==6.0.0
 isodate==0.6.1
 joblib==1.2.0
-langchain==0.0.145
+langchain==0.0.289
 loguru==0.6.0
 lxml==4.9.2
 Markdown==3.4.1
@@ -99,7 +99,7 @@ bs4==0.0.1
 beautifulsoup4==4.11.2
 weaviate-client==3.15.2
 pymupdf==1.21.1
-azure-search-documents==11.4.0b3
+azure-search-documents==11.4.0b9
 cssutils==1.0.2
 pathos==0.2.9
 pyodbc==4.0.35

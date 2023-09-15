@@ -273,7 +273,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         if (q == ''):
             q = lastQuestion
 
-        insertMessage(sessionId, "Message", "User", 0, 0, lastQuestion, cosmosContainer)
+        try:
+            insertMessage(sessionId, "Message", "User", 0, 0, lastQuestion, cosmosContainer)
+        except Exception as e:
+            logging.info("Error inserting session into CosmosDB: " + str(e))
+        
 
     except Exception as e:
         q = lastQuestion

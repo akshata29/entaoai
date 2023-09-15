@@ -71,7 +71,7 @@ class ChatGptStream:
             if indexType == "cogsearchvs":
                 r = searchClient.search(  
                     search_text="",  
-                    vector=Vector(value=self.generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector"),  
+                    vectors=[Vector(value=self.generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector")],  
                     select=returnFields,
                     semantic_configuration_name="semanticConfig"
                 )

@@ -1,0 +1,81 @@
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/Flow.schema.json
+environment:
+  python_requirements_txt: requirements.txt
+inputs:
+  chat_history:
+    type: list
+    default: []
+  pdf_url:
+    type: string
+    default: https://arxiv.org/pdf/1810.04805.pdf
+  question:
+    type: string
+    is_chat_input: true
+    default: what is BERT?
+  config:
+    type: object
+    default:
+      EMBEDDING_MODEL_DEPLOYMENT_NAME: embedding
+      CHAT_MODEL_DEPLOYMENT_NAME: chat
+      PROMPT_TOKEN_LIMIT: 3000
+      MAX_COMPLETION_TOKENS: 256
+      VERBOSE: true
+      CHUNK_SIZE: 1024
+      CHUNK_OVERLAP: 64
+outputs:
+  answer:
+    type: string
+    is_chat_output: true
+    reference: ${qna_tool.output.answer}
+  context:
+    type: string
+    reference: ${find_context_tool.output.context}
+nodes:
+- name: setup_env
+  type: python
+  source:
+    type: code
+    path: setup_env.py
+  inputs:
+    connection: fpdoaoaice
+    config: ${inputs.config}
+- name: download_tool
+  type: python
+  source:
+    type: code
+    path: download_tool.py
+  inputs:
+    url: ${inputs.pdf_url}
+    env_ready_signal: ${setup_env.output}
+- name: build_index_tool
+  type: python
+  source:
+    type: code
+    path: build_index_tool.py
+  inputs:
+    pdf_path: ${download_tool.output}
+- name: find_context_tool
+  type: python
+  source:
+    type: code
+    path: find_context_tool.py
+  inputs:
+    question: ${rewrite_question_tool.output}
+    index_path: ${build_index_tool.output}
+- name: qna_tool
+  type: python
+  source:
+    type: code
+    path: qna_tool.py
+  inputs:
+    prompt: ${find_context_tool.output.prompt}
+    history: ${inputs.chat_history}
+- name: rewrite_question_tool
+  type: python
+  source:
+    type: code
+    path: rewrite_question_tool.py
+  inputs:
+    question: ${inputs.question}
+    history: ${inputs.chat_history}
+    env_ready_signal: ${setup_env.output}

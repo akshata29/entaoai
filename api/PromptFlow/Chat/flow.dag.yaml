@@ -78,6 +78,12 @@ outputs:
     type: string
     reference: ${followup_questions.output}
     is_chat_output: true
+  answer:
+    type: string
+    reference: ${followup_questions.output.values[0].data.answer}
+  context:
+    type: string
+    reference: ${followup_questions.output.values[0].data.data_points}
 nodes:
 - name: augmented_chat
   type: llm
