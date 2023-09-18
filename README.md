@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 9/18/2023 - Refactored SQL NLP to not use Langchain Database Agent/Chain and instead use custom Prompts.
 * 9/15/2023 - Modified the azure search package to 11.4.0b9 and langchain to latest version.  Added capability to perform [evaluation](https://learn.microsoft.com/en-us/azure/machine-learning/prompt-flow/how-to-develop-an-evaluation-flow?view=azureml-api-2) on PromptFlow for both QnA and Chat.  [Bert PDF](./Workshop/Data/PDF/Bert.pdf) and [Evaluation Data](./api/PromptFlow/QuestionAnswering/bert.jsonl) can be used to perform Batch and Evaluation in Prompt Flow.  [Sample Notebook](./Workshop/12_PromptFlowQa.ipynb) showcasing the flow and E2E process is available.  [Bert Chat](./Workshop/promptflow/BertChat/) folder allows you to test E2E Prompt Flow, Batch Run and Evaluation in form of Notebook.
 * 9/3/2023 - Added [API](./api/PromptFlow/Chat/) for [Chat](./assets/ChatPf.png) using the Prompt Flow.  Allow end-user to select between Azure Functions as API (`ApiType` Configuration in Web App) or using Prompt Flow Managed endpoint.
 * 9/2/2023 - Added [API](./api/PromptFlow/QuestionAnswering/) for [Question Answering](./assets/QaPf.png) using the Prompt Flow.  Allow end-user to select between Azure Functions as API (`ApiType` Configuration in Web App) or using Prompt Flow Managed endpoint.

@@ -1,0 +1,13 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+name: entaoaidb
+image: akshata13/entaoaidb:latest
+inference_config:
+  liveness_route:
+    port: 8080
+    path: /health
+  readiness_route:
+    port: 8080
+    path: /health
+  scoring_route:
+    port: 8080
+    path: /score

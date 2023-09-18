@@ -54,6 +54,7 @@ export default defineConfig({
             "/secSearch": "http://127.0.0.1:5000",
             "/smartAgent": "http://127.0.0.1:5000",
             "/sqlChat": "http://127.0.0.1:5000",
+            "/sqlAsk": "http://127.0.0.1:5000",
             "/sqlChain": "http://127.0.0.1:5000",
             "/sqlVisual": "http://127.0.0.1:5000",
             "/speechToken": "http://127.0.0.1:5000",

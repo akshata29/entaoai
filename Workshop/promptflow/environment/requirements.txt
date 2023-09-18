@@ -50,7 +50,6 @@ joblib==1.2.0
 langchain==0.0.289
 langchain-experimental==0.0.9
 langsmith==0.0.23
-litellm==0.1.400
 loguru==0.6.0
 lxml==4.9.2
 Markdown==3.4.1

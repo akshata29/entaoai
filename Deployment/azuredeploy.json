@@ -685,6 +685,10 @@
               "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
             },
             {
+              "name": "SQLASK_URL",
+              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlAsk?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
+            },
+            {
               "name": "SPEECH_REGION",
               "value": "[parameters('location')]"
             },

@@ -1,0 +1,29 @@
+az ml online-endpoint create --file dbcendpoint.yaml --resource-group dataaie2e --workspace-name azmlwksash
+
+{
+  "auth_mode": "key",
+  "description": "DBCopilot endpoint",
+  "id": "/subscriptions/afa061ef-5d63-4e4f-99a7-b5027ec38eba/resourceGroups/dataaie2e/providers/Microsoft.MachineLearningServices/workspaces/azmlwksash/onlineEndpoints/dbcendpoint",
+  "identity": {
+    "principal_id": "d6c0212d-b629-42e3-85f1-26009f1d37fa",
+    "tenant_id": "16b3c013-d300-468d-ac64-7eda0820b6d3",
+    "type": "system_assigned"
+  },
+  "kind": "Managed",
+  "location": "westus2",
+  "mirror_traffic": {},
+  "name": "dbcendpoint",
+  "openapi_uri": "https://dbcendpoint.westus2.inference.ml.azure.com/swagger.json",
+  "properties": {
+    "AzureAsyncOperationUri": "https://management.azure.com/subscriptions/afa061ef-5d63-4e4f-99a7-b5027ec38eba/providers/Microsoft.MachineLearningServices/locations/westus2/mfeOperationsStatus/oe:3015df91-202a-4a08-bb37-041e7ccb7912:ae6cfa53-de77-47ce-abc0-a2370afba682?api-version=2022-02-01-preview",
+    "azureml.onlineendpointid": "/subscriptions/afa061ef-5d63-4e4f-99a7-b5027ec38eba/resourcegroups/dataaie2e/providers/microsoft.machinelearningservices/workspaces/azmlwksash/onlineendpoints/dbcendpoint"
+  },
+  "provisioning_state": "Succeeded",
+  "public_network_access": "enabled",
+  "resourceGroup": "dataaie2e",
+  "scoring_uri": "https://dbcendpoint.westus2.inference.ml.azure.com/score",
+  "tags": {},
+  "traffic": {}
+}
+
+az ml job create --file dbcpipeline.yaml --subscription afa061ef-5d63-4e4f-99a7-b5027ec38eba --resource-group dataaie2e --workspace azmlwksash

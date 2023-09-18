@@ -1,0 +1,48 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+
+display_name: DBPilot E2E Pipeline
+description: Single job pipeline to generate nl2sql
+
+experiment_name: nl2sql
+
+settings:
+  default_compute: "azureml:astcluster"
+inputs:
+  endpoint_name: "dbcendpoint"
+  deployment_name: "e2e"
+  embeddings_model: "azure_open_ai://endpoint/fpdoaoaice/deployment/embedding/model/text-embedding-ada-002"
+  sql_datastore_uri: "azureml://datastores/northwind" # format: azureml://datastores/{your-sql-datastore-name}
+  chat_aoai_deployment_name: "chat16k"
+  embedding_aoai_deployment_name: "embedding"
+  mir_environment: "azureml://registries/Project-DBCopilot-Canary/environments/db_copilot_mir"
+  # use the connection name step #3 to replace the following connection names. You could use the same for embedding & grounding
+  embedding_connection: "/subscriptions/afa061ef-5d63-4e4f-99a7-b5027ec38eba/resourceGroups/dataaie2e/providers/Microsoft.MachineLearningServices/workspaces/azmlwksash/connections/fpdoaoaice"
+  llm_connection: "/subscriptions/afa061ef-5d63-4e4f-99a7-b5027ec38eba/resourceGroups/dataaie2e/providers/Microsoft.MachineLearningServices/workspaces/azmlwksash/connections/fpdoaoaice"
+jobs:
+  db_copilot_grounding_pipeline:
+    component: azureml://registries/Project-DBCopilot-Canary/components/db_copilot_faiss_e2e
+    inputs:
+      db_datastore: ${{parent.inputs.sql_datastore_uri}}
+      embeddings_model: ${{parent.inputs.embeddings_model}}
+      chat_aoai_deployment_name: ${{parent.inputs.chat_aoai_deployment_name}}
+      embedding_aoai_deployment_name: ${{parent.inputs.embedding_aoai_deployment_name}}
+      endpoint_name: ${{parent.inputs.endpoint_name}}
+      deployment_name: ${{parent.inputs.deployment_name}}
+      mir_environment: ${{parent.inputs.mir_environment}}
+      embedding_connection: ${{parent.inputs.embedding_connection}}
+      llm_connection: ${{parent.inputs.llm_connection}}
+      # optional parametesr:
+      # sample_data: only need to provide your own sample.json
+      #   type: uri_folder
+      #   path: path in the format of azureml://subscriptions/{your-subscription-name}/resourcegroups/{your-resourcegroup-name}/workspaces/{your-workspace-name}/datastores/{your-datastore-name}/{your-folder-path}
+      # temperature: default 0.0. Need to be in range [0.0, 1.0]
+      # max_tables:
+      # max_columns:
+      # max_rows:
+      # max_sampling_rows:
+      # max_text_length:
+      # selected_tables: json string like  ["table1","table2","table3"]
+      # column_settings: json string in format of dict[str, dict[str, str]] like {"table1": {"column1": "type1", "column2": "type2"}, "table2": {"column1": "type1", "column2": "type2"}}
+      # tools: json string in format of list[str] like ["tsql", "python"], default is ["tsql"].
+      # knowledge_pieces: json string in format described in db-provider-config

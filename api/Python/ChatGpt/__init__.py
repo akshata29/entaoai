@@ -7,7 +7,6 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 import os
 from langchain.vectorstores import Pinecone
 import pinecone
-import litellm
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.docstore.document import Document
 from Utilities.redisIndex import performRedisSearch
@@ -243,21 +242,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 messages=messages, 
                 temperature=0.0, 
                 max_tokens=32, 
-                n=1)
-    # Example usage of ChatLiteLLM
-    # elif embeddingModelType == "claude":
-    #     llmChat = ChatLiteLLM(model="claude-2"
-    #             temperature=temperature,
-    #             openai_api_key=OpenAiApiKey,
-    #             max_tokens=tokenLength)
-    #     completion = litellm.completion(
-    #             deployment_id=OpenAiChat,
-    #             model="claude-2",
-    #             messages=messages, 
-    #             temperature=0.0, 
-    #             max_tokens=32, 
-    #             n=1)
-    
+                n=1)    
     try:
         # userToken = completion.usage.total_tokens
         # totalTokens = totalTokens + userToken

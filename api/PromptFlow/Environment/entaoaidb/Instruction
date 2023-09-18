@@ -1,0 +1,24 @@
+az login(optional)
+az account set --subscription "astalatiext"
+az configure --defaults workspace=dataaiamlwks group=dataai
+az ml environment create -f environment_build.yaml --subscription astalatiext -g dataai -w dataaiamlwks
+docker login dataaiamlwksstorcr.azurecr.io/azureml/azureml_19e313247fda6be77ea6441ff69b977e (use login/password from Azure Portal -> Container Reg)
+docker pull dataaiamlwksstorcr.azurecr.io/azureml/azureml_19e313247fda6be77ea6441ff69b977e
+docker login docker.io
+docker tag dataaiamlwksstorcr.azurecr.io/azureml/azureml_19e313247fda6be77ea6441ff69b977e akshata13/entaoai
+docker push akshata13/entaoai:latest
+az ml environment create -f environment.yaml --subscription astalatiext -g dataai -w dataaiamlwks
+
+
+docker pull  mcr.microsoft.com/azureml/curated/llm-dbcopilot-embeddings:12
+docker login docker.io
+docker tag mcr.microsoft.com/azureml/curated/llm-dbcopilot-embeddings:12 akshata13/entaoai
+docker push akshata13/entaoai:latest
+az ml environment create -f environment.yaml --subscription astalatiext -g dataai -w dataaiamlwks
+
+
+# Build locally instead of building on Azure
+docker build . -t akshata13/entaoaidb:latest
+docker push akshata13/entaoaidb:latest
+az ml environment create -f environment.yaml --subscription astalatiext -g dataai -w dataaiamlwks
+# Attach the runtime to new environment

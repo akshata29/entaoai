@@ -547,6 +547,26 @@ def sqlChat():
         logging.exception("Exception in /sqlChat")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/sqlAsk", methods=["POST"])
+def sqlAsk():
+    question=request.json["question"]
+    top=request.json["top"]
+    embeddingModelType = request.json["embeddingModelType"]
+    postBody=request.json["postBody"]
+
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("SQLASK_URL")
+
+        data = postBody
+        params = {'question': question, 'topK': top, 'embeddingModelType': embeddingModelType}
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /sqlAsk")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/sqlChain", methods=["POST"])
 def sqlChain():
     question=request.json["question"]
