@@ -14,7 +14,7 @@ from redis import Redis
 import numpy as np
 import json
 
-def performCogSearch(embedValue, embedField, SearchService, SearchKey, indexType, question, indexName, k, 
+def performCogSearch(embedValue, embedField, SearchService, SearchKey, indexType, question, indexName, k, searchType,
     returnFields=["id", "content", "sourcefile"] ):
     print("Performing CogSearch")
     print("SearchService: " + SearchService)
@@ -25,12 +25,41 @@ def performCogSearch(embedValue, embedField, SearchService, SearchKey, indexType
         credential=AzureKeyCredential(SearchKey))
     try:
         if indexType == "cogsearchvs":
-            r = searchClient.search(  
-                search_text="",  
-                vectors=[Vector(value=embedValue, k=k, fields=embedField)],  
-                select=returnFields,
-                semantic_configuration_name="semanticConfig"
-            )
+            # r = searchClient.search(  
+            #     search_text="",  
+            #     vectors=[Vector(value=embedValue, k=k, fields=embedField)],  
+            #     select=returnFields,
+            #     semantic_configuration_name="semanticConfig"
+            # )
+            if searchType == "similarity":
+                r = searchClient.search(  
+                    search_text="",  
+                    vectors=[Vector(value=embedValue, k=k, fields=embedField)],  
+                    select=returnFields,
+                    include_total_count=True,
+                    top=k
+                )
+            elif searchType == "hybrid":
+                r = searchClient.search(  
+                    search_text=question,  
+                    vectors=[Vector(value=embedValue, k=k, fields=embedField)],  
+                    select=returnFields,
+                    include_total_count=True,
+                    top=k
+                )
+            elif searchType == "hybridrerank":
+                r = searchClient.search(  
+                    search_text=question,  
+                    vectors=[Vector(value=embedValue, k=k, fields=embedField)],  
+                    select=returnFields,
+                    query_type="semantic", 
+                    query_language="en-us", 
+                    semantic_configuration_name='semanticConfig', 
+                    query_caption="extractive", 
+                    query_answer="extractive",
+                    include_total_count=True,
+                    top=k
+                )
         elif indexType == "cogsearch":
             #r = searchClient.search(question, filter=None, top=k)
             try:
@@ -73,6 +102,9 @@ def searchVectorDb(question:str, embeddedQuestion:object, indexType:str, indexNs
   RedisPassword = conn.RedisPassword
   topK = overrides.get("top") or 5
   vectorField = "contentVector"
+  searchType = overrides.get("searchType") or "similarity"
+  
+  print("searchType: " + searchType)
 
   if indexType == 'pinecone':
     try:
@@ -133,7 +165,7 @@ def searchVectorDb(question:str, embeddedQuestion:object, indexType:str, indexNs
   
   elif indexType == "cogsearch" or indexType == "cogsearchvs":
       try:
-          r = performCogSearch(embeddedQuestion, vectorField, SearchService, SearchKey, indexType, question, indexNs, topK)
+          r = performCogSearch(embeddedQuestion, vectorField, SearchService, SearchKey, indexType, question, indexNs, topK, searchType)
           if r == None:
               docs = [Document(page_content="No Results Found", metadata={"id": "", "source": ""})]
           else :

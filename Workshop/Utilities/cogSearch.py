@@ -66,7 +66,7 @@ def createSearchIndex(SearchService, SearchKey, indexName):
         index = SearchIndex(
             name=indexName,
             fields=[
-                        SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                        SimpleField(name="id", type=SearchFieldDataType.String, key=True, sortable=True, filterable=True, facetable=True),
                         SearchableField(name="content", type=SearchFieldDataType.String,
                                         searchable=True, retrievable=True, analyzer_name="en.microsoft"),
                         SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
@@ -91,7 +91,8 @@ def createSearchIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))],
+                        prioritized_keywords_fields=[SemanticField(field_name='sourcefile')])
         )
 
         try:
@@ -125,7 +126,7 @@ def createEarningCallIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))])
         )
 
         try:
@@ -157,7 +158,7 @@ def createPressReleaseIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))])
         )
 
         try:
@@ -193,7 +194,7 @@ def createStockNewsIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))])
         )
 
         try:
@@ -259,16 +260,51 @@ def indexSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, Search
         succeeded = sum([1 for r in results if r.succeeded])
         print(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
 
-def performCogSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
+def performCogSemanticHybridSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
         index_name=indexName,
         credential=AzureKeyCredential(SearchKey))
     try:
         r = searchClient.search(  
-            search_text="",  
+            search_text=question,  
             vectors=[Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector")],  
             select=returnFields,
-            semantic_configuration_name="semanticConfig"
+            query_type="semantic", 
+            query_language="en-us", 
+            semantic_configuration_name='semanticConfig', 
+            query_caption="extractive", 
+            query_answer="extractive",
+            include_total_count=True,
+            top=k
+        )
+        return r
+    except Exception as e:
+        print(e)
+
+    return None
+
+def performCogSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType, OpenAiEmbedding, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+        index_name=indexName,
+        credential=AzureKeyCredential(SearchKey))
+    try:
+        # r = searchClient.search(  
+        #     search_text="",  
+        #     vectors=[Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector")],  
+        #     select=returnFields,
+        #     semantic_configuration_name="semanticConfig"
+        # )
+        r = searchClient.search(  
+            search_text=question,  
+            vectors=[Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector")],  
+            select=returnFields,
+            query_type="semantic", 
+            query_language="en-us", 
+            semantic_configuration_name='semanticConfig', 
+            query_caption="extractive", 
+            query_answer="extractive",
+            include_total_count=True,
+            top=k
         )
         return r
     except Exception as e:
@@ -328,7 +364,7 @@ def createKbSearchIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='question')]))])
+                        title_field=SemanticField(field_name="question"), prioritized_content_fields=[SemanticField(field_name='question')]))])
         )
 
         try:

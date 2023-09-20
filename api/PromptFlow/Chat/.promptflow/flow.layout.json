@@ -18,7 +18,7 @@
     "parse_postBody": {
       "x": 126.6666259765625,
       "y": 113.33331298828125,
-      "index": 2
+      "index": 0
     },
     "create_llm": {
       "x": 381.33343505859375,
@@ -28,42 +28,42 @@
     "insert_session": {
       "x": 16.3333740234375,
       "y": 237.33334350585938,
-      "index": 3
+      "index": 2
     },
     "embed_the_question": {
       "x": 507.66656494140625,
       "y": 376.6666259765625,
-      "index": 8
+      "index": 5
     },
     "search_question_from_vectordb": {
       "x": 417.00006103515625,
       "y": 594.666748046875,
-      "index": 4
+      "index": 6
     },
     "extract_prompttemplate": {
       "x": 277.5000915527344,
       "y": 444.6665954589844,
-      "index": 9
+      "index": 7
     },
     "augmented_chat": {
       "x": 300.6666564941406,
       "y": 801.3333740234375,
-      "index": 0
+      "index": 8
     },
     "followup_questions": {
       "x": 295.3333435058594,
       "y": 956.666748046875,
-      "index": 6
+      "index": 9
     },
     "extract_query_from_history": {
       "x": 37.333282470703125,
       "y": 476.6665954589844,
-      "index": 5
+      "index": 4
     },
     "extract_lastquestion": {
       "x": 31.333282470703125,
       "y": 353.333251953125,
-      "index": 7
+      "index": 3
     }
   },
   "orientation": "Vertical"

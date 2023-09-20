@@ -69,11 +69,23 @@ class ChatGptStream:
             credential=AzureKeyCredential(self.SearchKey))
         try:
             if indexType == "cogsearchvs":
+                # r = searchClient.search(  
+                #     search_text="",  
+                #     vectors=[Vector(value=self.generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector")],  
+                #     select=returnFields,
+                #     semantic_configuration_name="semanticConfig"
+                # )
                 r = searchClient.search(  
-                    search_text="",  
+                    search_text=question,  
                     vectors=[Vector(value=self.generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector")],  
                     select=returnFields,
-                    semantic_configuration_name="semanticConfig"
+                    query_type="semantic", 
+                    query_language="en-us", 
+                    semantic_configuration_name='semanticConfig', 
+                    query_caption="extractive", 
+                    query_answer="extractive",
+                    include_total_count=True,
+                    top=k
                 )
             elif indexType == "cogsearch":
                 #r = searchClient.search(question, filter=None, top=k)

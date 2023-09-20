@@ -10,7 +10,7 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     //"module": "ESNext",
-    "module": "nodenext",
+    //"module": "nodenext",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,

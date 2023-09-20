@@ -385,19 +385,18 @@ const SqlAgent = () => {
         questionList.push("What products are available")
         questionList.push("Which shippers can ship the orders?")
         questionList.push("How many shipment Speedy Express did?")
-        questionList.push("How many customers did placed an order")
-        questionList.push("For the year 1996 give me subtotals for each order")
-        questionList.push("Show me the Sales by Year")
-        questionList.push("Which employee did largest order")
-        questionList.push("get an alphabetical list of products.")
+        questionList.push("How many customers did placed an order?")
+        questionList.push("Show me the subtotals for each order for the year 1996")
+        questionList.push("Show me the total orders grouped by order year")
+        questionList.push("Which employee did largest order and how much was the amount")
+        questionList.push("Get an alphabetical list of products.")
         questionList.push("List the discontinued products")
-        questionList.push("calculates sales price for each order after discount is applied")
+        questionList.push("What is the total sales price for each order for the order year 1998")
         questionList.push("Show top 10 Products by Category")
         questionList.push("Display Products by Category")
-        questionList.push("Top 10 Customer and Suppliers by City")
-        questionList.push("List of the Products that are above average price")
+        questionList.push("Display Top 10 Customer and Suppliers grouped by City")
         questionList.push("List of the Products that are above average price, also show average price for each product")
-        questionList.push("Number of units in stock by category and supplier continent")
+        questionList.push("How many units are in stock, group by category and supplier continent")
 
         const shuffled = questionList.sort(() => 0.5 - Math.random());
         const selectedQuestion = shuffled.slice(0, 5);
@@ -430,6 +429,14 @@ const SqlAgent = () => {
         setActiveCitation(undefined);
         setActiveAnalysisPanelTab(undefined);
         setAnswer(undefined);
+    };
+
+    const clearSqlAskChat = () => {
+        lastQuestionSqlAskRef.current = "";
+        error && setError(undefined);
+        setActiveCitation(undefined);
+        setActiveAnalysisPanelTab(undefined);
+        setAnswerSqlAsk(undefined);
     };
 
     const clearChainChat = () => {
@@ -465,7 +472,7 @@ const SqlAgent = () => {
                     >
                     <div className={styles.sqlAgentTopSection}>
                         <div className={styles.commandsContainer}>
-                            <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearChat} disabled={!lastQuestionSqlAskRef.current || isLoading} />
+                            <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearSqlAskChat} disabled={!lastQuestionSqlAskRef.current || isLoading} />
                             <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                         </div>
                         <SparkleFilled fontSize={"30px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
@@ -479,7 +486,7 @@ const SqlAgent = () => {
                                 placeholder="Ask me anything"
                                 disabled={isLoading}
                                 updateQuestion={lastQuestionSqlAskRef.current}
-                                onSend={question => makeApiSqlAskRequest(question)}
+                                onSend={(question: string) => makeApiSqlAskRequest(question)}
                             />
                         </div>
                         {exampleLoading ? <div><span>Please wait, Generating Sample Question</span><Spinner/></div> : null}
@@ -505,7 +512,7 @@ const SqlAgent = () => {
                                                     //answer={answer}
                                                     answer={answerSqlAsk[0]}
                                                     isSpeaking = {isSpeaking}
-                                                    onCitationClicked={x => onShowCitation(x)}
+                                                    onCitationClicked={(x: string) => onShowCitation(x)}
                                                     onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
                                                     onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
                                                     onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis("SqlChat", answerSqlAsk[1])}

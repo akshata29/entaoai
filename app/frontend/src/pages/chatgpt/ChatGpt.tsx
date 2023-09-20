@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { Checkbox, Panel, DefaultButton, TextField, SpinButton, Spinner, Stack } from "@fluentui/react";
+import { Checkbox, Panel, DefaultButton, TextField, SpinButton, Spinner, Stack, ChoiceGroup, IChoiceGroupOption } from "@fluentui/react";
 import { SparkleFilled } from "@fluentui/react-icons";
 import { ShieldLockRegular } from "@fluentui/react-icons";
 
@@ -9,7 +9,7 @@ import styles from "./ChatGpt.module.css";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 
-import { chat, Approaches, AskResponse, ChatRequest, ChatTurn, refreshIndex, getSpeechApi, chatGpt,
+import { chat, Approaches, AskResponse, ChatRequest, ChatTurn, refreshIndex, getSpeechApi, chatGpt, SearchTypes,
     getAllIndexSessions, getIndexSession, getIndexSessionDetail, deleteIndexSession, renameIndexSession, getUserInfo, chatStream } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { AnswerChat } from "../../components/Answer/AnswerChat";
@@ -40,6 +40,7 @@ const ChatGpt = () => {
     const [excludeCategory, setExcludeCategory] = useState<string>("");
     const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
     const [useAutoSpeakAnswers, setUseAutoSpeakAnswers] = useState<boolean>(false);
+    const [searchTypeOptions, setSearchTypeOptions] = useState<SearchTypes>(SearchTypes.Similarity);
 
     const [options, setOptions] = useState<any>([])
     const [temperature, setTemperature] = useState<number>(0.3);
@@ -159,6 +160,21 @@ const ChatGpt = () => {
           text: 'insurance'
         }
     ]
+
+    const searchTypes: IChoiceGroupOption[] = [
+        {
+            key: SearchTypes.Similarity,
+            text: "Similarity"
+        },
+        {
+            key: SearchTypes.Hybrid,
+            text: "Hybrid"
+        },
+        {
+            key: SearchTypes.HybridReRank,
+            text: "Hybrid with ReRank"
+        }
+    ];
 
     const promptTypeGptOptions = [
         {
@@ -352,6 +368,7 @@ const ChatGpt = () => {
                     sessionId: currentSession.sessionId,
                     deploymentType: String(selectedDeploymentType?.key),
                     chainType: String(selectedChain?.key),
+                    searchType: searchTypeOptions,
                 }
             };
             const result = await chat(request, String(selectedItem?.key), String(selectedIndex));
@@ -408,6 +425,7 @@ const ChatGpt = () => {
                     //sessionId: currentSession.sessionId,
                     deploymentType: String(selectedDeploymentType?.key),
                     chainType: String(selectedChain?.key),
+                    searchType: searchTypeOptions,
                 }
             };
             let result: any = {};
@@ -500,7 +518,8 @@ const ChatGpt = () => {
                     session: JSON.stringify(currentSession),
                     sessionId: currentSession.sessionId,
                     deploymentType: String(selectedDeploymentTypeGpt?.key),
-                    functionCall:functionCall
+                    functionCall:functionCall,
+                    searchType: searchTypeOptions,
                 }
             };
             const result = await chatGpt(request, 'chatgpt', 'cogsearchvs');
@@ -662,6 +681,10 @@ const ChatGpt = () => {
 
     const onExampleStreamClicked = (example: string) => {
         makeApiStreamRequest(example);
+    };
+
+    const onSearchTypeChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
+        setSearchTypeOptions((option?.key as SearchTypes) || SearchTypes.Similarity);
     };
 
     const startOrStopSynthesis = async (answerType:string, url: string | null, index: number) => {
@@ -1420,6 +1443,13 @@ const ChatGpt = () => {
                                         onChange={onPromptTemplateChange}
                                     />
                                 </div>
+                                <ChoiceGroup
+                                    className={styles.oneshotSettingsSeparator}
+                                    label="Search Type"
+                                    options={searchTypes}
+                                    defaultSelectedKey={searchTypeOptions}
+                                    onChange={onSearchTypeChange}
+                                />
                                 <SpinButton
                                     className={styles.chatSettingsSeparator}
                                     label="Retrieve this many documents from search:"
@@ -1633,6 +1663,13 @@ const ChatGpt = () => {
                                         onChange={onPromptTemplateChange}
                                     />
                                 </div>
+                                <ChoiceGroup
+                                    className={styles.oneshotSettingsSeparator}
+                                    label="Search Type"
+                                    options={searchTypes}
+                                    defaultSelectedKey={searchTypeOptions}
+                                    onChange={onSearchTypeChange}
+                                />
                                 <SpinButton
                                     className={styles.chatSettingsSeparator}
                                     label="Retrieve this many documents from search:"

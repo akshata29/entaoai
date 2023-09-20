@@ -84,7 +84,7 @@ def createPibIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='pibData')]))])
+                        title_field=SemanticField(field_name="pibData"), prioritized_content_fields=[SemanticField(field_name='pibData')]))])
         )
 
         try:
@@ -178,7 +178,7 @@ def createEarningCallIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))])
         )
 
         try:
@@ -227,7 +227,7 @@ def createEarningCallVectorIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))])
         )
 
         try:
@@ -312,7 +312,7 @@ def createPressReleaseIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))])
         )
 
         try:
@@ -348,7 +348,7 @@ def createStockNewsIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))])
         )
 
         try:
@@ -431,7 +431,8 @@ def createSecFilingIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))],
+                        prioritized_keywords_fields=[SemanticField(field_name='sourcefile')])
         )
 
         try:
@@ -479,7 +480,7 @@ def createSecFilingsVectorIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))])
         )
 
         try:
@@ -626,11 +627,23 @@ def performCogSearch(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, Sea
         index_name=indexName,
         credential=AzureKeyCredential(SearchKey))
     try:
+        # r = searchClient.search(  
+        #     search_text="",  
+        #     vectors=[Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector")],
+        #     select=returnFields,
+        #     semantic_configuration_name="semanticConfig"
+        # )
         r = searchClient.search(  
-            search_text="",  
-            vectors=[Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector")],
+            search_text=question,  
+            vectors=[Vector(value=generateEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, embeddingModelType, OpenAiEmbedding, question), k=k, fields="contentVector")],  
             select=returnFields,
-            semantic_configuration_name="semanticConfig"
+            query_type="semantic", 
+            query_language="en-us", 
+            semantic_configuration_name='semanticConfig', 
+            query_caption="extractive", 
+            query_answer="extractive",
+            include_total_count=True,
+            top=k
         )
         return r
     except Exception as e:
@@ -727,7 +740,8 @@ def createSearchIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))],
+                        prioritized_keywords_fields=[SemanticField(field_name='sourcefile')])
         )
 
         try:
@@ -792,7 +806,7 @@ def createProspectusSummary(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='summary')]))])
+                        title_field=SemanticField(field_name="summary"), prioritized_content_fields=[SemanticField(field_name='summary')]))])
         )
 
         try:

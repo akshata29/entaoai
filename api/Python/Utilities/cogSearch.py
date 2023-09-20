@@ -68,7 +68,8 @@ def createSearchIndex(indexType, indexName):
                     configurations=[SemanticConfiguration(
                         name='semanticConfig',
                         prioritized_fields=PrioritizedFields(
-                            title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                            title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))],
+                        prioritized_keywords_fields=[SemanticField(field_name='sourcefile')])
             )
         elif indexType == "cogsearch":
             index = SearchIndex(
@@ -83,7 +84,8 @@ def createSearchIndex(indexType, indexName):
                     configurations=[SemanticConfiguration(
                         name='semanticConfig',
                         prioritized_fields=PrioritizedFields(
-                            title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                            title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))],
+                        prioritized_keywords_fields=[SemanticField(field_name='sourcefile')])
             )
 
         try:
@@ -151,11 +153,23 @@ def performCogSearch(indexType, embeddingModelType, question, indexName, k, retu
         credential=AzureKeyCredential(SearchKey))
     try:
         if indexType == "cogsearchvs":
+            # r = searchClient.search(  
+            #     search_text="",  
+            #     vectors=[Vector(value=generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector")],  
+            #     select=returnFields,
+            #     semantic_configuration_name="semanticConfig"
+            # )
             r = searchClient.search(  
-                search_text="",  
+                search_text=question,  
                 vectors=[Vector(value=generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector")],  
                 select=returnFields,
-                semantic_configuration_name="semanticConfig"
+                query_type="semantic", 
+                query_language="en-us", 
+                semantic_configuration_name='semanticConfig', 
+                query_caption="extractive", 
+                query_answer="extractive",
+                include_total_count=True,
+                top=k
             )
         elif indexType == "cogsearch":
             #r = searchClient.search(question, filter=None, top=k)
@@ -277,7 +291,7 @@ def createKbSearchIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='question')]))])
+                        title_field=SemanticField(field_name="question"), prioritized_content_fields=[SemanticField(field_name='question')]))])
         )
 
         try:

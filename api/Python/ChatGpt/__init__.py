@@ -25,6 +25,14 @@ from langchain.chains import RetrievalQA
 from typing import Any, Sequence
 from Utilities.modelHelper import numTokenFromMessages, getTokenLimit
 from Utilities.messageBuilder import MessageBuilder
+from Utilities.azureSearch import AzureSearch
+from azure.search.documents.indexes.models import (
+    SearchableField,
+    SearchField,
+    SearchFieldDataType,
+    SimpleField,
+)
+from langchain.chains import LLMChain
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -130,6 +138,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     promptTemplate = overrides.get('promptTemplate') or ''
     deploymentType = overrides.get('deploymentType') or 'gpt35'
     overrideChain = overrides.get("chainType") or 'stuff'
+    searchType = overrides.get('searchType') or 'similarity'
 
     logging.info("Search for Top " + str(topK))
     try:
@@ -287,20 +296,18 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             qaChain = load_qa_with_sources_chain(llmChat, chain_type=overrideChain, prompt=qaPrompt)
 
             followupTemplate = """
-            Generate three very brief follow-up questions that the user would likely ask next.
-            Use double angle brackets to reference the questions, e.g. <>.
-            Try not to repeat questions that have already been asked.
+             Generate three very brief questions that the user would likely ask next.
+            Use double angle brackets to reference the questions, e.g. <What is Azure?>.
+            Try not to repeat questions that have already been asked.  Don't include the context in the answer.
 
             Return the questions in the following format:
             <>
             <>
             <>
-
+            
             ALWAYS return a "NEXT QUESTIONS" part in your answer.
 
-            =========
             {context}
-            =========
 
             """
             followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
@@ -336,15 +343,18 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                                         prompt=qaPrompt)
 
             followupTemplate = """
-            Generate three very brief follow-up questions that the user would likely ask next.
-            Use double angle brackets to reference the questions, e.g. <>.
-            Try not to repeat questions that have already been asked.
+            Generate three very brief questions that the user would likely ask next.
+            Use double angle brackets to reference the questions, e.g. <What is Azure?>.
+            Try not to repeat questions that have already been asked.  Don't include the context in the answer.
 
+            Return the questions in the following format:
+            <>
+            <>
+            <>
+            
             ALWAYS return a "NEXT QUESTIONS" part in your answer.
 
-            =========
             {context}
-            =========
 
             """
             followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
@@ -385,20 +395,18 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             qaChain = load_qa_with_sources_chain(llmChat, chain_type=overrideChain, combine_prompt=combinePrompt)
             
             followupTemplate = """
-            Generate three very brief follow-up questions that the user would likely ask next.
-            Use double angle brackets to reference the questions, e.g. <>.
-            Try not to repeat questions that have already been asked.
+            Generate three very brief questions that the user would likely ask next.
+            Use double angle brackets to reference the questions, e.g. <What is Azure?>.
+            Try not to repeat questions that have already been asked.  Don't include the context in the answer.
 
             Return the questions in the following format:
             <>
             <>
             <>
-
+            
             ALWAYS return a "NEXT QUESTIONS" part in your answer.
 
-            =========
             {context}
-            =========
 
             """
             followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
@@ -438,9 +446,9 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
 
             
             followupTemplate = """
-            Generate three very brief follow-up questions that the user would likely ask next.
-            Use double angle brackets to reference the questions, e.g. <>.
-            Try not to repeat questions that have already been asked.
+            Generate three very brief questions that the user would likely ask next.
+            Use double angle brackets to reference the questions, e.g. <What is Azure?>.
+            Try not to repeat questions that have already been asked.  Don't include the context in the answer.
 
             Return the questions in the following format:
             <>
@@ -449,9 +457,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             
             ALWAYS return a "NEXT QUESTIONS" part in your answer.
 
-            =========
             {context}
-            =========
 
             """
             followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
@@ -508,9 +514,11 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 modifiedAnswer = fullAnswer
 
                 # Followup questions
-                followupChain = RetrievalQA(combine_documents_chain=followupChain, retriever=docRetriever)
-                followupAnswer = followupChain({"query": q}, return_only_outputs=True)
-                nextQuestions = followupAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                # followupChain = RetrievalQA(combine_documents_chain=followupChain, retriever=docRetriever)
+                # followupAnswer = followupChain({"query": q}, return_only_outputs=True)
+                # nextQuestions = followupAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                llmChain = LLMChain(prompt=followupPrompt, llm=llmChat)
+                nextQuestions = llmChain.predict(context=rawDocs)
                 sources = ''                
                 if (modifiedAnswer.find("I don't know") >= 0):
                     sources = ''
@@ -553,8 +561,10 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                     modifiedAnswer = fullAnswer
 
                     # Followup questions
-                    followupAnswer = followupChain({"input_documents": docs, "question": q}, return_only_outputs=True)
-                    nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                    # followupAnswer = followupChain({"input_documents": docs, "question": q}, return_only_outputs=True)
+                    # nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                    llmChain = LLMChain(prompt=followupPrompt, llm=llmChat)
+                    nextQuestions = llmChain.predict(context=rawDocs)
                     sources = ''                
                     if (modifiedAnswer.find("I don't know") >= 0):
                         sources = ''
@@ -576,14 +586,50 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "",
                         "sources": '', "nextQuestions": '', "error": str(e)}
         elif indexType == "cogsearch" or indexType == "cogsearchvs":
-            r = performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
-            if r == None:
-                    docs = [Document(page_content="No results found")]
-            else :
-                docs = [
-                    Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
-                    for doc in r
-                    ]
+            # r = performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
+            # if r == None:
+            #         docs = [Document(page_content="No results found")]
+            # else :
+            #     docs = [
+            #         Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
+            #         for doc in r
+            #         ]
+
+            fields=[
+                    SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                    SearchableField(name="content", type=SearchFieldDataType.String,
+                                    searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                    SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                                searchable=True, vector_search_dimensions=1536, vector_search_configuration="vectorConfig"),
+                    SimpleField(name="sourcefile", type="Edm.String", filterable=True),
+            ]
+            csVectorStore: AzureSearch = AzureSearch(
+                azure_search_endpoint=f"https://{SearchService}.search.windows.net",
+                azure_search_key=SearchKey,
+                index_name=indexNs,
+                fields=fields,
+                embedding_function=embeddings.embed_query,
+                semantic_configuration_name="semanticConfig",
+            )
+
+            # Perform a similarity search
+            if (searchType == 'similarity'):
+                docs = csVectorStore.similarity_search(
+                    query=q,
+                    k=topK,
+                    search_type="similarity",
+                )
+            elif (searchType == 'hybrid'):
+                docs = csVectorStore.similarity_search(
+                    query=q,
+                    k=topK,
+                    search_type="similarity",
+                )
+            elif (searchType == 'hybridrerank'):
+                docs = csVectorStore.semantic_hybrid_search(
+                    query=q,
+                    k=topK
+                )
             
             rawDocs = []
             for doc in docs:
@@ -600,8 +646,10 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 modifiedAnswer = fullAnswer
 
                 # Followup questions
-                followupAnswer = followupChain({"input_documents": docs, "question": q}, return_only_outputs=True)
-                nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                # followupAnswer = followupChain({"input_documents": docs, "question": q}, return_only_outputs=True)
+                # nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                llm_chain = LLMChain(prompt=followupPrompt, llm=llmChat)
+                nextQuestions = llm_chain.predict(context=rawDocs)
                 sources = ''                
                 if (modifiedAnswer.find("I don't know") >= 0):
                     sources = ''

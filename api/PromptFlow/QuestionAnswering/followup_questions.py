@@ -25,6 +25,7 @@ from azure.search.documents.indexes.models import (
     HnswVectorSearchAlgorithmConfiguration,  
 )
 from azure.search.documents.models import Vector
+from langchain.chains import LLMChain
 
 def indexDocs(SearchService, SearchKey, indexName, docs):
     print("Total docs: " + str(len(docs)))
@@ -67,15 +68,15 @@ def generateFollowupQuestions(retrievedDocs: list, question: str, embeddedQuesti
     overrideChain = overrides.get("chainType") or 'stuff'
 
     followupTemplate = """
-    Generate three very brief follow-up questions that the user would likely ask next.
-    Use double angle brackets to reference the questions, e.g. <>.
-    Try not to repeat questions that have already been asked.
+    Generate three very brief questions that the user would likely ask next.
+    Use double angle brackets to reference the questions, e.g. <What is Azure?>.
+    Try not to repeat questions that have already been asked.  Don't include the context in the answer.
 
     Return the questions in the following format:
     <>
     <>
     <>
-
+    
     ALWAYS return a "NEXT QUESTIONS" part in your answer.
 
     {context}
@@ -108,8 +109,12 @@ def generateFollowupQuestions(retrievedDocs: list, question: str, embeddedQuesti
         thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
     
     # Followup questions
-    followupAnswer = followupChain({"input_documents": retrievedDocs, "question": question}, return_only_outputs=True)
-    nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+    # followupAnswer = followupChain({"input_documents": retrievedDocs, "question": question}, return_only_outputs=True)
+    # nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+    llm_chain = LLMChain(prompt=followupPrompt, llm=llm)
+    nextQuestions = llm_chain.predict(context=rawDocs)
+    print("Next questions: " + str(nextQuestions))
+
     sources = ''                
     if (modifiedAnswer.find("I don't know") >= 0):
         sources = ''

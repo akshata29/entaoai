@@ -73,6 +73,7 @@ inputs:
             sessionId: mygdad4vknfe2atw0mmfh6
             deploymentType: gpt3516k
             chainType: stuff
+            searchType: hybrid
 outputs:
   output:
     type: string

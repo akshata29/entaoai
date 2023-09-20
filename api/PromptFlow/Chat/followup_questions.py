@@ -28,6 +28,7 @@ from azure.cosmos import CosmosClient, PartitionKey
 from azure.search.documents.models import Vector
 import datetime
 import uuid
+from langchain.chains import LLMChain
 
 def insertMessage(sessionId, type, role, totalTokens, tokens, response, cosmosContainer):
     aiMessage = {
@@ -66,7 +67,7 @@ def indexDocs(SearchService, SearchKey, indexName, docs):
 # Adding type to arguments and return value will help the system show the types properly
 # Please update the function name/signature per need
 @tool
-def generateFollowupQuestions(retrievedDocs: list, question: str, promptTemplate:str, overrides:list, llm, modifiedAnswer:str, 
+def generateFollowupQuestions(retrievedDocs: object, question: str, promptTemplate:str, overrides:list, llm, modifiedAnswer:str, 
     indexType:str, indexNs:str, conn:CustomConnection) -> list:
     overrideChain = overrides.get("chainType") or 'stuff'
     sessionId = overrides.get('sessionId')
@@ -80,15 +81,15 @@ def generateFollowupQuestions(retrievedDocs: list, question: str, promptTemplate
         print("Error connecting to CosmosDB: " + str(e))
 
     followupTemplate = """
-    Generate three very brief follow-up questions that the user would likely ask next.
-    Use double angle brackets to reference the questions, e.g. <>.
-    Try not to repeat questions that have already been asked.
+    Generate three very brief questions that the user would likely ask next.
+    Use double angle brackets to reference the questions, e.g. <What is Azure?>.
+    Try not to repeat questions that have already been asked.  Don't include the context in the answer.
 
     Return the questions in the following format:
     <>
     <>
     <>
-
+    
     ALWAYS return a "NEXT QUESTIONS" part in your answer.
 
     {context}
@@ -96,7 +97,6 @@ def generateFollowupQuestions(retrievedDocs: list, question: str, promptTemplate
     followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
     followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
     
-
     if promptTemplate == '':
         template = """
             Given the following extracted parts of a long document and a question, create a final answer. 
@@ -115,14 +115,23 @@ def generateFollowupQuestions(retrievedDocs: list, question: str, promptTemplate
 
     qaPrompt = PromptTemplate(template=template, input_variables=["summaries", "question"])
 
-    if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
-        thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
-    elif overrideChain == "refine":
-        thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
+    thoughtPrompt = ''
+    try:
+        if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
+            thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
+        elif overrideChain == "refine":
+            thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
+    except Exception as e:
+        print("Error formatting prompt: " + str(e))
     
     # Followup questions
-    followupAnswer = followupChain({"input_documents": retrievedDocs, "question": question}, return_only_outputs=True)
-    nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+    #followupAnswer = followupChain({"input_documents": retrievedDocs}, return_only_outputs=True)
+    #print("Followup answer: " + str(followupAnswer))
+    #nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+    llm_chain = LLMChain(prompt=followupPrompt, llm=llm)
+    nextQuestions = llm_chain.predict(context=rawDocs)
+    print("Next questions: " + str(nextQuestions))
+
     sources = ''                
     if (modifiedAnswer.find("I don't know") >= 0):
         sources = ''

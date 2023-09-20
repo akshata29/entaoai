@@ -58,7 +58,7 @@ def createKbSearchIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='question')]))])
+                        title_field=SemanticField(field_name="question"), prioritized_content_fields=[SemanticField(field_name='question')]))])
         )
 
         try:

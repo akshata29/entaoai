@@ -149,6 +149,7 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
                         tokenLength: options.overrides?.tokenLength,
                         embeddingModelType: options.overrides?.embeddingModelType,
                         deploymentType: options.overrides?.deploymentType,
+                        searchType: options.overrides?.searchType,
                     }
                   }
                 }
@@ -248,6 +249,7 @@ export async function askAgentApi(options: AskRequest): Promise<AskResponse> {
                       chainType: options.overrides?.chainType,
                       tokenLength: options.overrides?.tokenLength,
                       embeddingModelType: options.overrides?.embeddingModelType,
+                      searchType: options.overrides?.searchType,
                   }
                 }
               }
@@ -328,6 +330,7 @@ export async function askTaskAgentApi(options: AskRequest): Promise<AskResponse>
                       chainType: options.overrides?.chainType,
                       tokenLength: options.overrides?.tokenLength,
                       embeddingModelType: options.overrides?.embeddingModelType,
+                      searchType: options.overrides?.searchType,
                   }
                 }
               }

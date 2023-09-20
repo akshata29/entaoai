@@ -6,6 +6,11 @@ export const enum Approaches {
     ReadDecomposeAsk = "rda"
 }
 
+export const enum SearchTypes {
+    Similarity = "similarity",
+    Hybrid = "hybrid",
+    HybridReRank = "hybridrerank"
+}
 
 export type ChatMessage = {
     id: string; // Guid
@@ -59,7 +64,8 @@ export type AskRequestOverrides = {
     useInternet?: boolean;
     deploymentType?: string;
     fileName?: string;
-    topics?: string[]
+    topics?: string[],
+    searchType?: SearchTypes;
 };
 
 export type AskRequest = {

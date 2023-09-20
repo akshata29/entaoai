@@ -1,7 +1,7 @@
 inputs:
   question:
     type: string
-    default: What is the purpose of BERT?
+    default: How are sentence pairs represented in the input to BERT?
     is_chat_input: false
   indexType:
     type: string
@@ -43,6 +43,7 @@ inputs:
             tokenLength: 1000
             embeddingModelType: azureopenai
             deploymentType: gpt3516k
+            searchType: hybridrerank
     is_chat_input: false
   chainType:
     type: string

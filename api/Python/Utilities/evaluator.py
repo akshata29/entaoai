@@ -96,7 +96,8 @@ def createEvaluatorDocumentSearchIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='documentName')]))])
+                       title_field=SemanticField(field_name="documentName"), prioritized_content_fields=[SemanticField(field_name='documentName')]))],
+                        prioritized_keywords_fields=[SemanticField(field_name='sourcefile')])
         )
 
         try:
@@ -124,7 +125,7 @@ def createEvaluatorQaSearchIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='question')]))])
+                        title_field=SemanticField(field_name="question"), prioritized_content_fields=[SemanticField(field_name='question')]))])
         )
 
         try:
@@ -162,7 +163,7 @@ def createEvaluatorResultIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='question')]))])
+                        title_field=SemanticField(field_name="question"), prioritized_content_fields=[SemanticField(field_name='question')]))])
         )
 
         try:
@@ -194,7 +195,7 @@ def createEvaluatorRunIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='documentId')]))])
+                        title_field=SemanticField(field_name="documentId"), prioritized_content_fields=[SemanticField(field_name='documentId')]))])
         )
 
         try:
@@ -336,7 +337,8 @@ def createEvaluatorDataSearchIndex(SearchService, SearchKey, indexName):
                 configurations=[SemanticConfiguration(
                     name='semanticConfig',
                     prioritized_fields=PrioritizedFields(
-                        title_field=None, prioritized_content_fields=[SemanticField(field_name='content')]))])
+                        title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))],
+                        prioritized_keywords_fields=[SemanticField(field_name='sourcefile')])
         )
 
         try:

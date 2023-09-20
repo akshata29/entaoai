@@ -24,6 +24,13 @@ from langchain.chains import RetrievalQA
 from Utilities.pibCopilot import performLatestPibDataSearch
 from typing import Any, Sequence
 from Utilities.modelHelper import numTokenFromMessages, getTokenLimit
+from Utilities.azureSearch import AzureSearch
+from azure.search.documents.indexes.models import (
+    SearchableField,
+    SearchField,
+    SearchFieldDataType,
+    SimpleField,
+)
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -116,6 +123,7 @@ def GetRrrAnswer(history, approach, overrides, symbol, indexName):
     promptTemplate = overrides.get('promptTemplate') or ''
     deploymentType = overrides.get('deploymentType') or 'gpt35'
     overrideChain = overrides.get("chainType") or 'stuff'
+    searchType = overrides.get('searchType') or 'similarity'
 
     logging.info("Search for Top " + str(topK))
     try:

@@ -148,7 +148,7 @@
       "inputs": {
         "retrievedDocs": {
           "type": [
-            "list"
+            "object"
           ]
         },
         "question": {

@@ -21,7 +21,14 @@ from langchain.agents import create_csv_agent
 from Utilities.azureBlob import getLocalBlob, getFullPath
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 import uuid
-import ast
+from Utilities.azureSearch import AzureSearch
+from azure.search.documents.indexes.models import (
+    SearchableField,
+    SearchField,
+    SearchFieldDataType,
+    SimpleField,
+)
+from langchain.chains import LLMChain
 
 def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides):
     logging.info("Calling QaAnswer Open AI")
@@ -35,6 +42,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
         embeddingModelType = overrides.get('embeddingModelType') or 'azureopenai'
         promptTemplate = overrides.get('promptTemplate') or ''
         deploymentType = overrides.get('deploymentType') or 'gpt35'
+        searchType = overrides.get('searchType') or 'similarity'
 
         logging.info("TopK: " + str(topK))
         logging.info("ChainType: " + str(overrideChain))
@@ -46,6 +54,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
         logging.info("OpenAiChat: " + str(OpenAiChat))
         logging.info("OpenAiChat16k: " + str(OpenAiChat16k))
         logging.info("OpenAiEmbedding: " + str(OpenAiEmbedding))
+        logging.info("SearchType: " + str(searchType))
         
         
         thoughtPrompt = ''
@@ -107,20 +116,18 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, prompt=qaPrompt)
 
                 followupTemplate = """
-                Generate three very brief follow-up questions that the user would likely ask next.
-                Use double angle brackets to reference the questions, e.g. <>.
-                Try not to repeat questions that have already been asked.
+                Generate three very brief questions that the user would likely ask next.
+                Use double angle brackets to reference the questions, e.g. <What is Azure?>.
+                Try not to repeat questions that have already been asked.  Don't include the context in the answer.
 
                 Return the questions in the following format:
                 <>
                 <>
                 <>
-
+                
                 ALWAYS return a "NEXT QUESTIONS" part in your answer.
 
-                =========
                 {context}
-                =========
 
                 """
                 followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
@@ -156,15 +163,18 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                                             prompt=qaPrompt)
 
                 followupTemplate = """
-                Generate three very brief follow-up questions that the user would likely ask next.
-                Use double angle brackets to reference the questions, e.g. <>.
-                Try not to repeat questions that have already been asked.
+                Generate three very brief questions that the user would likely ask next.
+                Use double angle brackets to reference the questions, e.g. <What is Azure?>.
+                Try not to repeat questions that have already been asked.  Don't include the context in the answer.
 
+                Return the questions in the following format:
+                <>
+                <>
+                <>
+                
                 ALWAYS return a "NEXT QUESTIONS" part in your answer.
 
-                =========
                 {context}
-                =========
 
                 """
                 followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
@@ -206,20 +216,18 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, combine_prompt=combinePrompt)
                 
                 followupTemplate = """
-                Generate three very brief follow-up questions that the user would likely ask next.
-                Use double angle brackets to reference the questions, e.g. <>.
-                Try not to repeat questions that have already been asked.
+                Generate three very brief questions that the user would likely ask next.
+                Use double angle brackets to reference the questions, e.g. <What is Azure?>.
+                Try not to repeat questions that have already been asked.  Don't include the context in the answer.
 
                 Return the questions in the following format:
                 <>
                 <>
                 <>
-
+                
                 ALWAYS return a "NEXT QUESTIONS" part in your answer.
 
-                =========
                 {context}
-                =========
 
                 """
                 followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
@@ -259,9 +267,9 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
 
                 
                 followupTemplate = """
-                Generate three very brief follow-up questions that the user would likely ask next.
-                Use double angle brackets to reference the questions, e.g. <>.
-                Try not to repeat questions that have already been asked.
+                Generate three very brief questions that the user would likely ask next.
+                Use double angle brackets to reference the questions, e.g. <What is Azure?>.
+                Try not to repeat questions that have already been asked.  Don't include the context in the answer.
 
                 Return the questions in the following format:
                 <>
@@ -270,9 +278,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 
                 ALWAYS return a "NEXT QUESTIONS" part in your answer.
 
-                =========
                 {context}
-                =========
 
                 """
                 followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
@@ -321,9 +327,11 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 modifiedAnswer = answer
                 
                 # Followup questions
-                followupChain = RetrievalQA(combine_documents_chain=followupChain, retriever=docRetriever)
-                followupAnswer = followupChain({"query": question}, return_only_outputs=True)
-                nextQuestions = followupAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                # followupChain = RetrievalQA(combine_documents_chain=followupChain, retriever=docRetriever)
+                # followupAnswer = followupChain({"query": question}, return_only_outputs=True)
+                # nextQuestions = followupAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                llmChain = LLMChain(prompt=followupPrompt, llm=llm)
+                nextQuestions = llmChain.predict(context=rawDocs)
                 sources = ''                
                 if (modifiedAnswer.find("I don't know") >= 0):
                     sources = ''
@@ -373,8 +381,10 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                         thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
                     
                     # Followup questions
-                    followupAnswer = followupChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                    nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                    # followupAnswer = followupChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+                    # nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                    llmChain = LLMChain(prompt=followupPrompt, llm=llm)
+                    nextQuestions = llmChain.predict(context=rawDocs)
                     sources = ''                
                     if (modifiedAnswer.find("I don't know") >= 0):
                         sources = ''
@@ -408,14 +418,50 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                     return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
             elif indexType == "cogsearch" or indexType == "cogsearchvs":
                 try:
-                    r = performCogSearch(indexType, embeddingModelType, question, indexNs, topK)
-                    if r == None:
-                        docs = [Document(page_content="No results found")]
-                    else :
-                        docs = [
-                            Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
-                            for doc in r
-                            ]
+                    # r = performCogSearch(indexType, embeddingModelType, question, indexNs, topK)
+                    # if r == None:
+                    #     docs = [Document(page_content="No results found")]
+                    # else :
+                    #     docs = [
+                    #         Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
+                    #         for doc in r
+                    #         ]
+                    fields=[
+                            SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                            SearchableField(name="content", type=SearchFieldDataType.String,
+                                            searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                            SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                                        searchable=True, vector_search_dimensions=1536, vector_search_configuration="vectorConfig"),
+                            SimpleField(name="sourcefile", type="Edm.String", filterable=True),
+                    ]
+                    csVectorStore: AzureSearch = AzureSearch(
+                        azure_search_endpoint=f"https://{SearchService}.search.windows.net",
+                        azure_search_key=SearchKey,
+                        index_name=indexNs,
+                        fields=fields,
+                        embedding_function=embeddings.embed_query,
+                        semantic_configuration_name="semanticConfig",
+                    )
+
+                    # Perform a similarity search
+                    if (searchType == 'similarity'):
+                        docs = csVectorStore.similarity_search(
+                            query=question,
+                            k=topK,
+                            search_type="similarity",
+                        )
+                    elif (searchType == 'hybrid'):
+                        docs = csVectorStore.similarity_search(
+                            query=question,
+                            k=topK,
+                            search_type="similarity",
+                        )
+                    elif (searchType == 'hybridrerank'):
+                        docs = csVectorStore.semantic_hybrid_search(
+                            query=question,
+                            k=topK
+                        )
+
                     rawDocs=[]
                     for doc in docs:
                         rawDocs.append(doc.page_content)
@@ -431,8 +477,10 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                     
 
                     # Followup questions
-                    followupAnswer = followupChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                    nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                    # followupAnswer = followupChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+                    # nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
+                    llmChain = LLMChain(prompt=followupPrompt, llm=llm)
+                    nextQuestions = llmChain.predict(context=rawDocs)
                     sources = ''                
                     if (modifiedAnswer.find("I don't know") >= 0):
                         sources = ''
