@@ -511,6 +511,8 @@ const SqlAgent = () => {
                                                 <Answer
                                                     //answer={answer}
                                                     answer={answerSqlAsk[0]}
+                                                    showFollowupQuestions={true}
+                                                    onFollowupQuestionClicked={question => makeApiSqlAskRequest(question)}
                                                     isSpeaking = {isSpeaking}
                                                     onCitationClicked={(x: string) => onShowCitation(x)}
                                                     onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}

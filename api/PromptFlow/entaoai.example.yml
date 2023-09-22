@@ -16,9 +16,13 @@ configs:
   RedisPort: "6379"
   KbIndexName: "aoaikb"
   SearchService: "<SearchServiceName>"
+  SynapseName: "XXX.database.windows.net,1433"
+  SynapsePool: "northwind"
+  SynapseUser: ""
 secrets:  # required
   OpenAiKey: "<AOAIKey>"
   CosmosKey: "<CosmosKey>"
   SearchKey: "<SearchKey>""
   PineconeKey: "<PineConeKey>""
   RedisPassword: "<RedisPassword>"
+  SynapsePassword: ""

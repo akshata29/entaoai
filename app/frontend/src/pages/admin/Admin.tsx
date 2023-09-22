@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { DefaultButton, Spinner, PrimaryButton } from "@fluentui/react";
 import {
     Card,
@@ -14,7 +14,7 @@ import { Label } from '@fluentui/react/lib/Label';
 import { Stack, IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
 import { DefaultPalette, EdgeChromiumHighContrastSelector } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
-import { verifyPassword, refreshIndex, refreshIndexQuestions, indexManagement, kbQuestionManagement } from "../../api";
+import { verifyPassword, refreshIndex, refreshIndexQuestions, indexManagement, kbQuestionManagement, getAllSessions, deleteIndexSession } from "../../api";
 import { DetailsList, DetailsListLayoutMode, SelectionMode, Selection, IObjectWithKey } from '@fluentui/react/lib/DetailsList';
 import { MarqueeSelection } from '@fluentui/react/lib/MarqueeSelection';
 
@@ -63,7 +63,9 @@ const Admin = () => {
     const [questionList, setQuestionList] = useState<any[]>();
     const [filteredQuestionList, setFilteredQuestionList] = useState<any[]>();
     const [selectedQuestion, setSelectedQuestion] = useState<any[]>([])
-
+    const [selectedSession, setSelectedSession] = useState<any[]>([]);
+    const [filteredSessionList, setFilteredSessionList] = useState<any>();
+    const [sessionList, setSessionList] = useState<any[]>();
 
     const selection = new Selection({
       onSelectionChanged: () => {
@@ -72,10 +74,18 @@ const Admin = () => {
       },
     });
 
-    const labelStyles: Partial<IStyleSet<ILabelStyles>> = {
-      root: { marginTop: 10 },
-    };
+    const sessionSelection = useMemo(
+      () =>
+      new Selection({
+          onSelectionChanged: () => {
+            console.log(sessionSelection.getSelection())
+            setSelectedSession(sessionSelection.getSelection());
+      },
+      selectionMode: SelectionMode.single,
+      }),
+    []);
     
+
     const stackStyles: IStackStyles = {
       root: {
         // background: DefaultPalette.white,
@@ -91,6 +101,33 @@ const Admin = () => {
         justifyContent: 'left',
       },
     };
+
+    const sessionListColumn = [
+      {
+        key: 'id',
+        name: 'Id',
+        fieldName: 'id',
+        minWidth: 130, maxWidth: 250, isResizable: false
+      },
+      {
+        key: 'sessionName',
+        name: 'name',
+        fieldName: 'name',
+        minWidth: 130, maxWidth: 250, isResizable: false
+      },
+      {
+        key: 'indexType',
+        name: 'Index Type',
+        fieldName: 'indexType',
+        minWidth: 70, maxWidth: 100, isResizable: false
+      },
+      {
+        key: 'indexName',
+        name: 'Index Namespace',
+        fieldName: 'indexName',
+        minWidth: 100, maxWidth: 200, isResizable: false
+      }
+    ]
 
     const questionListColumn = [
       {
@@ -118,6 +155,27 @@ const Admin = () => {
         minWidth: 100, maxWidth: 200, isResizable: true
       }
     ]
+
+    const sessionListDetails = useMemo(
+      () => (
+          <MarqueeSelection selection={sessionSelection}>
+              <DetailsList
+                  className={styles.example}
+                  items={filteredSessionList || []}
+                  columns={sessionListColumn}
+                  selectionMode={SelectionMode.single}
+                  getKey={(item: any) => item.key}
+                  setKey="single"
+                  layoutMode={DetailsListLayoutMode.fixedColumns}
+                  ariaLabelForSelectionColumn="Toggle selection"
+                  checkButtonAriaLabel="select row"
+                  selection={sessionSelection}
+                  selectionPreservedOnEmptyClick={false}
+               />
+           </MarqueeSelection>
+       ),
+       [sessionSelection, sessionListColumn, sessionList]
+    );
 
     const bStyles = buttonStyles();
 
@@ -365,10 +423,94 @@ const Admin = () => {
       }
     };
 
+    const onSessionIndexChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedIndexType(item);
+      setSelectedSession([])
+      refreshSession(String(item?.key))
+    };
+
+    const onSessionIndexNsChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
+      setSelectedIndexNsItem(item);
+      const defaultKey = item?.key
+      var uniqSessions = sessionList?.filter(session => session.indexName == defaultKey)
+      setFilteredSessionList(uniqSessions)
+      setSelectedSession([])
+    };
+
+    const refreshSession = async (indexType: string) => {
+      try {
+          const indexNames: { text: any; key: any; }[] = []
+          await getAllSessions(indexType, 'chat', 'Session')
+          .then(async (response:any) => {
+              const sessionLists = []
+              if (response.length > 0) {
+                  for (const session of response) {
+                      indexNames.push({
+                        text: session.indexId,
+                        key: session.indexId
+                      })
+
+                      sessionLists.push({
+                        indexName:session.indexId,
+                        indexType:indexType,
+                        name:session.name,
+                        id:session.sessionId,
+                      });    
+                  }
+              }
+              var uniqIndexNames = indexNames.filter((v,i,a)=>a.findIndex(v2=>(v2.key===v.key))===i)
+              setOptionsNs(uniqIndexNames)
+              const defaultKey = uniqIndexNames[0].key
+              setSelectedIndexNsItem(uniqIndexNames[0])
+              setSessionList(sessionLists)
+              var uniqSessionList = sessionLists.filter(session => session.indexName == defaultKey)
+              setFilteredSessionList(uniqSessionList)
+          })
+      } catch (e) {
+      } finally {
+      }
+    }
+
+    const onDeleteSession = async () => {
+      if (adminPassword == '') {
+        setMissingAdminPassword(true)
+        return
+      }
+      setUploadText('')
+      if (selectedSession.length == 0) {
+        setUploadText("Please select a session to delete.")
+        return
+      }
+      await verifyPassword("admin", adminPassword)
+        .then(async (verifyResponse:string) => {
+          if (verifyResponse == "Success") {
+            setUploadText("Password verified")
+            setLoading(true)
+            setUploadText('Deleting your Session...')
+            await deleteIndexSession(selectedSession[0].indexName, selectedSession[0].indexType, selectedSession[0].name)
+                .then(async (sessionResponse:any) => {
+                  refreshSession(selectedSession[0].indexType)
+                  setUploadText("Session Deleted Successfully")
+                  setSelectedSession([])
+            })
+          }
+          else {
+            setUploadText(verifyResponse)
+          }
+      })
+      .catch((error : string) => {
+          setUploadText(error)
+          setLoading(false)
+      })
+      
+
+   };
+
     useEffect(() => {
       setSelectedIndexType(indexOptions[0])
       refreshBlob("pinecone")
       refreshIndexNs("pinecone")
+      refreshSession("pinecone")
     }, [])
 
     return (
@@ -483,6 +625,59 @@ const Admin = () => {
                     </Stack.Item>
                     <Stack.Item grow>
                       <PrimaryButton text="Delete KB Entries" onClick={onDeleteKbQuestion}  />
+                        <h2 className={styles.chatEmptyStateSubtitle}>
+                          <TextField disabled={true} label={uploadText} />
+                        </h2>
+                    </Stack.Item>
+                  </Stack>
+                </Stack>
+              </PivotItem>
+              <PivotItem headerText="Session Management">
+                <Stack enableScopedSelectors tokens={outerStackTokens}>
+                  <Stack enableScopedSelectors styles={stackStyles} tokens={innerStackTokens}>
+                    <Stack.Item grow={2} styles={stackItemStyles}>
+                      <Label>Index Type</Label>
+                      &nbsp;
+                      <Dropdown
+                          selectedKey={selectedIndexType ? selectedIndexType.key : undefined}
+                          onChange={onSessionIndexChange}
+                          defaultSelectedKey="pinecone"
+                          placeholder="Select an Index Type"
+                          options={indexOptions}
+                          disabled={false}
+                          styles={dropdownStyles}
+                      />
+                      &nbsp;
+                      <Dropdown
+                          selectedKey={selectedIndexNsItem ? selectedIndexNsItem.key : undefined}
+                          // eslint-disable-next-line react/jsx-no-bind
+                          onChange={onSessionIndexNsChange}
+                          placeholder="Select an Index Ns"
+                          options={optionsNs}
+                          styles={dropdownStyles}
+                      />
+                    </Stack.Item>
+                    <Stack.Item grow>
+                      <div>
+                          {/* <MarqueeSelection selection={sessionSelection}>
+                            <DetailsList
+                                compact={true}
+                                items={filteredSessionList || []}
+                                columns={sessionListColumn}
+                                selectionMode={SelectionMode.single}
+                                getKey={(item: any) => item.key}
+                                selection={sessionSelection}
+                                selectionPreservedOnEmptyClick={true}
+                                layoutMode={DetailsListLayoutMode.justified}
+                                ariaLabelForSelectionColumn="Toggle selection"
+                                checkButtonAriaLabel="select row"
+                            />
+                          </MarqueeSelection> */}
+                          {sessionListDetails}
+                      </div>
+                    </Stack.Item>
+                    <Stack.Item grow>
+                      <PrimaryButton text="Delete Session" onClick={onDeleteSession}  />
                         <h2 className={styles.chatEmptyStateSubtitle}>
                           <TextField disabled={true} label={uploadText} />
                         </h2>

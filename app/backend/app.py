@@ -368,7 +368,36 @@ def pibChat():
     except Exception as e:
         logging.exception("Exception in /pibChat")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/getAllSessions", methods=["POST"])
+def getAllSessions():
+    indexType=request.json["indexType"]
+    feature=request.json["feature"]
+    type=request.json["type"]
     
+    try:
+        CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
+        CosmosKey = os.environ.get("COSMOSKEY")
+        CosmosDb = os.environ.get("COSMOSDATABASE")
+        CosmosContainer = os.environ.get("COSMOSCONTAINER")
+
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
+        cosmosKey = PartitionKey(path="/sessionId")
+        cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
+
+        cosmosQuery = "SELECT c.sessionId, c.name, c.indexId FROM c WHERE c.type = @type and c.feature = @feature and c.indexType = @indexType"
+        params = [dict(name="@type", value=type), 
+                  dict(name="@feature", value=feature), 
+                  dict(name="@indexType", value=indexType)]
+        results = cosmosContainer.query_items(query=cosmosQuery, parameters=params, enable_cross_partition_query=True)
+        items = [item for item in results]
+        #output = json.dumps(items, indent=True)
+        return jsonify(items)
+    except Exception as e:
+        logging.exception("Exception in /getAllSessions")
+        return jsonify({"error": str(e)}), 500
+        
 @app.route("/getAllIndexSessions", methods=["POST"])
 def getAllIndexSessions():
     indexType=request.json["indexType"]
@@ -555,13 +584,30 @@ def sqlAsk():
     postBody=request.json["postBody"]
 
     try:
-        headers = {'content-type': 'application/json'}
-        url = os.environ.get("SQLASK_URL")
+        apiType = os.environ.get("ApiType")
+    except:
+        apiType = "Functions"
+    print(apiType)
 
-        data = postBody
-        params = {'question': question, 'topK': top, 'embeddingModelType': embeddingModelType}
-        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
-        jsonDict = json.loads(resp.text)
+    try:
+        if apiType == "PromptFlow":
+            pfQaKey = os.environ.get("PFSQLASK_KEY")
+            headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ pfQaKey)}
+            url = os.environ.get("PFSQLASK_URL")
+            combinedParams = {'question': question, 'top': top, 'embeddingModelType': embeddingModelType, "postBody": postBody }
+            resp = requests.post(url, data=json.dumps(combinedParams), headers=headers)
+            jsonResp = json.loads(resp.text)
+            #Ignore additional output that are used in PromptFlow for Evaluation (like answer, context)
+            jsonDict = jsonResp['output']
+        else:
+            headers = {'content-type': 'application/json'}
+            url = os.environ.get("SQLASK_URL")
+
+            data = postBody
+            params = {'question': question, 'topK': top, 'embeddingModelType': embeddingModelType}
+            resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+            jsonDict = json.loads(resp.text)
+        
         return jsonify(jsonDict)
     except Exception as e:
         logging.exception("Exception in /sqlAsk")

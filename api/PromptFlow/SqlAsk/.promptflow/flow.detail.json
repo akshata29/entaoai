@@ -1,0 +1,617 @@
+{
+  "flow_runs": [
+    {
+      "run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_0",
+      "status": "Completed",
+      "error": null,
+      "inputs": {
+        "embeddingModelType": "azureopenai",
+        "postBody": {
+          "values": [
+            {
+              "data": {
+                "text": ""
+              },
+              "recordId": 0
+            }
+          ]
+        },
+        "question": "Tell me a joke",
+        "top": 10
+      },
+      "output": {
+        "answer": "The question can't be used to generate SQL Query or results",
+        "context": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+        "output": {
+          "values": [
+            {
+              "recordId": 0,
+              "data": {
+                "data_points": [],
+                "answer": "The question can't be used to generate SQL Query or results",
+                "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+                "toolInput": "",
+                "observation": "",
+                "nextQuestions": "",
+                "error": ""
+              }
+            }
+          ]
+        }
+      },
+      "metrics": null,
+      "request": null,
+      "parent_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
+      "root_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
+      "source_run_id": null,
+      "flow_id": "template_standard_flow",
+      "start_time": "2023-09-22T16:28:17.134785Z",
+      "end_time": "2023-09-22T16:28:19.359778Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "parseBody",
+          "type": "Tool",
+          "inputs": {
+            "postBody": {
+              "values": [
+                {
+                  "data": {
+                    "text": ""
+                  },
+                  "recordId": 0
+                }
+              ]
+            }
+          },
+          "output": {
+            "data": {
+              "text": ""
+            }
+          },
+          "start_time": 1695418097.135785,
+          "end_time": 1695418097.135785,
+          "error": null,
+          "children": null,
+          "node_name": "parse_postBody"
+        },
+        {
+          "name": "generateTableSchema",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai"
+          },
+          "output": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+          "start_time": 1695418097.137291,
+          "end_time": 1695418098.493626,
+          "error": null,
+          "children": null,
+          "node_name": "generateTableSchema"
+        },
+        {
+          "name": "IsQuery",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai",
+            "question": "Tell me a joke",
+            "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
+          },
+          "output": {
+            "jsonAnswer": null,
+            "validQuestion": false
+          },
+          "start_time": 1695418098.497604,
+          "end_time": 1695418099.35519,
+          "error": null,
+          "children": [
+            {
+              "name": "openai.api_resources.chat_completion.ChatCompletion.create",
+              "type": "LLM",
+              "inputs": {
+                "engine": "chat16k",
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "\n      If the requested OBJECTIVE can be answered by querying a database with tables described in SCHEMA, ANSWER: YES.\n      Otherwise ANSWER: NO.\n\n      Do not answer with any other word than YES or NO.\n\n      SCHEMA:\n      table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real\n\n      OBJECTIVE: Tell me a joke\n\n      ANSWER: Let's think step by step and respond with ONLY YES or NO.\n    "
+                  }
+                ],
+                "temperature": 0,
+                "max_tokens": 1000,
+                "frequency_penalty": 0,
+                "presence_penalty": 0,
+                "stop": null
+              },
+              "output": {
+                "id": "chatcmpl-81dIpUPJcnkVEa6hWk4KawdxnXUiD",
+                "object": "chat.completion",
+                "created": 1695400099,
+                "model": "gpt-35-turbo-16k",
+                "prompt_filter_results": [
+                  {
+                    "prompt_index": 0,
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "choices": [
+                  {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                      "role": "assistant",
+                      "content": "NO"
+                    },
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "usage": {
+                  "completion_tokens": 1,
+                  "prompt_tokens": 582,
+                  "total_tokens": 583
+                }
+              },
+              "start_time": 1695418098.499148,
+              "end_time": 1695418099.354191,
+              "error": null,
+              "children": null,
+              "node_name": null
+            }
+          ],
+          "node_name": "isQuery"
+        },
+        {
+          "name": "generateFollowupQuestions",
+          "type": "Tool",
+          "inputs": {
+            "formattedAnswer": "",
+            "isQuery": false,
+            "llm": "",
+            "sqlQuery": "",
+            "sqlResult": "",
+            "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
+          },
+          "output": {
+            "values": [
+              {
+                "recordId": 0,
+                "data": {
+                  "data_points": [],
+                  "answer": "The question can't be used to generate SQL Query or results",
+                  "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+                  "toolInput": "",
+                  "observation": "",
+                  "nextQuestions": "",
+                  "error": ""
+                }
+              }
+            ]
+          },
+          "start_time": 1695418099.357191,
+          "end_time": 1695418099.357737,
+          "error": null,
+          "children": null,
+          "node_name": "followup_questions"
+        }
+      ],
+      "variant_id": "",
+      "name": "",
+      "description": "",
+      "tags": null,
+      "system_metrics": {
+        "duration": 2.224993,
+        "total_tokens": 583
+      },
+      "result": {
+        "answer": "The question can't be used to generate SQL Query or results",
+        "context": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+        "output": {
+          "values": [
+            {
+              "recordId": 0,
+              "data": {
+                "data_points": [],
+                "answer": "The question can't be used to generate SQL Query or results",
+                "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+                "toolInput": "",
+                "observation": "",
+                "nextQuestions": "",
+                "error": ""
+              }
+            }
+          ]
+        }
+      },
+      "upload_metrics": false
+    }
+  ],
+  "node_runs": [
+    {
+      "node": "parse_postBody",
+      "flow_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
+      "run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_parse_postBody_0",
+      "status": "Completed",
+      "inputs": {
+        "postBody": {
+          "values": [
+            {
+              "data": {
+                "text": ""
+              },
+              "recordId": 0
+            }
+          ]
+        }
+      },
+      "output": {
+        "data": {
+          "text": ""
+        }
+      },
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_0",
+      "start_time": "2023-09-22T16:28:17.135785Z",
+      "end_time": "2023-09-22T16:28:17.137291Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "parseBody",
+          "type": "Tool",
+          "inputs": {
+            "postBody": {
+              "values": [
+                {
+                  "data": {
+                    "text": ""
+                  },
+                  "recordId": 0
+                }
+              ]
+            }
+          },
+          "output": {
+            "data": {
+              "text": ""
+            }
+          },
+          "start_time": 1695418097.135785,
+          "end_time": 1695418097.135785,
+          "error": null,
+          "children": null,
+          "node_name": "parse_postBody"
+        }
+      ],
+      "variant_id": "",
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "duration": 0.001506
+      },
+      "result": {
+        "data": {
+          "text": ""
+        }
+      }
+    },
+    {
+      "node": "generateTableSchema",
+      "flow_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
+      "run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_generateTableSchema_0",
+      "status": "Completed",
+      "inputs": {
+        "conn": "entaoai"
+      },
+      "output": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_0",
+      "start_time": "2023-09-22T16:28:17.137291Z",
+      "end_time": "2023-09-22T16:28:18.493626Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "generateTableSchema",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai"
+          },
+          "output": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+          "start_time": 1695418097.137291,
+          "end_time": 1695418098.493626,
+          "error": null,
+          "children": null,
+          "node_name": "generateTableSchema"
+        }
+      ],
+      "variant_id": "",
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "duration": 1.356335
+      },
+      "result": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
+    },
+    {
+      "node": "isQuery",
+      "flow_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
+      "run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_isQuery_0",
+      "status": "Completed",
+      "inputs": {
+        "conn": "entaoai",
+        "question": "Tell me a joke",
+        "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
+      },
+      "output": {
+        "jsonAnswer": null,
+        "validQuestion": false
+      },
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_0",
+      "start_time": "2023-09-22T16:28:18.496671Z",
+      "end_time": "2023-09-22T16:28:19.355190Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "IsQuery",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai",
+            "question": "Tell me a joke",
+            "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
+          },
+          "output": {
+            "jsonAnswer": null,
+            "validQuestion": false
+          },
+          "start_time": 1695418098.497604,
+          "end_time": 1695418099.35519,
+          "error": null,
+          "children": [
+            {
+              "name": "openai.api_resources.chat_completion.ChatCompletion.create",
+              "type": "LLM",
+              "inputs": {
+                "engine": "chat16k",
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "\n      If the requested OBJECTIVE can be answered by querying a database with tables described in SCHEMA, ANSWER: YES.\n      Otherwise ANSWER: NO.\n\n      Do not answer with any other word than YES or NO.\n\n      SCHEMA:\n      table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real\n\n      OBJECTIVE: Tell me a joke\n\n      ANSWER: Let's think step by step and respond with ONLY YES or NO.\n    "
+                  }
+                ],
+                "temperature": 0,
+                "max_tokens": 1000,
+                "frequency_penalty": 0,
+                "presence_penalty": 0,
+                "stop": null
+              },
+              "output": {
+                "id": "chatcmpl-81dIpUPJcnkVEa6hWk4KawdxnXUiD",
+                "object": "chat.completion",
+                "created": 1695400099,
+                "model": "gpt-35-turbo-16k",
+                "prompt_filter_results": [
+                  {
+                    "prompt_index": 0,
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "choices": [
+                  {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                      "role": "assistant",
+                      "content": "NO"
+                    },
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "usage": {
+                  "completion_tokens": 1,
+                  "prompt_tokens": 582,
+                  "total_tokens": 583
+                }
+              },
+              "start_time": 1695418098.499148,
+              "end_time": 1695418099.354191,
+              "error": null,
+              "children": null,
+              "node_name": null
+            }
+          ],
+          "node_name": "isQuery"
+        }
+      ],
+      "variant_id": "",
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "completion_tokens": 1,
+        "prompt_tokens": 582,
+        "total_tokens": 583,
+        "duration": 0.858519
+      },
+      "result": {
+        "jsonAnswer": null,
+        "validQuestion": false
+      }
+    },
+    {
+      "node": "followup_questions",
+      "flow_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
+      "run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_followup_questions_0",
+      "status": "Completed",
+      "inputs": {
+        "formattedAnswer": "",
+        "isQuery": false,
+        "llm": "",
+        "sqlQuery": "",
+        "sqlResult": "",
+        "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
+      },
+      "output": {
+        "values": [
+          {
+            "recordId": 0,
+            "data": {
+              "data_points": [],
+              "answer": "The question can't be used to generate SQL Query or results",
+              "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+              "toolInput": "",
+              "observation": "",
+              "nextQuestions": "",
+              "error": ""
+            }
+          }
+        ]
+      },
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_0",
+      "start_time": "2023-09-22T16:28:19.357191Z",
+      "end_time": "2023-09-22T16:28:19.357737Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "generateFollowupQuestions",
+          "type": "Tool",
+          "inputs": {
+            "formattedAnswer": "",
+            "isQuery": false,
+            "llm": "",
+            "sqlQuery": "",
+            "sqlResult": "",
+            "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
+          },
+          "output": {
+            "values": [
+              {
+                "recordId": 0,
+                "data": {
+                  "data_points": [],
+                  "answer": "The question can't be used to generate SQL Query or results",
+                  "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+                  "toolInput": "",
+                  "observation": "",
+                  "nextQuestions": "",
+                  "error": ""
+                }
+              }
+            ]
+          },
+          "start_time": 1695418099.357191,
+          "end_time": 1695418099.357737,
+          "error": null,
+          "children": null,
+          "node_name": "followup_questions"
+        }
+      ],
+      "variant_id": "",
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "[2023-09-22T16:28:19+0000] isQuery: False\n",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "duration": 0.000546
+      },
+      "result": {
+        "values": [
+          {
+            "recordId": 0,
+            "data": {
+              "data_points": [],
+              "answer": "The question can't be used to generate SQL Query or results",
+              "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
+              "toolInput": "",
+              "observation": "",
+              "nextQuestions": "",
+              "error": ""
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

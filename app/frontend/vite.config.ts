@@ -29,6 +29,7 @@ export default defineConfig({
             "/deleteIndexSession": "http://127.0.0.1:5000",
             "/getAllDocumentRuns": "http://127.0.0.1:5000",
             "/getAllIndexSessions": "http://127.0.0.1:5000",
+            "/getAllSessions": "http://127.0.0.1:5000",
             "/getCashFlow": "http://127.0.0.1:5000",
             "/getDocumentList": "http://127.0.0.1:5000",
             "/getEvaluationResults": "http://127.0.0.1:5000",

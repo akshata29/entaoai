@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.schema.json
 name: blue
 endpoint_name: questionanswering
-model: azureml:questionanswering:3
+model: azureml:questionanswering:4
 type: managed
   # You can also specify model files path inline
   # path: examples/flows/chat/basic-chat

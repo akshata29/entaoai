@@ -261,7 +261,7 @@ const ChatGpt = () => {
         () =>
         new Selection({
             onSelectionChanged: () => {
-            setSelectedItemsGpt(selection.getSelection());
+            setSelectedItemsGpt(selectionGpt.getSelection());
         },
         selectionMode: SelectionMode.single,
         }),
@@ -1286,7 +1286,7 @@ const ChatGpt = () => {
                         </div>
                         <div className={styles.commandsContainer}>
                             <SessionButton className={styles.commandButton} onClick={clearChat} />
-                            <ClearChatButton className={styles.commandButton} onClick={deleteSession}  text="Delete Session" disabled={false} />
+                            {/* <ClearChatButton className={styles.commandButton} onClick={deleteSession}  text="Delete Session" disabled={false} /> */}
                             <RenameButton className={styles.commandButton}  onClick={renameSession}  text="Rename Session"/>
                             <TextField className={styles.commandButton} value={sessionName} onChange={onSessionNameChange}
                                 styles={{root: {width: '200px'}}} />
@@ -1733,7 +1733,7 @@ const ChatGpt = () => {
                             </div>
                             <div className={styles.commandsContainer}>
                                 <SessionButton className={styles.commandButton} onClick={clearChatGpt} />
-                                <ClearChatButton className={styles.commandButton} onClick={deleteSessionGpt}  text="Delete Session" disabled={false} />
+                                {/* <ClearChatButton className={styles.commandButton} onClick={deleteSessionGpt}  text="Delete Session" disabled={false} /> */}
                                 <RenameButton className={styles.commandButton}  onClick={renameSessionGpt}  text="Rename Session"/>
                                 <TextField className={styles.commandButton} value={sessionNameGpt} onChange={onSessionNameChangeGpt}
                                     styles={{root: {width: '200px'}}} />

@@ -1,0 +1,17 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
+name: sqlask
+auth_mode: key
+kind: Managed
+location: southcentralus
+public_network_access: "enabled"
+identity:
+    type: user_assigned
+    principal_id: dfd89515-f588-441f-9cbd-3f0082572e5c
+    tenant_id: b82069fa-ada8-453a-817b-e6348d534d88
+    user_assigned_identities: [
+      {
+        client_id: aeb3fbc0-4a64-4a78-8322-28418fa618c9,
+        principal_id: dfd89515-f588-441f-9cbd-3f0082572e5c,
+        resource_id: /subscriptions/e2171f6d-2650-45e6-af7e-6d6e44ca92b1/resourcegroups/dataai/providers/Microsoft.ManagedIdentity/userAssignedIdentities/chatpdfuami
+      }
+    ]

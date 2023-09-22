@@ -1,0 +1,190 @@
+{
+  "package": {},
+  "code": {
+    "echo.py": {
+      "type": "python",
+      "inputs": {
+        "input": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "function": "echo",
+      "is_builtin": false
+    },
+    "parse_postBody.py": {
+      "type": "python",
+      "inputs": {
+        "postBody": {
+          "type": [
+            "list"
+          ]
+        }
+      },
+      "source": "parse_postBody.py",
+      "function": "parseBody"
+    },
+    "create_llm.py": {
+      "type": "python",
+      "inputs": {
+        "embeddingModelType": {
+          "type": [
+            "string"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        }
+      },
+      "source": "create_llm.py",
+      "function": "createLlm"
+    },
+    "generateTableSchema.py": {
+      "type": "python",
+      "inputs": {
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        }
+      },
+      "source": "generateTableSchema.py",
+      "function": "generateTableSchema"
+    },
+    "isQuery.py": {
+      "type": "python",
+      "inputs": {
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "tableSchema": {
+          "type": [
+            "string"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        }
+      },
+      "source": "isQuery.py",
+      "function": "IsQuery"
+    },
+    "generateSql.py": {
+      "type": "python",
+      "inputs": {
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        },
+        "tableSchema": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "generateSql.py",
+      "function": "generateSql"
+    },
+    "executeQuery.py": {
+      "type": "python",
+      "inputs": {
+        "sqlQuery": {
+          "type": [
+            "string"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        }
+      },
+      "source": "executeQuery.py",
+      "function": "executeQuery"
+    },
+    "generateNlp.py": {
+      "type": "python",
+      "inputs": {
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "conn": {
+          "type": [
+            "CustomConnection"
+          ]
+        },
+        "sqlResult": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "generateNlp.py",
+      "function": "generateNlp"
+    },
+    "followup_questions.py": {
+      "type": "python",
+      "inputs": {
+        "formattedAnswer": {
+          "type": [
+            "string"
+          ]
+        },
+        "tableSchema": {
+          "type": [
+            "string"
+          ]
+        },
+        "sqlQuery": {
+          "type": [
+            "string"
+          ]
+        },
+        "sqlResult": {
+          "type": [
+            "object"
+          ]
+        },
+        "llm": {
+          "type": [
+            "object"
+          ]
+        },
+        "isQuery": {
+          "type": [
+            "bool"
+          ]
+        }
+      },
+      "source": "followup_questions.py",
+      "function": "generateFollowupQuestions"
+    },
+    "joke.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "topic": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "description": "Prompt is a jinja2 template that generates prompt for LLM",
+      "is_builtin": false
+    }
+  }
+}

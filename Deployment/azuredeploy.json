@@ -689,6 +689,30 @@
               "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlAsk?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
             },
             {
+              "name": "PFQA_URL",
+              "value": ""
+            },
+            {
+              "name": "PFQA_KEY",
+              "value": ""
+            },
+            {
+              "name": "PFCHAT_URL",
+              "value": ""
+            },
+            {
+              "name": "PFCHAT_KEY",
+              "value": ""
+            },
+            {
+              "name": "PFSQLASK_URL",
+              "value": ""
+            },
+            {
+              "name": "PFSQLASK_KEY",
+              "value": ""
+            },
+            {
               "name": "SPEECH_REGION",
               "value": "[parameters('location')]"
             },

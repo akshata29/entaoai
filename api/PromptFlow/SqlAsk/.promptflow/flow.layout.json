@@ -1,0 +1,70 @@
+{
+  "nodeLayouts": {
+    "inputs": {
+      "x": 158,
+      "y": 226,
+      "index": -1
+    },
+    "outputs": {
+      "x": 194,
+      "y": 1009,
+      "index": -1
+    },
+    "echo": {
+      "x": 12,
+      "y": 282,
+      "index": -1
+    },
+    "joke": {
+      "x": 12,
+      "y": 172,
+      "index": -1
+    },
+    "parse_postBody": {
+      "x": -78,
+      "y": 341,
+      "index": 0
+    },
+    "python_node_k476": {
+      "x": 12,
+      "y": 492,
+      "index": -1
+    },
+    "create_llm": {
+      "x": 567,
+      "y": 678,
+      "index": 1
+    },
+    "generateTableSchema": {
+      "x": 433.5,
+      "y": 339,
+      "index": 2
+    },
+    "generateSql": {
+      "x": -49.5,
+      "y": 619,
+      "index": 4
+    },
+    "executeQuery": {
+      "x": 400.5,
+      "y": 750,
+      "index": 5
+    },
+    "generateNlp": {
+      "x": 18.5,
+      "y": 794,
+      "index": 6
+    },
+    "followup_questions": {
+      "x": 263.5,
+      "y": 913,
+      "index": 7
+    },
+    "isQuery": {
+      "x": 521,
+      "y": 449,
+      "index": 3
+    }
+  },
+  "orientation": "Vertical"
+}

@@ -504,6 +504,27 @@ export async function pibChatGptApi(options: ChatRequest, symbol: string, indexN
   }
   return parsedResponse.values[0].data;
 }
+
+export async function getAllSessions(indexType:string, feature:string, type:string): Promise<Any> {
+  const response = await fetch('/getAllSessions' , {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        indexType:indexType,
+        feature:feature,
+        type:type,
+      })
+  });
+
+  const parsedResponse: Any = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse;
+}
+
 export async function getAllIndexSessions(indexNs: string, indexType:string, feature:string, type:string): Promise<Any> {
   const response = await fetch('/getAllIndexSessions' , {
       method: "POST",
