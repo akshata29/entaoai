@@ -8,7 +8,7 @@ inputs:
     default: azureopenai
   question:
     type: string
-    default: Tell me a joke
+    default: How many customers did placed an order?
   top:
     type: int
     default: 10

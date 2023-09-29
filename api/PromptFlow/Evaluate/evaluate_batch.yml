@@ -1,0 +1,10 @@
+name: Evaluate_Batch
+flow: .
+data: bert.jsonl
+#run: <Uncomment to select a run input>
+column_mapping:
+  question: ${data.question}
+  answer: ${data.answer}
+  context: ${data.context}
+  groundtruth: ${data.groundtruth}
+  

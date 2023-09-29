@@ -1,7 +1,8 @@
 inputs:
   question:
     type: string
-    default: How are sentence pairs represented in the input to BERT?
+    default: What is the advantage of fine-tuning BERT over using feature-based
+      approaches?
     is_chat_input: false
   indexType:
     type: string

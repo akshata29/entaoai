@@ -1,7 +1,7 @@
 {
   "flow_runs": [
     {
-      "run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_0",
+      "run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_0",
       "status": "Completed",
       "error": null,
       "inputs": {
@@ -16,11 +16,11 @@
             }
           ]
         },
-        "question": "Tell me a joke",
+        "question": "How many customers did placed an order?",
         "top": 10
       },
       "output": {
-        "answer": "The question can't be used to generate SQL Query or results",
+        "answer": "There were 89 customers who placed an order.",
         "context": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
         "output": {
           "values": [
@@ -28,11 +28,11 @@
               "recordId": 0,
               "data": {
                 "data_points": [],
-                "answer": "The question can't be used to generate SQL Query or results",
+                "answer": "There were 89 customers who placed an order.",
                 "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
-                "toolInput": "",
-                "observation": "",
-                "nextQuestions": "",
+                "toolInput": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+                "observation": "{'TotalCustomers': [89]}",
+                "nextQuestions": "<What are the tables and columns in the database?>\n<How many distinct customers placed an order?>\n<Can you provide more information about the customers who placed an order?>",
                 "error": ""
               }
             }
@@ -41,12 +41,12 @@
       },
       "metrics": null,
       "request": null,
-      "parent_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
-      "root_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
+      "parent_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e",
+      "root_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e",
       "source_run_id": null,
       "flow_id": "template_standard_flow",
-      "start_time": "2023-09-22T16:28:17.134785Z",
-      "end_time": "2023-09-22T16:28:19.359778Z",
+      "start_time": "2023-09-28T20:41:24.818058Z",
+      "end_time": "2023-09-28T20:41:29.581982Z",
       "index": 0,
       "api_calls": [
         {
@@ -69,8 +69,8 @@
               "text": ""
             }
           },
-          "start_time": 1695418097.135785,
-          "end_time": 1695418097.135785,
+          "start_time": 1695951684.820058,
+          "end_time": 1695951684.820058,
           "error": null,
           "children": null,
           "node_name": "parse_postBody"
@@ -82,8 +82,8 @@
             "conn": "entaoai"
           },
           "output": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
-          "start_time": 1695418097.137291,
-          "end_time": 1695418098.493626,
+          "start_time": 1695951684.821057,
+          "end_time": 1695951686.240456,
           "error": null,
           "children": null,
           "node_name": "generateTableSchema"
@@ -93,15 +93,15 @@
           "type": "Tool",
           "inputs": {
             "conn": "entaoai",
-            "question": "Tell me a joke",
+            "question": "How many customers did placed an order?",
             "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
           },
           "output": {
             "jsonAnswer": null,
-            "validQuestion": false
+            "validQuestion": true
           },
-          "start_time": 1695418098.497604,
-          "end_time": 1695418099.35519,
+          "start_time": 1695951686.242456,
+          "end_time": 1695951686.861764,
           "error": null,
           "children": [
             {
@@ -112,7 +112,7 @@
                 "messages": [
                   {
                     "role": "system",
-                    "content": "\n      If the requested OBJECTIVE can be answered by querying a database with tables described in SCHEMA, ANSWER: YES.\n      Otherwise ANSWER: NO.\n\n      Do not answer with any other word than YES or NO.\n\n      SCHEMA:\n      table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real\n\n      OBJECTIVE: Tell me a joke\n\n      ANSWER: Let's think step by step and respond with ONLY YES or NO.\n    "
+                    "content": "\n      If the requested OBJECTIVE can be answered by querying a database with tables described in SCHEMA, ANSWER: YES.\n      Otherwise ANSWER: NO.\n\n      Do not answer with any other word than YES or NO.\n\n      SCHEMA:\n      table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real\n\n      OBJECTIVE: How many customers did placed an order?\n\n      ANSWER: Let's think step by step and respond with ONLY YES or NO.\n    "
                   }
                 ],
                 "temperature": 0,
@@ -122,9 +122,137 @@
                 "stop": null
               },
               "output": {
-                "id": "chatcmpl-81dIpUPJcnkVEa6hWk4KawdxnXUiD",
+                "id": "chatcmpl-83s75pTVHQt4nHJ96aR6i8EfDBMKA",
                 "object": "chat.completion",
-                "created": 1695400099,
+                "created": 1695933687,
+                "model": "gpt-35-turbo-16k",
+                "prompt_annotations": [
+                  {
+                    "prompt_index": 0,
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "choices": [
+                  {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                      "role": "assistant",
+                      "content": "YES"
+                    },
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "usage": {
+                  "completion_tokens": 1,
+                  "prompt_tokens": 585,
+                  "total_tokens": 586
+                }
+              },
+              "start_time": 1695951686.242456,
+              "end_time": 1695951686.860741,
+              "error": null,
+              "children": null,
+              "node_name": null
+            }
+          ],
+          "node_name": "isQuery"
+        },
+        {
+          "name": "createLlm",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai",
+            "embeddingModelType": "azureopenai"
+          },
+          "output": {
+            "model": "gpt-3.5-turbo",
+            "request_timeout": null,
+            "max_tokens": 500,
+            "stream": false,
+            "n": 1,
+            "temperature": 0.3,
+            "engine": "chat16k",
+            "_type": "azure-openai-chat"
+          },
+          "start_time": 1695951686.864759,
+          "end_time": 1695951686.866828,
+          "error": null,
+          "children": null,
+          "node_name": "create_llm"
+        },
+        {
+          "name": "generateSql",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai",
+            "question": "How many customers did placed an order?",
+            "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
+          },
+          "output": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+          "start_time": 1695951686.865739,
+          "end_time": 1695951687.451822,
+          "error": null,
+          "children": [
+            {
+              "name": "openai.api_resources.chat_completion.ChatCompletion.create",
+              "type": "LLM",
+              "inputs": {
+                "engine": "chat16k",
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": " You are a SQL Server programmer Assistant.Your role is to generate SQL code (SQL Server) to retrieve an answer to a natural language query. Make sure to disambiguate column names when creating queries that use more than one table. If a valid SQL query cannot be generated, only say \"ERROR:\" followed by why it cannot be generated.\n                  Do not answer any questions on inserting or deleting rows from the table. Instead, say \"ERROR: I am not authorized to make changes to the data\"\n\n                  Use the following sales database schema to write SQL queries:\n                  table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real\n\n                  Examples:\n                  User: Which Shipper can ship the product?. SQL Code:\n                  Assistant: SELECT s.ShipperID, s.CompanyName FROM Shippers s JOIN Orders o ON s.ShipperID = o.ShipVia JOIN OrderDetails od ON o.OrderID = od.OrderID JOIN Products p ON od.ProductID = p.ProductID;\n                  User: Number of units in stock by category and supplier continent? SQL Code:\n                  Assistant: SELECT c.CategoryName, s.Country AS SupplierContinent, SUM(p.UnitsInStock) AS TotalUnitsInStock FROM Products p JOIN Categories c ON p.CategoryID = c.CategoryID JOIN Suppliers s ON p.SupplierID = s.SupplierID GROUP BY c.CategoryName, s.Country ORDER BY c.CategoryName, s.Country;\n                  User: List Top 10 Products?. SQL Code:\n                  Assistant: SELECT TOP 10 Products from Products;\n            "
+                  },
+                  {
+                    "role": "user",
+                    "content": "How many customers did placed an order?"
+                  }
+                ],
+                "temperature": 0,
+                "max_tokens": 2000,
+                "frequency_penalty": 0,
+                "presence_penalty": 0,
+                "stop": null
+              },
+              "output": {
+                "id": "chatcmpl-83s75jggUApSDhj6yBuDZkA3kJjJI",
+                "object": "chat.completion",
+                "created": 1695933687,
                 "model": "gpt-35-turbo-16k",
                 "prompt_filter_results": [
                   {
@@ -155,7 +283,7 @@
                     "finish_reason": "stop",
                     "message": {
                       "role": "assistant",
-                      "content": "NO"
+                      "content": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;"
                     },
                     "content_filter_results": {
                       "hate": {
@@ -178,29 +306,157 @@
                   }
                 ],
                 "usage": {
-                  "completion_tokens": 1,
-                  "prompt_tokens": 582,
-                  "total_tokens": 583
+                  "completion_tokens": 14,
+                  "prompt_tokens": 811,
+                  "total_tokens": 825
                 }
               },
-              "start_time": 1695418098.499148,
-              "end_time": 1695418099.354191,
+              "start_time": 1695951686.866828,
+              "end_time": 1695951687.451822,
               "error": null,
               "children": null,
               "node_name": null
             }
           ],
-          "node_name": "isQuery"
+          "node_name": "generateSql"
+        },
+        {
+          "name": "executeQuery",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai",
+            "sqlQuery": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;"
+          },
+          "output": "   TotalCustomers\n0              89",
+          "start_time": 1695951687.455786,
+          "end_time": 1695951688.090825,
+          "error": null,
+          "children": null,
+          "node_name": "executeQuery"
+        },
+        {
+          "name": "generateNlp",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai",
+            "question": "How many customers did placed an order?",
+            "sqlResult": "   TotalCustomers\n0              89"
+          },
+          "output": "There were 89 customers who placed an order.",
+          "start_time": 1695951688.095828,
+          "end_time": 1695951688.499676,
+          "error": null,
+          "children": [
+            {
+              "name": "openai.api_resources.chat_completion.ChatCompletion.create",
+              "type": "LLM",
+              "inputs": {
+                "engine": "chat16k",
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "You are bot that takes question-answer pairs and converts the answer to natural language. For tabular information return it as an html table. Do not return markdown format."
+                  },
+                  {
+                    "role": "user",
+                    "content": "How many customers did placed an order?{'TotalCustomers': [89]}"
+                  }
+                ],
+                "temperature": 0,
+                "max_tokens": 2000,
+                "frequency_penalty": 0,
+                "presence_penalty": 0,
+                "stop": null
+              },
+              "output": {
+                "id": "chatcmpl-83s761vDkvnpBetVcPe7gGPYVNooz",
+                "object": "chat.completion",
+                "created": 1695933688,
+                "model": "gpt-35-turbo-16k",
+                "prompt_filter_results": [
+                  {
+                    "prompt_index": 0,
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "choices": [
+                  {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                      "role": "assistant",
+                      "content": "There were 89 customers who placed an order."
+                    },
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "usage": {
+                  "completion_tokens": 10,
+                  "prompt_tokens": 59,
+                  "total_tokens": 69
+                }
+              },
+              "start_time": 1695951688.098978,
+              "end_time": 1695951688.499676,
+              "error": null,
+              "children": null,
+              "node_name": null
+            }
+          ],
+          "node_name": "generateNlp"
         },
         {
           "name": "generateFollowupQuestions",
           "type": "Tool",
           "inputs": {
-            "formattedAnswer": "",
-            "isQuery": false,
-            "llm": "",
-            "sqlQuery": "",
-            "sqlResult": "",
+            "formattedAnswer": "There were 89 customers who placed an order.",
+            "isQuery": true,
+            "llm": {
+              "model": "gpt-3.5-turbo",
+              "request_timeout": null,
+              "max_tokens": 500,
+              "stream": false,
+              "n": 1,
+              "temperature": 0.3,
+              "engine": "chat16k",
+              "_type": "azure-openai-chat"
+            },
+            "sqlQuery": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+            "sqlResult": "   TotalCustomers\n0              89",
             "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
           },
           "output": {
@@ -209,20 +465,111 @@
                 "recordId": 0,
                 "data": {
                   "data_points": [],
-                  "answer": "The question can't be used to generate SQL Query or results",
+                  "answer": "There were 89 customers who placed an order.",
                   "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
-                  "toolInput": "",
-                  "observation": "",
-                  "nextQuestions": "",
+                  "toolInput": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+                  "observation": "{'TotalCustomers': [89]}",
+                  "nextQuestions": "<What are the tables and columns in the database?>\n<How many distinct customers placed an order?>\n<Can you provide more information about the customers who placed an order?>",
                   "error": ""
                 }
               }
             ]
           },
-          "start_time": 1695418099.357191,
-          "end_time": 1695418099.357737,
+          "start_time": 1695951688.508222,
+          "end_time": 1695951689.568785,
           "error": null,
-          "children": null,
+          "children": [
+            {
+              "name": "openai.api_resources.chat_completion.ChatCompletion.create",
+              "type": "LLM",
+              "inputs": {
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "\n        Generate three very brief questions that the user would likely ask next.\n        Use double angle brackets to reference the questions, e.g. <What is Azure?>.\n        Try not to repeat questions that have already been asked.  Don't include the context in the answer.\n\n        Return the questions in the following format:\n        <>\n        <>\n        <>\n        \n        ALWAYS return a \"NEXT QUESTIONS\" part in your answer.\n\n        [\"{'TotalCustomers': [89]}\", 'table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real', 'SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;', 'There were 89 customers who placed an order.']\n        "
+                  }
+                ],
+                "model": "gpt-3.5-turbo",
+                "request_timeout": null,
+                "max_tokens": 500,
+                "stream": false,
+                "n": 1,
+                "temperature": 0.3,
+                "engine": "chat16k",
+                "api_base": "https://dataaiapim.azure-api.net",
+                "organization": "",
+                "api_type": "azure",
+                "api_version": "2023-07-01-preview"
+              },
+              "output": {
+                "id": "chatcmpl-83s77orAnZ8GdqDkJZ0tInYY7ZYUn",
+                "object": "chat.completion",
+                "created": 1695933689,
+                "model": "gpt-35-turbo-16k",
+                "prompt_filter_results": [
+                  {
+                    "prompt_index": 0,
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "choices": [
+                  {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                      "role": "assistant",
+                      "content": "<What are the tables and columns in the database?>\n<How many distinct customers placed an order?>\n<Can you provide more information about the customers who placed an order?>"
+                    },
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "usage": {
+                  "completion_tokens": 34,
+                  "prompt_tokens": 628,
+                  "total_tokens": 662
+                }
+              },
+              "start_time": 1695951688.516746,
+              "end_time": 1695951689.567806,
+              "error": null,
+              "children": null,
+              "node_name": null
+            }
+          ],
           "node_name": "followup_questions"
         }
       ],
@@ -231,11 +578,11 @@
       "description": "",
       "tags": null,
       "system_metrics": {
-        "duration": 2.224993,
-        "total_tokens": 583
+        "duration": 4.763924,
+        "total_tokens": 2142
       },
       "result": {
-        "answer": "The question can't be used to generate SQL Query or results",
+        "answer": "There were 89 customers who placed an order.",
         "context": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
         "output": {
           "values": [
@@ -243,11 +590,11 @@
               "recordId": 0,
               "data": {
                 "data_points": [],
-                "answer": "The question can't be used to generate SQL Query or results",
+                "answer": "There were 89 customers who placed an order.",
                 "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
-                "toolInput": "",
-                "observation": "",
-                "nextQuestions": "",
+                "toolInput": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+                "observation": "{'TotalCustomers': [89]}",
+                "nextQuestions": "<What are the tables and columns in the database?>\n<How many distinct customers placed an order?>\n<Can you provide more information about the customers who placed an order?>",
                 "error": ""
               }
             }
@@ -260,8 +607,8 @@
   "node_runs": [
     {
       "node": "parse_postBody",
-      "flow_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
-      "run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_parse_postBody_0",
+      "flow_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e",
+      "run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_parse_postBody_0",
       "status": "Completed",
       "inputs": {
         "postBody": {
@@ -282,9 +629,9 @@
       },
       "metrics": null,
       "error": null,
-      "parent_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_0",
-      "start_time": "2023-09-22T16:28:17.135785Z",
-      "end_time": "2023-09-22T16:28:17.137291Z",
+      "parent_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_0",
+      "start_time": "2023-09-28T20:41:24.820058Z",
+      "end_time": "2023-09-28T20:41:24.821057Z",
       "index": 0,
       "api_calls": [
         {
@@ -307,8 +654,8 @@
               "text": ""
             }
           },
-          "start_time": 1695418097.135785,
-          "end_time": 1695418097.135785,
+          "start_time": 1695951684.820058,
+          "end_time": 1695951684.820058,
           "error": null,
           "children": null,
           "node_name": "parse_postBody"
@@ -322,7 +669,7 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.001506
+        "duration": 0.000999
       },
       "result": {
         "data": {
@@ -332,8 +679,8 @@
     },
     {
       "node": "generateTableSchema",
-      "flow_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
-      "run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_generateTableSchema_0",
+      "flow_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e",
+      "run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_generateTableSchema_0",
       "status": "Completed",
       "inputs": {
         "conn": "entaoai"
@@ -341,9 +688,9 @@
       "output": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
       "metrics": null,
       "error": null,
-      "parent_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_0",
-      "start_time": "2023-09-22T16:28:17.137291Z",
-      "end_time": "2023-09-22T16:28:18.493626Z",
+      "parent_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_0",
+      "start_time": "2023-09-28T20:41:24.821057Z",
+      "end_time": "2023-09-28T20:41:26.240456Z",
       "index": 0,
       "api_calls": [
         {
@@ -353,8 +700,8 @@
             "conn": "entaoai"
           },
           "output": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
-          "start_time": 1695418097.137291,
-          "end_time": 1695418098.493626,
+          "start_time": 1695951684.821057,
+          "end_time": 1695951686.240456,
           "error": null,
           "children": null,
           "node_name": "generateTableSchema"
@@ -368,29 +715,29 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 1.356335
+        "duration": 1.419399
       },
       "result": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
     },
     {
       "node": "isQuery",
-      "flow_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
-      "run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_isQuery_0",
+      "flow_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e",
+      "run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_isQuery_0",
       "status": "Completed",
       "inputs": {
         "conn": "entaoai",
-        "question": "Tell me a joke",
+        "question": "How many customers did placed an order?",
         "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
       },
       "output": {
         "jsonAnswer": null,
-        "validQuestion": false
+        "validQuestion": true
       },
       "metrics": null,
       "error": null,
-      "parent_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_0",
-      "start_time": "2023-09-22T16:28:18.496671Z",
-      "end_time": "2023-09-22T16:28:19.355190Z",
+      "parent_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_0",
+      "start_time": "2023-09-28T20:41:26.241456Z",
+      "end_time": "2023-09-28T20:41:26.861764Z",
       "index": 0,
       "api_calls": [
         {
@@ -398,15 +745,15 @@
           "type": "Tool",
           "inputs": {
             "conn": "entaoai",
-            "question": "Tell me a joke",
+            "question": "How many customers did placed an order?",
             "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
           },
           "output": {
             "jsonAnswer": null,
-            "validQuestion": false
+            "validQuestion": true
           },
-          "start_time": 1695418098.497604,
-          "end_time": 1695418099.35519,
+          "start_time": 1695951686.242456,
+          "end_time": 1695951686.861764,
           "error": null,
           "children": [
             {
@@ -417,7 +764,7 @@
                 "messages": [
                   {
                     "role": "system",
-                    "content": "\n      If the requested OBJECTIVE can be answered by querying a database with tables described in SCHEMA, ANSWER: YES.\n      Otherwise ANSWER: NO.\n\n      Do not answer with any other word than YES or NO.\n\n      SCHEMA:\n      table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real\n\n      OBJECTIVE: Tell me a joke\n\n      ANSWER: Let's think step by step and respond with ONLY YES or NO.\n    "
+                    "content": "\n      If the requested OBJECTIVE can be answered by querying a database with tables described in SCHEMA, ANSWER: YES.\n      Otherwise ANSWER: NO.\n\n      Do not answer with any other word than YES or NO.\n\n      SCHEMA:\n      table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real\n\n      OBJECTIVE: How many customers did placed an order?\n\n      ANSWER: Let's think step by step and respond with ONLY YES or NO.\n    "
                   }
                 ],
                 "temperature": 0,
@@ -427,11 +774,11 @@
                 "stop": null
               },
               "output": {
-                "id": "chatcmpl-81dIpUPJcnkVEa6hWk4KawdxnXUiD",
+                "id": "chatcmpl-83s75pTVHQt4nHJ96aR6i8EfDBMKA",
                 "object": "chat.completion",
-                "created": 1695400099,
+                "created": 1695933687,
                 "model": "gpt-35-turbo-16k",
-                "prompt_filter_results": [
+                "prompt_annotations": [
                   {
                     "prompt_index": 0,
                     "content_filter_results": {
@@ -460,7 +807,7 @@
                     "finish_reason": "stop",
                     "message": {
                       "role": "assistant",
-                      "content": "NO"
+                      "content": "YES"
                     },
                     "content_filter_results": {
                       "hate": {
@@ -484,12 +831,12 @@
                 ],
                 "usage": {
                   "completion_tokens": 1,
-                  "prompt_tokens": 582,
-                  "total_tokens": 583
+                  "prompt_tokens": 585,
+                  "total_tokens": 586
                 }
               },
-              "start_time": 1695418098.499148,
-              "end_time": 1695418099.354191,
+              "start_time": 1695951686.242456,
+              "end_time": 1695951686.860741,
               "error": null,
               "children": null,
               "node_name": null
@@ -507,26 +854,401 @@
       },
       "system_metrics": {
         "completion_tokens": 1,
-        "prompt_tokens": 582,
-        "total_tokens": 583,
-        "duration": 0.858519
+        "prompt_tokens": 585,
+        "total_tokens": 586,
+        "duration": 0.620308
       },
       "result": {
         "jsonAnswer": null,
-        "validQuestion": false
+        "validQuestion": true
       }
     },
     {
-      "node": "followup_questions",
-      "flow_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936",
-      "run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_followup_questions_0",
+      "node": "create_llm",
+      "flow_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e",
+      "run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_create_llm_0",
       "status": "Completed",
       "inputs": {
-        "formattedAnswer": "",
-        "isQuery": false,
-        "llm": "",
-        "sqlQuery": "",
-        "sqlResult": "",
+        "conn": "entaoai",
+        "embeddingModelType": "azureopenai"
+      },
+      "output": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=500, tiktoken_model_name=None, deployment_name='chat16k', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')",
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_0",
+      "start_time": "2023-09-28T20:41:26.864759Z",
+      "end_time": "2023-09-28T20:41:26.869825Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "createLlm",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai",
+            "embeddingModelType": "azureopenai"
+          },
+          "output": {
+            "model": "gpt-3.5-turbo",
+            "request_timeout": null,
+            "max_tokens": 500,
+            "stream": false,
+            "n": 1,
+            "temperature": 0.3,
+            "engine": "chat16k",
+            "_type": "azure-openai-chat"
+          },
+          "start_time": 1695951686.864759,
+          "end_time": 1695951686.866828,
+          "error": null,
+          "children": null,
+          "node_name": "create_llm"
+        }
+      ],
+      "variant_id": "",
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "duration": 0.005066
+      },
+      "result": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=500, tiktoken_model_name=None, deployment_name='chat16k', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')"
+    },
+    {
+      "node": "generateSql",
+      "flow_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e",
+      "run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_generateSql_0",
+      "status": "Completed",
+      "inputs": {
+        "conn": "entaoai",
+        "question": "How many customers did placed an order?",
+        "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
+      },
+      "output": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_0",
+      "start_time": "2023-09-28T20:41:26.865739Z",
+      "end_time": "2023-09-28T20:41:27.451822Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "generateSql",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai",
+            "question": "How many customers did placed an order?",
+            "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
+          },
+          "output": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+          "start_time": 1695951686.865739,
+          "end_time": 1695951687.451822,
+          "error": null,
+          "children": [
+            {
+              "name": "openai.api_resources.chat_completion.ChatCompletion.create",
+              "type": "LLM",
+              "inputs": {
+                "engine": "chat16k",
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": " You are a SQL Server programmer Assistant.Your role is to generate SQL code (SQL Server) to retrieve an answer to a natural language query. Make sure to disambiguate column names when creating queries that use more than one table. If a valid SQL query cannot be generated, only say \"ERROR:\" followed by why it cannot be generated.\n                  Do not answer any questions on inserting or deleting rows from the table. Instead, say \"ERROR: I am not authorized to make changes to the data\"\n\n                  Use the following sales database schema to write SQL queries:\n                  table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real\n\n                  Examples:\n                  User: Which Shipper can ship the product?. SQL Code:\n                  Assistant: SELECT s.ShipperID, s.CompanyName FROM Shippers s JOIN Orders o ON s.ShipperID = o.ShipVia JOIN OrderDetails od ON o.OrderID = od.OrderID JOIN Products p ON od.ProductID = p.ProductID;\n                  User: Number of units in stock by category and supplier continent? SQL Code:\n                  Assistant: SELECT c.CategoryName, s.Country AS SupplierContinent, SUM(p.UnitsInStock) AS TotalUnitsInStock FROM Products p JOIN Categories c ON p.CategoryID = c.CategoryID JOIN Suppliers s ON p.SupplierID = s.SupplierID GROUP BY c.CategoryName, s.Country ORDER BY c.CategoryName, s.Country;\n                  User: List Top 10 Products?. SQL Code:\n                  Assistant: SELECT TOP 10 Products from Products;\n            "
+                  },
+                  {
+                    "role": "user",
+                    "content": "How many customers did placed an order?"
+                  }
+                ],
+                "temperature": 0,
+                "max_tokens": 2000,
+                "frequency_penalty": 0,
+                "presence_penalty": 0,
+                "stop": null
+              },
+              "output": {
+                "id": "chatcmpl-83s75jggUApSDhj6yBuDZkA3kJjJI",
+                "object": "chat.completion",
+                "created": 1695933687,
+                "model": "gpt-35-turbo-16k",
+                "prompt_filter_results": [
+                  {
+                    "prompt_index": 0,
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "choices": [
+                  {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                      "role": "assistant",
+                      "content": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;"
+                    },
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "usage": {
+                  "completion_tokens": 14,
+                  "prompt_tokens": 811,
+                  "total_tokens": 825
+                }
+              },
+              "start_time": 1695951686.866828,
+              "end_time": 1695951687.451822,
+              "error": null,
+              "children": null,
+              "node_name": null
+            }
+          ],
+          "node_name": "generateSql"
+        }
+      ],
+      "variant_id": "",
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "completion_tokens": 14,
+        "prompt_tokens": 811,
+        "total_tokens": 825,
+        "duration": 0.586083
+      },
+      "result": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;"
+    },
+    {
+      "node": "executeQuery",
+      "flow_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e",
+      "run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_executeQuery_0",
+      "status": "Completed",
+      "inputs": {
+        "conn": "entaoai",
+        "sqlQuery": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;"
+      },
+      "output": "   TotalCustomers\n0              89",
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_0",
+      "start_time": "2023-09-28T20:41:27.455786Z",
+      "end_time": "2023-09-28T20:41:28.093824Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "executeQuery",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai",
+            "sqlQuery": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;"
+          },
+          "output": "   TotalCustomers\n0              89",
+          "start_time": 1695951687.455786,
+          "end_time": 1695951688.090825,
+          "error": null,
+          "children": null,
+          "node_name": "executeQuery"
+        }
+      ],
+      "variant_id": "",
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "duration": 0.638038
+      },
+      "result": "   TotalCustomers\n0              89"
+    },
+    {
+      "node": "generateNlp",
+      "flow_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e",
+      "run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_generateNlp_0",
+      "status": "Completed",
+      "inputs": {
+        "conn": "entaoai",
+        "question": "How many customers did placed an order?",
+        "sqlResult": "   TotalCustomers\n0              89"
+      },
+      "output": "There were 89 customers who placed an order.",
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_0",
+      "start_time": "2023-09-28T20:41:28.095828Z",
+      "end_time": "2023-09-28T20:41:28.505678Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "generateNlp",
+          "type": "Tool",
+          "inputs": {
+            "conn": "entaoai",
+            "question": "How many customers did placed an order?",
+            "sqlResult": "   TotalCustomers\n0              89"
+          },
+          "output": "There were 89 customers who placed an order.",
+          "start_time": 1695951688.095828,
+          "end_time": 1695951688.499676,
+          "error": null,
+          "children": [
+            {
+              "name": "openai.api_resources.chat_completion.ChatCompletion.create",
+              "type": "LLM",
+              "inputs": {
+                "engine": "chat16k",
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "You are bot that takes question-answer pairs and converts the answer to natural language. For tabular information return it as an html table. Do not return markdown format."
+                  },
+                  {
+                    "role": "user",
+                    "content": "How many customers did placed an order?{'TotalCustomers': [89]}"
+                  }
+                ],
+                "temperature": 0,
+                "max_tokens": 2000,
+                "frequency_penalty": 0,
+                "presence_penalty": 0,
+                "stop": null
+              },
+              "output": {
+                "id": "chatcmpl-83s761vDkvnpBetVcPe7gGPYVNooz",
+                "object": "chat.completion",
+                "created": 1695933688,
+                "model": "gpt-35-turbo-16k",
+                "prompt_filter_results": [
+                  {
+                    "prompt_index": 0,
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "choices": [
+                  {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                      "role": "assistant",
+                      "content": "There were 89 customers who placed an order."
+                    },
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "usage": {
+                  "completion_tokens": 10,
+                  "prompt_tokens": 59,
+                  "total_tokens": 69
+                }
+              },
+              "start_time": 1695951688.098978,
+              "end_time": 1695951688.499676,
+              "error": null,
+              "children": null,
+              "node_name": null
+            }
+          ],
+          "node_name": "generateNlp"
+        }
+      ],
+      "variant_id": "",
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "completion_tokens": 10,
+        "prompt_tokens": 59,
+        "total_tokens": 69,
+        "duration": 0.40985
+      },
+      "result": "There were 89 customers who placed an order."
+    },
+    {
+      "node": "followup_questions",
+      "flow_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e",
+      "run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_followup_questions_0",
+      "status": "Completed",
+      "inputs": {
+        "formattedAnswer": "There were 89 customers who placed an order.",
+        "isQuery": true,
+        "llm": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=500, tiktoken_model_name=None, deployment_name='chat16k', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')",
+        "sqlQuery": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+        "sqlResult": "   TotalCustomers\n0              89",
         "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
       },
       "output": {
@@ -535,11 +1257,11 @@
             "recordId": 0,
             "data": {
               "data_points": [],
-              "answer": "The question can't be used to generate SQL Query or results",
+              "answer": "There were 89 customers who placed an order.",
               "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
-              "toolInput": "",
-              "observation": "",
-              "nextQuestions": "",
+              "toolInput": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+              "observation": "{'TotalCustomers': [89]}",
+              "nextQuestions": "<What are the tables and columns in the database?>\n<How many distinct customers placed an order?>\n<Can you provide more information about the customers who placed an order?>",
               "error": ""
             }
           }
@@ -547,20 +1269,29 @@
       },
       "metrics": null,
       "error": null,
-      "parent_run_id": "8597f59c-419b-4bbd-afbb-a5e119e72936_0",
-      "start_time": "2023-09-22T16:28:19.357191Z",
-      "end_time": "2023-09-22T16:28:19.357737Z",
+      "parent_run_id": "affe60ed-b308-4455-bfad-a6de86e7f49e_0",
+      "start_time": "2023-09-28T20:41:28.508222Z",
+      "end_time": "2023-09-28T20:41:29.575786Z",
       "index": 0,
       "api_calls": [
         {
           "name": "generateFollowupQuestions",
           "type": "Tool",
           "inputs": {
-            "formattedAnswer": "",
-            "isQuery": false,
-            "llm": "",
-            "sqlQuery": "",
-            "sqlResult": "",
+            "formattedAnswer": "There were 89 customers who placed an order.",
+            "isQuery": true,
+            "llm": {
+              "model": "gpt-3.5-turbo",
+              "request_timeout": null,
+              "max_tokens": 500,
+              "stream": false,
+              "n": 1,
+              "temperature": 0.3,
+              "engine": "chat16k",
+              "_type": "azure-openai-chat"
+            },
+            "sqlQuery": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+            "sqlResult": "   TotalCustomers\n0              89",
             "tableSchema": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real"
           },
           "output": {
@@ -569,20 +1300,111 @@
                 "recordId": 0,
                 "data": {
                   "data_points": [],
-                  "answer": "The question can't be used to generate SQL Query or results",
+                  "answer": "There were 89 customers who placed an order.",
                   "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
-                  "toolInput": "",
-                  "observation": "",
-                  "nextQuestions": "",
+                  "toolInput": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+                  "observation": "{'TotalCustomers': [89]}",
+                  "nextQuestions": "<What are the tables and columns in the database?>\n<How many distinct customers placed an order?>\n<Can you provide more information about the customers who placed an order?>",
                   "error": ""
                 }
               }
             ]
           },
-          "start_time": 1695418099.357191,
-          "end_time": 1695418099.357737,
+          "start_time": 1695951688.508222,
+          "end_time": 1695951689.568785,
           "error": null,
-          "children": null,
+          "children": [
+            {
+              "name": "openai.api_resources.chat_completion.ChatCompletion.create",
+              "type": "LLM",
+              "inputs": {
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "\n        Generate three very brief questions that the user would likely ask next.\n        Use double angle brackets to reference the questions, e.g. <What is Azure?>.\n        Try not to repeat questions that have already been asked.  Don't include the context in the answer.\n\n        Return the questions in the following format:\n        <>\n        <>\n        <>\n        \n        ALWAYS return a \"NEXT QUESTIONS\" part in your answer.\n\n        [\"{'TotalCustomers': [89]}\", 'table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real', 'SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;', 'There were 89 customers who placed an order.']\n        "
+                  }
+                ],
+                "model": "gpt-3.5-turbo",
+                "request_timeout": null,
+                "max_tokens": 500,
+                "stream": false,
+                "n": 1,
+                "temperature": 0.3,
+                "engine": "chat16k",
+                "api_base": "https://dataaiapim.azure-api.net",
+                "organization": "",
+                "api_type": "azure",
+                "api_version": "2023-07-01-preview"
+              },
+              "output": {
+                "id": "chatcmpl-83s77orAnZ8GdqDkJZ0tInYY7ZYUn",
+                "object": "chat.completion",
+                "created": 1695933689,
+                "model": "gpt-35-turbo-16k",
+                "prompt_filter_results": [
+                  {
+                    "prompt_index": 0,
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "choices": [
+                  {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {
+                      "role": "assistant",
+                      "content": "<What are the tables and columns in the database?>\n<How many distinct customers placed an order?>\n<Can you provide more information about the customers who placed an order?>"
+                    },
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "usage": {
+                  "completion_tokens": 34,
+                  "prompt_tokens": 628,
+                  "total_tokens": 662
+                }
+              },
+              "start_time": 1695951688.516746,
+              "end_time": 1695951689.567806,
+              "error": null,
+              "children": null,
+              "node_name": null
+            }
+          ],
           "node_name": "followup_questions"
         }
       ],
@@ -590,11 +1412,14 @@
       "cached_run_id": null,
       "cached_flow_run_id": null,
       "logs": {
-        "stdout": "[2023-09-22T16:28:19+0000] isQuery: False\n",
+        "stdout": "[2023-09-28T20:41:28+0000] isQuery: True\n[2023-09-28T20:41:29+0000] Next questions: <What are the tables and columns in the database?>\n<How many distinct customers placed an order?>\n<Can you provide more information about the customers who placed an order?>\n",
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.000546
+        "completion_tokens": 34,
+        "prompt_tokens": 628,
+        "total_tokens": 662,
+        "duration": 1.067564
       },
       "result": {
         "values": [
@@ -602,11 +1427,11 @@
             "recordId": 0,
             "data": {
               "data_points": [],
-              "answer": "The question can't be used to generate SQL Query or results",
+              "answer": "There were 89 customers who placed an order.",
               "thoughts": "table: dbo.CustomerCustomerDemo, columns: CustomerID nchar, CustomerTypeID nchar\n table: dbo.CustomerDemographics, columns: CustomerTypeID nchar, CustomerDesc ntext\n table: dbo.Region, columns: RegionID int, RegionDescription nchar\n table: dbo.Territories, columns: TerritoryID nvarchar, TerritoryDescription nchar, RegionID int\n table: dbo.EmployeeTerritories, columns: EmployeeID int, TerritoryID nvarchar\n table: dbo.Employees, columns: EmployeeID int, LastName nvarchar, FirstName nvarchar, Title nvarchar, TitleOfCourtesy nvarchar, BirthDate datetime, HireDate datetime, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, HomePhone nvarchar, Extension nvarchar, Photo image, Notes ntext, ReportsTo int, PhotoPath nvarchar\n table: dbo.Categories, columns: CategoryID int, CategoryName nvarchar, Description ntext, Picture image\n table: dbo.Customers, columns: CustomerID nchar, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar\n table: dbo.Shippers, columns: ShipperID int, CompanyName nvarchar, Phone nvarchar\n table: dbo.Suppliers, columns: SupplierID int, CompanyName nvarchar, ContactName nvarchar, ContactTitle nvarchar, Address nvarchar, City nvarchar, Region nvarchar, PostalCode nvarchar, Country nvarchar, Phone nvarchar, Fax nvarchar, HomePage ntext\n table: dbo.Orders, columns: OrderID int, CustomerID nchar, EmployeeID int, OrderDate datetime, RequiredDate datetime, ShippedDate datetime, ShipVia int, Freight money, ShipName nvarchar, ShipAddress nvarchar, ShipCity nvarchar, ShipRegion nvarchar, ShipPostalCode nvarchar, ShipCountry nvarchar\n table: dbo.Products, columns: ProductID int, ProductName nvarchar, SupplierID int, CategoryID int, QuantityPerUnit nvarchar, UnitPrice money, UnitsInStock smallint, UnitsOnOrder smallint, ReorderLevel smallint, Discontinued bit\n table: dbo.OrderDetails, columns: OrderID int, ProductID int, UnitPrice money, Quantity smallint, Discount real",
-              "toolInput": "",
-              "observation": "",
-              "nextQuestions": "",
+              "toolInput": "SELECT COUNT(DISTINCT CustomerID) AS TotalCustomers FROM Orders;",
+              "observation": "{'TotalCustomers': [89]}",
+              "nextQuestions": "<What are the tables and columns in the database?>\n<How many distinct customers placed an order?>\n<Can you provide more information about the customers who placed an order?>",
               "error": ""
             }
           }
