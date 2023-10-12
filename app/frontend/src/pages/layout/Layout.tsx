@@ -174,13 +174,13 @@ const Layout = () => {
                     onChange={onShowUpload}
                 />
                 <br/>
-                <Checkbox
+                {/* <Checkbox
                     className={styles.chatSettingsSeparator}
                     checked={showPib}
                     label="Show Pitch Book"
                     onChange={onShowPib}
                 />
-                <br/>
+                <br/> */}
                 <Checkbox
                     className={styles.chatSettingsSeparator}
                     checked={showEdgar}
