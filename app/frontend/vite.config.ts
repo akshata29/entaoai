@@ -38,6 +38,7 @@ export default defineConfig({
             "/getIndexSession": "http://127.0.0.1:5000",
             "/getIndexSessionDetail": "http://127.0.0.1:5000",
             "/getPib": "http://127.0.0.1:5000",
+            "/getPitchBook": "http://127.0.0.1:5000",
             "/getProspectusList": "http://127.0.0.1:5000",
             "/getSocialSentiment": "http://127.0.0.1:5000",
             "/getNews": "http://127.0.0.1:5000",

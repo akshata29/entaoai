@@ -1,0 +1,120 @@
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/Flow.schema.json
+environment:
+  python_requirements_txt: requirements.txt
+inputs:
+  name:
+    type: string
+    default: EnterpriseGPT
+  role:
+    type: string
+    default: an AI specialized in answering questions from the knowledgebase,
+      documents and the enterprise document repository that provides accurate
+      information from the extracted parts of a long document.  If the answer is
+      not contained within the document, say I don't know
+  postBody:
+    type: object
+    default:
+      values:
+      - recordId: 0
+        data:
+          text: ""
+          question: What is LLM
+          approach: rtr
+          overrides:
+            indexType: pinecone
+            indexes:
+            - indexNs: f102e8f5b8d94fa3a2ce026ea9656756
+              indexName: PromptPattern
+              returnDirect: "False"
+            top: 3
+            temperature: 0
+            promptTemplate: "You are an AI assistant tasked with answering questions and
+              summarizing information from\ 
+
+              \        earning call transcripts, annual reports,
+              SEC filings and financial statements.
+
+              \        Your answer should accurately capture the
+              key information in the document while avoiding the omission of any
+              domain-specific words.\ 
+
+              \        Please generate a concise and comprehensive
+              information that includes details such as reporting year and
+              amount in millions.
+
+              \        Ensure that it is easy to understand for
+              business professionals and provides an accurate representation of
+              the financial statement history.\ 
+
+              \       \ 
+
+              \        Please remember to use clear language and
+              maintain the integrity of the original information without missing
+              any important details
+
+
+              \        QUESTION: {question}
+
+              \        =========
+
+              \        {summaries}
+
+              \        =========
+
+              \        "
+            chainType: stuff
+            tokenLength: 1000
+            embeddingModelType: azureopenai
+            searchType: similarity
+outputs:
+  output:
+    type: string
+    reference: ${autogptanswer.output}
+nodes:
+- name: parse_postBody
+  type: python
+  source:
+    type: code
+    path: parse_postBody.py
+  inputs:
+    postBody: ${inputs.postBody}
+  use_variants: false
+- name: autogptanswer
+  type: python
+  source:
+    type: code
+    path: autogptanswer.py
+  inputs:
+    conn: entaoai
+    question: ${parse_postBody.output.question}
+    overrides: ${parse_postBody.output.overrides}
+- name: system_prompt
+  type: prompt
+  source:
+    type: code
+    path: system_prompt.jinja2
+  inputs:
+    name: ${inputs.name}
+    role: ${inputs.role}
+- name: user_prompt
+  type: prompt
+  source:
+    type: code
+    path: user_prompt.jinja2
+  inputs:
+    goals: ${parse_postBody.output.question}
+- name: triggering_prompt
+  type: prompt
+  source:
+    type: code
+    path: triggering_prompt.jinja2
+  inputs: {}
+- name: functions
+  type: python
+  source:
+    type: code
+    path: functions.py
+  inputs:
+    overrides: ${parse_postBody.output.overrides}
+    conn: entaoai
+    question: ${parse_postBody.output.question}

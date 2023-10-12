@@ -194,6 +194,39 @@ export async function getPib(step: string, symbol: string, embeddingModelType: s
   }
   return parsedResponse.values[0].data
 }
+
+export async function getPitchBook(profileDataSource: string, earningTranscriptDataSource:string, earningQuarters:string, symbol: string, embeddingModelType: string): Promise<AskResponse> {
+  const response = await fetch('/getPitchBook', {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        profileDataSource: profileDataSource,
+        earningTranscriptDataSource: earningTranscriptDataSource,
+        earningQuarters: earningQuarters,
+        symbol: symbol,
+        embeddingModelType:embeddingModelType,
+        postBody: {
+          values: [
+            {
+              recordId: 0,
+              data: {
+                text: '',
+              }
+            }
+          ]
+        }
+      })
+  });
+
+  const parsedResponse: ChatResponse = await response.json();
+  if (response.status > 299 || !response.ok) {
+      throw Error("Unknown error");
+  }
+  return parsedResponse.values[0].data
+}
+
 export async function promptGuru(task: string, modelName:string, embeddingModelType: string): Promise<AskResponse> {
   const response = await fetch('/promptGuru', {
       method: "POST",

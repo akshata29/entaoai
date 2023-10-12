@@ -11,7 +11,8 @@ import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 const Layout = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [showUpload, setShowUpload] = useState<boolean>(false);
-    const [showEdgar, setshowEdgar] = useState<boolean>(false);
+    // const [showPib, setShowPib] = useState<boolean>(false);
+    const [showEdgar, setShowEdgar] = useState<boolean>(false);
     const [showAdmin, setShowAdmin] = useState<boolean>(false);
     const [showSmartAgent, setShowSmartAgent] = useState<boolean>(false);
     const [showSpeech, setShowSpeech] = useState<boolean>(true);
@@ -20,12 +21,16 @@ const Layout = () => {
         setShowUpload(!!checked);
     };
 
+    // const onShowPib = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
+    //     setShowPib(!!checked);
+    // };
+
     const onShowAdmin = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
         setShowAdmin(!!checked);
     };
 
     const onShowEdgar = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
-        setshowEdgar(!!checked);
+        setShowEdgar(!!checked);
     };
 
     const onShowSpeech = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
@@ -82,6 +87,13 @@ const Layout = () => {
                                     PIB
                                 </NavLink>
                             </li>
+                            {/* {showPib && (
+                                <li className={styles.headerNavLeftMargin}>
+                                    <NavLink to="/pitchBook" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    Pitch Book
+                                    </NavLink>
+                                </li>
+                            )} */}
                             { showSmartAgent && (
                             <li className={styles.headerNavLeftMargin}>
                                 <NavLink to="/smartAgent" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
@@ -160,6 +172,13 @@ const Layout = () => {
                     checked={showUpload}
                     label="Show Upload Capability"
                     onChange={onShowUpload}
+                />
+                <br/>
+                <Checkbox
+                    className={styles.chatSettingsSeparator}
+                    checked={showPib}
+                    label="Show Pitch Book"
+                    onChange={onShowPib}
                 />
                 <br/>
                 <Checkbox

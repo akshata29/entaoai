@@ -6,6 +6,8 @@ X_Playground.ipynb
 medicalindex*
 medicalsummary*
 
+PitchBook*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

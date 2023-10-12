@@ -1,4 +1,4 @@
-# ChatGPT + Enterprise data with Azure OpenAI
+# Chat with your enterprise data using LLM
 
 This sample demonstrates a few approaches for creating ChatGPT-like experiences over your own data. It uses Azure OpenAI Service to access the ChatGPT model (gpt-35-turbo and gpt3), and vector store (Pinecone, Redis and others) or Azure cognitive search for data indexing and retrieval.
 
@@ -6,7 +6,8 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
-* 9/29/2023 - Added [Evaluate](./api/PromptFlow/Evaluate/).  Prompt Flow once created in Azure ML, can be attached to your existing run to evaluate against the following evaluation process :
+* 10/12/2023 - Initial version of [Autonomous](./api/PromptFlow/Autonomous/) PromptFlow.  For now supporting the Pinecone indexes, but support for Cognitive Search and Redis will be updated soon.
+* 9/29/2023 - Added [Evaluate](./api/PromptFlow/Evaluate/) PromptFlow.  Prompt Flow once created in Azure ML, can be attached to your existing run to evaluate against the following evaluation process :
   * Groundness - The Q&A Groundedness evaluation flow will evaluate the Q&A Retrieval Augmented Generation systems by leveraging the state-of-the-art Large Language Models (LLM) to measure the quality and safety of your responses. Utilizing GPT-3.5 as the Language Model to assist with measurements aims to achieve a high agreement with human evaluations compared to traditional mathematical measurements. gpt_groundedness (against context): Measures how grounded the model's predicted answers are against the context. Even if LLM’s responses are true, if not verifiable against context, then such responses are considered ungrounded.
   * Ada Similarity - The Q&A ada_similarity evaluation flow will evaluate the Q&A Retrieval Augmented Generation systems by leveraging the state-of-the-art Large Language Models (LLM) to measure the quality and safety of your responses. Utilizing GPT-3.5 as the Language Model to assist with measurements aims to achieve a high agreement with human evaluations compared to traditional mathematical measurements. The Ada Similarity evaluation flow allows you to assess and evaluate your model with the LLM-assisted ada similarity metri ada_similarity: Measures the cosine similarity of ada embeddings of the model prediction and the ground truth. ada_similarity is a value in the range [0, 1].
   * Coherence - The Q&A Coherence evaluation flow will evaluate the Q&A Retrieval Augmented Generation systems by leveraging the state-of-the-art Large Language Models (LLM) to measure the quality and safety of your responses. Utilizing GPT-3.5 as the Language Model to assist with measurements aims to achieve a high agreement with human evaluations compared to traditional mathematical measurements. The Coherence evaluation flow allows you to assess and evaluate your model with the LLM-assisted Coherence metric. gpt_coherence: Measures the quality of all sentences in a model's predicted answer and how they fit together naturally. Coherence is scored on a scale of 1 to 5, with 1 being the worst and 5 being the best.

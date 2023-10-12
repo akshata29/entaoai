@@ -1,7 +1,7 @@
 {
   "flow_runs": [
     {
-      "run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_0",
+      "run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_0",
       "status": "Completed",
       "error": null,
       "inputs": {
@@ -62,12 +62,12 @@
       },
       "metrics": null,
       "request": null,
-      "parent_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27",
-      "root_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27",
+      "parent_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117",
+      "root_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117",
       "source_run_id": null,
       "flow_id": "default_flow_id",
-      "start_time": "2023-09-29T20:40:20.832381Z",
-      "end_time": "2023-09-29T20:40:23.371856Z",
+      "start_time": "2023-10-12T14:01:54.943308Z",
+      "end_time": "2023-10-12T14:01:57.850329Z",
       "index": 0,
       "api_calls": [
         {
@@ -110,8 +110,8 @@
             "tokenLength": 1000,
             "top": 3
           },
-          "start_time": 1696038020.832381,
-          "end_time": 1696038020.832381,
+          "start_time": 1697137314.947264,
+          "end_time": 1697137314.949265,
           "error": null,
           "children": null,
           "node_name": "parse_postBody"
@@ -144,8 +144,8 @@
             "engine": "chat16k",
             "_type": "azure-openai-chat"
           },
-          "start_time": 1696038020.839584,
-          "end_time": 1696038020.839584,
+          "start_time": 1697137314.953786,
+          "end_time": 1697137314.955814,
           "error": null,
           "children": null,
           "node_name": "create_llm"
@@ -1707,8 +1707,8 @@
             -0.02200309932231903,
             -0.006360895931720734
           ],
-          "start_time": 1696038020.840931,
-          "end_time": 1696038021.500953,
+          "start_time": 1697137314.954796,
+          "end_time": 1697137315.767159,
           "error": null,
           "children": [
             {
@@ -3270,8 +3270,8 @@
                   "total_tokens": 16
                 }
               },
-              "start_time": 1696038020.841947,
-              "end_time": 1696038021.500953,
+              "start_time": 1697137314.957793,
+              "end_time": 1697137315.754634,
               "error": null,
               "children": null,
               "node_name": null
@@ -4841,8 +4841,8 @@
             },
             "existingAnswer": true
           },
-          "start_time": 1696038021.515728,
-          "end_time": 1696038023.349586,
+          "start_time": 1697137315.800065,
+          "end_time": 1697137317.81253,
           "error": null,
           "children": null,
           "node_name": "check_cache_answer"
@@ -6451,8 +6451,8 @@
               }
             ]
           },
-          "start_time": 1696038023.349586,
-          "end_time": 1696038023.349586,
+          "start_time": 1697137317.824167,
+          "end_time": 1697137317.831733,
           "error": null,
           "children": null,
           "node_name": "followup_questions"
@@ -6463,7 +6463,7 @@
       "description": "",
       "tags": null,
       "system_metrics": {
-        "duration": 2.539475,
+        "duration": 2.907021,
         "total_tokens": 16
       },
       "result": {
@@ -6499,8 +6499,8 @@
   "node_runs": [
     {
       "node": "parse_postBody",
-      "flow_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27",
-      "run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_parse_postBody_0",
+      "flow_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117",
+      "run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_parse_postBody_0",
       "status": "Completed",
       "inputs": {
         "postBody": {
@@ -6541,9 +6541,9 @@
       },
       "metrics": null,
       "error": null,
-      "parent_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_0",
-      "start_time": "2023-09-29T20:40:20.832381Z",
-      "end_time": "2023-09-29T20:40:20.832381Z",
+      "parent_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_0",
+      "start_time": "2023-10-12T14:01:54.947264Z",
+      "end_time": "2023-10-12T14:01:54.950264Z",
       "index": 0,
       "api_calls": [
         {
@@ -6586,8 +6586,8 @@
             "tokenLength": 1000,
             "top": 3
           },
-          "start_time": 1696038020.832381,
-          "end_time": 1696038020.832381,
+          "start_time": 1697137314.947264,
+          "end_time": 1697137314.949265,
           "error": null,
           "children": null,
           "node_name": "parse_postBody"
@@ -6601,7 +6601,7 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.0
+        "duration": 0.003
       },
       "result": {
         "chainType": "stuff",
@@ -6618,8 +6618,8 @@
     },
     {
       "node": "create_llm",
-      "flow_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27",
-      "run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_create_llm_0",
+      "flow_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117",
+      "run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_create_llm_0",
       "status": "Completed",
       "inputs": {
         "conn": "entaoai",
@@ -6639,9 +6639,9 @@
       "output": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=1000, tiktoken_model_name=None, deployment_name='chat16k', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')",
       "metrics": null,
       "error": null,
-      "parent_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_0",
-      "start_time": "2023-09-29T20:40:20.839584Z",
-      "end_time": "2023-09-29T20:40:20.841947Z",
+      "parent_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_0",
+      "start_time": "2023-10-12T14:01:54.953786Z",
+      "end_time": "2023-10-12T14:01:54.957793Z",
       "index": 0,
       "api_calls": [
         {
@@ -6672,8 +6672,8 @@
             "engine": "chat16k",
             "_type": "azure-openai-chat"
           },
-          "start_time": 1696038020.839584,
-          "end_time": 1696038020.839584,
+          "start_time": 1697137314.953786,
+          "end_time": 1697137314.955814,
           "error": null,
           "children": null,
           "node_name": "create_llm"
@@ -6687,14 +6687,14 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.002363
+        "duration": 0.004007
       },
       "result": "AzureChatOpenAI(cache=None, verbose=False, callbacks=None, callback_manager=None, tags=None, metadata=None, client=<class 'openai.api_resources.chat_completion.ChatCompletion'>, model_name='gpt-3.5-turbo', temperature=0.3, model_kwargs={}, openai_api_key='1361532858cb428c8da412a73105de78', openai_api_base='https://dataaiapim.azure-api.net', openai_organization='', openai_proxy='', request_timeout=None, max_retries=6, streaming=False, n=1, max_tokens=1000, tiktoken_model_name=None, deployment_name='chat16k', model_version='', openai_api_type='azure', openai_api_version='2023-07-01-preview')"
     },
     {
       "node": "embed_the_question",
-      "flow_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27",
-      "run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_embed_the_question_0",
+      "flow_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117",
+      "run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_embed_the_question_0",
       "status": "Completed",
       "inputs": {
         "conn": "entaoai",
@@ -8252,9 +8252,9 @@
       ],
       "metrics": null,
       "error": null,
-      "parent_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_0",
-      "start_time": "2023-09-29T20:40:20.840931Z",
-      "end_time": "2023-09-29T20:40:21.515728Z",
+      "parent_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_0",
+      "start_time": "2023-10-12T14:01:54.954796Z",
+      "end_time": "2023-10-12T14:01:55.793973Z",
       "index": 0,
       "api_calls": [
         {
@@ -9814,8 +9814,8 @@
             -0.02200309932231903,
             -0.006360895931720734
           ],
-          "start_time": 1696038020.840931,
-          "end_time": 1696038021.500953,
+          "start_time": 1697137314.954796,
+          "end_time": 1697137315.767159,
           "error": null,
           "children": [
             {
@@ -11377,8 +11377,8 @@
                   "total_tokens": 16
                 }
               },
-              "start_time": 1696038020.841947,
-              "end_time": 1696038021.500953,
+              "start_time": 1697137314.957793,
+              "end_time": 1697137315.754634,
               "error": null,
               "children": null,
               "node_name": null
@@ -11397,7 +11397,7 @@
       "system_metrics": {
         "prompt_tokens": 16,
         "total_tokens": 16,
-        "duration": 0.674797
+        "duration": 0.839177
       },
       "result": [
         -0.016869042068719864,
@@ -12940,8 +12940,8 @@
     },
     {
       "node": "check_cache_answer",
-      "flow_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27",
-      "run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_check_cache_answer_0",
+      "flow_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117",
+      "run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_check_cache_answer_0",
       "status": "Completed",
       "inputs": {
         "conn": "entaoai",
@@ -14504,9 +14504,9 @@
       },
       "metrics": null,
       "error": null,
-      "parent_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_0",
-      "start_time": "2023-09-29T20:40:21.515728Z",
-      "end_time": "2023-09-29T20:40:23.349586Z",
+      "parent_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_0",
+      "start_time": "2023-10-12T14:01:55.798991Z",
+      "end_time": "2023-10-12T14:01:57.820562Z",
       "index": 0,
       "api_calls": [
         {
@@ -16071,8 +16071,8 @@
             },
             "existingAnswer": true
           },
-          "start_time": 1696038021.515728,
-          "end_time": 1696038023.349586,
+          "start_time": 1697137315.800065,
+          "end_time": 1697137317.81253,
           "error": null,
           "children": null,
           "node_name": "check_cache_answer"
@@ -16082,11 +16082,11 @@
       "cached_run_id": null,
       "cached_flow_run_id": null,
       "logs": {
-        "stdout": "[2023-09-29T20:40:22+0000] Search index aoaikb already exists\n[2023-09-29T20:40:23+0000] KB Search Count: 1\n",
+        "stdout": "[2023-10-12T14:01:57+0000] Search index aoaikb already exists\n[2023-10-12T14:01:57+0000] KB Search Count: 1\n",
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 1.833858
+        "duration": 2.021571
       },
       "result": {
         "jsonAnswer": {
@@ -16106,8 +16106,8 @@
     },
     {
       "node": "followup_questions",
-      "flow_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27",
-      "run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_followup_questions_0",
+      "flow_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117",
+      "run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_followup_questions_0",
       "status": "Completed",
       "inputs": {
         "conn": "entaoai",
@@ -17703,9 +17703,9 @@
       },
       "metrics": null,
       "error": null,
-      "parent_run_id": "f77d781c-6603-43d6-b663-11d2bff2bd27_0",
-      "start_time": "2023-09-29T20:40:23.349586Z",
-      "end_time": "2023-09-29T20:40:23.371073Z",
+      "parent_run_id": "4d4879be-de55-475e-85ef-cc3de9de4117_0",
+      "start_time": "2023-10-12T14:01:57.824167Z",
+      "end_time": "2023-10-12T14:01:57.847382Z",
       "index": 0,
       "api_calls": [
         {
@@ -19312,8 +19312,8 @@
               }
             ]
           },
-          "start_time": 1696038023.349586,
-          "end_time": 1696038023.349586,
+          "start_time": 1697137317.824167,
+          "end_time": 1697137317.831733,
           "error": null,
           "children": null,
           "node_name": "followup_questions"
@@ -19327,7 +19327,7 @@
         "stderr": ""
       },
       "system_metrics": {
-        "duration": 0.021487
+        "duration": 0.023215
       },
       "result": {
         "values": [

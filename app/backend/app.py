@@ -148,6 +148,30 @@ def getPib():
     except Exception as e:
         logging.exception("Exception in /getPib")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/getPitchBook", methods=["POST"])
+def getPitchBook():
+    profileDataSource=request.json["profileDataSource"]
+    earningTranscriptDataSource=request.json["earningTranscriptDataSource"]
+    earningQuarters=request.json["earningQuarters"]
+    symbol=request.json["symbol"]
+    embeddingModelType=request.json["embeddingModelType"]
+    postBody=request.json["postBody"]
+ 
+    try:
+        headers = {'content-type': 'application/json'}
+        url = os.environ.get("PITCHBOOK_URL")
+
+        data = postBody
+        params = {'profileDataSource': profileDataSource, 'earningTranscriptDataSource': earningTranscriptDataSource,
+                  'earningQuarters':earningQuarters, 'symbol': symbol, 'embeddingModelType': embeddingModelType }
+        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
+        jsonDict = json.loads(resp.text)
+        #return json.dumps(jsonDict)
+        return jsonify(jsonDict)
+    except Exception as e:
+        logging.exception("Exception in /getPib")
+        return jsonify({"error": str(e)}), 500
     
 @app.route("/askAgent", methods=["POST"])
 def askAgent():

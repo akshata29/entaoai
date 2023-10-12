@@ -9,6 +9,7 @@ try:
     OpenAiKey = os.getenv('OpenAiKey')
     OpenAiVersion = os.getenv('OpenAiVersion', "2023-05-15")
     OpenAiChat = os.getenv('OpenAiChat')
+    OpenAiGpt4 = os.getenv('OpenAiGpt4')
     OpenAiEndPoint = os.getenv('OpenAiEndPoint', '')
     OpenAiDocStorName = os.getenv('OpenAiDocStorName')
     OpenAiDocStorKey = os.getenv('OpenAiDocStorKey')
