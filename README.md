@@ -89,6 +89,10 @@ Groundedness metric is scored on a scale of 1 to 5, with 1 being the worst and 5
 
 ![Azure Services](/assets/AskChat.png)
 
+## PIB Architecture
+
+![PIB Architecture](/assets/PIB.png)
+
 ## QA over your data with Cache
 
 ![QA Cache](/assets/QACache.png)
