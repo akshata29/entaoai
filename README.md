@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 1/19/2024 - Updated the python package & OpenAI > 1.0.  Changes made to all Python API for breaking changes introduced in OpenAI and langchain.
 * 10/12/2023 - Initial version of [Autonomous](./api/PromptFlow/Autonomous/) PromptFlow.  For now supporting the Pinecone indexes, but support for Cognitive Search and Redis will be updated soon.
 * 9/29/2023 - Added [Evaluate](./api/PromptFlow/Evaluate/) PromptFlow.  Prompt Flow once created in Azure ML, can be attached to your existing run to evaluate against the following evaluation process :
   * Groundness - The Q&A Groundedness evaluation flow will evaluate the Q&A Retrieval Augmented Generation systems by leveraging the state-of-the-art Large Language Models (LLM) to measure the quality and safety of your responses. Utilizing GPT-3.5 as the Language Model to assist with measurements aims to achieve a high agreement with human evaluations compared to traditional mathematical measurements. gpt_groundedness (against context): Measures how grounded the model's predicted answers are against the context. Even if LLM’s responses are true, if not verifiable against context, then such responses are considered ungrounded.
