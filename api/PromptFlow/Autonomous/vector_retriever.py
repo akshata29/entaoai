@@ -1,6 +1,5 @@
 from langchain.chains import RetrievalQA
-from langchain.agents import initialize_agent, Tool
-from langchain.agents import AgentType
+from langchain.agents import tool, AgentType, Tool, initialize_agent
 from langchain.vectorstores import Pinecone
 import pinecone
 

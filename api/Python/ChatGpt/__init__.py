@@ -4,7 +4,9 @@ import uuid
 import azure.functions as func
 import openai
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.embeddings.azure_openai import AzureOpenAIEmbeddings
 import os
+from openai import OpenAI, AzureOpenAI
 from langchain.vectorstores import Pinecone
 import pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
@@ -15,7 +17,7 @@ from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.prompts import PromptTemplate
 from Utilities.envVars import *
-from langchain.agents import create_csv_agent
+from langchain_experimental.agents.agent_toolkits import create_csv_agent
 from Utilities.azureBlob import getLocalBlob, getFullPath
 from azure.cosmos import CosmosClient, PartitionKey
 from langchain.callbacks import get_openai_callback
@@ -194,64 +196,66 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             )
     
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"{OpenAiEndPoint}"
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = baseUrl
 
-        embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, openai_api_key=OpenAiKey, openai_api_type="azure")
+        embeddings = AzureOpenAIEmbeddings(azure_endpoint=OpenAiEndPoint, azure_deployment=OpenAiEmbedding, api_key=OpenAiKey, openai_api_type="azure")
         if deploymentType == 'gpt35':
             llmChat = AzureChatOpenAI(
-                        openai_api_base=baseUrl,
-                        openai_api_version=OpenAiVersion,
-                        deployment_name=OpenAiChat,
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat,
                         temperature=temperature,
-                        openai_api_key=OpenAiKey,
-                        openai_api_type="azure",
+                        api_key=OpenAiKey,
                         max_tokens=tokenLength)
             
-            completion = openai.ChatCompletion.create(
-                deployment_id=OpenAiChat,
-                model=gptModel,
-                messages=messages, 
-                temperature=0.0, 
-                max_tokens=32, 
+            client = AzureOpenAI(
+                    api_key = OpenAiKey,  
+                    api_version = OpenAiVersion,
+                    azure_endpoint = OpenAiEndPoint
+                    )
+            completion = client.chat.completions.create(
+                model=OpenAiChat, 
+                messages=messages,
+                temperature=0.0,
+                max_tokens=32,
                 n=1)
-            
+                        
         elif deploymentType == "gpt3516k":
             llmChat = AzureChatOpenAI(
-                        openai_api_base=baseUrl,
-                        openai_api_version=OpenAiVersion,
-                        deployment_name=OpenAiChat16k,
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat16k,
                         temperature=temperature,
-                        openai_api_key=OpenAiKey,
-                        openai_api_type="azure",
+                        api_key=OpenAiKey,
                         max_tokens=tokenLength)
-            completion = openai.ChatCompletion.create(
-                deployment_id=OpenAiChat16k,
-                model=gptModel,
-                messages=messages, 
-                temperature=0.0, 
-                max_tokens=32, 
+            
+            client = AzureOpenAI(
+                    api_key = OpenAiKey,  
+                    api_version = OpenAiVersion,
+                    azure_endpoint = OpenAiEndPoint
+                    )
+            completion = client.chat.completions.create(
+                model=OpenAiChat16k, 
+                messages=messages,
+                temperature=0.0,
+                max_tokens=32,
                 n=1)
+            
         logging.info("LLM Setup done")
+
     elif embeddingModelType == "openai":
-        openai.api_type = "open_ai"
-        openai.api_base = "https://api.openai.com/v1"
-        openai.api_version = '2020-11-07' 
-        openai.api_key = OpenAiApiKey
-        llmChat = ChatOpenAI(temperature=temperature,
-                openai_api_key=OpenAiApiKey,
-                max_tokens=tokenLength)
+        llmChat = ChatOpenAI(temperature=0.3,
+                api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
+                max_tokens=1000)
         embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
-        completion = openai.ChatCompletion.create(
-                deployment_id=OpenAiChat,
-                model=gptModel,
-                messages=messages, 
-                temperature=0.0, 
-                max_tokens=32, 
-                n=1)    
+
+        client = OpenAI(api_key=OpenAiApiKey)
+        completion = client.chat.completions.create(
+                    model=OpenAiChat, 
+                    messages=messages,
+                    temperature=0.0,
+                    max_tokens=32,
+                    n=1)
     try:
         # userToken = completion.usage.total_tokens
         # totalTokens = totalTokens + userToken

@@ -1,4 +1,4 @@
-import logging, json, os
+import logging, json
 import azure.functions as func
 from Utilities.envVars import *
 

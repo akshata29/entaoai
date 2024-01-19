@@ -1,11 +1,7 @@
 import logging, json, os
 import azure.functions as func
-import openai
 import tempfile
-import uuid
 import pinecone
-from redis.commands.search.field import VectorField, TagField, TextField
-from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 import numpy as np
 from typing import Any, Callable, Dict, List, Optional
 import itertools

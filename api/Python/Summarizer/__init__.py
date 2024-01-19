@@ -11,6 +11,7 @@ from Utilities.envVars import *
 from langchain.utilities import BingSearchAPIWrapper
 from langchain.docstore.document import Document
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
+from openai import OpenAI, AzureOpenAI
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -55,28 +56,18 @@ def Summarize(promptType, promptName, chainType, docType, inLineText, overrides)
     results = ''
 
     if (embeddingModelType == 'azureopenai'):
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = f"{OpenAiEndPoint}"
-        baseUrl = f"{OpenAiEndPoint}"
-
         llm = AzureChatOpenAI(
-                    openai_api_base=baseUrl,
-                    openai_api_version=OpenAiVersion,
-                    deployment_name=OpenAiChat,
-                    temperature=temperature,
-                    openai_api_key=OpenAiKey,
-                    openai_api_type="azure",
-                    max_tokens=tokenLength)
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat,
+                        temperature=temperature,
+                        api_key=OpenAiKey,
+                        max_tokens=tokenLength)
         logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
-        openai.api_type = "open_ai"
-        openai.api_base = "https://api.openai.com/v1"
-        openai.api_version = '2020-11-07' 
-        openai.api_key = OpenAiApiKey        
         llm = ChatOpenAI(temperature=temperature,
-                openai_api_key=OpenAiApiKey,
+                api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
                 max_tokens=tokenLength)
         
     if (promptType == "custom"):

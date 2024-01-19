@@ -1,32 +1,21 @@
 import logging, json, os
-import azure.functions as func
 from Utilities.envVars import *
-import azure.durable_functions as df
 from Utilities.envVars import *
 # Import required libraries
 from Utilities.cogSearchVsRetriever import CognitiveSearchVsRetriever
 from langchain.chains import RetrievalQA
 from langchain import PromptTemplate
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from Utilities.evaluator import createEvaluatorDataSearchIndex, indexEvaluatorDataSections, indexDocs
-from Utilities.evaluator import searchEvaluatorDocumentIndexedData, createEvaluatorDocumentSearchIndex
-from langchain.chains import QAGenerationChain
+from Utilities.evaluator import indexDocs
 import json
 import time
 import pandas as pd
 from collections import namedtuple
-from Utilities.evaluator import searchEvaluatorDocument, searchEvaluatorRunIdIndex
+from Utilities.evaluator import searchEvaluatorRunIdIndex
 import uuid
 import tempfile
 from Utilities.azureBlob import getBlob, getFullPath
 from langchain.document_loaders import PDFMinerLoader, UnstructuredFileLoader
-from Utilities.evaluator import createEvaluatorQaSearchIndex, searchEvaluatorQaData, searchEvaluatorDocument
-from Utilities.evaluator import createEvaluatorDataSearchIndex, indexEvaluatorDataSections
 from Utilities.evaluator import createEvaluatorResultIndex, searchEvaluatorRunIdIndex
-from json import JSONDecodeError
-import random
-import itertools
-import openai
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.evaluation.qa import QAEvalChain
 from Utilities.evaluator import searchEvaluatorRunIndex, createEvaluatorRunIndex, getEvaluatorResult
@@ -290,29 +279,19 @@ def main(runDocs: RunDocs) -> str:
     logging.info("Python HTTP trigger function processed a request.")
        
     if (embeddingModelType == 'azureopenai'):
-            openai.api_type = "azure"
-            openai.api_key = OpenAiKey
-            openai.api_version = OpenAiVersion
-            openai.api_base = f"{OpenAiEndPoint}"
-
             llm = AzureChatOpenAI(
-                    openai_api_base=openai.api_base,
-                    openai_api_version=OpenAiVersion,
-                    deployment_name=OpenAiChat,
-                    temperature=temperature,
-                    openai_api_key=OpenAiKey,
-                    openai_api_type="azure",
-                    max_tokens=tokenLength)
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat,
+                        temperature=temperature,
+                        api_key=OpenAiKey,
+                        max_tokens=tokenLength)
             logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
-            openai.api_type = "open_ai"
-            openai.api_base = "https://api.openai.com/v1"
-            openai.api_version = '2020-11-07' 
-            openai.api_key = OpenAiApiKey
             llm = ChatOpenAI(temperature=temperature,
-            openai_api_key=OpenAiApiKey,
-            model_name="gpt-3.5-turbo",
-            max_tokens=tokenLength)
+                api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
+                max_tokens=tokenLength)
 
     # Select retriever
     createEvaluatorResultIndex(SearchService, SearchKey, evaluatorRunResultIndexName)

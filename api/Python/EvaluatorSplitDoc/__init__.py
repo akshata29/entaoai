@@ -4,7 +4,6 @@ from Utilities.envVars import *
 import azure.durable_functions as df
 from Utilities.envVars import *
 # Import required libraries
-from Utilities.cogSearchVsRetriever import CognitiveSearchVsRetriever
 from langchain.chains import RetrievalQA
 from langchain import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter

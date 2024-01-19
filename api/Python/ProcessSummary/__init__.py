@@ -26,6 +26,8 @@ import pinecone
 from langchain.vectorstores import Pinecone
 from langchain.embeddings.openai import OpenAIEmbeddings
 from Utilities.redisIndex import performRedisSearch
+from openai import OpenAI, AzureOpenAI
+from langchain.embeddings.azure_openai import AzureOpenAIEmbeddings
 
 def GetAllFiles(filesToProcess):
     files = []
@@ -146,18 +148,6 @@ def summarizeTopic(llm, query, promptTemplate, embeddings, embeddingModelType, i
 
 def processTopicSummary(llm, fileName, indexNs, indexType, prospectusSummaryIndexName, embeddings, embeddingModelType, selectedTopics, 
                         summaryPromptTemplate, topK, existingSummary):
-    # r = findFileInIndex(SearchService, SearchKey, prospectusIndexName, fileName)
-    # if r.get_count() == 0:
-    #     rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-    #     textSplitter = RecursiveCharacterTextSplitter(chunk_size=int(8000), chunk_overlap=int(1000))
-    #     docs = textSplitter.split_documents(rawDocs)
-    #     logging.info("Docs " + str(len(docs)))
-    #     createSearchIndex(SearchService, SearchKey, prospectusIndexName)
-    #     indexSections(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, SearchService, SearchKey, embeddingModelType,
-    #                    OpenAiEmbedding, fileName, prospectusIndexName, docs)
-    # else:
-    #     logging.info('Found existing data')
-
     createProspectusSummary(SearchService, SearchKey, prospectusSummaryIndexName)
     topicSummary = []
     logging.info(f"Existing Summary: {existingSummary}")
@@ -212,15 +202,6 @@ def summarizeTopics(indexNs, indexType, existingSummary, overrides):
     topK = overrides.get("top") or 3
     deploymentType = overrides.get('deploymentType') or 'gpt3516k'
 
-    # logging.info(f"embeddingModelType: {embeddingModelType}")
-    # logging.info(f"selectedTopics: {selectedTopics}")
-    # logging.info(f"summaryPromptTemplate: {summaryPromptTemplate}")
-    # logging.info(f"temperature: {temperature}")
-    # logging.info(f"tokenLength: {tokenLength}")
-    # logging.info(f"fileName: {fileName}")
-    # logging.info(f"topK: {topK}")
-    # logging.info(f"deploymentType: {deploymentType}")
-
     if summaryPromptTemplate == '':
         summaryPromptTemplate = """You are an AI assistant tasked with summarizing documents from large documents that contains information about Initial Public Offerings. 
         IPO document contains sections with information about the company, its business, strategies, risk, management structure, financial, and other information.
@@ -235,42 +216,30 @@ def summarizeTopics(indexNs, indexType, existingSummary, overrides):
         """
     
     if (embeddingModelType == 'azureopenai'):
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = f"{OpenAiEndPoint}"
-
         if deploymentType == 'gpt35':
             llm = AzureChatOpenAI(
-                    openai_api_base=openai.api_base,
-                    openai_api_version=OpenAiVersion,
-                    deployment_name=OpenAiChat,
-                    temperature=temperature,
-                    openai_api_key=OpenAiKey,
-                    openai_api_type="azure",
-                    max_tokens=tokenLength)
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat,
+                        temperature=temperature,
+                        api_key=OpenAiKey,
+                        max_tokens=tokenLength)
         elif deploymentType == "gpt3516k":
             llm = AzureChatOpenAI(
-                    openai_api_base=openai.api_base,
-                    openai_api_version=OpenAiVersion,
-                    deployment_name=OpenAiChat16k,
-                    temperature=temperature,
-                    openai_api_key=OpenAiKey,
-                    openai_api_type="azure",
-                    max_tokens=tokenLength)
-            
-        embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, openai_api_key=OpenAiKey, openai_api_type="azure")
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat16k,
+                        temperature=temperature,
+                        api_key=OpenAiKey,
+                        max_tokens=tokenLength)
+        embeddings = AzureOpenAIEmbeddings(azure_endpoint=OpenAiEndPoint, azure_deployment=OpenAiEmbedding, api_key=OpenAiKey, openai_api_type="azure")
         logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
-        openai.api_type = "open_ai"
-        openai.api_base = "https://api.openai.com/v1"
-        openai.api_version = '2020-11-07' 
-        openai.api_key = OpenAiApiKey
         llm = ChatOpenAI(temperature=temperature,
-            openai_api_key=OpenAiApiKey,
-            model_name="gpt-3.5-turbo",
-            max_tokens=tokenLength)
-        embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
+                api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
+                max_tokens=tokenLength)
+        embeddings = OpenAIEmbeddings(api_key=OpenAiApiKey)
 
 
     summaryTopicData = processTopicSummary(llm, fileName, indexNs, indexType, prospectusSummaryIndexName, embeddings, embeddingModelType, 

@@ -9,8 +9,7 @@ import pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 import numpy as np
 from langchain.chains import RetrievalQA
-from langchain.agents import initialize_agent, Tool
-from langchain.agents import AgentType
+from langchain.agents import tool, AgentType, Tool, initialize_agent
 from langchain.schema import (
     AgentAction,
     AgentFinish,
@@ -19,14 +18,13 @@ from Utilities.envVars import *
 from langchain.vectorstores.redis import Redis
 from Utilities.azureBlob import getAllBlobs, getLocalBlob
 from langchain.retrievers import AzureCognitiveSearchRetriever
-from Utilities.cogSearchRetriever import CognitiveSearchRetriever
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.sql_database import SQLDatabase
 from langchain.agents import create_sql_agent
 from langchain.agents import ConversationalChatAgent, AgentExecutor, Tool
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.utilities import BingSearchAPIWrapper
-from langchain.agents import create_csv_agent
+from langchain_experimental.agents.agent_toolkits import create_csv_agent
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from langchain.docstore.document import Document
@@ -54,11 +52,17 @@ def addTool(indexType, embeddings, llm, overrideChain, indexNs, indexName, retur
             )
         return tool
     elif indexType == "cogsearch":
-        retriever = CognitiveSearchRetriever(content_key="content",
-                                                  service_name=SearchService,
+        retriever = AzureCognitiveSearchRetriever(service_name=SearchService,
+                                                  index_name=indexNs, 
                                                   api_key=SearchKey,
-                                                  index_name=indexNs,
-                                                  topK=topK)
+                                                  content_key="content", 
+                                                  top_k=topK)
+
+        # retriever = CognitiveSearchRetriever(content_key="content",
+        #                                           service_name=SearchService,
+        #                                           api_key=SearchKey,
+        #                                           index_name=indexNs,
+        #                                           topK=topK)
         index = RetrievalQA.from_chain_type(llm=llm, chain_type=overrideChain, retriever=retriever)
         tool = Tool(
                 name = indexName,

@@ -23,27 +23,19 @@ def SecSearch(indexType, indexName,  question, top, embeddingModelType):
     logging.info("Embedding text")
     try:
         if (embeddingModelType == 'azureopenai'):
-            openai.api_type = "azure"
-            openai.api_key = OpenAiKey
-            openai.api_version = OpenAiVersion
-            openai.api_base = f"{OpenAiEndPoint}"
 
             llm = AzureChatOpenAI(
-                        openai_api_base=openai.api_base,
-                        openai_api_version=OpenAiVersion,
-                        deployment_name=OpenAiChat,
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat,
                         temperature=0.3,
-                        openai_api_key=OpenAiKey,
-                        openai_api_type="azure",
+                        api_key=OpenAiKey,
                         max_tokens=1000)
+            
                         
         elif embeddingModelType == "openai":
-            openai.api_type = "open_ai"
-            openai.api_base = "https://api.openai.com/v1"
-            openai.api_version = '2020-11-07' 
-            openai.api_key = OpenAiApiKey
             llm = ChatOpenAI(temperature=0.3,
-                openai_api_key=OpenAiApiKey,
+                api_key=OpenAiApiKey,
                 model_name="gpt-3.5-turbo",
                 max_tokens=1000)
             
@@ -88,6 +80,35 @@ def SecSearch(indexType, indexName,  question, top, embeddingModelType):
             for index, row in contentPdf.iterrows():
                 summary = summarizeDocumentChain.run(row['content'])
                 row['contentSummary'] = summary
+            return  json.loads((contentPdf.to_json(orient='records')))
+        elif (indexType == 'cogsearch'):
+            results = performCogSearch(indexType, embeddingModelType, question, indexName, int(top), returnFields=["id",
+                     "cik", "company", "filing_type", "filing_date", "period_of_report", "sic", 
+                     "state_of_inc", "state_location", "fiscal_year_end", "filing_html_index", "htm_filing_link",
+                     "complete_text_filing_link", "filename", "content", "sourcefile"] )
+            contentPdf = pd.DataFrame(list(map(lambda x: {'cik' : x['cik'], 'company': x['company'], 'filingType': x['filing_type'],
+                                'filingDate': x['filing_date'], 'periodOfReport': x['period_of_report'],
+                                'sic': x['sic'], 'stateOfInc': x['state_of_inc'], 'stateLocation': x['state_location'],
+                                'fiscalYearEnd': x['fiscal_year_end'], 'filingHtmlIndex': x['filing_html_index'],
+                                'htmFilingLink': x['htm_filing_link'], 'completeFilingLink': x['complete_text_filing_link'],
+                                'content': x['content'], 'contentSummary': '',
+                                'filename': x['filename']}, results)))
+            
+            try:
+                summaryChain = load_summarize_chain(llm, chain_type="stuff")
+                summarizeDocumentChain = AnalyzeDocumentChain(combine_docs_chain=summaryChain)
+                logging.info("Calling Summarize")
+                for index, row in contentPdf.iterrows():
+                    summary = summarizeDocumentChain.run(row['content'])
+                    row['contentSummary'] = summary
+            except:
+                summaryChain = load_summarize_chain(llm, chain_type="map_reduce")
+                summarizeDocumentChain = AnalyzeDocumentChain(combine_docs_chain=summaryChain)
+                logging.info("Calling Summarize")
+                for index, row in contentPdf.iterrows():
+                    summary = summarizeDocumentChain.run(row['content'])
+                    row['contentSummary'] = summary
+                
             return  json.loads((contentPdf.to_json(orient='records')))
     except Exception as e:
       logging.error(e)

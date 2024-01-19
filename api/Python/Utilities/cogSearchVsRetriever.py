@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 
 import aiohttp
 import requests
-from pydantic import BaseModel, Extra, root_validator
+from langchain_core.pydantic_v1 import Extra, root_validator
 
 from langchain.schema import BaseRetriever, Document
 from langchain.utils import get_from_dict_or_env
@@ -16,7 +16,7 @@ from azure.search.documents.models import Vector
 from tenacity import retry, wait_random_exponential, stop_after_attempt  
 import openai
 
-class CognitiveSearchVsRetriever(BaseRetriever, BaseModel):
+class CognitiveSearchVsRetriever(BaseRetriever):
     """Wrapper around Azure Cognitive Search."""
 
     serviceName: str = ""

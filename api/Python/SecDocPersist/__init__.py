@@ -1,6 +1,5 @@
 import logging, json, os
 import azure.functions as func
-import openai
 import os
 import numpy as np
 from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs

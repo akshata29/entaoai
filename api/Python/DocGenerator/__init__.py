@@ -44,7 +44,7 @@ from langchain.text_splitter import MarkdownHeaderTextSplitter
 import glob
 import zipfile
 from pathlib import Path
-
+from langchain.embeddings.azure_openai import AzureOpenAIEmbeddings
 
 try:
     redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
@@ -84,38 +84,27 @@ def GetAllFiles(filesToProcess):
 def summarizeGenerateQa(docs, embeddingModelType, deploymentType):
     logging.info("Summarization started")
     if (embeddingModelType == 'azureopenai'):
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = f"{OpenAiEndPoint}"
-
         if deploymentType == 'gpt35':
             llm = AzureChatOpenAI(
-                    openai_api_base=openai.api_base,
-                    openai_api_version=OpenAiVersion,
-                    deployment_name=OpenAiChat,
-                    temperature=0.3,
-                    openai_api_key=OpenAiKey,
-                    openai_api_type="azure",
-                    max_tokens=1000)
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat,
+                        temperature=0.3,
+                        api_key=OpenAiKey,
+                        max_tokens=1000)
         elif deploymentType == "gpt3516k":
             llm = AzureChatOpenAI(
-                    openai_api_base=openai.api_base,
-                    openai_api_version=OpenAiVersion,
-                    deployment_name=OpenAiChat16k,
-                    temperature=0.3,
-                    openai_api_key=OpenAiKey,
-                    openai_api_type="azure",
-                    max_tokens=1000)
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat16k,
+                        temperature=0.3,
+                        api_key=OpenAiKey,
+                        max_tokens=1000)
     elif embeddingModelType == "openai":
-        openai.api_type = "open_ai"
-        openai.api_base = "https://api.openai.com/v1"
-        openai.api_version = '2020-11-07' 
-        openai.api_key = OpenAiApiKey
         llm = ChatOpenAI(temperature=0.3,
-            openai_api_key=OpenAiApiKey,
-            model_name="gpt-3.5-turbo",
-            max_tokens=1000)
+                api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
+                max_tokens=1000)
     elif embeddingModelType == "local":
         return "Local not supported", "Local not supported"
     
@@ -199,18 +188,8 @@ def storeIndex(indexType, docs, fileName, nameSpace, embeddingModelType):
     logging.info("Storing index")
     try:
         if embeddingModelType == "azureopenai":
-            openai.api_type = "azure"
-            openai.api_key = OpenAiKey
-            openai.api_version = OpenAiVersion
-            openai.api_base = f"{OpenAiEndPoint}"
-            embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, openai_api_key=OpenAiKey, openai_api_type="azure")
+            embeddings = AzureOpenAIEmbeddings(azure_endpoint=OpenAiEndPoint, azure_deployment=OpenAiEmbedding, api_key=OpenAiKey, openai_api_type="azure")
         elif embeddingModelType == "openai":
-            #openai.debug = True
-            #openai.log = 'debug'
-            openai.api_type = "open_ai"
-            openai.api_base = "https://api.openai.com/v1"
-            openai.api_version = '2020-11-07' 
-            openai.api_key = OpenAiApiKey
             embeddings = OpenAIEmbeddings(openai_api_key=OpenAiApiKey)
         elif embeddingModelType == "local":
             #embeddings = LocalHuggingFaceEmbeddings("all-mpnet-base-v2")

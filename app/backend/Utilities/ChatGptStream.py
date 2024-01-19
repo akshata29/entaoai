@@ -1,7 +1,8 @@
 from Utilities.modelHelper import numTokenFromMessages, getTokenLimit
 from typing import Any, Sequence
 import logging, json, os
-import openai
+#import openai
+from openai import OpenAI, AzureOpenAI, AsyncAzureOpenAI
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.models import Vector  
@@ -39,25 +40,25 @@ class ChatGptStream:
     # Function to generate embeddings for title and content fields, also used for query embeddings
     def generateEmbeddings(self, embeddingModelType, text):
         if (embeddingModelType == 'azureopenai'):
-            openai.api_type = "azure"
-            openai.api_key = self.OpenAiKey
-            openai.api_version = self.OpenAiVersion
-            openai.api_base = self.OpenAiEndPoint
-
-            response = openai.Embedding.create(
-                input=text, engine=self.OpenAiEmbedding)
-            embeddings = response['data'][0]['embedding']
+            try:
+                client = AzureOpenAI(
+                        api_key = self.OpenAiKey,  
+                        api_version = self.OpenAiVersion,
+                        azure_endpoint = self.OpenAiEndPoint
+                        )
+                response = client.embeddings.create(
+                    input=text, model=self.OpenAiEmbedding)
+                embeddings = response.data[0].embedding
+            except Exception as e:
+                print(e)
 
         elif embeddingModelType == "openai":
             try:
-                openai.api_type = "open_ai"
-                openai.api_base = "https://api.openai.com/v1"
-                openai.api_version = '2020-11-07' 
-                openai.api_key = self.OpenAiApiKey
 
-                response = openai.Embedding.create(
+                client = OpenAI(api_key=OpenAiApiKey)
+                response = client.embeddings.create(
                     input=text, engine="text-embedding-ada-002", api_key = self.OpenAiApiKey)
-                embeddings = response['data'][0]['embedding']
+                embeddings = response.data[0].embedding
             except Exception as e:
                 print(e)
             
@@ -255,45 +256,53 @@ class ChatGptStream:
                 )
         
         if (embeddingModelType == 'azureopenai'):
-            openai.api_type = "azure"
-            openai.api_key = self.OpenAiKey
-            openai.api_version = self.OpenAiVersion
-            openai.api_base = self.OpenAiEndPoint
+            client = AzureOpenAI(
+                api_key = self.OpenAiKey,  
+                api_version = self.OpenAiVersion,
+                azure_endpoint = self.OpenAiEndPoint
+                )
 
             if deploymentType == 'gpt35':
-                completion = openai.ChatCompletion.create(
-                    deployment_id=self.OpenAiChat,
-                    model=gptModel,
-                    messages=messages, 
-                    temperature=0.0, 
-                    max_tokens=32, 
+                completion = client.chat.completions.create(
+                    model=self.OpenAiChat, 
+                    messages=messages,
+                    temperature=0.0,
+                    max_tokens=32,
                     n=1)
+                # completion = openai.ChatCompletion.create(
+                #     deployment_id=self.OpenAiChat,
+                #     model=gptModel,
+                #     messages=messages, 
+                #     temperature=0.0, 
+                #     max_tokens=32, 
+                #     n=1)
                 
             elif deploymentType == "gpt3516k":
-                completion = openai.ChatCompletion.create(
-                    deployment_id=self.OpenAiChat16k,
-                    model=gptModel,
-                    messages=messages, 
-                    temperature=0.0, 
-                    max_tokens=32, 
+                completion = client.chat.completions.create(
+                    model=self.OpenAiChat16k, 
+                    messages=messages,
+                    temperature=0.0,
+                    max_tokens=32,
                     n=1)
 
             logging.info("LLM Setup done")
         elif embeddingModelType == "openai":
-            openai.api_type = "open_ai"
-            openai.api_base = "https://api.openai.com/v1"
-            openai.api_version = '2020-11-07' 
-            openai.api_key = self.OpenAiApiKey
-            completion = openai.ChatCompletion.create(
-                    deployment_id=self.OpenAiChat,
-                    model=gptModel,
-                    messages=messages, 
-                    temperature=0.0, 
-                    max_tokens=32, 
+            # openai.api_type = "open_ai"
+            # openai.api_base = "https://api.openai.com/v1"
+            # openai.api_version = '2020-11-07' 
+            # openai.api_key = self.OpenAiApiKey
+            client = OpenAI(api_key=OpenAiApiKey)
+            completion = client.chat.completions.create(
+                    model=gptModel, 
+                    messages=messages,
+                    temperature=0.0,
+                    max_tokens=32,
                     n=1)
+
         try:
             if len(history) > 1:
-                q = completion.choices[0].message.content
+                #q = completion.choices[0].text
+                q = completion.choices[0].message.content.strip(" \n")
             else:
                 q = lastQuestion
                 
@@ -332,6 +341,7 @@ class ChatGptStream:
             results = []
 
             uniqueSources = []
+
             if indexType == 'redis':
                 returnField = ["metadata", "content", "vector_score"]
                 vectorField = "content_vector"
@@ -380,52 +390,56 @@ class ChatGptStream:
                 "sources": finalSources, "nextQuestions": '', "error": ""}
     
             if (embeddingModelType == 'azureopenai'):
-                openai.api_type = "azure"
-                openai.api_key = self.OpenAiKey
-                openai.api_version = self.OpenAiVersion
-                openai.api_base = self.OpenAiEndPoint
+                client = AzureOpenAI(
+                    api_key = self.OpenAiKey,  
+                    api_version = self.OpenAiVersion,
+                    azure_endpoint = self.OpenAiEndPoint
+                    )
 
                 if deploymentType == 'gpt35':
-                    yield from openai.ChatCompletion.create(
-                        deployment_id=self.OpenAiChat,
-                        model=gptModel,
-                        messages=messages, 
-                        temperature=temperature, 
-                        max_tokens=1024, 
+                    yield from client.chat.completions.create(
+                        model=self.OpenAiChat, 
+                        messages=messages,
+                        temperature=temperature,
+                        max_tokens=1024,
                         n=1,
                         stream=True)
                 elif deploymentType == "gpt3516k":
-                    yield from openai.ChatCompletion.create(
-                        deployment_id=self.OpenAiChat16k,
-                        model=gptModel,
-                        messages=messages, 
-                        temperature=temperature, 
-                        max_tokens=1024, 
-                        n=1,
-                        stream=True)
-                logging.info("LLM Setup done")
+                    try:
+                        completion = client.chat.completions.create(
+                            model=self.OpenAiChat16k, 
+                            messages=messages,
+                            temperature=temperature,
+                            max_tokens=1024,
+                            n=1,
+                            stream=True)
+                        for event in completion:
+                            if len(event.choices) > 0:
+                                delta = event.choices[0].delta
+                                if delta.content:
+                                    yield {"answer": delta.content, "data_points": results, 
+                                    "thoughts": f"Searched for:<br>{lastQuestion}<br><br>Conversations:<br>" + msgToDisplay.replace('\n', '<br>'),
+                                    "sources": finalSources, "nextQuestions": '', "error": ""}
+                    except Exception as e:
+                        yield str(e)
+
             elif embeddingModelType == "openai":
-                openai.api_type = "open_ai"
-                openai.api_base = "https://api.openai.com/v1"
-                openai.api_version = '2020-11-07' 
-                openai.api_key = self.OpenAiApiKey
-                yield from openai.ChatCompletion.create(
-                        deployment_id=self.OpenAiChat,
-                        model=gptModel,
-                        messages=messages, 
-                        temperature=temperature, 
-                        max_tokens=1024, 
+                client = OpenAI(api_key=OpenAiApiKey)
+                completion =  client.chat.completions.create(
+                        model=gptModel, 
+                        messages=messages,
+                        temperature=temperature,
+                        max_tokens=1024,
                         n=1,
                         stream=True)
-            # yield from openai.ChatCompletion.create(
-            #         deployment_id=self.OpenAiChat,
-            #         model=gptModel,
-            #         messages=messages, 
-            #         temperature=temperature, 
-            #         max_tokens=1024, 
-            #         n=1,
-            #         stream=True)
+                for event in completion:
+                    if len(event.choices) > 0:
+                        delta = event.choices[0].delta
+                        if delta.content:
+                            yield {"answer": delta.content, "data_points": results, 
+                            "thoughts": f"Searched for:<br>{lastQuestion}<br><br>Conversations:<br>" + msgToDisplay.replace('\n', '<br>'),
+                            "sources": finalSources, "nextQuestions": '', "error": ""}
         except Exception as e:
             print(e)
-            yield {"data_points": "", "answer": "Error : " + str(e), "thoughts": "",
-                    "sources": '', "nextQuestions": '', "error": str(e)}
+            yield {"data_points": results, "answer": "Error : " + str(e), "thoughts": "",
+                    "sources": finalSources, "nextQuestions": '', "error": str(e)}

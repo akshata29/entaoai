@@ -1,7 +1,7 @@
 import logging
 import azure.functions as func
 import os
-from azure.storage.blob import BlobServiceClient, ContentSettings
+from azure.storage.blob import BlobServiceClient
 import requests
 import json
 

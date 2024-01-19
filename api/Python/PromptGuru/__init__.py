@@ -47,28 +47,18 @@ def PromptGuruAnswer(task, embeddingModelType, value):
                 """
         
         if (embeddingModelType == 'azureopenai'):
-            openai.api_type = "azure"
-            openai.api_key = OpenAiKey
-            openai.api_version = OpenAiVersion
-            openai.api_base = f"{OpenAiEndPoint}"
-
             llm = AzureChatOpenAI(
-                    openai_api_base=openai.api_base,
-                    openai_api_version=OpenAiVersion,
-                    deployment_name=OpenAiChat,
-                    temperature=0,
-                    openai_api_key=OpenAiKey,
-                    openai_api_type="azure",
-                    max_tokens=400)
-
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat,
+                        temperature=0,
+                        api_key=OpenAiKey,
+                        max_tokens=400)
+            
             logging.info("LLM Setup done")
         elif embeddingModelType == "openai":
-            openai.api_type = "open_ai"
-            openai.api_base = "https://api.openai.com/v1"
-            openai.api_version = '2020-11-07' 
-            openai.api_key = OpenAiApiKey
             llm = ChatOpenAI(temperature=0,
-                openai_api_key=OpenAiApiKey,
+                api_key=OpenAiApiKey,
                 model_name="gpt-3.5-turbo",
                 max_tokens=400)
 

@@ -1,6 +1,6 @@
 from promptflow import tool
 from langchain.chains import RetrievalQA
-from langchain.agents import ZeroShotAgent, Tool, AgentExecutor
+from langchain_experimental.agents.agent_toolkits import ZeroShotAgent, Tool, AgentExecutor
 import openai
 from langchain.embeddings.openai import OpenAIEmbeddings
 import os

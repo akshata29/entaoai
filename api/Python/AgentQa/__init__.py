@@ -9,8 +9,7 @@ import pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 import numpy as np
 from langchain.chains import RetrievalQA
-from langchain.agents import initialize_agent, Tool
-from langchain.agents import AgentType
+from langchain.agents import tool, AgentType, Tool, initialize_agent
 from langchain.schema import (
     AgentAction,
     AgentFinish,

@@ -145,7 +145,8 @@ const Edgar = () => {
         setActiveAnalysisPanelTab(undefined);
 
         try {
-            const result = await secSearch('cogsearchvs', 'secdocs', question, String(retrieveCount), String(selectedEmbeddingItem?.key));
+            // const result = await secSearch('cogsearchvs', 'secdocs', question, String(retrieveCount), String(selectedEmbeddingItem?.key));
+            const result = await secSearch('cogsearch', 'secfilings', question, String(retrieveCount), String(selectedEmbeddingItem?.key));
             
             const itemsResponse: Item[] = [];
             console.log(result.values[0].data.text);

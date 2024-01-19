@@ -447,10 +447,25 @@ const ChatGpt = () => {
                             runningText += obj;
                             if (obj != "") {
                                 result = JSON.parse(runningText)
-                                if (result["data_points"]) {
+                                // if (result["data_points"]) {
+                                //     askResponse = result;
+                                // } else if (result["choices"] && result["choices"][0]["delta"]["content"]) {
+                                //     console.log("Came in choices")
+                                //     answer += result["choices"][0]["delta"]["content"];
+                                //     nextQuestion += answer.indexOf("NEXT QUESTIONS:") > -1 ? answer.substring(answer.indexOf('NEXT QUESTIONS:') + 15) : '';
+                                //     let latestResponse: AskResponse = {...askResponse, answer: answer, nextQuestions: nextQuestion};
+                                //     setIsLoading(false);
+                                //     setAnswersStream([...answerStream, [question, latestResponse, null]]);
+                                //     if(useAutoSpeakAnswers){
+                                //         const speechUrl = await getSpeechApi(result.answer);
+                                //         setAnswersStream([...answerStream, [question, latestResponse, speechUrl]]);
+                                //         startOrStopSynthesis("gpt35", speechUrl, answerStream.length);
+                                //     }
+                                // }
+                                if (result['answer'])
+                                {
                                     askResponse = result;
-                                } else if (result["choices"] && result["choices"][0]["delta"]["content"]) {
-                                    answer += result["choices"][0]["delta"]["content"];
+                                    answer += result["answer"];
                                     nextQuestion += answer.indexOf("NEXT QUESTIONS:") > -1 ? answer.substring(answer.indexOf('NEXT QUESTIONS:') + 15) : '';
                                     let latestResponse: AskResponse = {...askResponse, answer: answer, nextQuestions: nextQuestion};
                                     setIsLoading(false);

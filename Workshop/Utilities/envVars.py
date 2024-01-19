@@ -149,5 +149,46 @@ try:
         SecDocPersistUrl = os.getenv('SecDocPersistUrl')
     else:
         SecDocPersistUrl = "http://localhost:7071/api/SecDocPersist?code="
+    
+    if "VideoIndexerEndPoint" in os.environ: 
+        VideoIndexerEndPoint = os.getenv('VideoIndexerEndPoint')
+    else:
+        VideoIndexerEndPoint = ""
+
+    if "VideoIndexerAccountId" in os.environ: 
+        VideoIndexerAccountId = os.getenv('VideoIndexerAccountId')
+    else:
+        VideoIndexerAccountId = ""
+
+    if "VideoIndexerLocation" in os.environ: 
+        VideoIndexerLocation = os.getenv('VideoIndexerLocation')
+    else:
+        VideoIndexerLocation = ""
+
+    if "VideoIndexerResourceId" in os.environ: 
+        VideoIndexerResourceId = os.getenv('VideoIndexerResourceId')
+    else:
+        VideoIndexerResourceId = ""
+
+    if "VideoIndexerBlobContainer" in os.environ: 
+        VideoIndexerBlobContainer = os.getenv('VideoIndexerBlobContainer')
+    else:
+        VideoIndexerBlobContainer = ""
+
+    if "VideoIndexerBlobKey" in os.environ: 
+        VideoIndexerBlobKey = os.getenv('VideoIndexerBlobKey')
+    else:
+        VideoIndexerBlobKey = ""
+
+    if "VideoIndexerBlobAccount" in os.environ: 
+        VideoIndexerBlobAccount = os.getenv('VideoIndexerBlobAccount')
+    else:
+        VideoIndexerBlobAccount = ""
+
+    if "VideoIndexerSubscriptionKey" in os.environ: 
+        VideoIndexerSubscriptionKey = os.getenv('VideoIndexerSubscriptionKey')
+    else:
+        VideoIndexerSubscriptionKey = ""
+
 except Exception as e:
     print("Error reading environment variables: " + str(e))

@@ -1,12 +1,6 @@
 import logging, json, os, urllib
 import azure.functions as func
-import openai
 import os
-from langchain.sql_database import SQLDatabase
-from langchain.prompts.prompt import PromptTemplate
-from langchain_experimental.sql import SQLDatabaseChain
-from langchain.chains import LLMChain
-from langchain.schema import AgentAction
 from Utilities.envVars import *
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 import pandas as pd
@@ -16,6 +10,7 @@ import time
 import re
 import sys
 from io import StringIO
+from openai import OpenAI, AzureOpenAI
 
 def executeSqlQuery(query, limit=10000):  
     synapseConnectionString = "Driver={{ODBC Driver 17 for SQL Server}};Server=tcp:{};" \
@@ -149,31 +144,31 @@ def validateOutput(llmOutput,extractedOutput):
 def callLlm(embeddingModelType, prompt, stop):        
     try:
         if (embeddingModelType == 'azureopenai'):
-            baseUrl = f"{OpenAiEndPoint}"
-            openai.api_type = "azure"
-            openai.api_key = OpenAiKey
-            openai.api_version = OpenAiVersion
-            openai.api_base = f"{OpenAiEndPoint}"
-
-            completion = openai.ChatCompletion.create(
-                engine=OpenAiChat,
-                prompt=prompt,
-                temperature=0,
+            client = AzureOpenAI(
+                    api_key = OpenAiKey,  
+                    api_version = OpenAiVersion,
+                    azure_endpoint = OpenAiEndPoint
+                    )
+            completion = client.chat.completions.create(
+                model=OpenAiChat, 
+                messages=prompt,
+                temperature=0.0,
                 max_tokens=1250,
                 stop=stop)
             logging.info("LLM Setup done")
         elif embeddingModelType == "openai":
-            openai.api_type = "open_ai"
-            openai.api_base = "https://api.openai.com/v1"
-            openai.api_version = '2020-11-07' 
-            openai.api_key = OpenAiApiKey
-            completion = openai.ChatCompletion.create(
-                engine="gpt-3.5-turbo",
-                prompt=prompt,
-                temperature=0,
+            client = AzureOpenAI(
+                    api_key = OpenAiKey,  
+                    api_version = OpenAiVersion,
+                    azure_endpoint = OpenAiEndPoint
+                    )
+            completion = client.chat.completions.create(
+                model=OpenAiChat16k, 
+                messages=prompt,
+                temperature=0.0,
                 max_tokens=1250,
                 stop=stop)
-        llmOutput = completion['choices'][0]['message']['content']
+        llmOutput = completion.choices[0].message.content
     except Exception as e:
         logging.error("Error in calling LLM: %s", e)
         llmOutput=""

@@ -2,6 +2,7 @@ import logging, json, os
 import azure.functions as func
 import openai
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.embeddings.azure_openai import AzureOpenAIEmbeddings
 import os
 from langchain.vectorstores import Pinecone
 import pinecone
@@ -17,7 +18,7 @@ from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch, generateKbEmbeddings, performKbCogVectorSearch, indexDocs
 from langchain.prompts import load_prompt
 from Utilities.envVars import *
-from langchain.agents import create_csv_agent
+from langchain_experimental.agents.agent_toolkits import create_csv_agent
 from Utilities.azureBlob import getLocalBlob, getFullPath
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 import uuid
@@ -60,31 +61,27 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
         thoughtPrompt = ''
 
         if (embeddingModelType == 'azureopenai'):
-            openai.api_type = "azure"
-            openai.api_key = OpenAiKey
-            openai.api_version = OpenAiVersion
-            openai.api_base = f"{OpenAiEndPoint}"
 
             if deploymentType == 'gpt35':
                 llm = AzureChatOpenAI(
-                        openai_api_base=openai.api_base,
-                        openai_api_version=OpenAiVersion,
-                        deployment_name=OpenAiChat,
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat,
                         temperature=temperature,
                         openai_api_key=OpenAiKey,
                         openai_api_type="azure",
                         max_tokens=tokenLength)
             elif deploymentType == "gpt3516k":
                 llm = AzureChatOpenAI(
-                        openai_api_base=openai.api_base,
-                        openai_api_version=OpenAiVersion,
-                        deployment_name=OpenAiChat16k,
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat16k,
                         temperature=temperature,
                         openai_api_key=OpenAiKey,
                         openai_api_type="azure",
                         max_tokens=tokenLength)
                 
-            embeddings = OpenAIEmbeddings(deployment=OpenAiEmbedding, openai_api_key=OpenAiKey, openai_api_type="azure")
+            embeddings = AzureOpenAIEmbeddings(azure_endpoint=OpenAiEndPoint, azure_deployment=OpenAiEmbedding, api_key=OpenAiKey, openai_api_type="azure")
             logging.info("LLM Setup done")
         elif embeddingModelType == "openai":
             openai.api_type = "open_ai"

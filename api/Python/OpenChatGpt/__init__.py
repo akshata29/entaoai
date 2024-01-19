@@ -10,12 +10,13 @@ from azure.cosmos import CosmosClient, PartitionKey
 from Utilities.modelHelper import numTokenFromMessages, getTokenLimit
 from typing import Any, Sequence
 from langchain.utilities import BingSearchAPIWrapper
-from langchain.agents import AgentType, initialize_agent, Tool
+from langchain.agents import tool, AgentType, Tool, initialize_agent
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 import pytz
 import math
 import inspect
 import requests
+from openai import OpenAI, AzureOpenAI
 
 def getCurrentTime(location):
     try:
@@ -195,152 +196,134 @@ def checkFunctionArgs(function, args):
 def runFunctionConversation(messages, functions, availableFunctions, embeddingModelType, deploymentType, gptModel):
     #Step 1: send the conversation and available functions to GPT
     if (embeddingModelType == 'azureopenai'):
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = f"{OpenAiEndPoint}"
+        client = AzureOpenAI(
+            api_key = OpenAiKey,  
+            api_version = OpenAiVersion,
+            azure_endpoint = OpenAiEndPoint
+            )
         if deploymentType == 'gpt35':
-            response = openai.ChatCompletion.create(
-                deployment_id=OpenAiChat,
-                model=gptModel,
+            response = client.chat.completions.create(
+                model=OpenAiChat, 
                 messages=messages,
-                functions=functions,
-                function_call="auto",
-                temperature=0.7,
-                max_tokens=700,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
-                stop=None
-            )
-            
-        elif deploymentType == "gpt3516k":
-            response = openai.ChatCompletion.create(
-                deployment_id=OpenAiChat16k,
-                model=gptModel,
-                messages=messages,
-                functions=functions,
-                function_call="auto",
-                temperature=0.7,
-                max_tokens=700,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
-                stop=None
-            )
-    elif embeddingModelType == "openai":
-        openai.api_type = "open_ai"
-        openai.api_base = "https://api.openai.com/v1"
-        openai.api_version = '2020-11-07' 
-        openai.api_key = OpenAiApiKey
-        response = openai.ChatCompletion.create(
-                deployment_id=OpenAiChat,
-                model=gptModel,
-                messages=messages, 
-                functions=functions,
-                function_call="auto",
+                tools=functions,
+                tool_choice="auto",
                 temperature=0.7,
                 max_tokens=700,
                 top_p=0.95,
                 frequency_penalty=0,
                 presence_penalty=0,
                 stop=None)
-            
+                        
+        elif deploymentType == "gpt3516k":
+            response = client.chat.completions.create(
+                model=OpenAiChat16k, 
+                messages=messages,
+                tools=functions,
+                tool_choice="auto",
+                temperature=0.7,
+                max_tokens=700,
+                top_p=0.95,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None)
+
+    elif embeddingModelType == "openai":
+        client = OpenAI(api_key=OpenAiApiKey)
+        response = client.chat.completions.create(
+                    model=OpenAiChat, 
+                    messages=messages,
+                    tools=functions,
+                    tool_choice="auto",
+                    temperature=0.7,
+                    max_tokens=700,
+                    top_p=0.95,
+                    frequency_penalty=0,
+                    presence_penalty=0,
+                    stop=None)            
     
-    respMessage = response["choices"][0]["message"]  
+    respMessage = response.choices[0].message
+    toolCalls = respMessage.tool_calls
 
     #Step 2: check if GPT wanted to call a function
-    if respMessage.get("function_call"):
+    if toolCalls:
         logging.info("Recommended Function call:")
-        logging.info(respMessage.get("function_call"))
+        logging.info(toolCalls)
         
         #Step 3: call the function
         #Note: the JSON response may not always be valid; be sure to handle errors
-        functionName = respMessage["function_call"]["name"]
-        
-        #verify function exists
-        if functionName not in availableFunctions:
-            return "Function " + functionName + " does not exist"
-        functionToCall = availableFunctions[functionName]  
-        
-        #verify function has correct number of arguments
-        function_args = json.loads(respMessage["function_call"]["arguments"])
-        if checkFunctionArgs(functionToCall, function_args) is False:
-            return "Invalid number of arguments for function: " + functionName
-        funcResponse = functionToCall(**function_args)
-        
-        logging.info("Output of function call:")
-        logging.info(funcResponse)
-
-        #Step 4: send the info on the function call and function response to GPT        
-        #adding assistant response to messages
-        messages.append(
-            {
-                "role": respMessage["role"],
-                "name": respMessage["function_call"]["name"],
-                "content": respMessage["function_call"]["arguments"],
-            }
-        )
-
-        #adding function response to messages
-        messages.append(
-            {
-                "role": "function",
-                "name": functionName,
-                "content": funcResponse,
-            }
-        )  #extend conversation with function response
+        for toolCall in toolCalls:
+            functionName = toolCall.function.name
+            #verify function exists
+            if functionName not in availableFunctions:
+                return "Function " + functionName + " does not exist"
+            functionToCall = availableFunctions[functionName]
+            function_args = json.loads(toolCall.function.arguments)
+            #verify function has correct number of arguments
+            if checkFunctionArgs(functionToCall, function_args) is False:
+                return "Invalid number of arguments for function: " + functionName
+            funcResponse = functionToCall(**function_args)
+            logging.info("Output of function call:")
+            logging.info(funcResponse)
+            #Step 4: send the info on the function call and function response to GPT        
+            #adding assistant response to messages
+            messages.append({
+                    "tool_calls": toolCalls,
+                    "role": "assistant",
+                })
+            messages.append(
+                {
+                    "tool_call_id": toolCall.id,
+                    "role": "tool",
+                    "name": functionName,
+                    "content": funcResponse,
+                }
+            )  # extend conversation with function response
 
         logging.info("Messages in second request:")
         for message in messages:
             logging.info(message)
 
         if (embeddingModelType == 'azureopenai'):
-            openai.api_type = "azure"
-            openai.api_key = OpenAiKey
-            openai.api_version = OpenAiVersion
-            openai.api_base = f"{OpenAiEndPoint}"
+            client = AzureOpenAI(
+                    api_key = OpenAiKey,  
+                    api_version = OpenAiVersion,
+                    azure_endpoint = OpenAiEndPoint
+                    )
             if deploymentType == 'gpt35':
-                finalResp = openai.ChatCompletion.create(
-                    messages=messages,
-                    deployment_id=OpenAiChat,
-                    temperature=0.7,
-                    max_tokens=1000,
-                    top_p=0.95,
-                    frequency_penalty=0,
-                    presence_penalty=0,
-                    stop=None
-                )  # get a new response from GPT where it can see the function response
+                finalResp = client.chat.completions.create(
+                        model=OpenAiChat, 
+                        messages=messages,
+                        temperature=0.7,
+                        max_tokens=1000,
+                        top_p=0.95,
+                        frequency_penalty=0,
+                        presence_penalty=0,
+                        stop=None)
                 
             elif deploymentType == "gpt3516k":
-                finalResp = openai.ChatCompletion.create(
+                finalResp = client.chat.completions.create(
+                    model=OpenAiChat16k, 
                     messages=messages,
-                    deployment_id=OpenAiChat16k,
                     temperature=0.7,
                     max_tokens=1000,
                     top_p=0.95,
                     frequency_penalty=0,
                     presence_penalty=0,
-                    stop=None
-                )  # get a new response from GPT where it can see the function response
+                    stop=None)
         elif embeddingModelType == "openai":
-            openai.api_type = "open_ai"
-            openai.api_base = "https://api.openai.com/v1"
-            openai.api_version = '2020-11-07' 
-            openai.api_key = OpenAiApiKey
-            finalResp = openai.ChatCompletion.create(
+            client = OpenAI(api_key=OpenAiApiKey)
+            finalResp = client.chat.completions.create(
+                    model=OpenAiChat, 
                     messages=messages,
-                    deployment_id=gptModel,
                     temperature=0.7,
                     max_tokens=1000,
                     top_p=0.95,
                     frequency_penalty=0,
                     presence_penalty=0,
-                    stop=None
-                )  # get a new response from GPT where it can see the function response
+                    stop=None)
         return finalResp
     else :
-        return(respMessage['content'])
+        return(respMessage.content)
     
 def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     embeddingModelType = overrides.get('embeddingModelType') or 'azureopenai'
@@ -463,39 +446,27 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             gptModel = "gpt-3.5-turbo-16k"
 
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"{OpenAiEndPoint}"
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = f"{OpenAiEndPoint}"
         if deploymentType == 'gpt35':
             llmChat = AzureChatOpenAI(
-                        openai_api_base=baseUrl,
-                        openai_api_version=OpenAiVersion,
-                        deployment_name=OpenAiChat,
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat,
                         temperature=temperature,
-                        openai_api_key=OpenAiKey,
-                        openai_api_type="azure",
-                        max_tokens=tokenLength)
-            
+                        api_key=OpenAiKey,
+                        max_tokens=tokenLength)            
         elif deploymentType == "gpt3516k":
             llmChat = AzureChatOpenAI(
-                        openai_api_base=baseUrl,
-                        openai_api_version=OpenAiVersion,
-                        deployment_name=OpenAiChat16k,
+                        azure_endpoint=OpenAiEndPoint,
+                        api_version=OpenAiVersion,
+                        azure_deployment=OpenAiChat16k,
                         temperature=temperature,
-                        openai_api_key=OpenAiKey,
-                        openai_api_type="azure",
-                        max_tokens=tokenLength)
-            
+                        api_key=OpenAiKey,
+                        max_tokens=tokenLength)            
         logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
-        openai.api_type = "open_ai"
-        openai.api_base = "https://api.openai.com/v1"
-        openai.api_version = '2020-11-07' 
-        openai.api_key = OpenAiApiKey
         llmChat = ChatOpenAI(temperature=temperature,
-                openai_api_key=OpenAiApiKey,
+                api_key=OpenAiApiKey,
+                model_name="gpt-3.5-turbo",
                 max_tokens=tokenLength)
         
     try:
@@ -531,76 +502,98 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     if (functionCall):
         insertMessage(sessionId, "Message", "User", 0, 0, lastQuestion, cosmosContainer)
 
-        functions = [
+        tools = [
             {
-                "name": "getCurrentTime",
-                "description": "Get the current time in a given location",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "location": {
-                            "type": "string",
-                            "description": "The location name. The pytz is used to get the timezone for that location. Location names should be in a format like America/New_York, Asia/Bangkok, Europe/London",
-                        }
+                "type": "function",
+                "function": {
+                    "name": "getWeather",
+                    "description": "Get the current weather in a given location",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "location": {
+                                "type": "string",
+                                "description": "The city and state, e.g. San Francisco, CA",
+                            },
+                            "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                        },
+                        "required": ["location"],
                     },
-                    "required": ["location"],
                 },
             },
             {
-                "name": "calculator",
-                "description": "A simple calculator used to perform basic arithmetic operations",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "num1": {"type": "number"},
-                        "num2": {"type": "number"},
-                        "operator": {"type": "string", "enum": ["+", "-", "*", "/", "**", "sqrt"]},
+                "type": "function",
+                "function": {
+                    "name": "getBingSearchResults",
+                    "description": "Retrieve the web search results from bing api",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {
+                                "type": "string",
+                                "description": "query for bing search , for example what is Azure AI",
+                            }
+                        },
+                        "required": ["query"],
                     },
-                    "required": ["num1", "num2", "operator"],
                 },
             },
             {
-                "name": "getStockPrice",
-                "description": "Retrieve the stock price for a given stock symbol",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "symbol":  {
-                        "type": "string",
-                        "description": "Stock symbol, for example MSFT for Microsoft , AAPL for Apple"
-                        }
+                "type": "function",
+                "function": {
+                    "name": "getStockPrice",
+                    "description": "Retrieve the stock price for a given stock symbol",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "symbol": {
+                                "type": "string",
+                                "description": "Stock symbol, for example MSFT for Microsoft , AAPL for Apple",
+                            }
+                        },
+                        "required": ["symbol"],
                     },
-                    "required": ["symbol"],
                 },
             },
             {
-                "name": "getWeather",
-                "description": "Retrieve the weather  for a given location",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "location":  {
-                        "type": "string",
-                        "description": "location of a city, for example London , LA for Los Angeles"
-                        }
+                "type": "function",
+                "function": {
+                    "name": "calculator",
+                    "description": "A simple calculator used to perform basic arithmetic operations",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "num1": {
+                                "type": "number",
+                            },
+                            "num2": {
+                                "type": "number",
+                            },
+                            "operator": {
+                                "type": "string", "enum": ["+", "-", "*", "/", "**", "sqrt"]
+                            }
+                        },
+                        "required": ["num1", "num2", "operator"],
                     },
-                    "required": ["location"],
                 },
             },
             {
-                "name": "getBingSearchResults",
-                "description": "Retrieve the web search results from bing api",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "query":  {
-                        "type": "string",
-                        "description": "query for bing search , for example what is Azure AI"
-                        }
+                "type": "function",
+                "function": {
+                    "name": "getCurrentTime",
+                    "description": "Get the current time in a given location",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "location": {
+                                "type": "string",
+                                "description": "The location name. The pytz is used to get the timezone for that location. Location names should be in a format like America/New_York, Asia/Bangkok, Europe/London",
+                            }
+                        },
+                        "required": ["location"],
                     },
-                    "required": ["query"],
                 },
-            }
+            },
         ]
     
         availableFunctions = {
@@ -634,12 +627,10 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         # answer = answer.replace('Could not parse LLM output: ', '').replace('Is there anything else I can assist you with?', '')
 
 
-        asstResponse = runFunctionConversation(messages, functions, availableFunctions, embeddingModelType, deploymentType, gptModel)
+        asstResponse = runFunctionConversation(messages, tools, availableFunctions, embeddingModelType, deploymentType, gptModel)
         answer = ""  
-        if 'choices' in asstResponse and len(asstResponse['choices']) > 0:  
-            firstChoice = asstResponse['choices'][0]  
-            if 'message' in firstChoice and 'content' in firstChoice['message']:  
-                answer = firstChoice['message']['content']  
+        if asstResponse.choices and len(asstResponse.choices) > 0:
+            answer = asstResponse.choices[0].message.content
         else:  
             answer = asstResponse
 
@@ -652,40 +643,34 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         return response
     
     if (embeddingModelType == 'azureopenai'):
-        baseUrl = f"{OpenAiEndPoint}"
-        openai.api_type = "azure"
-        openai.api_key = OpenAiKey
-        openai.api_version = OpenAiVersion
-        openai.api_base = f"{OpenAiEndPoint}"
+        client = AzureOpenAI(
+                    api_key = OpenAiKey,  
+                    api_version = OpenAiVersion,
+                    azure_endpoint = OpenAiEndPoint
+                    )
         if deploymentType == 'gpt35':
-            completion = openai.ChatCompletion.create(
-                deployment_id=OpenAiChat,
-                model=gptModel,
-                messages=messages, 
+            completion = client.chat.completions.create(
+                model=OpenAiChat, 
+                messages=messages,
                 temperature=float(temperature), 
                 max_tokens=tokenLength,
-                top_p=float(1.0))            
+                top_p=float(1.0))
         elif deploymentType == "gpt3516k":
-            completion = openai.ChatCompletion.create(
-                deployment_id=OpenAiChat16k,
-                model=gptModel,
-                messages=messages, 
+            completion = client.chat.completions.create(
+                model=OpenAiChat16k, 
+                messages=messages,
                 temperature=float(temperature), 
                 max_tokens=tokenLength,
                 top_p=float(1.0))
         logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
-        openai.api_type = "open_ai"
-        openai.api_base = "https://api.openai.com/v1"
-        openai.api_version = '2020-11-07' 
-        openai.api_key = OpenAiApiKey
-        completion = openai.ChatCompletion.create(
-                deployment_id=OpenAiChat,
-                model=gptModel,
-                messages=messages, 
-                temperature=float(temperature), 
-                max_tokens=tokenLength,
-                top_p=float(1.0))
+        client = OpenAI(api_key=OpenAiApiKey)
+        completion = client.chat.completions.create(
+                    model=OpenAiChat, 
+                    messages=messages,
+                    temperature=float(temperature),
+                    max_tokens=tokenLength,
+                    top_p=float(1.0))
             
     try:
         insertMessage(sessionId, "Message", "User", 0, 0, lastQuestion, cosmosContainer)

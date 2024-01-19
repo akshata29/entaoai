@@ -6,8 +6,9 @@ from Utilities.envVars import *
 from typing import Dict
 import pyodbc
 import pandas as pd
-from sqlalchemy import create_engine
-
+from openai import OpenAI, AzureOpenAI
+from sqlalchemy import create_engine, text as sql_text
+import pandas
 
 def connectSqlServer(database):
     '''
@@ -22,16 +23,19 @@ def connectSqlServer(database):
 
 def executeQuery(query, sqlConnectionString, limit=10000):  
     engine = create_engine(sqlConnectionString)
-    result = pd.read_sql_query(query, engine)
-    result = result.infer_objects()
-    for col in result.columns:  
-        if 'date' in col.lower():  
-            result[col] = pd.to_datetime(result[col], errors="ignore")  
+    #result = pd.read_sql_query(query, engine)
+    df = pandas.read_sql_query(con=engine.connect(), 
+                                  sql=sql_text(query))
+    # result = result.infer_objects()
+    # for col in result.columns:  
+    #     if 'date' in col.lower():  
+    #         result[col] = pd.to_datetime(result[col], errors="ignore")  
 
-    if limit is not None:  
-        result = result.head(limit)  # limit to save memory  
-    # session.close()  
-    return result
+    # if limit is not None:  
+    #     result = result.head(limit)  # limit to save memory  
+    # # session.close()  
+    # return result
+    return df
 
 def runSqlQuery(completion):
     '''
@@ -87,7 +91,7 @@ def getTableSchema(sqlConnectionString):
     output = "\n ".join(output)
     return output
 
-def generateNlToSql(prompt, tableSchema, history = []):
+def generateNlToSql(embeddingModelType, deploymentType, prompt, tableSchema, history = []):
     '''
     This GPT4 engine is setup for NLtoSQL tasks on the Sales DB.
     Input: NL question related to sales
@@ -115,38 +119,98 @@ def generateNlToSql(prompt, tableSchema, history = []):
     messages.extend(history)
     messages.append({"role": "user", "content": prompt})
     
-    response = openai.ChatCompletion.create(
-        engine=OpenAiChat16k, # The deployment name you chose when you deployed the ChatGPT or GPT-4 model.
-        messages=messages,
-        temperature=0,
-        max_tokens=2000,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop=None
-    )
-    return response['choices'][0]['message']['content']
+    if (embeddingModelType == 'azureopenai'):
+        client = AzureOpenAI(
+                api_key = OpenAiKey,  
+                api_version = OpenAiVersion,
+                azure_endpoint = OpenAiEndPoint
+                )
+        if deploymentType == 'gpt35':
+            response = client.chat.completions.create(
+                model=OpenAiChat, 
+                messages=messages,
+                temperature=0.0,
+                max_tokens=2000,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None)
+        elif deploymentType == "gpt3516k":
+            response = client.chat.completions.create(
+                model=OpenAiChat16k, 
+                messages=messages,
+                temperature=0.0,
+                max_tokens=2000,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None)
+                
+            logging.info("LLM Setup done")
+    elif embeddingModelType == "openai":
+        client = OpenAI(api_key=OpenAiApiKey)
+        response = client.chat.completions.create(
+                    model=OpenAiChat, 
+                    messages=messages,
+                    temperature=0.0,
+                    max_tokens=2000,
+                    frequency_penalty=0,
+                    presence_penalty=0,
+                    stop=None)
+    
+    return response.choices[0].message.content
 
-def generateSqlToNl(prompt_in):
+def generateSqlToNl(embeddingModelType, deploymentType, prompt_in):
     '''
     This GPT4 engine is setup for SQLtoNL tasks on the Sales DB.
     Input: Original question asked. Answer retreived from running SQL query.
     Output: Natural language sentence(s).
     '''
-    
-    response = openai.ChatCompletion.create(
-        engine=OpenAiChat16k, # The deployment name you chose when you deployed the ChatGPT or GPT-4 model.
-        messages=[
-            {"role": "system", "content": """You are bot that takes question-answer pairs and converts the answer to natural language. For tabular information return it as an html table. Do not return markdown format."""},
-            {"role": "user", "content": prompt_in},
-        ],
-        temperature=0,
-        max_tokens=2000,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop=None
-    )
 
-    return response['choices'][0]['message']['content']
+    if (embeddingModelType == 'azureopenai'):
+        client = AzureOpenAI(
+                api_key = OpenAiKey,  
+                api_version = OpenAiVersion,
+                azure_endpoint = OpenAiEndPoint
+                )
+        if deploymentType == 'gpt35':
+            response = client.chat.completions.create(
+                model=OpenAiChat, 
+                messages=[
+                    {"role": "system", "content": """You are bot that takes question-answer pairs and converts the answer to natural language. For tabular information return it as an html table. Do not return markdown format."""},
+                    {"role": "user", "content": prompt_in},
+                ],
+                temperature=0.0,
+                max_tokens=2000,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None)
+        elif deploymentType == "gpt3516k":
+            response = client.chat.completions.create(
+                model=OpenAiChat16k, 
+                messages=[
+                    {"role": "system", "content": """You are bot that takes question-answer pairs and converts the answer to natural language. For tabular information return it as an html table. Do not return markdown format."""},
+                    {"role": "user", "content": prompt_in},
+                ],
+                temperature=0.0,
+                max_tokens=2000,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None)
+            logging.info("LLM Setup done")
+    elif embeddingModelType == "openai":
+        client = OpenAI(api_key=OpenAiApiKey)
+        response = client.chat.completions.create(
+                model=OpenAiChat, 
+                messages=[
+                    {"role": "system", "content": """You are bot that takes question-answer pairs and converts the answer to natural language. For tabular information return it as an html table. Do not return markdown format."""},
+                    {"role": "user", "content": prompt_in},
+                ],
+                temperature=0.0,
+                max_tokens=2000,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=None)
+    
+    return response.choices[0].message.content
 
 def SqlAskAnswer(topK, question, embeddingModelType, value):
     logging.info("Calling SqlAsk Open AI")
@@ -158,23 +222,11 @@ def SqlAskAnswer(topK, question, embeddingModelType, value):
                       "Connection Timeout=30;".format(SynapseName, SynapsePool, SynapseUser, SynapsePassword)
         params = urllib.parse.quote_plus(synapseConnectionString)
         sqlConnectionString = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
-
-        if (embeddingModelType == 'azureopenai'):
-            openai.api_type = "azure"
-            openai.api_key = OpenAiKey
-            openai.api_version = OpenAiVersion
-            openai.api_base = f"{OpenAiEndPoint}"
-        elif embeddingModelType == "openai":
-            openai.api_type = "open_ai"
-            openai.api_base = "https://api.openai.com/v1"
-            openai.api_version = '2020-11-07' 
-            openai.api_key = OpenAiApiKey
-
         logging.info("LLM Setup done")
 
         # STEP 1: Generate an SQL query using the chat history
         tableSchema = getTableSchema(sqlConnectionString)
-        sqlQuery = generateNlToSql(question, tableSchema)
+        sqlQuery = generateNlToSql(embeddingModelType, "gpt3516k", question, tableSchema)
         logging.info("SQL Query generated: " + sqlQuery)
 
         # STEP 2: Run generated SQL query against the database
@@ -182,7 +234,7 @@ def SqlAskAnswer(topK, question, embeddingModelType, value):
         sqlResult = executeQuery(sqlQuery, sqlConnectionString, limit=None)  
 
          # STEP 3: Format the SQL query and SQL result into a natural language response
-        formattedAnswer = generateSqlToNl(str(question +  str(sqlResult.to_dict('list'))))
+        formattedAnswer = generateSqlToNl(embeddingModelType, "gpt3516k", str(question +  str(sqlResult.to_dict('list'))))
 
         # STEP 4: Return the answer
         answer = {"data_points": [], "answer": formattedAnswer, "thoughts": tableSchema, 

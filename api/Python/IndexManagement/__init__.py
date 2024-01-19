@@ -1,36 +1,16 @@
 import logging, json, os
 import azure.functions as func
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-import tempfile
-import uuid
-from langchain.document_loaders import (
-    PDFMinerLoader,
-    PyMuPDFLoader,
-    UnstructuredFileLoader,
-    UnstructuredPDFLoader,
-)
 import os
 from langchain.vectorstores import Pinecone
 from langchain.vectorstores import Milvus
 import pinecone
 from langchain.document_loaders import PDFMinerLoader
-# from pymilvus import connections
-# from pymilvus import CollectionSchema, FieldSchema, DataType, Collection
-# from pymilvus import utility
-import time
 from langchain.vectorstores.redis import Redis
-from langchain.document_loaders import WebBaseLoader
-from langchain.chains.summarize import load_summarize_chain
-from langchain.prompts import PromptTemplate
-from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 #from langchain.vectorstores import Weaviate
 from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs, getSasToken, getFullPath
 from Utilities.cogSearch import createSearchIndex, createSections, indexSections, deleteSearchIndex
-from langchain.document_loaders import AzureBlobStorageFileLoader
-from langchain.document_loaders import AzureBlobStorageContainerLoader
 from azure.storage.blob import BlobClient
-from azure.storage.blob import ContainerClient
-import boto3
 from Utilities.envVars import *
 
 try:
