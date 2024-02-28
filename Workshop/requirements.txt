@@ -26,6 +26,8 @@ pathos==0.2.9
 #./promptflow_vectordb-0.1.1-py3-none-any.whl
 pdfminer.six==20221105
 Pillow==9.4.0
+promptflow[azure]
+promptflow-tools
 regex==2023.6.3
 requests==2.31.0
 ratelimit==2.2.1
