@@ -12,7 +12,7 @@ env:
   RUN_NAME: llmopsqa
   EVAL_RUN_NAME: llmopsqa_eval
   WORKSHOP_PATH: 'Workshop'
-  PYTHON_VERSION: '3.9'
+  PYTHON_VERSION: '3.11'
 
 jobs:
   login-and-run-and-evalpf:
