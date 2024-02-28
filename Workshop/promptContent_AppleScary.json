@@ -1,0 +1,30 @@
+{
+  "partition": null,
+  "name": "Apple_Scary_Event",
+  "sections": [
+    {
+      "id": 0,
+      "start": "0:00:00",
+      "end": "0:00:46.312933",
+      "content": "[Video title] Apple_Scary_Event\n[Detected objects] chair, laptop\n[Visual labels] man, clothing, suit, human face, person, indoor, computer monitor, computer\n[OCR] Bloomberg, Radio, Bloomberg 99.1 FM, Washington DC, Bloomberg Radio, ington DC, Bloomberg 960 AM, San Francisco, 960 AM, co, Bloomberg 1130 AM, New York, Mark Gurman, Bloomberg News, rk Gurm, APPLE TO HOLD 'SCARY FAST' OCT., 30 EVENT TO UNVEIL NEW PRODUCTS, Bloomb, Boston, Bloomberg 106.1 FM, FM, erg, SiriusXM 119\n[Transcript] Wrote that Apple was planning a product launch for next week, and indeed that was announced this morning.\nThey'll be holding an event October 30th.\nLike you said, it's dubbed Scaryfast.\nNow a couple things here.\nThe Scaryfast motto indicates that a new Mac chip and new Macs will be announced.\nThe logo is an Apple logo, but on their website it actually morphs in an animation to the Finder icon.\nAnd the Finder icon is obviously the logo for the Mac file system, so obviously it's for Macs and scary combined with the black dark theme of the invitation as well as the timing, 5:00 PM, which they've never done before seems to flick at Halloween being the next day as well.\nSo scary fast Mac centric Halloween.\nThis is a company that just keeps on giving, I mean.\nI mean, and Mark, I convinced Mark, just like Parks himself at Cupertino, that silly new headquarters they have that monsters thing just like all day, every day to."
+    },
+    {
+      "id": 1,
+      "start": "0:00:46.312933",
+      "end": "0:01:16.409667",
+      "content": "[Video title] Apple_Scary_Event\n[Detected objects] cell phone, chair, cup\n[Visual labels] man, clothing, human face, person, microphone, smile\n[OCR] Bloomberg, Radio, Bloomberg 99.1 FM, Bloomberg Radio, San Francisco, New York, APPLE TO HOLD 'SCARY FAST' OCT., 30 EVENT TO UNVEIL NEW PRODUCTS, Boston, Bloomberg 106.1 FM, SiriusXM 119, HEIL, 1130 AM, Bloom, berg\n[Transcript] Get.\nI mean sounds like, I mean I have already know this from following Mark's reporting that he truly is the apple whisperer that he would know that the logo morphing into this icon that like I mean duh it's got to be a Mac thing I that probably would be lost on me.\nAnd you're saying as well, Mark, in the story that the 5:00 PM timing is unusual.\nThey're going to have like trick or treating at the product launch.\nYeah, probably."
+    },
+    {
+      "id": 2,
+      "start": "0:01:16.409667",
+      "end": "0:02:31.017533",
+      "content": "[Video title] Apple_Scary_Event\n[Detected objects] chair, cup, laptop\n[Visual labels] man, clothing, human face, person, indoor, computer monitor, computer, microphone\n[OCR] Bloomberg, Radio, Bloomberg 99.1 FM, Washington DC, San Francisco, New York, Mark Gurman, Bloomberg News, rk Gurm, APPLE TO HOLD 'SCARY FAST' OCT., 30 EVENT TO UNVEIL NEW PRODUCTS, Boston, Bloomberg 106.1 FM, SiriusXM 119, HEIL, rg 1130 AM, Bloo, Bost, 6.1 FM, mberg, Si, berg 1130 AM, k Gurma, 06.1 FM, Radic\n[Transcript] But it's also unusual because this is online only, so there's gonna be no in person component.\nLet's talk about what could be introduced.\nSo there's a few things that are in development that are likely to show up there.\nThere's been testing of new MacBook Pros internally new 14 inch and 16 inch models for quite a while now with M3 Pro and M3 Max chips, Quite a bit faster performance.\nAnd then there's been an iMac in development with the standard M3 chip for quite a while as well that's been ready to go for months now.\nAnd this is quite significant cuz it's gonna be the first iMac update in over 900 days.\nAnd if you can recall the last time an iMac went without an update for 900 days, I will give you free candy on Halloween.\nSo, so how do, how should we think us normal people, Mark who don't live and breathe apple like you do, How should we think about these product launches from Apple?\nAre they kind of incremental as opposed to revolutionary?\nWell, this M3 chip is actually going to be an industry first, right?\nThis is going to be based on a three nanometer production process, which means it's going to be so much faster, more power efficient, better battery life and from a production standpoint, super high tech.\nSo being able to do this in volume is something that's unprecedented and it's something that consumers won't probably shouldn't appreciate, right, unless they're really focused on those speed improvements."
+    },
+    {
+      "id": 3,
+      "start": "0:02:31.017533",
+      "end": "0:02:38.9588",
+      "content": "[Video title] Apple_Scary_Event\n[Detected objects] chair, laptop\n[Visual labels] font\n[OCR] Bloomberg, Monday-Friday on, YouTube, Markets, 10 AM ET, Sound On, 1 PM ET, Businessweek, 3 PM ET\n[Transcript] Consumers don't care about how things are manufactured, but from a technology standpoint, it's actually an incredibly big deal."
+    }
+  ]
+}

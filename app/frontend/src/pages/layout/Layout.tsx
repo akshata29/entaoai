@@ -11,8 +11,6 @@ import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 const Layout = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [showUpload, setShowUpload] = useState<boolean>(false);
-    // const [showPib, setShowPib] = useState<boolean>(false);
-    const [showEdgar, setShowEdgar] = useState<boolean>(false);
     const [showAdmin, setShowAdmin] = useState<boolean>(false);
     const [showSmartAgent, setShowSmartAgent] = useState<boolean>(false);
     const [showSpeech, setShowSpeech] = useState<boolean>(true);
@@ -21,16 +19,8 @@ const Layout = () => {
         setShowUpload(!!checked);
     };
 
-    // const onShowPib = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
-    //     setShowPib(!!checked);
-    // };
-
     const onShowAdmin = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
         setShowAdmin(!!checked);
-    };
-
-    const onShowEdgar = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
-        setShowEdgar(!!checked);
     };
 
     const onShowSpeech = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
@@ -73,6 +63,11 @@ const Layout = () => {
                                 </NavLink>
                             </li>
                             <li className={styles.headerNavLeftMargin}>
+                                <NavLink to="/video" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    Video Gpt
+                                </NavLink>
+                            </li>
+                            <li className={styles.headerNavLeftMargin}>
                                 <NavLink to="/summary" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Summarization
                                 </NavLink>
@@ -82,18 +77,6 @@ const Layout = () => {
                                     Ask Sql
                                 </NavLink>
                             </li>
-                            <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/pib" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    PIB
-                                </NavLink>
-                            </li>
-                            {/* {showPib && (
-                                <li className={styles.headerNavLeftMargin}>
-                                    <NavLink to="/pitchBook" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Pitch Book
-                                    </NavLink>
-                                </li>
-                            )} */}
                             { showSmartAgent && (
                             <li className={styles.headerNavLeftMargin}>
                                 <NavLink to="/smartAgent" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
@@ -117,13 +100,6 @@ const Layout = () => {
                                         Speech Analytics
                                     </NavLink>
                                  </li>
-                            )}
-                            {showEdgar && (
-                                 <li className={styles.headerNavLeftMargin}>
-                                 <NavLink to="/edgar" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                     Edgar Analysis
-                                 </NavLink>
-                             </li>
                             )}
                             {showAdmin && (
                                  <li className={styles.headerNavLeftMargin}>
@@ -174,19 +150,6 @@ const Layout = () => {
                     onChange={onShowUpload}
                 />
                 <br/>
-                {/* <Checkbox
-                    className={styles.chatSettingsSeparator}
-                    checked={showPib}
-                    label="Show Pitch Book"
-                    onChange={onShowPib}
-                />
-                <br/> */}
-                <Checkbox
-                    className={styles.chatSettingsSeparator}
-                    checked={showEdgar}
-                    label="Display Edgar Analysis"
-                    onChange={onShowEdgar}
-                />
                 <br/>
                 <Checkbox
                     className={styles.chatSettingsSeparator}

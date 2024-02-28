@@ -669,10 +669,6 @@
               "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/QuestionAnswering?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
             },
             {
-              "name": "SECSEARCH_URL",
-              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecSearch?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
               "name": "SQLCHAIN_URL",
               "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SqlChain?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
             },
@@ -759,22 +755,6 @@
             {
               "name": "COSMOSCONTAINER",
               "value": "[variables('cosmosContainer')]"
-            },
-            {
-              "name": "PIB_URL",
-              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Pib?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-              "name": "PIBCHAT_URL",
-              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/PibChat?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-              "name": "SECDOCPERSIST_URL",
-              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecDocPersist?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
-            },
-            {
-              "name": "SECEXTRACTION_URL",
-              "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/SecExtraction?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
             },
             {
               "name": "OpenAiChat",

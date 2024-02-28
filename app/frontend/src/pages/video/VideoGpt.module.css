@@ -1,0 +1,210 @@
+.oneshotContainer {
+    /* display: flex; */
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+}
+
+.oneshotTopSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.oneshotBottomSection {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.oneshotTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1px;
+}
+
+@media only screen and (max-width: 800px) {
+    .oneshotTitle {
+        font-size: 3rem;
+        font-weight: 600;
+        margin-top: 0;
+    }
+}
+
+.oneshotQuestionInput {
+    max-width: 800px;
+    width: 100%;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.oneshotAnswerContainer {
+    max-width: 800px;
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.oneshotAnalysisPanel {
+    width: 600px;
+    margin-left: 20px;
+}
+
+.oneshotSettingsSeparator {
+    margin-top: 15px;
+}
+
+.settingsButton {
+    align-self: flex-end;
+    margin-right: 20px;
+    margin-top: 20px;
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+.chatRoot {
+    flex: 1;
+    display: flex;
+}
+
+.chatContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.chatEmptyState {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-height: 1024px;
+    padding-top: 60px;
+}
+
+.chatEmptyStateTitle {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.chatEmptyStateSubtitle {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+@media only screen and (max-height: 780px) {
+    .chatEmptyState {
+        padding-top: 0;
+    }
+
+    .chatEmptyStateTitle {
+        font-size: 3rem;
+        margin-bottom: 0px;
+    }
+}
+
+.chatMessageStream {
+    flex-grow: 1;
+    max-height: 1024px;
+    max-width: 1028px;
+    width: 100%;
+    overflow-y: auto;
+    padding-left: 24px;
+    padding-right: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chatMessageGpt {
+    margin-bottom: 20px;
+    max-width: 80%;
+    display: flex;
+    min-width: 500px;
+}
+
+.chatMessageGptMinWidth {
+    max-width: 500px;
+    margin-bottom: 20px;
+}
+
+.chatInput {
+    position: sticky;
+    bottom: 0;
+    flex: 0 0 100px;
+    padding-top: 12px;
+    padding-bottom: 24px;
+    padding-left: 24px;
+    padding-right: 24px;
+    width: 100%;
+    max-width: 1028px;
+    background: #f2f2f2;
+}
+
+.chatAnalysisPanel {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 89vh;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.chatSettingsSeparator {
+    margin-top: 15px;
+}
+
+.loadingLogo {
+    font-size: 28px;
+}
+
+.commandsContainer {
+    display: flex;
+    align-self: flex-start;
+}
+
+.commandButton {
+    margin-right: 20px;
+    margin-bottom: 20px;
+}
+.example {
+    word-break: break-word;
+    background: #dbdbdb;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    margin-bottom: 2px;
+    cursor: pointer;
+}
+
+.example:hover {
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.14), 0px 0px 2px rgba(0, 0, 0, 0.12);
+    outline: 2px solid rgba(115, 118, 225, 1);
+}
+
+.exampleText {
+    margin: 0;
+    font-size: 12px;
+    width: 750px;
+    height: 120px;
+}
+
+.fullText {
+    margin: 0;
+    font-size: 12px;
+    width: 100%;
+}

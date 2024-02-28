@@ -128,27 +128,6 @@ def getCashFlow():
         logging.exception("Exception in /getCashFlow")
         return jsonify({"error": str(e)}), 500
     
-@app.route("/getPib", methods=["POST"])
-def getPib():
-    step=request.json["step"]
-    symbol=request.json["symbol"]
-    embeddingModelType=request.json["embeddingModelType"]
-    postBody=request.json["postBody"]
- 
-    try:
-        headers = {'content-type': 'application/json'}
-        url = os.environ.get("PIB_URL")
-
-        data = postBody
-        params = {'step': step, 'symbol': symbol, 'embeddingModelType': embeddingModelType }
-        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
-        jsonDict = json.loads(resp.text)
-        #return json.dumps(jsonDict)
-        return jsonify(jsonDict)
-    except Exception as e:
-        logging.exception("Exception in /getPib")
-        return jsonify({"error": str(e)}), 500
-
 @app.route("/getPitchBook", methods=["POST"])
 def getPitchBook():
     profileDataSource=request.json["profileDataSource"]
@@ -371,28 +350,6 @@ def chatGpt():
         logging.exception("Exception in /chatGpt")
         return jsonify({"error": str(e)}), 500
     
-@app.route("/pibChat", methods=["POST"])
-def pibChat():
-    symbol=request.json["symbol"]
-    indexName=request.json["indexName"]
-    postBody=request.json["postBody"]
- 
-    logging.info(f"symbol: {symbol}")
-    
-    try:
-        headers = {'content-type': 'application/json'}
-        url = os.environ.get("PIBCHAT_URL")
-
-        data = postBody
-        params = {'symbol': symbol, 'indexName': indexName }
-        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
-        jsonDict = json.loads(resp.text)
-        #return json.dumps(jsonDict)
-        return jsonify(jsonDict)
-    except Exception as e:
-        logging.exception("Exception in /pibChat")
-        return jsonify({"error": str(e)}), 500
-
 @app.route("/getAllSessions", methods=["POST"])
 def getAllSessions():
     indexType=request.json["indexType"]
@@ -872,6 +829,53 @@ def refreshIndex():
         logging.exception("Exception in /refreshIndex")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/refreshVideoIndex", methods=["GET"])
+def refreshVideoIndex():
+   
+    try:
+        url = os.environ.get("BLOB_CONNECTION_STRING")
+        containerName = os.environ.get("BLOB_VIDEO_CONTAINER_NAME")
+        blobClient = BlobServiceClient.from_connection_string(url)
+        containerClient = blobClient.get_container_client(container=containerName)
+        blobList = containerClient.list_blobs(include=['tags', 'metadata'])
+        blobJson = []
+        for blob in blobList:
+            #print(blob)
+            try:
+                try:
+                    promptType = blob.metadata["promptType"]
+                except:
+                    promptType = "generic"
+                
+                try:
+                    chunkSize = blob.metadata["chunkSize"]
+                except:
+                    chunkSize = "1500"
+
+                try:
+                    chunkOverlap = blob.metadata["chunkOverlap"]
+                except:
+                    chunkOverlap = "0"
+
+                blobJson.append({
+                    "embedded": blob.metadata["embedded"],
+                    "indexName": blob.metadata["indexName"],
+                    "namespace":blob.metadata["namespace"],
+                    "name":blob.name,
+                    "indexType":blob.metadata["indexType"],
+                    "promptType": promptType,
+                    "chunkSize": chunkSize,
+                    "chunkOverlap": chunkOverlap,
+                })
+            except Exception as e:
+                pass
+
+        #jsonDict = json.dumps(blobJson)
+        return jsonify({"values" : blobJson})
+    except Exception as e:
+        logging.exception("Exception in /refreshVideoIndex")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/getProspectusList", methods=["GET"])
 def getProspectusList():
    
@@ -1282,29 +1286,6 @@ def content_file(path):
         mime_type = mimetypes.guess_type(path.strip())[0] or "application/octet-stream"
     return blob.readall(), 200, {"Content-Type": mime_type, "Content-Disposition": f"inline; filename={path}"}
     
-@app.route("/secSearch", methods=["POST"])
-def secsearch():
-    indexType=request.json["indexType"]
-    indexName=request.json["indexName"]
-    question=request.json["question"]
-    top=request.json["top"]
-    embeddingModelType=request.json["embeddingModelType"]
-    postBody=request.json["postBody"]
-  
-    try:
-        headers = {'content-type': 'application/json'}
-        url = os.environ.get("SECSEARCH_URL")
-
-        data = postBody
-        params = {'indexType': indexType, "indexName": indexName, "question": question, "top": top, "embeddingModelType": embeddingModelType }
-        resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
-        jsonDict = json.loads(resp.text)
-        #return json.dumps(jsonDict)
-        return jsonify(jsonDict)
-    except Exception as e:
-        logging.exception("Exception in /secsearch")
-        return jsonify({"error": str(e)}), 500
-
 @app.route("/speechToken", methods=["POST"])
 def speechToken():
   
@@ -1411,4 +1392,4 @@ def speech():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run()
+    app.run(port=5002)

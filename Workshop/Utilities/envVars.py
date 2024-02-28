@@ -16,6 +16,11 @@ try:
     OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"
     OpenAiDocContainer = os.getenv('OpenAiDocContainer')
 
+    if "OpenAiVideoContainer" in os.environ: 
+        OpenAiVideoContainer = os.getenv('OpenAiVideoContainer')
+    else:
+        OpenAiVideoContainer = "videos"
+
     if "OpenAiSummaryContainer" in os.environ: 
         OpenAiSummaryContainer = os.getenv('OpenAiSummaryContainer')
     else:
@@ -139,16 +144,6 @@ try:
         SynapsePool = os.getenv('SynapsePool')
     else:
         SynapsePool = ""
-
-    if "SecExtractionUrl" in os.environ: 
-        SecExtractionUrl = os.getenv('SecExtractionUrl')
-    else:
-        SecExtractionUrl = "http://localhost:7071/api/SecExtraction?code="
-
-    if "SecDocPersistUrl" in os.environ: 
-        SecDocPersistUrl = os.getenv('SecDocPersistUrl')
-    else:
-        SecDocPersistUrl = "http://localhost:7071/api/SecDocPersist?code="
     
     if "VideoIndexerEndPoint" in os.environ: 
         VideoIndexerEndPoint = os.getenv('VideoIndexerEndPoint')

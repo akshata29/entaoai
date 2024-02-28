@@ -12,7 +12,6 @@ PROCESSSUMMARY_URL=http://localhost:7071/api/ProcessSummary?code=
 QA_URL=http://localhost:7071/api/QuestionAnswering?code=
 SEARCHSERVICE=dataaioaicg
 SEARCHKEY=
-SECSEARCH_URL=http://localhost:7071/api/SecSearch?code=
 SMARTAGENT_URL=http://localhost:7071/api/SmartAgent?code=
 SPEECH_KEY=
 SPEECH_REGION=southcentralus

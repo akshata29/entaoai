@@ -2,13 +2,12 @@ import datetime
 import logging, json, os
 import uuid
 import azure.functions as func
-import openai
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.embeddings.azure_openai import AzureOpenAIEmbeddings
 import os
 from openai import OpenAI, AzureOpenAI
-from langchain.vectorstores import Pinecone
-import pinecone
+#from langchain.vectorstores.pinecone import Pinecone
+from pinecone import Pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.docstore.document import Document
 from Utilities.redisIndex import performRedisSearch
@@ -57,11 +56,11 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         )
 
     if body:
-        if len(PineconeKey) > 10 and len(PineconeEnv) > 10:
-            pinecone.init(
-                api_key=PineconeKey,  # find at app.pinecone.io
-                environment=PineconeEnv  # next to api key in console
-            )
+        # if len(PineconeKey) > 10 and len(PineconeEnv) > 10:
+        #     pinecone.init(
+        #         api_key=PineconeKey,  # find at app.pinecone.io
+        #         environment=PineconeEnv  # next to api key in console
+        #     )
         result = ComposeResponse(body, indexNs, indexType)
         return func.HttpResponse(result, mimetype="application/json")
     else:
@@ -141,6 +140,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     deploymentType = overrides.get('deploymentType') or 'gpt35'
     overrideChain = overrides.get("chainType") or 'stuff'
     searchType = overrides.get('searchType') or 'similarity'
+    pc = Pinecone(api_key=PineconeKey)
+
 
     logging.info("Search for Top " + str(topK))
     try:

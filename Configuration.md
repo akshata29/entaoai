@@ -43,7 +43,6 @@ CHAT_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.
 DOCGENERATOR_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/DocGenerator?code=<yourcode>)
 INDEXMANAGEMENT_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/IndexManagement?code=<yourcode>)
 QA_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/QuestionAnswering?code=<yourcode>)
-SECSEARCH_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/SecSearch?code=<yourcode>)
 SPEECH_KEY||Speech Service Key
 SPEECH_REGION||Region where speech service is deployed <br> (i.e. eastus, southcentralus)
 SQLCHAIN_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/SqlChain?code=<yourcode>)

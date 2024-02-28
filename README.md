@@ -6,6 +6,8 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 2/28/2024 - Removed SEC analysis features and it's moved into it's own repo at [sec](https://github.com/akshata29/sec)
+* 1/28/2024 - Remove PitchBook features as they are moved into it's own repo at [pib](https://github.com/akshata29/pitchbook)
 * 1/19/2024 - Updated the python package & OpenAI > 1.0.  Changes made to all Python API for breaking changes introduced in OpenAI and langchain.
 * 10/12/2023 - Initial version of [Autonomous](./api/PromptFlow/Autonomous/) PromptFlow.  For now supporting the Pinecone indexes, but support for Cognitive Search and Redis will be updated soon.
 * 9/29/2023 - Added [Evaluate](./api/PromptFlow/Evaluate/) PromptFlow.  Prompt Flow once created in Azure ML, can be attached to your existing run to evaluate against the following evaluation process :
@@ -89,10 +91,6 @@ Groundedness metric is scored on a scale of 1 to 5, with 1 being the worst and 5
 ## Azure Architecture
 
 ![Azure Services](/assets/AskChat.png)
-
-## PIB Architecture
-
-![PIB Architecture](/assets/PIB.png)
 
 ## QA over your data with Cache
 

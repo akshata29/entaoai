@@ -165,35 +165,6 @@ export async function askApi(options: AskRequest, indexNs: string, indexType: st
     return parsedResponse.values[0].data
 
 }
-export async function getPib(step: string, symbol: string, embeddingModelType: string): Promise<AskResponse> {
-  const response = await fetch('/getPib', {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        step: step,
-        symbol: symbol,
-        embeddingModelType:embeddingModelType,
-        postBody: {
-          values: [
-            {
-              recordId: 0,
-              data: {
-                text: '',
-              }
-            }
-          ]
-        }
-      })
-  });
-
-  const parsedResponse: ChatResponse = await response.json();
-  if (response.status > 299 || !response.ok) {
-      throw Error("Unknown error");
-  }
-  return parsedResponse.values[0].data
-}
 
 export async function getPitchBook(profileDataSource: string, earningTranscriptDataSource:string, earningQuarters:string, symbol: string, embeddingModelType: string): Promise<AskResponse> {
   const response = await fetch('/getPitchBook', {
@@ -495,49 +466,6 @@ export async function chatGpt(options: ChatRequest, indexNs: string, indexType:s
   }
   return parsedResponse.values[0].data;
 }
-export async function pibChatGptApi(options: ChatRequest, symbol: string, indexName: string): Promise<AskResponse> {
-  const response = await fetch('/pibChat' , {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        symbol:symbol,
-        indexName: indexName,
-        postBody: {
-          values: [
-            {
-              recordId: 0,
-              data: {
-                text: '',
-                history: options.history,
-                approach: 'rrr',
-                overrides: {
-                  top: options.overrides?.top,
-                  temperature: options.overrides?.temperature,
-                  promptTemplate: options.overrides?.promptTemplate,
-                  suggest_followup_questions: options.overrides?.suggestFollowupQuestions,
-                  embeddingModelType: options.overrides?.embeddingModelType,
-                  firstSession:options.overrides?.firstSession,
-                  session:options.overrides?.session,
-                  sessionId:options.overrides?.sessionId,
-                  deploymentType: options.overrides?.deploymentType,
-                  chainType: options.overrides?.chainType,
-                }
-              }
-            }
-          ]
-        }
-      })
-  });
-
-  const parsedResponse: ChatResponse = await response.json();
-  if (response.status > 299 || !response.ok) {
-      throw Error(parsedResponse.values[0].data.error || "Unknown error");
-  }
-  return parsedResponse.values[0].data;
-}
-
 export async function getAllSessions(indexType:string, feature:string, type:string): Promise<Any> {
   const response = await fetch('/getAllSessions' , {
       method: "POST",
@@ -734,6 +662,21 @@ export async function getIndexSessionDetail(sessionId: string): Promise<Any> {
 export async function refreshIndex() : Promise<any> {
   
   const response = await fetch('/refreshIndex', {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json"
+    },
+  });
+
+  const result = await response.json();
+  if (response.status > 299 || !response.ok) {
+    return "Error";
+  }
+  return result;
+}
+export async function refreshVideoIndex() : Promise<any> {
+  
+  const response = await fetch('/refreshVideoIndex', {
     method: "GET",
     headers: {
         "Content-Type": "application/json"
@@ -1092,38 +1035,6 @@ export async function indexManagement(indexType:string, indexName:string, blobNa
   // }
   
   // return "Success";
-}
-export async function secSearch(indexType: string,  indexName: string, question:string, top: string, 
-  embeddingModelType:string): Promise<any> {
-  const response = await fetch('/secSearch' , {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        indexType:indexType,
-        indexName: indexName,
-        question:question,
-        top:top,
-        embeddingModelType:embeddingModelType,
-        postBody: {
-          values: [
-            {
-              recordId: 0,
-              data: {
-                text: ''
-              }
-            }
-          ]
-        }
-      })
-  });
-
-  const result = await response.json();
-  if (response.status > 299 || !response.ok) {
-    return "Error";
-  }
-  return result;
 }
 export async function sqlChat(question:string, top: number, embeddingModelType: string): Promise<SqlResponse> {
   const response = await fetch('/sqlChat' , {

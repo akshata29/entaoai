@@ -1,0 +1,44 @@
+Live Guidance
+=============
+1. Main reason for the conversation:
+2. Customer name
+3. Customer Sentiment
+4. Did the issue got resolved?
+5. Action Item and next steps.
+
+Use this prompt to generate a standard summary of the conversation text. No customization is done therefore GPT provides a general summary of the text -> 
+Tl;dr
+
+Generates customized conversation summary focused on the business details relevant to customer’s use case -> 
+"""
+You are an assistant helping to summarize phone call 
+conversation based on call transcript.
+Use this format, replacing text in brackets with the result. 
+Do not include the brackets in the output:
+Summary: [Call summary that includes customer issue, 
+action items, PII information 
+and next steps]
+"""
+
+Ask Specific questions
+Was there any PII data?
+Create a table with all the PII data name in the first column and the actual data shared by the customer in the second column
+What greetings were used?
+How efficient was the conversation?
+Would the customer recommend our company to his friends after this call?
+
+
+Extract custom business insights listed in the input prompt. Explicitly instructs GPT to provide response JSON format using the key provided in the request prompt. -> 
+Extract the following from the phone conversation. Answer 
+in JSON machine-readable format, using the keys provided 
+below. Format the output as JSON object called "results". 
+Pretty print the JSON and make sure that is properly closed 
+at the end.
+1. Main reason of the conversation (key: reason)
+2. Sentiment of the customer (key: sentiment)
+3. Reported Issues (key: issue)
+4. Action Items (key: action_item)
+5. Location of customer: (key: location)
+6. PII information: (key: pii)
+
+Convert the transcript in "Hindi" and ask above question again in English

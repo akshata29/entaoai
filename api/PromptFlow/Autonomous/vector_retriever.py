@@ -32,6 +32,7 @@ def searchPinecone(indexes, conn, embeddings, llm, overrideChain, question):
     count sentences if it exists. If not, it will return some related entities to search next.
     """
 
+    
     pinecone.init(
                 api_key=conn.PineconeKey,  # find at app.pinecone.io
                 environment=conn.PineconeEnv  # next to api key in console

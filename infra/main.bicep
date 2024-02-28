@@ -273,7 +273,6 @@ module backend 'core/host/appservice.bicep' = {
       QA_URL: '${function.outputs.uri}/QuestionAnswering?code=${function.outputs.key}'
       CHAT_URL: '${function.outputs.uri}/ChatGpt?code=${function.outputs.key}'
       DOCGENERATOR_URL: '${function.outputs.uri}/DocGenerator?code=${function.outputs.key}'
-      SECSEARCH_URL: '${function.outputs.uri}/SecSearch?code=${function.outputs.key}'
       SQLCHAT_URL: '${function.outputs.uri}/SqlChat?code=${function.outputs.key}'
       SQLCHAIN_URL: '${function.outputs.uri}/SqlChain?code=${function.outputs.key}'
       BLOB_CONTAINER_NAME: containerName
