@@ -1,5 +1,5 @@
 azure-common==1.1.28
-azure-core==1.26.3
+azure-core==1.26.4
 azure-ai-ml==1.13.0
 azure-ai-vision==0.15.1b1
 azure-identity==1.12.0
