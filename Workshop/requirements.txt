@@ -39,3 +39,6 @@ yfinance==0.2.30
 wrapt==1.14.1
 llama_hub==0.0.50
 wandb==0.16.0
+poppler-utils==0.1.0
+pymupdf==1.23.26
+bcolors==1.0.4

@@ -1,0 +1,85 @@
+The image is a screenshot of a document page from a file named "minion-tech.md" dated 2024-01-06, and it is page 15 out of 22. The page is part of the "10. Appendices" section and presents a "Balance Sheet" under the "Financial Statements" heading. The balance sheet is divided into two main sections: "Assets" and "Liabilities and Equity," each with a list of items and their corresponding amounts in USD.
+
+The "Assets" section lists five items:
+- Cash and Cash Equivalents: $500,000
+- Accounts Receivable: $300,000
+- Inventory: $400,000
+- Prepaid Expenses: $100,000
+- Property, Plant, and Equipment: $1,200,000
+The total assets amount to $2,500,000.
+
+The "Liabilities and Equity" section lists three items under liabilities:
+- Accounts Payable: $300,000
+- Accrued Liabilities: $200,000
+- Long-term Debt: $1,700,000
+The total liabilities amount to $2,200,000.
+Under equity, there is one item:
+- Equity: $300,000
+The total liabilities and equity also amount to $2,500,000, balancing the sheet.
+
+The image adds to the information by providing a visual representation of the balance sheet, which is a crucial financial statement detailing the company's financial position at a specific point in time. It shows the relationship between the company's assets, liabilities, and equity.
+
+The purpose of including this image in the document is to provide a clear and detailed financial overview of the company's assets, liabilities, and equity, which is essential for stakeholders to assess the financial health and stability of the company.
+
+Here is the balance sheet represented in Markdown format:
+
+```markdown
+| Assets                          | Amount (USD) |
+|---------------------------------|--------------|
+| Cash and Cash Equivalents       | $500,000     |
+| Accounts Receivable             | $300,000     |
+| Inventory                       | $400,000     |
+| Prepaid Expenses                | $100,000     |
+| Property, Plant, and Equipment  | $1,200,000   |
+| **Total Assets**                | **$2,500,000** |
+
+| Liabilities and Equity          | Amount (USD) |
+|---------------------------------|--------------|
+| Accounts Payable                | $300,000     |
+| Accrued Liabilities             | $200,000     |
+| Long-term Debt                  | $1,700,000   |
+| **Total Liabilities**           | **$2,200,000** |
+| Equity                          | $300,000     |
+| **Total Liabilities and Equity**| **$2,500,000** |
+```
+
+
+
+**Extracted Text:**
+# Minion-Tech Financial Statements
+
+Date: 2024-01-06
+
+## 10. Appendices
+
+### Financial Statements
+
+#### 1. Balance Sheet
+
+The Balance Sheet details assets, liabilities, and equity.
+
+##### Balance Sheet
+
+###### Assets
+
+| Assets                          | Amount (USD) |
+|---------------------------------|--------------|
+| Cash and Cash Equivalents       | $500,000     |
+| Accounts Receivable             | $300,000     |
+| Inventory                       | $400,000     |
+| Prepaid Expenses                | $100,000     |
+| Property, Plant, and Equipment  | $1,200,000   |
+| **Total Assets**                | **$2,500,000** |
+
+###### Liabilities and Equity
+
+| Liabilities and Equity          | Amount (USD) |
+|---------------------------------|--------------|
+| Accounts Payable                | $300,000     |
+| Accrued Liabilities             | $200,000     |
+| Long-term Debt                  | $1,700,000   |
+| **Total Liabilities**           | **$2,200,000** |
+| Equity                          | $300,000     |
+| **Total Liabilities and Equity**| **$2,500,000** |
+
+Page 15 / 22

@@ -1,0 +1,52 @@
+The image is a screenshot of a document page titled "minion-tech.md" dated 2024-01-06, and it is page 18 out of 22. The page lists four items under the heading "Tables," which are as follows:
+
+1. R&D Costs: Breakdown of annual research and development expenses.
+2. Best-selling Products Analysis: Costs, sales, profits, and margins of our top products.
+3. Top Clients and Purchases: List of major clients and their purchase volumes.
+4. Geographical Distribution of Product Use: Sales data by region and country.
+
+Below this list, there is a bar chart titled "R&D Costs Chart" with the subtitle "R&D Expenditure (USD)." The chart shows three vertical bars representing the R&D expenditure for the years 2021, 2022, and 2023. The y-axis of the chart is labeled with dollar amounts ranging from $440,000 to $620,000, with increments of $20,000. The x-axis is labeled with the years 2021, 2022, and 2023. The bar for 2021 shows an expenditure of approximately $500,000, the bar for 2022 shows an expenditure of approximately $560,000, and the bar for 2023 shows an expenditure of approximately $620,000.
+
+The purpose of this image is to visually represent the annual R&D expenditure over three years, showing a clear upward trend in investment.
+
+The Markdown representation of the data in the R&D Costs Chart is as follows:
+
+```markdown
+| Year | R&D Expenditure (USD) |
+|------|-----------------------|
+| 2021 | $500,000              |
+| 2022 | $560,000              |
+| 2023 | $620,000              |
+```
+
+The Python code to create a Pandas DataFrame of the data in the chart is as follows:
+
+
+
+Given the context of the previous and next pages, this image adds to the information by providing a visual representation of the R&D costs, which is a breakdown of the annual research and development expenses mentioned in the list of tables. This chart complements the textual data provided on the previous page, which outlined the profit and loss statement, by showing a specific aspect of the operating expenses in a graphical format.
+
+
+
+**Extracted Text:**
+# Minion-Tech Document
+
+Date: 2024-01-06
+
+## Tables
+
+- R&D Costs: Breakdown of annual research and development expenses.
+- Best-selling Products Analysis: Costs, sales, profits, and margins of our top products.
+- Top Clients and Purchases: List of major clients and their purchase volumes.
+- Geographical Distribution of Product Use: Sales data by region and country.
+
+## R&D Costs Chart
+
+The following table shows the R&D Expenditure over the years:
+
+| Year | R&D Expenditure (USD) |
+|------|-----------------------|
+| 2021 | $500,000              |
+| 2022 | $560,000              |
+| 2023 | $620,000              |
+
+Page 18 / 22

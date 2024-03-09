@@ -1,0 +1,18 @@
+
+| Description                          | Amount (USD) |
+|--------------------------------------|--------------|
+| **Operating Activities**             |              |
+| Net Income                           | $84,000      |
+| Adjustments to Reconcile Net Income  |              |
+| Depreciation                         | $50,000      |
+| Changes in Working Capital           | $-100,000    |
+| Net Cash from Operating Activities   | $34,000      |
+| **Investing Activities**             |              |
+| Capital Expenditures                 | $-200,000    |
+| Net Cash from Investing Activities   | $-200,000    |
+| **Financing Activities**             |              |
+| Long-term Debt Financing             | $1,700,000   |
+| Net Cash from Financing Activities   | $1,700,000   |
+| Net Increase in Cash                 | $1,534,000   |
+| Cash at Beginning of Period          | $-1,034,000  |
+| Cash at End of Period                | $500,000     |

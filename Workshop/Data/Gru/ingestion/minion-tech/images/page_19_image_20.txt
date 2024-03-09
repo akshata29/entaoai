@@ -1,0 +1,47 @@
+The image is a screenshot of a document page titled "Best-selling Products Analysis" from a file named "minion-tech.md" dated 2024-01-06, and it is page 19 out of 22 in the document. The page contains a table with five columns and four rows, including the header row. The table provides a financial analysis of three products: Freeze Ray, Rocket Boots, and Bubble Gun. For each product, the table lists the cost in USD, sales in USD, profit in USD, gross margin percentage, and net margin percentage.
+
+The table is laid out as follows:
+- The first column is titled "Product" and lists the names of the products.
+- The second column is titled "Cost (USD)" and lists the cost of each product in US dollars.
+- The third column is titled "Sales (USD)" and lists the sales figures for each product in US dollars.
+- The fourth column is titled "Profit (USD)" and lists the profit figures for each product in US dollars.
+- The fifth column is titled "Gross Margin (%)" and lists the gross margin percentages for each product.
+- The sixth column is titled "Net Margin (%)" and lists the net margin percentages for each product.
+
+The specific financial figures for each product are as follows:
+- Freeze Ray: Cost $100,000, Sales $500,000, Profit $150,000, Gross Margin 70%, Net Margin 30%.
+- Rocket Boots: Cost $150,000, Sales $450,000, Profit $120,000, Gross Margin 60%, Net Margin 26.7%.
+- Bubble Gun: Cost $80,000, Sales $300,000, Profit $100,000, Gross Margin 66.7%, Net Margin 33.3%.
+
+The purpose of this table is to provide a clear and concise analysis of the best-selling products, allowing the reader to quickly understand the financial performance of each product.
+
+Here is the Markdown representation of the table:
+
+```markdown
+| Product     | Cost (USD) | Sales (USD) | Profit (USD) | Gross Margin (%) | Net Margin (%) |
+|-------------|------------|-------------|--------------|------------------|----------------|
+| Freeze Ray  | $100,000   | $500,000    | $150,000     | 70%              | 30%            |
+| Rocket Boots| $150,000   | $450,000    | $120,000     | 60%              | 26.7%          |
+| Bubble Gun  | $80,000    | $300,000    | $100,000     | 66.7%            | 33.3%          |
+```
+
+And here is the Python code to create a Pandas DataFrame of the data in the table:
+
+
+
+The inclusion of this image in the document is likely to provide a detailed financial breakdown of the company's best-selling products, which is a continuation of the financial analysis theme from the previous page that included R&D costs and will likely be followed by client and geographical sales data as indicated in the next page context.
+
+
+
+**Extracted Text:**
+# Best-selling Products Analysis
+
+**Date:** 2024-01-06
+
+| Product      | Cost (USD) | Sales (USD) | Profit (USD) | Gross Margin (%) | Net Margin (%) |
+|--------------|------------|-------------|--------------|------------------|----------------|
+| Freeze Ray   | $100,000   | $500,000    | $150,000     | 70%              | 30%            |
+| Rocket Boots | $150,000   | $450,000    | $120,000     | 60%              | 26.7%          |
+| Bubble Gun   | $80,000    | $300,000    | $100,000     | 66.7%            | 33.3%          |
+
+Page 19 / 22

@@ -6,6 +6,7 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 3/9/2024 - Initial version of advanced RAG techniques and Multi-modal RAG pattern
 * 2/28/2024 - Removed SEC analysis features and it's moved into it's own repo at [sec](https://github.com/akshata29/sec)
 * 1/28/2024 - Remove PitchBook features as they are moved into it's own repo at [pib](https://github.com/akshata29/pitchbook)
 * 1/19/2024 - Updated the python package & OpenAI > 1.0.  Changes made to all Python API for breaking changes introduced in OpenAI and langchain.
