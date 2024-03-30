@@ -227,7 +227,7 @@
           "name": "[variables('speechSvcName')]",
           "location": "[parameters('location')]",
           "sku": {
-              "name": "F0"
+              "name": "S0"
           },
           "kind": "SpeechServices",
           "identity": {
