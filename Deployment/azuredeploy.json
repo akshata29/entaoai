@@ -645,7 +645,7 @@
                       },
                       {
                           "name": "OpenAiVersion",
-                          "value": "[parameters('openAiVersion')]"
+                          "value": "[parameters('openAiApiVersion')]"
                       },
                       {
                           "name": "PineconeEnv",
@@ -820,7 +820,7 @@
                       },
                       {
                           "name": "OpenAiVersion",
-                          "value": "[parameters('openAiVersion')]"
+                          "value": "[parameters('openAiApiVersion')]"
                       },
                       {
                           "name": "PineconeEnv",
