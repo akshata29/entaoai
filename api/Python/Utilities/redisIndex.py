@@ -6,12 +6,17 @@ import logging
 from itertools import islice
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 import os
-import openai
 import hashlib
 import numpy as np
 from redis.commands.search.query import Query
 from typing import Mapping
 import json
+from langchain_openai import OpenAIEmbeddings
+from langchain_openai import AzureOpenAIEmbeddings
+from langchain_openai import AzureChatOpenAI
+from langchain_openai import ChatOpenAI
+from Utilities.envVars import *
+from openai import OpenAI, AzureOpenAI
 
 OpenAiEmbedding = os.environ['OpenAiEmbedding']
 OpenAiKey = os.environ['OpenAiKey']
@@ -21,10 +26,6 @@ RedisAddress = os.environ['RedisAddress']
 RedisPassword = os.environ['RedisPassword']
 RedisPort = os.environ['RedisPort']
 
-openai.api_type = "azure"
-openai.api_base = OpenAiEndPoint
-openai.api_version = OpenAiVersion
-openai.api_key = OpenAiKey
 redisConnection = Redis(host= RedisAddress, port=RedisPort, password=RedisPassword) #api for Docker localhost for local execution
 
 def createRedisIndex(fields, indexName):
@@ -39,11 +40,13 @@ def createRedisIndex(fields, indexName):
     return redisConnection
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
-def getEmbedding(text: str, engine=OpenAiEmbedding) -> list[float]:
+def getEmbedding(text: str, client, engineType) -> list[float]:
     text = text.replace("\n", " ")
     encoding = tiktoken.get_encoding("cl100k_base")
     logging.info("Perform Embedding")
-    return openai.Embedding.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
+    #return openai.embeddings.create(input=encoding.encode(text), engine=engine)["data"][0]["embedding"]
+    response = client.embeddings.create(input=text, model=engineType)
+    return response.data[0].embedding
 
 def batched(iterable, n):
     """Batch data into tuples of length n. The last batch may be shorter."""
@@ -165,14 +168,32 @@ def chunkAndEmbed(redisClient, indexName, secDoc, engine="text-embedding-ada-002
     setDocuments(redisClient, indexName, fullData)
     return None
 
-def performRedisSearch(question, indexName, k, returnField, vectorField, embeddingModelType):
+def performRedisSearch(question, indexName, k, returnField, vectorField, embeddingModelType, deploymentType):
     question = question.replace("\n", " ")
     if (embeddingModelType == "azureopenai"):
         engineType = OpenAiEmbedding
     elif (embeddingModelType == "openai"):
         engineType = "text-embedding-ada-002"
 
-    embeddingQuery = getEmbedding(question, engine=engineType)
+    if (embeddingModelType == 'azureopenai'):
+        if deploymentType == 'gpt35':
+            client = AzureOpenAI(
+                    api_key = OpenAiKey,  
+                    api_version = OpenAiVersion,
+                    azure_endpoint = OpenAiEndPoint
+                    )
+        elif deploymentType == "gpt3516k":
+            client = AzureOpenAI(
+                    api_key = OpenAiKey,  
+                    api_version = OpenAiVersion,
+                    azure_endpoint = OpenAiEndPoint
+                    )
+        logging.info("LLM Setup done")
+
+    elif embeddingModelType == "openai":
+        client = OpenAI(api_key=OpenAiApiKey)
+        
+    embeddingQuery = getEmbedding(question, client, engineType)
     logging.info("Got embedding")
     arrayEmbedding = np.array(embeddingQuery)
     hybridField = "*"

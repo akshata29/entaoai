@@ -1,9 +1,9 @@
 -- Docker build
-docker build --tag akshata13/chataskapi:latest .
+docker build --tag ghcr.io/akshata29/entaoai-python:latest .
 
 -- Docker  Push
-docker login
-docker push akshata13/chataskapi:latest
+echo <PAT_TOKEN> | docker login ghcr.io -u akshata29 --password-stdin
+docker push ghcr.io/akshata29/entaoai-python:latest
 
 -- Docker Run
-docker run --env-file .dockerenv -p 7071:80 --name chataskapi -it akshata13/chataskapi:latest 
+docker run --env-file .dockerenv -p 7071:80 --name entaoai-python -it ghcr.io/akshata29/entaoai-python:latest

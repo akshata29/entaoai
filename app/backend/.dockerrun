@@ -3,11 +3,11 @@ npm run build
 
 -- Run following from /app/backend directory
 -- Docker build
-docker build --tag akshata13/chataskapp:latest .
+docker build --tag ghcr.io/akshata29/entaoai-app:latest .
 
 -- Docker  Push
-docker login
-docker push akshata13/chataskapp:latest
+echo <PAT_TOKEN> | docker login ghcr.io -u akshata29 --password-stdin
+docker push ghcr.io/akshata29/entaoai-app:latest
 
 -- Docker Run
-docker run --env-file .dockerenv --name chataskapp -it akshata13/chataskapp:latest
+docker run --env-file .dockerenv --name entaoai-app -it ghcr.io/akshata29/entaoai-app:latest

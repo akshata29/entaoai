@@ -960,7 +960,7 @@ const ChatGpt = () => {
         If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
         If the answer is not contained within the text below, say \"I don't know\".
 
-        {summaries}
+        {context}
         Question: {question}
         `
 
@@ -973,7 +973,7 @@ const ChatGpt = () => {
         
         Begin with a brief introduction of the patient, followed by the main points of their medical records.
         Please remember to use clear language and maintain the integrity of the original information without missing any important details
-        {summaries}
+        {context}
         Question: {question}
         `
 
@@ -987,7 +987,7 @@ const ChatGpt = () => {
 
         QUESTION: {question}
         =========
-        {summaries}
+        {context}
         =========
         `
 
@@ -1003,7 +1003,7 @@ const ChatGpt = () => {
 
         QUESTION: {question}
         =========
-        {summaries}
+        {context}
         =========
         `
 
@@ -1013,7 +1013,7 @@ const ChatGpt = () => {
         Please remember to use clear language and maintain the integrity of the original information without missing any important details:
         QUESTION: {question}
         =========
-        {summaries}
+        {context}
         =========
 
         """`
@@ -1025,7 +1025,7 @@ const ChatGpt = () => {
         Please remember to use clear language and maintain the integrity of the original information without missing any important details
         QUESTION: {question}
         =========
-        {summaries}
+        {context}
         =========
 
         """`

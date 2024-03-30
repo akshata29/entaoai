@@ -1,28 +1,23 @@
 import { useRef, useState, useEffect } from "react";
-import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack, 
-    IPivotItemProps, getFadedOverflowStyle} from "@fluentui/react";
+import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack} from "@fluentui/react";
 import { ShieldLockRegular } from "@fluentui/react-icons";
 
 import styles from "./OneShot.module.css";
-import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
+import { Dropdown, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 
-import { askApi, askAgentApi, askTaskAgentApi, Approaches, AskResponse, AskRequest, refreshIndex, getSpeechApi, 
+import { askApi, Approaches, AskResponse, AskRequest, refreshIndex, getSpeechApi, 
     refreshQuestions, getUserInfo, SearchTypes } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
-import { BlobServiceClient } from "@azure/storage-blob";
 import { Label } from '@fluentui/react/lib/Label';
 import { ExampleList, ExampleModel } from "../../components/Example";
 import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 import { QuestionListButton } from "../../components/QuestionListButton/QuestionListButton";
 import { ClearChatButton } from "../../components/ClearChatButton";
 import { Pivot, PivotItem } from '@fluentui/react';
-import { IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
-import { DefaultPalette } from '@fluentui/react/lib/Styling';
 import { DetailsList, DetailsListLayoutMode, SelectionMode, ConstrainMode } from '@fluentui/react/lib/DetailsList';
 import { mergeStyleSets } from '@fluentui/react/lib/Styling';
-import { update } from "@react-spring/web";
 
 var audio = new Audio();
 
@@ -36,7 +31,7 @@ const OneShot = () => {
     const [promptTemplateSuffix, setPromptTemplateSuffix] = useState<string>("");
     const [retrieveCount, setRetrieveCount] = useState<number>(3);
     const [temperature, setTemperature] = useState<number>(0);
-    const [tokenLength, setTokenLength] = useState<number>(1000);
+    const [tokenLength, setTokenLength] = useState<number>(500);
     const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(true);
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
     const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
@@ -47,20 +42,10 @@ const OneShot = () => {
     const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
 
     const lastQuestionRef = useRef<string>("");
-    const lastAgentQuestionRef = useRef<string>("");
-    const lastTaskAgentQuestionRef = useRef<string>("");
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<unknown>();
-    //const [answer, setAnswer] = useState<AskResponse>();
     const [answer, setAnswer] = useState<[AskResponse, string | null]>();
-
-    const [errorAgent, setAgentError] = useState<unknown>();
-    const [errorTaskAgent, setTaskAgentError] = useState<unknown>();
-    //const [answerAgent, setAgentAnswer] = useState<AskResponse>();
-    const [answerAgent, setAgentAnswer] = useState<[AskResponse, string | null]>();
-    const [answerTaskAgent, setTaskAgentAnswer] = useState<[AskResponse, string | null]>();
-
 
     const [activeCitation, setActiveCitation] = useState<string>();
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
@@ -71,23 +56,15 @@ const OneShot = () => {
     const [indexMapping, setIndexMapping] = useState<{ key: string; iType: string;  summary:string; qa:string; chunkSize:string; chunkOverlap:string; promptType:string}[]>();
     const [exampleList, setExampleList] = useState<ExampleModel[]>([{text:'', value: ''}]);
     const [summary, setSummary] = useState<string>();
-    const [agentSummary, setAgentSummary] = useState<string>();
-    const [taskAgentSummary, setTaskAgentSummary] = useState<string>();
     const [qa, setQa] = useState<string>('');
     const [exampleLoading, setExampleLoading] = useState(false)
     const [chainTypeOptions, setChainTypeOptions] = useState<any>([])
 
     const [filteredOptions, setFilteredOptions] = useState<any>([])
     const [selectedindexTypeItem, setSelectedindexTypeItem] = useState<IDropdownOption>();
-    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-    const [selectedText, setSelectedText] = useState<string[]>([]);
     const [selectedIndexes, setSelectedIndexes] = useState<{ indexNs: string; indexName: any; returnDirect: string; }[]>([]);
     const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
 
-    const [filteredTaskAgentOptions, setFilteredTaskAgentOptions] = useState<any>([])
-    const [selectedTaskAgentKeys, setSelectedTaskAgentKeys] = useState<string[]>([]);
-    const [selectedTaskAgentText, setSelectedTaskAgentText] = useState<string[]>([]);
-    const [selectedTaskAgentIndexes, setSelectedTaskAgentIndexes] = useState<{ indexNs: string; indexName: any; returnDirect: string; }[]>([]);
     const [selectedEmbeddingItem, setSelectedEmbeddingItem] = useState<IDropdownOption>();
     const [questionList, setQuestionList] = useState<any[]>();
     const [selectedChunkSize, setSelectedChunkSize] = useState<string>()
@@ -96,8 +73,6 @@ const OneShot = () => {
     const [selectedDeploymentType, setSelectedDeploymentType] = useState<IDropdownOption>();
     const [selectedPromptTypeItem, setSelectedPromptTypeItem] = useState<IDropdownOption>();
     const [showAuthMessage, setShowAuthMessage] = useState<boolean>(false);
-
-    const dropdownShortStyles: Partial<IDropdownStyles> = { dropdown: { width: 110 } };
 
     const classNames = mergeStyleSets({
         header: {
@@ -203,23 +178,6 @@ const OneShot = () => {
         }
     ]
 
-    const stackItemStyles: IStackItemStyles = {
-    root: {
-        alignItems: 'left',
-        // background: DefaultPalette.white,
-        // color: DefaultPalette.white,
-        display: 'flex',
-        justifyContent: 'left',
-    },
-    };
-
-     // Tokens definition
-     const outerStackTokens: IStackTokens = { childrenGap: 5 };
-     const innerStackTokens: IStackTokens = {
-       childrenGap: 5,
-       padding: 10,
-    };
-
     const chainType = [
         { key: 'stuff', text: 'Stuff'},
         { key: 'map_rerank', text: 'Map ReRank' },
@@ -263,53 +221,7 @@ const OneShot = () => {
         }
         var uniqFiles = files.filter((v,i,a)=>a.findIndex(v2=>(v2.key===v.key))===i)
         setFilteredOptions(uniqFiles)
-        setFilteredTaskAgentOptions(uniqFiles)
     }
-
-    const onIndexChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
-        setSelectedindexTypeItem(item);
-        refreshFilteredBlob(String(item?.key))
-    };
-
-    const onFilteredOptionChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
-        if (item) {
-            setSelectedKeys(
-                item.selected ? [...selectedKeys, item.key as string] : selectedKeys.filter(key => key !== item.key),
-            );
-            setSelectedIndexes(
-                item.selected ? [...selectedIndexes, {"indexNs":item.key as string, "indexName": item.text, "returnDirect": "False"}] : selectedIndexes.filter(key => key.indexNs !== item.key),
-            );
-            setSelectedText(
-                item.selected ? [...selectedText, item.text as string] : selectedText.filter(key => key !== item.text),
-            );
-            setAgentSummary("This sample shows using Agents use an LLM to determine which actions to take and in what order." + 
-            " An action can either be using a tool and observing its output, or returning to the user.  Agent will go against the" + 
-            " set of the documents that you select here - " + (item.selected ? [...selectedText, item.text as string] : selectedText.filter(key => key !== item.text)))
-        }
-    };
-
-    const onFilteredTaskAgentOptionChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
-        if (item) {
-            setSelectedTaskAgentKeys(
-                item.selected ? [...selectedTaskAgentKeys, item.key as string] : selectedTaskAgentKeys.filter(key => key !== item.key),
-            );
-            setSelectedTaskAgentIndexes(
-                item.selected ? [...selectedTaskAgentIndexes, {"indexNs":item.key as string, "indexName": item.text, "returnDirect": "False"}] : selectedTaskAgentIndexes.filter(key => key.indexNs !== item.key),
-            );
-            setSelectedTaskAgentText(
-                item.selected ? [...selectedTaskAgentText, item.text as string] : selectedTaskAgentText.filter(key => key !== item.text),
-            );
-            setTaskAgentSummary("This sample demonstrates how to implement BabyAGI by Yohei Nakajima. BabyAGI is an AI agent that can generate and pretend to execute tasks based on a given objective." +
-            " An action can either be using a tool and observing its output, or returning to the user.  " + 
-            " It is example of an AI-powered task management system. The system uses OpenAI and creates, prioritize, and execute tasks. " + 
-            " The main idea behind this system is that it creates tasks based on the result of previous tasks and a predefined objective. " +
-            " The script then uses OpenAI's natural language processing (NLP) capabilities to create new tasks based on the objective, and retrieve task results for context. " +
-            " This is a pared-down version of the original Task-Driven Autonomous Agent " +
-            " Agent will go against the" + 
-            " set of the documents that you select here - " + (item.selected ? [...selectedTaskAgentText, item.text as string] : selectedTaskAgentText.filter(key => key !== item.text)))
-
-        }
-    };
 
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
@@ -341,7 +253,6 @@ const OneShot = () => {
                 }
             };
             const result = await askApi(request, String(selectedItem?.key), String(selectedIndex), 'stuff');
-            //setAnswer(result);
             setAnswer([result, null]);
             if(useAutoSpeakAnswers) {
                 const speechUrl = await getSpeechApi(result.answer);
@@ -350,96 +261,6 @@ const OneShot = () => {
             }
         } catch (e) {
             setError(e);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const makeApiAgentRequest = async (question: string) => {
-        lastAgentQuestionRef.current = question;
-
-        error && setAgentError(undefined);
-        setIsLoading(true);
-        setActiveCitation(undefined);
-        setActiveAnalysisPanelTab(undefined);
-        try {
-            const request: AskRequest = {
-                question,
-                approach,
-                overrides: {
-                    indexType: String(selectedindexTypeItem?.key),
-                    indexes: selectedIndexes,
-                    promptTemplate: promptTemplate.length === 0 ? undefined : promptTemplate,
-                    promptTemplatePrefix: promptTemplatePrefix.length === 0 ? undefined : promptTemplatePrefix,
-                    promptTemplateSuffix: promptTemplateSuffix.length === 0 ? undefined : promptTemplateSuffix,
-                    top: retrieveCount,
-                    temperature: temperature,
-                    semanticRanker: useSemanticRanker,
-                    semanticCaptions: useSemanticCaptions,
-                    chainType: String(selectedChain?.key),
-                    tokenLength: tokenLength,
-                    suggestFollowupQuestions: useSuggestFollowupQuestions,
-                    autoSpeakAnswers: useAutoSpeakAnswers,
-                    embeddingModelType: String(selectedEmbeddingItem?.key),
-                    deploymentType: String(selectedDeploymentType?.key),
-                    searchType: searchTypeOptions,
-                }
-            };
-            const result = await askAgentApi(request);
-            console.log(result);
-            //setAgentAnswer(result);
-            setAgentAnswer([result, null]);
-            if(useAutoSpeakAnswers) {
-                const speechUrl = await getSpeechApi(result.answer);
-                setAgentAnswer([result, speechUrl]);
-                startSynthesis("AnswerAgent", speechUrl);
-            }
-        } catch (e) {
-            setAgentError(e);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const makeApiTaskAgentRequest = async (question: string) => {
-        lastTaskAgentQuestionRef.current = question;
-
-        error && setTaskAgentError(undefined);
-        setIsLoading(true);
-        setActiveCitation(undefined);
-        setActiveAnalysisPanelTab(undefined);
-        try {
-            const request: AskRequest = {
-                question,
-                approach,
-                overrides: {
-                    indexType: String(selectedindexTypeItem?.key),
-                    indexes: selectedTaskAgentIndexes,
-                    promptTemplate: promptTemplate.length === 0 ? undefined : promptTemplate,
-                    promptTemplatePrefix: promptTemplatePrefix.length === 0 ? undefined : promptTemplatePrefix,
-                    promptTemplateSuffix: promptTemplateSuffix.length === 0 ? undefined : promptTemplateSuffix,
-                    top: retrieveCount,
-                    temperature: temperature,
-                    semanticRanker: useSemanticRanker,
-                    semanticCaptions: useSemanticCaptions,
-                    chainType: String(selectedChain?.key),
-                    tokenLength: tokenLength,
-                    suggestFollowupQuestions: useSuggestFollowupQuestions,
-                    autoSpeakAnswers: useAutoSpeakAnswers,
-                    embeddingModelType: String(selectedEmbeddingItem?.key),
-                    deploymentType: String(selectedDeploymentType?.key),
-                    searchType: searchTypeOptions,
-                }
-            };
-            const result = await askTaskAgentApi(request);
-            setTaskAgentAnswer([result, null]);
-            if(useAutoSpeakAnswers) {
-                const speechUrl = await getSpeechApi(result.answer);
-                setTaskAgentAnswer([result, speechUrl]);
-                startSynthesis("AnswerTaskAgent", speechUrl);
-            }
-        } catch (e) {
-            setTaskAgentError(e);
         } finally {
             setIsLoading(false);
         }
@@ -455,10 +276,6 @@ const OneShot = () => {
             let speechAnswer;
             if (answerType == "Answer")
                 speechAnswer = answer && answer[0].answer;
-            else if (answerType == "AnswerAgent")
-                speechAnswer = answerAgent && answerAgent[0].answer;
-            else if (answerType == "AnswerTaskAgent")
-                speechAnswer = answerTaskAgent && answerTaskAgent[0].answer;
 
             const speechUrl = await getSpeechApi(speechAnswer || '');
             if (speechUrl === null) {
@@ -521,9 +338,6 @@ const OneShot = () => {
         setTokenLength(parseInt(newValue || "1000"));
     };
 
-    const onApproachChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
-        setApproach((option?.key as Approaches) || Approaches.RetrieveThenRead);
-    };
 
     const onSearchTypeChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
         setSearchTypeOptions((option?.key as SearchTypes) || SearchTypes.Similarity);
@@ -653,7 +467,7 @@ const OneShot = () => {
         If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
         If the answer is not contained within the text below, say \"I don't know\".
 
-        {summaries}
+        {context}
         Question: {question}
         `
 
@@ -666,7 +480,7 @@ const OneShot = () => {
         
         Begin with a brief introduction of the patient, followed by the main points of their medical records.
         Please remember to use clear language and maintain the integrity of the original information without missing any important details
-        {summaries}
+        {context}
         Question: {question}
         `
 
@@ -680,7 +494,7 @@ const OneShot = () => {
 
         QUESTION: {question}
         =========
-        {summaries}
+        {context}
         =========
         `
 
@@ -696,7 +510,7 @@ const OneShot = () => {
 
         QUESTION: {question}
         =========
-        {summaries}
+        {context}
         =========
         `
 
@@ -706,7 +520,7 @@ const OneShot = () => {
         Please remember to use clear language and maintain the integrity of the original information without missing any important details:
         QUESTION: {question}
         =========
-        {summaries}
+        {context}
         =========
 
         """`
@@ -718,7 +532,7 @@ const OneShot = () => {
         Please remember to use clear language and maintain the integrity of the original information without missing any important details
         QUESTION: {question}
         =========
-        {summaries}
+        {context}
         =========
 
         """`
@@ -783,24 +597,6 @@ const OneShot = () => {
         setSelectedChain(item);
     };
 
-    const onTabChange = (item?: PivotItem | undefined, ev?: React.MouseEvent<HTMLElement, MouseEvent> | undefined): void => {
-        if (item?.props.headerText === "Agent QA") {
-            setAgentSummary("This sample shows using Agents use an LLM to determine which actions to take and in what order." + 
-            " An action can either be using a tool and observing its output, or returning to the user.  Agent will go against the" + 
-            " set of the documents that you select here")
-        } 
-        if (item?.props.headerText === "Task Agent QA") {
-            setTaskAgentSummary("This sample demonstrates how to implement BabyAGI by Yohei Nakajima. BabyAGI is an AI agent that can " + 
-            " generate and pretend to execute tasks based on a given objective." + 
-            " It is example of an AI-powered task management system. The system uses OpenAI and creates, prioritize, and execute tasks. " + 
-            " The main idea behind this system is that it creates tasks based on the result of previous tasks and a predefined objective. " +
-            " The script then uses OpenAI's natural language processing (NLP) capabilities to create new tasks based on the objective, and retrieve task results for context. " +
-            " This is a pared-down version of the original Task-Driven Autonomous Agent " +
-            " An action can either be using a tool and observing its output, or returning to the user.  Agent will go against the" + 
-            " set of the documents that you select here")
-        } 
-    };
-
     useEffect(() => {
         if (window.location.hostname != "localhost") {
             getUserInfoList();
@@ -851,29 +647,6 @@ const OneShot = () => {
         setAnswer(undefined);
     };
 
-    const clearAgentChat = () => {
-        lastAgentQuestionRef.current = "";
-        errorAgent && setAgentError(undefined);
-        setActiveCitation(undefined);
-        setActiveAnalysisPanelTab(undefined);
-        setAgentAnswer(undefined);
-        setSelectedKeys([])
-        setSelectedindexTypeItem(indexTypeOptions[0])
-        setSelectedIndexes([])
-    };
-
-    const clearTaskAgentChat = () => {
-        lastTaskAgentQuestionRef.current = "";
-        errorTaskAgent && setTaskAgentError(undefined);
-        setActiveCitation(undefined);
-        setActiveAnalysisPanelTab(undefined);
-        setTaskAgentAnswer(undefined);
-
-        setSelectedKeys([])
-        setSelectedindexTypeItem(indexTypeOptions[0])
-        setSelectedIndexes([])
-    };
-
     return (
         <div className={styles.root}>
             {showAuthMessage ? (
@@ -891,7 +664,7 @@ const OneShot = () => {
                 </Stack>
             ) : (
             <div className={styles.oneshotContainer}>
-            <Pivot aria-label="QA" onLinkClick={onTabChange}>
+            <Pivot aria-label="QA">
                     <PivotItem
                         headerText="QA"
                         headerButtonProps={{
@@ -1112,328 +885,6 @@ const OneShot = () => {
                                     onChange={onEnableAutoSpeakAnswersChange}
                                 />
                                 <br/>
-                                {/* <DefaultButton onClick={() => refreshSummary('summary')}>Regenerate Summary</DefaultButton>
-                                <DefaultButton onClick={() => refreshSummary('qa')}>Regenerate Qa</DefaultButton> */}
-                            </Panel>
-                    </PivotItem>
-                    <PivotItem
-                        headerText="Agent QA"
-                        headerButtonProps={{
-                        'data-order': 2,
-                        }}
-                    >
-                            <div className={styles.oneshotTopSection}>
-                                <div className={styles.commandsContainer}>
-                                    <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearAgentChat} disabled={!lastAgentQuestionRef.current || isLoading} />
-                                    <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
-                                </div>
-                                <div className={styles.commandsContainer}>
-                                <Stack enableScopedSelectors tokens={outerStackTokens}>
-                                    <Stack enableScopedSelectors  tokens={innerStackTokens}>
-                                        <Stack.Item grow styles={stackItemStyles}>
-                                            <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>&nbsp;
-                                            <Label>Index Type</Label>
-                                            &nbsp;
-                                            <Dropdown
-                                                selectedKey={selectedindexTypeItem ? selectedindexTypeItem.key : undefined}
-                                                onChange={onIndexChange}
-                                                defaultSelectedKey="pinecone"
-                                                placeholder="Select an Index Type"
-                                                options={indexTypeOptions}
-                                                disabled={false}
-                                                styles={dropdownStyles}
-                                            />
-                                            &nbsp;
-                                            <Dropdown
-                                                selectedKeys={selectedKeys}
-                                                // eslint-disable-next-line react/jsx-no-bind
-                                                onChange={onFilteredOptionChange}
-                                                placeholder="Select Your Documents"
-                                                multiSelect={true}
-                                                options={filteredOptions}
-                                                styles={dropdownStyles}
-                                            />
-                                            &nbsp;
-                                            <Label>LLM Model</Label>
-                                            &nbsp;
-                                            <Dropdown
-                                                selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
-                                                onChange={onEmbeddingChange}
-                                                defaultSelectedKey="azureopenai"
-                                                placeholder="Select an LLM Model"
-                                                options={embeddingOptions}
-                                                disabled={false}
-                                                styles={dropdownStyles}
-                                            />
-                                        </Stack.Item>
-                                        <Stack.Item grow styles={stackItemStyles}>
-                                        </Stack.Item>
-                                    </Stack>
-                                </Stack>
-                                </div>                      
-                                <h1 className={styles.oneshotTitle}>Ask your data</h1>
-                                <div className={styles.example}>
-                                    <p className={styles.fullText}><b>Document Summary</b> : {agentSummary}</p>
-                                </div>
-                                <br/>
-                                <div className={styles.oneshotQuestionInput}>
-                                    <QuestionInput
-                                        placeholder="Ask me anything"
-                                        disabled={isLoading}
-                                        updateQuestion={lastAgentQuestionRef.current}
-                                        onSend={(question: string) => makeApiAgentRequest(question)}
-                                    />
-                                </div>
-                                <div className={styles.chatContainer}>
-                                </div>    
-                            </div>
-                            <div className={styles.oneshotBottomSection}>
-                                {isLoading && <Spinner label="Generating answer" />}
-                                {!isLoading && answerAgent && !errorAgent && (
-                                    <div>
-                                        <div className={styles.oneshotAnswerContainer}>
-                                            <Stack horizontal horizontalAlign="space-between">
-                                                <Answer
-                                                    //answer={answerAgent}
-                                                    answer={answerAgent[0]}
-                                                    isSpeaking = {isSpeaking}
-                                                    onCitationClicked={(x: string) => onShowCitation(x)}
-                                                    onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
-                                                    onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
-                                                    onFollowupQuestionClicked={(q: string) => makeApiAgentRequest(q)}
-                                                    showFollowupQuestions={useSuggestFollowupQuestions}
-                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis("AnswerAgent", answerAgent[1])}
-                                                />
-                                            </Stack>                               
-                                        </div>
-                                    </div>
-                                )}
-                                {error ? (
-                                    <div className={styles.oneshotAnswerContainer}>
-                                        <AnswerError error={error.toString()} onRetry={() => makeApiAgentRequest(lastAgentQuestionRef.current)} />
-                                    </div>
-                                ) : null}
-                                {activeAnalysisPanelTab && answerAgent && (
-                                    <AnalysisPanel
-                                        className={styles.oneshotAnalysisPanel}
-                                        activeCitation={activeCitation}
-                                        onActiveTabChanged={(x: any) => onToggleTab(x)}
-                                        citationHeight="600px"
-                                        //answer={answerAgent}
-                                        answer={answerAgent[0]}
-                                        activeTab={activeAnalysisPanelTab}
-                                    />
-                                )}
-                            </div>
-
-                            <Panel
-                                headerText="Configure answer generation"
-                                isOpen={isConfigPanelOpen}
-                                isBlocking={false}
-                                onDismiss={() => setIsConfigPanelOpen(false)}
-                                closeButtonAriaLabel="Close"
-                                onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
-                                isFooterAtBottom={true}
-                            >
-                                <br/>
-                                 <SpinButton
-                                    className={styles.oneshotSettingsSeparator}
-                                    label="Set the Temperature:"
-                                    min={0.0}
-                                    max={1.0}
-                                    defaultValue={temperature.toString()}
-                                    onChange={onTemperatureChange}
-                                />
-                                <SpinButton
-                                    className={styles.oneshotSettingsSeparator}
-                                    label="Max Length (Tokens):"
-                                    min={0}
-                                    max={4000}
-                                    defaultValue={tokenLength.toString()}
-                                    onChange={onTokenLengthChange}
-                                />
-                                <Dropdown 
-                                    label="Chain Type"
-                                    onChange={onChainChange}
-                                    selectedKey={selectedChain ? selectedChain.key : 'stuff'}
-                                    options={chainTypeOptions}
-                                    defaultSelectedKey={'stuff'}
-                                    styles={dropdownStyles}
-                                />
-                                <Checkbox
-                                    className={styles.chatSettingsSeparator}
-                                    checked={useSuggestFollowupQuestions}
-                                    label="Suggest follow-up questions"
-                                    onChange={onUseSuggestFollowupQuestionsChange}
-                                />
-                                 <Checkbox
-                                    className={styles.chatSettingsSeparator}
-                                    checked={useAutoSpeakAnswers}
-                                    label="Automatically speak answers"
-                                    onChange={onEnableAutoSpeakAnswersChange}
-                                />
-                            </Panel>
-                    </PivotItem>
-                    <PivotItem
-                        headerText="Task Agent QA"
-                        headerButtonProps={{
-                        'data-order': 2,
-                        }}
-                    >
-                            <div className={styles.oneshotTopSection}>
-                                <div className={styles.commandsContainer}>
-                                    <ClearChatButton className={styles.settingsButton}  text="Clear chat" onClick={clearTaskAgentChat} disabled={!lastTaskAgentQuestionRef.current || isLoading} />
-                                    <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
-                                </div>
-                                <div className={styles.commandsContainer}>
-                                <Stack enableScopedSelectors tokens={outerStackTokens}>
-                                    <Stack enableScopedSelectors  tokens={innerStackTokens}>
-                                        <Stack.Item grow styles={stackItemStyles}>
-                                            <DefaultButton onClick={refreshBlob}>Refresh Docs</DefaultButton>&nbsp;
-                                            <Label>Index Type</Label>
-                                            &nbsp;
-                                            <Dropdown
-                                                selectedKey={selectedindexTypeItem ? selectedindexTypeItem.key : undefined}
-                                                onChange={onIndexChange}
-                                                defaultSelectedKey="pinecone"
-                                                placeholder="Select an Index Type"
-                                                options={indexTypeOptions}
-                                                disabled={false}
-                                                styles={dropdownStyles}
-                                            />
-                                            &nbsp;
-                                            <Dropdown
-                                                selectedKeys={selectedTaskAgentKeys}
-                                                // eslint-disable-next-line react/jsx-no-bind
-                                                onChange={onFilteredTaskAgentOptionChange}
-                                                placeholder="Select Your Documents"
-                                                multiSelect={true}
-                                                options={filteredTaskAgentOptions}
-                                                styles={dropdownStyles}
-                                            />
-                                            &nbsp;
-                                            <Label>LLM Model</Label>
-                                            &nbsp;
-                                            <Dropdown
-                                                selectedKey={selectedEmbeddingItem ? selectedEmbeddingItem.key : undefined}
-                                                onChange={onEmbeddingChange}
-                                                defaultSelectedKey="azureopenai"
-                                                placeholder="Select an LLM Model"
-                                                options={embeddingOptions}
-                                                disabled={false}
-                                                styles={dropdownStyles}
-                                            />
-                                        </Stack.Item>
-                                    </Stack>
-                                </Stack>
-                                </div>                      
-                                <h1 className={styles.oneshotTitle}>Task your data</h1>
-                                <div className={styles.example}>
-                                    <p className={styles.fullText}><b>Document Summary</b> : {taskAgentSummary}</p>
-                                </div>
-                                <br/>
-                                <div className={styles.oneshotQuestionInput}>
-                                    <QuestionInput
-                                        placeholder="Ask me anything"
-                                        disabled={isLoading}
-                                        updateQuestion={lastTaskAgentQuestionRef.current}
-                                        onSend={(question: string) => makeApiTaskAgentRequest(question)}
-                                    />
-                                </div>
-                                <div className={styles.chatContainer}>
-                                </div>    
-                            </div>
-                            <div className={styles.oneshotBottomSection}>
-                                {isLoading && <Spinner label="Generating answer" />}
-                                {!isLoading && answerTaskAgent && !errorTaskAgent && (
-                                    <div>
-                                        <div className={styles.oneshotAnswerContainer}>
-                                            <Stack horizontal horizontalAlign="space-between">
-                                                <Answer
-                                                    answer={answerTaskAgent[0]}
-                                                    isSpeaking = {isSpeaking}
-                                                    onCitationClicked={(x: string) => onShowCitation(x)}
-                                                    onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab)}
-                                                    onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab)}
-                                                    onFollowupQuestionClicked={(q: string) => makeApiTaskAgentRequest(q)}
-                                                    showFollowupQuestions={useSuggestFollowupQuestions}
-                                                    onSpeechSynthesisClicked={() => isSpeaking? stopSynthesis(): startSynthesis("AnswerTaskAgent", answerTaskAgent[1])}
-                                                />
-                                            </Stack>                               
-                                        </div>
-                                    </div>
-                                )}
-                                {error ? (
-                                    <div className={styles.oneshotAnswerContainer}>
-                                        <AnswerError error={error.toString()} onRetry={() => makeApiTaskAgentRequest(lastTaskAgentQuestionRef.current)} />
-                                    </div>
-                                ) : null}
-                                {activeAnalysisPanelTab && answerTaskAgent && (
-                                    <AnalysisPanel
-                                        className={styles.oneshotAnalysisPanel}
-                                        activeCitation={activeCitation}
-                                        onActiveTabChanged={(x: any) => onToggleTab(x)}
-                                        citationHeight="600px"
-                                        answer={answerTaskAgent[0]}
-                                        activeTab={activeAnalysisPanelTab}
-                                    />
-                                )}
-                            </div>
-
-                            <Panel
-                                headerText="Configure answer generation"
-                                isOpen={isConfigPanelOpen}
-                                isBlocking={false}
-                                onDismiss={() => setIsConfigPanelOpen(false)}
-                                closeButtonAriaLabel="Close"
-                                onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
-                                isFooterAtBottom={true}
-                            >
-                                <br/>
-                                <SpinButton
-                                    className={styles.oneshotSettingsSeparator}
-                                    label="Maximum number of Task Iterations:"
-                                    min={1}
-                                    max={5}
-                                    defaultValue={retrieveCount.toString()}
-                                    onChange={onRetrieveCountChange}
-                                />
-                                 <SpinButton
-                                    className={styles.oneshotSettingsSeparator}
-                                    label="Set the Temperature:"
-                                    min={0.0}
-                                    max={1.0}
-                                    defaultValue={temperature.toString()}
-                                    onChange={onTemperatureChange}
-                                />
-                                <SpinButton
-                                    className={styles.oneshotSettingsSeparator}
-                                    label="Max Length (Tokens):"
-                                    min={0}
-                                    max={4000}
-                                    defaultValue={tokenLength.toString()}
-                                    onChange={onTokenLengthChange}
-                                />
-                                <Dropdown 
-                                    label="Chain Type"
-                                    onChange={onChainChange}
-                                    selectedKey={selectedChain ? selectedChain.key : 'stuff'}
-                                    options={chainTypeOptions}
-                                    defaultSelectedKey={'stuff'}
-                                    styles={dropdownStyles}
-                                />
-                                <Checkbox
-                                    className={styles.chatSettingsSeparator}
-                                    checked={useSuggestFollowupQuestions}
-                                    label="Suggest follow-up questions"
-                                    onChange={onUseSuggestFollowupQuestionsChange}
-                                />
-                                 <Checkbox
-                                    className={styles.chatSettingsSeparator}
-                                    checked={useAutoSpeakAnswers}
-                                    label="Automatically speak answers"
-                                    onChange={onEnableAutoSpeakAnswersChange}
-                                />
                             </Panel>
                     </PivotItem>
                 </Pivot>

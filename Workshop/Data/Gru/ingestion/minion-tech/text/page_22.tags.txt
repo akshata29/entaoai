@@ -1,3 +1,0 @@
-minion-tech.md, 2024-01-06, Process Flow Diagrams, manufacturing processes, development processes, illustrations
-
-flowchart, process mapping, schematic diagram, production flow, workflow diagram, process design, system diagram, process optimization, manufacturing workflow, development workflow

@@ -4,14 +4,13 @@ import uuid
 import azure.functions as func
 import openai
 import os
-import pinecone
 from Utilities.envVars import *
 from azure.cosmos import CosmosClient, PartitionKey
 from Utilities.modelHelper import numTokenFromMessages, getTokenLimit
 from typing import Any, Sequence
-from langchain.utilities import BingSearchAPIWrapper
 from langchain.agents import tool, AgentType, Tool, initialize_agent
-from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
+from langchain_openai import AzureChatOpenAI
+from langchain_openai import ChatOpenAI
 import pytz
 import math
 import inspect

@@ -6,6 +6,8 @@ The repo provides a way to upload your own data so it's ready to try end to end.
 
 ## Updates
 
+* 3/30/2024 - Refactored to keep on Chat, Chat Stream, QnA, Upload and Admin functionality.  All others will be moved to it's own repo.
+* 3/10/2024 - Move the Prompt Flow version to [entaoaipf](https://github.com/akshata29/entaoaipf)
 * 3/9/2024 - Initial version of advanced RAG techniques and Multi-modal RAG pattern
 * 2/28/2024 - Removed SEC analysis features and it's moved into it's own repo at [sec](https://github.com/akshata29/sec)
 * 1/28/2024 - Remove PitchBook features as they are moved into it's own repo at [pib](https://github.com/akshata29/pitchbook)

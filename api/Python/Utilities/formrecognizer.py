@@ -47,6 +47,64 @@ def chunk_paragraphs(paragraphs: List[str], fullPath:str,  max_words: int = 300)
         doc.metadata['source'] = fullPath
     return docs
 
+
+    logging.info("Analyze Pre-built Layout")
+    postUrl = endpoint + "documentintelligence/documentModels/prebuilt-layout:analyze?api-version=2023-10-31-preview"
+    postUrl = postUrl + "&stringIndexType=utf16CodeUnit&pages=1&outputContentFormat=markdown"
+
+    headers = {
+        'Content-Type': 'application/octet-stream',
+        'Ocp-Apim-Subscription-Key': key
+    }
+
+    params = {
+        "includeTextDetails": True,
+        "pages" : 1,
+        "features":["keyValuePairs","queryFields"]
+
+    }
+
+    with open(pathAndFile, "rb") as f:
+        dataBytes = f.read()
+
+    try:
+        response = post(url=postUrl, data=dataBytes, headers=headers)
+        if response.status_code != 202:
+            logging.info("POST Analyze failed")
+            return None
+        getUrl = response.headers['Operation-Location']
+    except Exception as e:
+        logging.info("POST analyzed failed" + str(e))
+        return None
+    
+    nTries = 50
+    nTry = 0
+    waitSec = 6
+
+    while nTry < nTries:
+        try:
+            getResponse  = get(url=getUrl, headers=headers)
+            respJson = json.loads(getResponse.text)
+            if (getResponse.status_code != 200):
+                print("Layout Get Failed")
+                return None
+            status = respJson["status"]
+            if status == "succeeded":
+                fileName = os.path.basename(pathAndFile).replace(".png", ".json")
+                #print("store to", destinationPath + fileName)
+                with open(destinationPath + fileName, "w") as f:
+                    json.dump(respJson, f, indent=4, default=str)
+                return respJson
+            if status == "failed":
+                logging.info("Analysis Failed")
+                return None
+            time.sleep(waitSec)
+            nTry += 1
+        except Exception as e:
+            print("Exception during GET" + str(e))
+            logging.info("Exception during GET" + str(e))
+            return None
+
 def analyze_layout(data: bytes, fullpath:str, endpoint: str, key: str, chunkSize: int) -> List[Document]:
     """
     Analyze a document with the layout model.

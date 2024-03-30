@@ -1,6 +1,5 @@
 import { useRef, useState, useEffect } from "react";
 import { Outlet, NavLink, Link } from "react-router-dom";
-import { Checkbox, ChoiceGroup, IChoiceGroupOption, Panel, DefaultButton, Spinner, TextField, SpinButton, Stack, IPivotItemProps, getFadedOverflowStyle} from "@fluentui/react";
 
 import github from "../../assets/github.svg"
 
@@ -10,26 +9,6 @@ import { SettingsButton } from "../../components/SettingsButton/SettingsButton";
 
 const Layout = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
-    const [showUpload, setShowUpload] = useState<boolean>(false);
-    const [showAdmin, setShowAdmin] = useState<boolean>(false);
-    const [showSmartAgent, setShowSmartAgent] = useState<boolean>(false);
-    const [showSpeech, setShowSpeech] = useState<boolean>(true);
-
-    const onShowUpload = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
-        setShowUpload(!!checked);
-    };
-
-    const onShowAdmin = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
-        setShowAdmin(!!checked);
-    };
-
-    const onShowSpeech = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
-        setShowSpeech(!!checked);
-    };
-
-    const onShowSmartAgent = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
-        setShowSmartAgent(!!checked);
-    };
 
     return (
         <div className={styles.layout}>
@@ -40,18 +19,11 @@ const Layout = () => {
                     </Link>
                     <nav>
                         <ul className={styles.headerNavList}>
-                            {showUpload && (
-                                <li className={styles.headerNavLeftMargin}>
+                            <li className={styles.headerNavLeftMargin}>
                                     <NavLink to="/upload" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Upload &nbsp;&nbsp;&nbsp;
                                     </NavLink>
-                                </li>
-                            )}
-                            {/* <li>
-                                <NavLink to="/botChat" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}> 
-                                    Bot Chat&nbsp;&nbsp;
-                                </NavLink>
-                            </li> */}
+                            </li>
                             <li>
                                 <NavLink to="/" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
                                     Chat
@@ -63,56 +35,10 @@ const Layout = () => {
                                 </NavLink>
                             </li>
                             <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/video" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Video Gpt
+                                <NavLink to="/admin" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
+                                    Admin
                                 </NavLink>
                             </li>
-                            <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/summary" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Summarization
-                                </NavLink>
-                            </li>
-                            <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/sql" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Ask Sql
-                                </NavLink>
-                            </li>
-                            { showSmartAgent && (
-                            <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/smartAgent" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Smart Agent
-                                </NavLink>
-                            </li>
-                            )}
-                            <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/developer" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Developer Tools
-                                </NavLink>
-                            </li>
-                            <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/evaluator" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Evaluator
-                                </NavLink>
-                            </li>
-                            { showSpeech && (
-                                <li className={styles.headerNavLeftMargin}>
-                                    <NavLink to="/speech" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                        Speech Analytics
-                                    </NavLink>
-                                 </li>
-                            )}
-                            {showAdmin && (
-                                 <li className={styles.headerNavLeftMargin}>
-                                 <NavLink to="/admin" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                     Admin
-                                 </NavLink>
-                             </li>
-                            )}
-                            {/* <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/help" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Help
-                                </NavLink>
-                            </li> */}
                             <li className={styles.headerNavLeftMargin}>
                                 <a href="https://github.com/akshata29/chatpdf" target={"_blank"} title="Github repository link">
                                     <img
@@ -133,45 +59,6 @@ const Layout = () => {
                     <h4 className={styles.headerRightText}>Azure OpenAI</h4>
                 </div>
             </header>
-            <Panel
-                headerText="Configure Page Settings"
-                isOpen={isConfigPanelOpen}
-                isBlocking={false}
-                onDismiss={() => setIsConfigPanelOpen(false)}
-                closeButtonAriaLabel="Close"
-                onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
-                isFooterAtBottom={true}
-            >
-                <br/>
-                <Checkbox
-                    className={styles.chatSettingsSeparator}
-                    checked={showUpload}
-                    label="Show Upload Capability"
-                    onChange={onShowUpload}
-                />
-                <br/>
-                <br/>
-                <Checkbox
-                    className={styles.chatSettingsSeparator}
-                    checked={showSpeech}
-                    label="Display Speech Analytics"
-                    onChange={onShowSpeech}
-                />
-                <br/>
-                <Checkbox
-                    className={styles.chatSettingsSeparator}
-                    checked={showSmartAgent}
-                    label="Display Smart Agent"
-                    onChange={onShowSmartAgent}
-                />
-                <br/>
-                <Checkbox
-                    className={styles.chatSettingsSeparator}
-                    checked={showAdmin}
-                    label="Display Admin Features"
-                    onChange={onShowAdmin}
-                />
-            </Panel>
             <Outlet />
         </div>
     );

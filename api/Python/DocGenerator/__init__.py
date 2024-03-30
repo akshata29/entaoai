@@ -1,62 +1,124 @@
 import logging, json, os
 import azure.functions as func
-import openai
-from langchain.llms.openai import AzureOpenAI, OpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.text_splitter import TokenTextSplitter
 from langchain.text_splitter import NLTKTextSplitter
 import tempfile
 import uuid
-from langchain.document_loaders import (
-    PDFMinerLoader,
-    UnstructuredFileLoader,
-)
 import os
-from langchain.vectorstores import Pinecone
-from langchain.vectorstores import Milvus
+from pinecone import Pinecone
+from langchain_pinecone import PineconeVectorStore
+from langchain_community.vectorstores.milvus import Milvus
 import pinecone
-from langchain.document_loaders import PDFMinerLoader
+from langchain_community.document_loaders.pdf import PDFMinerLoader
+from langchain_community.document_loaders import AzureAIDocumentIntelligenceLoader
 import time
-from langchain.vectorstores.redis import Redis
-from langchain.document_loaders import WebBaseLoader
-from langchain.document_loaders import UnstructuredWordDocumentLoader
+from langchain_community.vectorstores.redis import Redis
+from langchain_community.document_loaders.web_base import WebBaseLoader
+from langchain_community.document_loaders.word_document import UnstructuredWordDocumentLoader
+from langchain_community.document_loaders.unstructured import UnstructuredFileLoader
 from langchain.chains.summarize import load_summarize_chain
 from langchain.prompts import PromptTemplate
-from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+from langchain.chains.question_answering import load_qa_chain
 from Utilities.azureBlob import upsertMetadata, getBlob, getFullPath, copyBlob, copyS3Blob
 from Utilities.cogSearch import createSearchIndex, indexSections
 from Utilities.formrecognizer import analyze_layout, chunk_paragraphs
-from langchain.document_loaders import AzureBlobStorageFileLoader
-from langchain.document_loaders import AzureBlobStorageContainerLoader
+from langchain_community.document_loaders.azure_blob_storage_container import AzureBlobStorageContainerLoader
+from langchain_community.document_loaders.azure_blob_storage_file import AzureBlobStorageFileLoader
 from azure.storage.blob import BlobClient
 from azure.storage.blob import ContainerClient
 import boto3
-#import chromadb
-#from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
-#from chromadb.config import Settings
-#from langchain.vectorstores import Chroma
-#from sentence_transformers import SentenceTransformer
 from typing import List
 from Utilities.envVars import *
-from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
+from langchain_openai import AzureChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.text_splitter import MarkdownHeaderTextSplitter
 import glob
 import zipfile
 from pathlib import Path
-from langchain.embeddings.azure_openai import AzureOpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from langchain_openai import AzureOpenAIEmbeddings
+import requests
+from io import BytesIO
+from unstructured.chunking.title import chunk_by_title
+from langchain.vectorstores.azuresearch import AzureSearch
+from unstructured.cleaners.core import clean_extra_whitespace, group_broken_paragraphs
 
 try:
     redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
-    # chromaClient = chromadb.Client(Settings(
-    #         chroma_api_impl="rest",
-    #         chroma_server_host=ChromaUrl,
-    #         chroma_server_http_port=ChromaPort))
-    # chromaClient.heartbeat()
-    # logging.info("Successfully connected to Chroma DB. Collections found: %s",chromaClient.list_collections())
 except:
     logging.error("Chroma or Redis not configured.  Ignoring.")
-    
+
+def PartitionFile(fileExtension: str, fileName: str):      
+    """ uses the unstructured.io libraries to analyse a document
+    Returns:
+        elements: A list of available models
+    """  
+    # Send a GET request to the URL to download the file
+    readByte  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+    readBytes = BytesIO(readByte)
+    metadata = [] 
+    elements = None
+    try:        
+        if fileExtension == '.csv':
+            from unstructured.partition.csv import partition_csv
+            elements = partition_csv(file=readBytes)               
+                     
+        elif fileExtension == '.doc':
+            from unstructured.partition.doc import partition_doc
+            elements = partition_doc(file=readBytes) 
+            
+        elif fileExtension == '.docx':
+            from unstructured.partition.docx import partition_docx
+            elements = partition_docx(file=readBytes)
+            
+        elif fileExtension == '.eml' or fileExtension == '.msg':
+            if fileExtension == '.msg':
+                from unstructured.partition.msg import partition_msg
+                elements = partition_msg(file=readBytes) 
+            else:        
+                from unstructured.partition.email import partition_email
+                elements = partition_email(file=readBytes)
+            metadata.append(f'Subject: {elements[0].metadata.subject}')
+            metadata.append(f'From: {elements[0].metadata.sent_from[0]}')
+            sent_to_str = 'To: '
+            for sent_to in elements[0].metadata.sent_to:
+                sent_to_str = sent_to_str + " " + sent_to
+            metadata.append(sent_to_str)
+            
+        elif fileExtension == '.html' or fileExtension == '.htm':  
+            from unstructured.partition.html import partition_html
+            elements = partition_html(file=readBytes) 
+            
+        elif fileExtension == '.md':
+            from unstructured.partition.md import partition_md
+            elements = partition_md(file=readBytes)
+                       
+        elif fileExtension == '.ppt':
+            from unstructured.partition.ppt import partition_ppt
+            elements = partition_ppt(file=readBytes)
+            
+        elif fileExtension == '.pptx':    
+            from unstructured.partition.pptx import partition_pptx
+            elements = partition_pptx(file=readBytes)
+            
+        elif any(fileExtension in x for x in ['.txt', '.json']):
+            from unstructured.partition.text import partition_text
+            elements = partition_text(file=readBytes)
+            
+        elif fileExtension == '.xlsx':
+            from unstructured.partition.xlsx import partition_xlsx
+            elements = partition_xlsx(file=readBytes)
+            
+        elif fileExtension == '.xml':
+            from unstructured.partition.xml import partition_xml
+            elements = partition_xml(file=readBytes)
+            
+    except Exception as e:
+        logging.info(f"An error occurred trying to parse the file: {str(e)}")
+         
+    return elements, metadata
+
 def GetAllFiles(filesToProcess):
     files = []
     logging.info("Getting all files")
@@ -91,7 +153,7 @@ def summarizeGenerateQa(docs, embeddingModelType, deploymentType):
                         azure_deployment=OpenAiChat,
                         temperature=0.3,
                         api_key=OpenAiKey,
-                        max_tokens=1000)
+                        max_tokens=500)
         elif deploymentType == "gpt3516k":
             llm = AzureChatOpenAI(
                         azure_endpoint=OpenAiEndPoint,
@@ -99,7 +161,7 @@ def summarizeGenerateQa(docs, embeddingModelType, deploymentType):
                         azure_deployment=OpenAiChat16k,
                         temperature=0.3,
                         api_key=OpenAiKey,
-                        max_tokens=1000)
+                        max_tokens=500)
     elif embeddingModelType == "openai":
         llm = ChatOpenAI(temperature=0.3,
                 api_key=OpenAiApiKey,
@@ -123,14 +185,15 @@ def summarizeGenerateQa(docs, embeddingModelType, deploymentType):
     template = """Given the following extracted parts of a long document, recommend between 1-5 sample questions.
 
             =========
-            {summaries}
+            {context}
             =========
             """
     
     logging.info("Document QA started")
     try:
-        qaPrompt = PromptTemplate(template=template, input_variables=["summaries"])
-        qaChain = load_qa_with_sources_chain(llm, chain_type='stuff', prompt=qaPrompt)
+        qaPrompt = PromptTemplate(template=template, input_variables=["context"])
+        qaChain = load_qa_chain(llm, chain_type='stuff', prompt=qaPrompt)
+        #qaChain = load_qa_with_sources_chain(llm, chain_type='stuff', prompt=qaPrompt)
         answer = qaChain({"input_documents": docs[:5], "question": ''}, return_only_outputs=True)
         logging.info("Document QA completed")
         qa = answer['output_text'].replace('\nSample Questions: \n', '').replace('\nSample Questions:\n', '').replace('\n', '\\n')
@@ -197,12 +260,21 @@ def storeIndex(indexType, docs, fileName, nameSpace, embeddingModelType):
 
         logging.info("Store the index in " + indexType + " and name : " + nameSpace)
         if indexType == 'pinecone':
-            Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=nameSpace)
+            PineconeVectorStore.from_documents(docs, embeddings, index_name=VsIndexName, namespace=nameSpace)
+            #Pinecone.from_documents(docs, embeddings, index_name=VsIndexName, namespace=nameSpace)
         elif indexType == "redis":
             Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=nameSpace)
         elif indexType == "cogsearch" or indexType == "cogsearchvs":
-            createSearchIndex(indexType, nameSpace)
-            indexSections(indexType, embeddingModelType, fileName, nameSpace, docs)
+            vectorStore: AzureSearch = AzureSearch(
+                azure_search_endpoint=f"https://{SearchService}.search.windows.net/",
+                azure_search_key=SearchKey,
+                index_name=nameSpace,
+                semantic_configuration_name="mySemanticConfig",
+                embedding_function=embeddings.embed_query,
+            )
+            vectorStore.add_documents(documents=docs)
+            #createSearchIndex(indexType, nameSpace)
+            #indexSections(indexType, embeddingModelType, fileName, nameSpace, docs)
         elif indexType == "chroma":
             logging.info("Chroma Client: " + str(docs))
             #Chroma.from_documents(docs, embeddings, collection_name=nameSpace, client=chromaClient, embedding_function=embeddings)
@@ -278,33 +350,172 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                             docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey, chunkSize)
                         logging.info("Docs " + str(len(docs)))
                         storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
-                    elif fileName.endswith('.csv'):
-                        # for CSV, all we want to do is set the metadata
-                        # so that we can use the appropriate CSV/Pandas/Spark agent for QA and Chat
-                        # and/or the Smart Agent
-                        logging.info("Processing CSV File")
-                    else:
+                    elif fileName.endswith('.jpg') or fileName.endswith('.jpeg') or fileName.endswith('.jpe') or \
+                        fileName.endswith('.jif') or fileName.endswith('.jfi') or fileName.endswith('.jfif') or fileName.endswith('.png') or \
+                        fileName.endswith('.tif') or fileName.endswith('.tiff') or fileName.endswith('.docx') or fileName.endswith('.html') or \
+                        fileName.endswith('.pptx') or fileName.endswith('.xlsx') or fileName.endswith('.pdf'):
+                        logging.info("Embedding Non-text file")
+                        docs = []
                         try:
-                            logging.info("Embedding Non-text file")
-                            docs = []
-                            if textSplitterType == "recursive":
-                                rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                                textSplitter = RecursiveCharacterTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
-                                docs = textSplitter.split_documents(rawDocs)
-                            elif textSplitterType == "tiktoken":
-                                rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                                textSplitter = TokenTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
-                                docs = textSplitter.split_documents(rawDocs)
-                            elif textSplitterType == "nltk":
-                                rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                                textSplitter = NLTKTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
-                                docs = textSplitter.split_documents(rawDocs)
-                            elif textSplitterType == "formrecognizer":
+                            if (fileName.endswith('.pdf')):
+                                if textSplitterType == "recursive":
+                                    rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                                    textSplitter = RecursiveCharacterTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
+                                    docs = textSplitter.split_documents(rawDocs)
+                                elif textSplitterType == "tiktoken":
+                                    rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                                    textSplitter = TokenTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
+                                    docs = textSplitter.split_documents(rawDocs)
+                                elif textSplitterType == "nltk":
+                                    rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                                    textSplitter = NLTKTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
+                                    docs = textSplitter.split_documents(rawDocs)
+                                elif textSplitterType == "formrecognizer":
+                                    readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                                    fullPath = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                                    #docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey, chunkSize)
+                                    ## Modify above to instead use the Analyze layout 
+                                    downloadPath = os.path.join(tempfile.gettempdir(), fileName)
+                                    os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+                                    try:
+                                        with open(downloadPath, "wb") as file:
+                                            file.write(readBytes)
+                                    except Exception as e:
+                                        errorMessage = str(e)
+                                        logging.error(e)
+
+                                    logging.info("File created")
+
+                                    logging.info("Analyzing Layout")
+                                    # loader = AzureAIDocumentIntelligenceLoader(
+                                    #             api_endpoint=FormRecognizerEndPoint,
+                                    #             api_key=FormRecognizerKey,
+                                    #             file_path=downloadPath,
+                                    #             api_model="prebuilt-layout",
+                                    #             mode="page",
+                                    #         )
+                                    # docs = loader.load()
+                                    loader = loader = AzureAIDocumentIntelligenceLoader(
+                                                api_endpoint=FormRecognizerEndPoint,
+                                                api_key=FormRecognizerKey,
+                                                file_path=downloadPath,
+                                                api_model="prebuilt-layout",
+                                            )
+                                    rawDocs = loader.load()
+                                    # Split the document into chunks base on markdown headers.
+                                    headers_to_split_on = [
+                                        ("#", "Header 1"),
+                                        ("##", "Header 2"),
+                                        ("###", "Header 3"),
+                                    ]
+                                    mdSplitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on, strip_headers=False)
+                                    mdHeaderSplits = mdSplitter.split_text(rawDocs[0].page_content)
+                                    textSplitter = RecursiveCharacterTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
+                                    docs = textSplitter.split_documents(mdHeaderSplits)
+
+                                logging.info("Docs " + str(len(docs)))
+                                storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
+                            else:
                                 readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
                                 fullPath = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                                docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey, chunkSize)
-                            logging.info("Docs " + str(len(docs)))
-                            storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
+                                downloadPath = os.path.join(tempfile.gettempdir(), fileName)
+                                os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+                                try:
+                                    with open(downloadPath, "wb") as file:
+                                        file.write(readBytes)
+                                except Exception as e:
+                                    errorMessage = str(e)
+                                    logging.error(e)
+
+                                logging.info("File created")
+                                logging.info("Analyzing Layout")
+                                loader = loader = AzureAIDocumentIntelligenceLoader(
+                                            api_endpoint=FormRecognizerEndPoint,
+                                            api_key=FormRecognizerKey,
+                                            file_path=downloadPath,
+                                            api_model="prebuilt-layout",
+                                        )
+                                rawDocs = loader.load()
+                                # Split the document into chunks base on markdown headers.
+                                headers_to_split_on = [
+                                    ("#", "Header 1"),
+                                    ("##", "Header 2"),
+                                    ("###", "Header 3"),
+                                ]
+                                mdSplitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on, strip_headers=False)
+                                mdHeaderSplits = mdSplitter.split_text(rawDocs[0].page_content)
+                                textSplitter = RecursiveCharacterTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
+                                docs = textSplitter.split_documents(mdHeaderSplits)
+                                logging.info("Docs " + str(len(docs)))
+                                storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
+                        except Exception as e:
+                            logging.info(e)
+                            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType,
+                                                                                            "textSplitterType": textSplitterType, 
+                                    "chunkSize": chunkSize, "chunkOverlap": chunkOverlap, "promptType": promptType, "singleFile": singleFile})
+                            errorMessage = str(e)
+                    elif fileName.endswith('.csv') or fileName.endswith('.doc') or \
+                        fileName.endswith('.ppt') or fileName.endswith('.xls') or \
+                        fileName.endswith('.htm') or fileName.endswith('.xml') or fileName.endswith('.eml') or \
+                        fileName.endswith('.msg') or fileName.endswith('.json'):
+                        readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                        downloadPath = os.path.join(tempfile.gettempdir(), fileName)
+                        os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
+                        try:
+                            with open(downloadPath, "wb") as file:
+                                file.write(readBytes)
+                        except Exception as e:
+                            errorMessage = str(e)
+                            logging.error(e)
+
+                        logging.info("File created")
+
+                        #loader = UnstructuredFileLoader(downloadPath, mode="elements", strategy="fast", post_processors=[clean_extra_whitespace, group_broken_paragraphs])
+                        loader = UnstructuredFileLoader(downloadPath, post_processors=[clean_extra_whitespace, group_broken_paragraphs])
+                        textSplitter = RecursiveCharacterTextSplitter(
+                                separators=["\n\n\n", "\n\n"],
+                                chunk_size=int(chunkSize),
+                                chunk_overlap=int(chunkOverlap),
+                                length_function=len,
+                                is_separator_regex=False,
+                            )
+                        docs = loader.load_and_split(text_splitter=textSplitter)
+                        storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
+                        # elements, uioMetadata = PartitionFile(os.path.splitext(fileName)[1], fileName)
+                        # metaDataText = ''
+                        # for metadata_value in uioMetadata:
+                        #     metaDataText += metadata_value + '\n'    
+                        
+                        # title = ''
+                        # # Capture the file title
+                        # try:
+                        #     for i, element in enumerate(elements):
+                        #         if title == '' and element.category == 'Title':
+                        #             # capture the first title
+                        #             title = element.text
+                        #             break
+                        # except:
+                        #     # if this type of eleemnt does not include title, then process with empty value
+                        #     pass
+                        # chunks = chunk_by_title(elements, multipage_sections=True, new_after_n_chars=1500, combine_text_under_n_chars=500)
+                        # subTitleName = ''
+                        # sectionName = ''
+                        # # Complete and write chunks
+                        # for i, chunk in enumerate(chunks):      
+                        #     if chunk.metadata.page_number == None:
+                        #         page_list = [1]
+                        #     else:
+                        #         page_list = [chunk.metadata.page_number] 
+                        #     # substitute html if text is a table            
+                        #     if chunk.category == 'Table':
+                        #         chunk_text = chunk.metadata.text_as_html
+                        #     else:
+                        #         chunk_text = chunk.text
+                        #     # add filetype specific metadata as chunk text header
+                        #     chunk_text = metaDataText + chunk_text
+                    else:
+                        try:
+                            logging.info("Not supported")
                         except Exception as e:
                             logging.info(e)
                             upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType,
@@ -793,10 +1004,12 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     if body:
         try:
             if len(PineconeKey) > 10 and len(PineconeEnv) > 10:
-                pinecone.init(
-                    api_key=PineconeKey,  # find at app.pinecone.io
-                    environment=PineconeEnv  # next to api key in console
-                )
+                # pinecone.init(
+                #     api_key=PineconeKey,  # find at app.pinecone.io
+                #     environment=PineconeEnv  # next to api key in console
+                # )
+                os.environ["PINECONE_API_KEY"] = PineconeKey
+                pc = Pinecone(api_key=PineconeKey)
         except:
             logging.error("Pinecone already initialized or not configured.  Ignoring.")
 

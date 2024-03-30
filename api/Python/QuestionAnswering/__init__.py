@@ -1,17 +1,18 @@
 import logging, json, os
 import azure.functions as func
 import openai
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.embeddings.azure_openai import AzureOpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from langchain_openai import AzureOpenAIEmbeddings
 import os
-from langchain.vectorstores import Pinecone
-import pinecone
+from pinecone import Pinecone
+from langchain_pinecone import PineconeVectorStore
 from langchain.chains import RetrievalQA
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import RegexParser
-from redis import Redis
+#from redis import Redis
+from langchain_community.vectorstores.redis import Redis
 import numpy as np
 from langchain.docstore.document import Document
 from Utilities.redisIndex import performRedisSearch
@@ -20,16 +21,21 @@ from langchain.prompts import load_prompt
 from Utilities.envVars import *
 from langchain_experimental.agents.agent_toolkits import create_csv_agent
 from Utilities.azureBlob import getLocalBlob, getFullPath
-from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
+from langchain_openai import AzureChatOpenAI
+from langchain_openai import ChatOpenAI
 import uuid
-from Utilities.azureSearch import AzureSearch
-from azure.search.documents.indexes.models import (
-    SearchableField,
-    SearchField,
-    SearchFieldDataType,
-    SimpleField,
-)
+#from Utilities.azureSearch import AzureSearch
+from langchain.vectorstores.azuresearch import AzureSearch
 from langchain.chains import LLMChain
+from langchain import hub
+from langchain.schema.runnable import RunnablePassthrough
+from langchain.schema import StrOutputParser
+from operator import itemgetter
+from langchain.schema.runnable import RunnableMap
+from azure.search.documents.indexes.models import SearchField, SimpleField, SearchableField, SearchFieldDataType
+
+def formatDocs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
 
 def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides):
     logging.info("Calling QaAnswer Open AI")
@@ -68,7 +74,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                         api_version=OpenAiVersion,
                         azure_deployment=OpenAiChat,
                         temperature=temperature,
-                        openai_api_key=OpenAiKey,
+                        api_key=OpenAiKey,
                         openai_api_type="azure",
                         max_tokens=tokenLength)
             elif deploymentType == "gpt3516k":
@@ -77,7 +83,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                         api_version=OpenAiVersion,
                         azure_deployment=OpenAiChat16k,
                         temperature=temperature,
-                        openai_api_key=OpenAiKey,
+                        api_key=OpenAiKey,
                         openai_api_type="azure",
                         max_tokens=tokenLength)
                 
@@ -97,21 +103,6 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
 
         if (approach == 'rtr'):
             if (overrideChain == "stuff"):
-                if promptTemplate == '':
-                    template = """
-                        Given the following extracted parts of a long document and a question, create a final answer. 
-                        If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
-                        If the answer is not contained within the text below, say \"I don't know\".
-
-                        {summaries}
-                        Question: {question}
-                    """
-                else:
-                    template = promptTemplate
-
-                qaPrompt = PromptTemplate(template=template, input_variables=["summaries", "question"])
-                qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, prompt=qaPrompt)
-
                 followupTemplate = """
                 Generate three very brief questions that the user would likely ask next.
                 Use double angle brackets to reference the questions, e.g. <What is Azure?>.
@@ -128,37 +119,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
 
                 """
                 followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
-                followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
             elif (overrideChain == "map_rerank"):
-                outputParser = RegexParser(
-                    regex=r"(.*?)\nScore: (.*)",
-                    output_keys=["answer", "score"],
-                )
-
-                promptTemplate = """
-                
-                Use the following pieces of context to answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
-                In addition to giving an answer, also return a score of how fully it answered the user's question. This should be in the following format:
-
-                Question: [question here]
-                [answer here]
-                Score: [score between 0 and 100]
-
-                Begin!
-
-                Context:
-                ---------
-                {summaries}
-                ---------
-                Question: {question}
-
-                """
-                qaPrompt = PromptTemplate(template=promptTemplate,input_variables=["summaries", "question"],
-                                          output_parser=outputParser)
-                qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain,
-                                            prompt=qaPrompt)
-
                 followupTemplate = """
                 Generate three very brief questions that the user would likely ask next.
                 Use double angle brackets to reference the questions, e.g. <What is Azure?>.
@@ -175,43 +136,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
 
                 """
                 followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
-                followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
             elif (overrideChain == "map_reduce"):
-
-                if promptTemplate == '':
-                    # qaTemplate = """Use the following portion of a long document to see if any of the text is relevant to answer the question.
-                    # Return any relevant text.
-                    # {context}
-                    # Question: {question}
-                    # Relevant text, if any :"""
-
-                    # qaPrompt = PromptTemplate(
-                    #     template=qaTemplate, input_variables=["context", "question"]
-                    # )
-
-                    combinePromptTemplate = """
-                        Given the following extracted parts of a long document and a question, create a final answer. 
-                        If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
-                        If the answer is not contained within the text below, say \"I don't know\".
-
-                        QUESTION: {question}
-                        =========
-                        {summaries}
-                        =========
-                        """
-                    qaPrompt = combinePromptTemplate
-                else:
-                    combinePromptTemplate = promptTemplate
-                    qaPrompt = promptTemplate
-
-                combinePrompt = PromptTemplate(
-                        template=combinePromptTemplate, input_variables=["summaries", "question"]
-                    )
-
-               
-                #qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, question_prompt=qaPrompt, combine_prompt=combinePrompt)
-                qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, combine_prompt=combinePrompt)
-                
                 followupTemplate = """
                 Generate three very brief questions that the user would likely ask next.
                 Use double angle brackets to reference the questions, e.g. <What is Azure?>.
@@ -228,41 +153,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
 
                 """
                 followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
-                followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
             elif (overrideChain == "refine"):
-                refineTemplate = (
-                    "The original question is as follows: {question}\n"
-                    "We have provided an existing answer, including sources: {existing_answer}\n"
-                    "We have the opportunity to refine the existing answer"
-                    "(only if needed) with some more context below.\n"
-                    "------------\n"
-                    "{context_str}\n"
-                    "------------\n"
-                    "Given the new context, refine the original answer to better "
-                    "If you do update it, please update the sources as well. "
-                    "If the context isn't useful, return the original answer."
-                )
-                refinePrompt = PromptTemplate(
-                    input_variables=["question", "existing_answer", "context_str"],
-                    template=refineTemplate,
-                )
-
-                qaTemplate = """
-                    Given the following extracted parts of a long document and a question, create a final answer. 
-                    If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
-                    If the answer is not contained within the text below, say \"I don't know\".
-
-                    QUESTION: {question}
-                    =========
-                    {context_str}
-                    =========
-                    """
-                qaPrompt = PromptTemplate(
-                    input_variables=["context_str", "question"], template=qaTemplate
-                )
-                qaChain = load_qa_with_sources_chain(llm, chain_type=overrideChain, question_prompt=qaPrompt, refine_prompt=refinePrompt)
-
-                
                 followupTemplate = """
                 Generate three very brief questions that the user would likely ask next.
                 Use double angle brackets to reference the questions, e.g. <What is Azure?>.
@@ -279,7 +170,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
 
                 """
                 followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
-                followupChain = load_qa_chain(llm, chain_type='stuff', prompt=followupPrompt)
+
 
             try:
                 # Let's verify if the questions is already answered before and check our KB first before asking LLM
@@ -305,36 +196,53 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
             kbId = str(uuid.uuid4())
 
             if indexType == 'pinecone':
-                vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
-                docRetriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": topK})
+                if promptTemplate == '':
+                        prompt = hub.pull("rlm/rag-prompt")
+                else:
+                        prompt = PromptTemplate(template=promptTemplate, input_variables=["context", "question"])
+
+                vectorDb = PineconeVectorStore.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
+                retriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": topK})
                 logging.info("Pinecone Setup done")
-                chain = RetrievalQA(combine_documents_chain=qaChain, retriever=docRetriever, return_source_documents=True)
-                llmAnswer = chain({"query": question}, return_only_outputs=True)
-                docs = llmAnswer['source_documents']
-                rawDocs = []
-                for doc in docs:
+
+                retrievedDocs = retriever.get_relevant_documents(question)
+                rawDocs=[]
+                for doc in retrievedDocs:
                     rawDocs.append(doc.page_content)
-                
+
+                ragChain = (
+                    {"context": retriever | formatDocs, "question": RunnablePassthrough()}
+                    | prompt
+                    | llm
+                    | StrOutputParser()
+                )
+                try:
+                    modifiedAnswer = ragChain.invoke(question)
+                    modifiedAnswer = modifiedAnswer.replace("Answer: ", '')
+                    logging.info("Modified Answer: " + modifiedAnswer)
+                except Exception as e:
+                    logging.info("Error in RAG Chain: " + str(e))
+                    pass
+
                 if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
-                    thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
+                    thoughtPrompt = prompt.format(question=question, context=rawDocs)
                 elif overrideChain == "refine":
-                    thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
+                    thoughtPrompt = prompt.format(question=question, context_str=rawDocs)
                 
-                answer = llmAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
-                modifiedAnswer = answer
-                
-                # Followup questions
-                # followupChain = RetrievalQA(combine_documents_chain=followupChain, retriever=docRetriever)
-                # followupAnswer = followupChain({"query": question}, return_only_outputs=True)
-                # nextQuestions = followupAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
-                llmChain = LLMChain(prompt=followupPrompt, llm=llm)
-                nextQuestions = llmChain.predict(context=rawDocs)
-                sources = ''                
+                ragChainFollowup = (
+                        {"context": RunnablePassthrough() }
+                        | followupPrompt
+                        | llm
+                        | StrOutputParser()
+                    )
+                nextQuestions = ragChainFollowup.invoke({"context": ''.join(rawDocs)})
+                logging.info("Next Questions: " + nextQuestions)
+                sources = '' 
                 if (modifiedAnswer.find("I don't know") >= 0):
                     sources = ''
                     nextQuestions = ''
-                else:
-                    sources = sources + "\n" + docs[0].metadata['source']
+                # else:
+                #     sources = sources + "\n" + docs[0].metadata['source']
 
                 outputFinalAnswer = {"data_points": rawDocs, "answer": modifiedAnswer, 
                         "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
@@ -358,36 +266,64 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 return outputFinalAnswer            
             elif indexType == "redis":
                 try:
-                    returnField = ["metadata", "content", "vector_score"]
-                    vectorField = "content_vector"
-                    results = performRedisSearch(question, indexNs, topK, returnField, vectorField, embeddingModelType)
-                    docs = [
-                            Document(page_content=result.content, metadata=json.loads(result.metadata))
-                            for result in results.docs
-                    ]
+                    if promptTemplate == '':
+                        prompt = hub.pull("rlm/rag-prompt")
+                    else:
+                        prompt = PromptTemplate(template=promptTemplate, input_variables=["context", "question"])
+
+                    indexSchema = {
+                        "text": [{"name": "source"}, {"name": "content"}],
+                        "vector": [{"name": "content_vector", "dims": 768, "algorithm": "FLAT", "distance_metric": "COSINE"}],
+                    }
+
+                    redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+
+                    rds = Redis.from_existing_index(
+                        embeddings,
+                        index_name=indexNs,
+                        redis_url=redisUrl,
+                        schema=indexSchema
+                    )
+                    retriever = rds.as_retriever(search_type="similarity", search_kwargs={"k": topK})
+                    retrievedDocs = retriever.get_relevant_documents(question)
                     rawDocs=[]
-                    for doc in docs:
+                    for doc in retrievedDocs:
                         rawDocs.append(doc.page_content)
-                    answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                    answer = answer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
-                    modifiedAnswer = answer
+
+                    ragChain = (
+                        {"context": retriever | formatDocs, "question": RunnablePassthrough()}
+                        | prompt
+                        | llm
+                        | StrOutputParser()
+                    )
+                    try:
+                        modifiedAnswer = ragChain.invoke(question)
+                        modifiedAnswer = modifiedAnswer.replace("Answer: ", '')
+                        logging.info("Modified Answer: " + modifiedAnswer)
+                    except Exception as e:
+                        logging.info("Error in RAG Chain: " + str(e))
+                        pass
 
                     if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
-                        thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
+                        thoughtPrompt = prompt.format(question=question, context=rawDocs)
                     elif overrideChain == "refine":
-                        thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
+                        thoughtPrompt = prompt.format(question=question, context_str=rawDocs)
                     
-                    # Followup questions
-                    # followupAnswer = followupChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                    # nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
-                    llmChain = LLMChain(prompt=followupPrompt, llm=llm)
-                    nextQuestions = llmChain.predict(context=rawDocs)
-                    sources = ''                
+                    ragChainFollowup = (
+                        {"context": RunnablePassthrough() }
+                        | followupPrompt
+                        | llm
+                        | StrOutputParser()
+                    )
+                    nextQuestions = ragChainFollowup.invoke({"context": ''.join(rawDocs)})
+                    logging.info("Next Questions: " + nextQuestions)
+                    sources = '' 
+
                     if (modifiedAnswer.find("I don't know") >= 0):
                         sources = ''
                         nextQuestions = ''
-                    else:
-                        sources = sources + "\n" + docs[0].metadata['source']
+                    # else:
+                    #     sources = sources + "\n" + docs[0].metadata['source']
 
                     
                     outputFinalAnswer = {"data_points": rawDocs, "answer": modifiedAnswer, 
@@ -415,75 +351,121 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                     return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
             elif indexType == "cogsearch" or indexType == "cogsearchvs":
                 try:
-                    # r = performCogSearch(indexType, embeddingModelType, question, indexNs, topK)
-                    # if r == None:
-                    #     docs = [Document(page_content="No results found")]
-                    # else :
-                    #     docs = [
-                    #         Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
-                    #         for doc in r
-                    #         ]
-                    fields=[
-                            SimpleField(name="id", type=SearchFieldDataType.String, key=True),
-                            SearchableField(name="content", type=SearchFieldDataType.String,
-                                            searchable=True, retrievable=True, analyzer_name="en.microsoft"),
-                            SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                                        searchable=True, vector_search_dimensions=1536, vector_search_configuration="vectorConfig"),
-                            SimpleField(name="sourcefile", type="Edm.String", filterable=True),
-                    ]
+                    # fields=[
+                    #         SimpleField(name="id", type=SearchFieldDataType.String, key=True),
+                    #         SearchableField(name="content", type=SearchFieldDataType.String,
+                    #                         searchable=True, retrievable=True, analyzer_name="en.microsoft"),
+                    #         SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), 
+                    #             vector_search_dimensions=1536, vector_search_profile_name="vectorConfig"),  
+                    #         SimpleField(name="metadata", type="Edm.String", filterable=True),
+                    # ]
+                    # csVectorStore: AzureSearch = AzureSearch(
+                    #     azure_search_endpoint=f"https://{SearchService}.search.windows.net",
+                    #     azure_search_key=SearchKey,
+                    #     index_name=indexNs,
+                    #     fields=fields,
+                    #     embedding_function=embeddings.embed_query,
+                    #     semantic_configuration_name="semanticConfig",
+                    # )
+
+                    # # Perform a similarity search
+                    # if (searchType == 'similarity'):
+                    #     docs = csVectorStore.similarity_search(
+                    #         query=question,
+                    #         k=topK,
+                    #         search_type="similarity",
+                    #     )
+                    # elif (searchType == 'hybrid'):
+                    #     docs = csVectorStore.similarity_search(
+                    #         query=question,
+                    #         k=topK,
+                    #         search_type="similarity",
+                    #     )
+                    # elif (searchType == 'hybridrerank'):
+                    #     docs = csVectorStore.semantic_hybrid_search(
+                    #         query=question,
+                    #         k=topK
+                    #     )
+
+                    # logging.info("CogSearch Results: " + str(len(docs)))
+                    # rawDocs=[]
+                    # for doc in docs:
+                    #     rawDocs.append(doc.page_content)
+                    
+                    # answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
+                    # answer = answer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
+                    # modifiedAnswer = answer
+
+                    rawDocs=[]
                     csVectorStore: AzureSearch = AzureSearch(
                         azure_search_endpoint=f"https://{SearchService}.search.windows.net",
                         azure_search_key=SearchKey,
                         index_name=indexNs,
-                        fields=fields,
                         embedding_function=embeddings.embed_query,
                         semantic_configuration_name="semanticConfig",
                     )
-
-                    # Perform a similarity search
-                    if (searchType == 'similarity'):
-                        docs = csVectorStore.similarity_search(
-                            query=question,
-                            k=topK,
-                            search_type="similarity",
-                        )
-                    elif (searchType == 'hybrid'):
-                        docs = csVectorStore.similarity_search(
-                            query=question,
-                            k=topK,
-                            search_type="similarity",
-                        )
-                    elif (searchType == 'hybridrerank'):
-                        docs = csVectorStore.semantic_hybrid_search(
-                            query=question,
-                            k=topK
-                        )
-
-                    rawDocs=[]
-                    for doc in docs:
+                    retriever = csVectorStore.as_retriever(search_type=searchType, search_kwargs={"k": 3})
+                    retrievedDocs = retriever.get_relevant_documents(question)
+                    for doc in retrievedDocs:
                         rawDocs.append(doc.page_content)
                     
-                    answer = qaChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                    answer = answer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:')
-                    modifiedAnswer = answer
+                    if promptTemplate == '':
+                        prompt = hub.pull("rlm/rag-prompt")
+                    else:
+                        prompt = PromptTemplate(template=promptTemplate, input_variables=["context", "question"])
+                    
+                    # ragChainFromDocs = (
+                    #     {
+                    #         "context": lambda input: formatDocs(input["documents"]),
+                    #         "question": itemgetter("question"),
+                    #     }
+                    #     | prompt
+                    #     | llm
+                    #     | StrOutputParser()
+                    # )
+                    # ragChainWithSource = RunnableMap(
+                    #     {"documents": retriever, "question": RunnablePassthrough()}
+                    # ) | {
+                    #     "documents": lambda input: [doc.metadata for doc in input["documents"]],
+                    #     "answer": ragChainFromDocs,
+                    # }
+                    ragChain = (
+                        {"context": retriever | formatDocs, "question": RunnablePassthrough()}
+                        | prompt
+                        | llm
+                        | StrOutputParser()
+                    )
+                    try:
+                        #modifiedAnswer = ragChainWithSource.invoke(question)['answer']
+                        modifiedAnswer = ragChain.invoke(question)
+                        modifiedAnswer = modifiedAnswer.replace("Answer: ", '')
+                        logging.info("Modified Answer: " + modifiedAnswer)
+                    except Exception as e:
+                        logging.info("Error in RAG Chain: " + str(e))
+                        pass
 
                     if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
-                        thoughtPrompt = qaPrompt.format(question=question, summaries=rawDocs)
+                        thoughtPrompt = prompt.format(question=question, context=rawDocs)
                     elif overrideChain == "refine":
-                        thoughtPrompt = qaPrompt.format(question=question, context_str=rawDocs)
+                        thoughtPrompt = prompt.format(question=question, context_str=rawDocs)
                     
-
-                    # Followup questions
-                    # followupAnswer = followupChain({"input_documents": docs, "question": question}, return_only_outputs=True)
-                    # nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
-                    llmChain = LLMChain(prompt=followupPrompt, llm=llm)
-                    nextQuestions = llmChain.predict(context=rawDocs)
+                   
+                    # llmChain = LLMChain(prompt=followupPrompt, llm=llm)
+                    # nextQuestions = llmChain.predict(context=rawDocs)
+                    ragChainFollowup = (
+                        {"context": RunnablePassthrough() }
+                        | followupPrompt
+                        | llm
+                        | StrOutputParser()
+                    )
+                    nextQuestions = ragChainFollowup.invoke({"context": ''.join(rawDocs)})
+                    logging.info("Next Questions: " + nextQuestions)
                     sources = ''                
                     if (modifiedAnswer.find("I don't know") >= 0):
                         sources = ''
                         nextQuestions = ''
-                    else:
-                        sources = sources + "\n" + docs[0].metadata['source']
+                    # else:
+                    #     sources = sources + "\n" + docs[0].metadata['source']
 
                     outputFinalAnswer = {"data_points": rawDocs, "answer": modifiedAnswer, 
                             "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'),
@@ -630,10 +612,12 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     if body:
         try:
             if len(PineconeKey) > 10 and len(PineconeEnv) > 10:
-                pinecone.init(
-                    api_key=PineconeKey,  # find at app.pinecone.io
-                    environment=PineconeEnv  # next to api key in console
-                )
+                # pinecone.init(
+                #     api_key=PineconeKey,  # find at app.pinecone.io
+                #     environment=PineconeEnv  # next to api key in console
+                # )
+                os.environ["PINECONE_API_KEY"] = PineconeKey
+                pc = Pinecone(api_key=PineconeKey)
         except Exception as e:
             logging.error("Error in Pinecone Init: " + str(e))
             pass

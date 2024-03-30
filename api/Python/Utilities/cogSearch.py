@@ -14,18 +14,17 @@ from azure.search.documents.indexes.models import (
     SearchableField,  
     SearchIndex,  
     SemanticConfiguration,  
-    PrioritizedFields,  
     SemanticField,  
     SearchField,  
-    SemanticSettings,  
+    SemanticPrioritizedFields,
     VectorSearch,  
-    HnswVectorSearchAlgorithmConfiguration,  
+    HnswAlgorithmConfiguration,  
 )
-from azure.search.documents.models import Vector  
 from Utilities.envVars import *
 from tenacity import retry, wait_random_exponential, stop_after_attempt  
 import openai
 from openai import OpenAI, AzureOpenAI
+from azure.search.documents.models import VectorizedQuery
 
 def deleteSearchIndex(indexName):
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
@@ -47,30 +46,37 @@ def createSearchIndex(indexType, indexName):
                             SimpleField(name="id", type=SearchFieldDataType.String, key=True),
                             SearchableField(name="content", type=SearchFieldDataType.String,
                                             searchable=True, retrievable=True, analyzer_name="en.microsoft"),
-                            SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                                        searchable=True, vector_search_dimensions=1536, vector_search_configuration="vectorConfig"),
+                            SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), 
+                                vector_search_dimensions=1536, vector_search_profile_name="vectorConfig"),  
                             SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
                 ],
                 vector_search = VectorSearch(
-                    algorithm_configurations=[
-                        HnswVectorSearchAlgorithmConfiguration(
-                            name="vectorConfig",
-                            kind="hnsw",
-                            parameters={
-                                "m": 4,
-                                "efConstruction": 400,
-                                "efSearch": 500,
-                                "metric": "cosine"
-                            }
+                    algorithms=[
+                        HnswAlgorithmConfiguration(
+                            name="hnswConfig",
+                            parameters=HnswParameters(  
+                                m=4,  
+                                ef_construction=400,  
+                                ef_search=500,  
+                                metric=VectorSearchAlgorithmMetric.COSINE,  
+                            ),
                         )
-                    ]
+                    ],  
+                    profiles=[  
+                        VectorSearchProfile(  
+                            name="vectorConfig",  
+                            algorithm_configuration_name="hnswConfig",  
+                        ),
+                    ],
                 ),
-                semantic_settings=SemanticSettings(
-                    configurations=[SemanticConfiguration(
-                        name='semanticConfig',
-                        prioritized_fields=PrioritizedFields(
-                            title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))],
-                        prioritized_keywords_fields=[SemanticField(field_name='sourcefile')])
+                semantic_search = SemanticSearch(configurations=[SemanticConfiguration(
+                    name="semanticConfig",
+                    prioritized_fields=SemanticPrioritizedFields(
+                        title_field=SemanticField(field_name="content"),
+                        keywords_fields=[SemanticField(field_name="sourcefile")],
+                        content_fields=[SemanticField(field_name="content")]
+                    )
+                )])
             )
         elif indexType == "cogsearch":
             index = SearchIndex(
@@ -81,12 +87,14 @@ def createSearchIndex(indexType, indexName):
                                             searchable=True, retrievable=True, analyzer_name="en.microsoft"),
                             SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
                 ],
-                semantic_settings=SemanticSettings(
-                    configurations=[SemanticConfiguration(
-                        name='semanticConfig',
-                        prioritized_fields=PrioritizedFields(
-                            title_field=SemanticField(field_name="content"), prioritized_content_fields=[SemanticField(field_name='content')]))],
-                        prioritized_keywords_fields=[SemanticField(field_name='sourcefile')])
+                semantic_search = SemanticSearch(configurations=[SemanticConfiguration(
+                    name="semanticConfig",
+                    prioritized_fields=SemanticPrioritizedFields(
+                        title_field=SemanticField(field_name="content"),
+                        keywords_fields=[SemanticField(field_name="sourcefile")],
+                        content_fields=[SemanticField(field_name="content")]
+                    )
+                )])
             )
 
         try:
@@ -154,15 +162,9 @@ def performCogSearch(indexType, embeddingModelType, question, indexName, k, retu
         credential=AzureKeyCredential(SearchKey))
     try:
         if indexType == "cogsearchvs":
-            # r = searchClient.search(  
-            #     search_text="",  
-            #     vectors=[Vector(value=generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector")],  
-            #     select=returnFields,
-            #     semantic_configuration_name="semanticConfig"
-            # )
             r = searchClient.search(  
-                search_text=question,  
-                vectors=[Vector(value=generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector")],  
+                search_text=question,
+                vector_queries=[VectorizedQuery(vector=generateEmbeddings(embeddingModelType, question), k_nearest_neighbors=k, fields="contentVector")],  
                 select=returnFields,
                 query_type="semantic", 
                 query_language="en-us", 
@@ -270,29 +272,30 @@ def createKbSearchIndex(SearchService, SearchKey, indexName):
                                         searchable=True, retrievable=True, analyzer_name="en.microsoft"),
                         SearchableField(name="indexType", type=SearchFieldDataType.String, searchable=True, retrievable=True, filterable=True, facetable=False),
                         SearchableField(name="indexName", type=SearchFieldDataType.String, searchable=True, retrievable=True, filterable=True, facetable=False),
-                        SearchField(name="vectorQuestion", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                                    searchable=True, vector_search_dimensions=1536, vector_search_configuration="vectorConfig"),
+                        SearchField(name="vectorQuestion", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), 
+                                vector_search_dimensions=1536, vector_search_profile_name="vectorConfig"),  
                         SimpleField(name="answer", type=SearchFieldDataType.String),
             ],
             vector_search = VectorSearch(
-                algorithm_configurations=[
-                    HnswVectorSearchAlgorithmConfiguration(
+                algorithms=[
+                    HnswAlgorithmConfiguration(
                         name="vectorConfig",
-                        kind="hnsw",
-                        parameters={
-                            "m": 4,
-                            "efConstruction": 400,
-                            "efSearch": 500,
-                            "metric": "cosine"
-                        }
+                        parameters=HnswParameters(  
+                            m=4,  
+                            ef_construction=400,  
+                            ef_search=500,  
+                            metric=VectorSearchAlgorithmMetric.COSINE,  
+                        ),
                     )
                 ]
             ),
-            semantic_settings=SemanticSettings(
-                configurations=[SemanticConfiguration(
-                    name='semanticConfig',
-                    prioritized_fields=PrioritizedFields(
-                        title_field=SemanticField(field_name="question"), prioritized_content_fields=[SemanticField(field_name='question')]))])
+            semantic_config = SemanticConfiguration(
+                name="semanticConfig",
+                prioritized_fields=SemanticPrioritizedFields(
+                    title_field=SemanticField(field_name="question"),
+                    content_fields=[SemanticField(field_name="question")]
+                )
+            )
         )
 
         try:
@@ -314,7 +317,7 @@ def performKbCogVectorSearch(embedValue, embedField, SearchService, SearchKey, i
         r = searchClient.search(  
             search_text="",
             filter="indexType eq '" + indexType + "' and indexName eq '" + indexName + "'",
-            vectors=[Vector(value=embedValue, k=k, fields=embedField)],  
+            vector_queries=[VectorizedQuery(vector=embedValue, k_nearest_neighbors=k, fields=embedField)],  
             select=returnFields,
             semantic_configuration_name="semanticConfig",
             include_total_count=True

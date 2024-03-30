@@ -2,31 +2,31 @@ import datetime
 import logging, json, os
 import uuid
 import azure.functions as func
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.embeddings.azure_openai import AzureOpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from langchain_openai import AzureOpenAIEmbeddings
 import os
 from openai import OpenAI, AzureOpenAI
-#from langchain.vectorstores.pinecone import Pinecone
 from pinecone import Pinecone
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.docstore.document import Document
 from Utilities.redisIndex import performRedisSearch
 from Utilities.cogSearch import performCogSearch
-from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
+from langchain_openai import AzureChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.prompts import PromptTemplate
 from Utilities.envVars import *
 from langchain_experimental.agents.agent_toolkits import create_csv_agent
 from Utilities.azureBlob import getLocalBlob, getFullPath
 from azure.cosmos import CosmosClient, PartitionKey
-from langchain.callbacks import get_openai_callback
+from langchain_community.callbacks.manager import get_openai_callback
 from langchain.chains.question_answering import load_qa_chain
 from langchain.output_parsers import RegexParser
 from langchain.chains import RetrievalQA
 from typing import Any, Sequence
 from Utilities.modelHelper import numTokenFromMessages, getTokenLimit
 from Utilities.messageBuilder import MessageBuilder
-from Utilities.azureSearch import AzureSearch
+from langchain.vectorstores.azuresearch import AzureSearch
 from azure.search.documents.indexes.models import (
     SearchableField,
     SearchField,
@@ -34,6 +34,14 @@ from azure.search.documents.indexes.models import (
     SimpleField,
 )
 from langchain.chains import LLMChain
+from langchain import hub
+from langchain.schema.runnable import RunnablePassthrough
+from langchain.schema import StrOutputParser
+from langchain_pinecone import PineconeVectorStore
+from langchain_community.vectorstores.redis import Redis
+
+def formatDocs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     logging.info(f'{context.function_name} HTTP trigger function processed a request.')
@@ -56,7 +64,9 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         )
 
     if body:
-        # if len(PineconeKey) > 10 and len(PineconeEnv) > 10:
+        if len(PineconeKey) > 10 and len(PineconeEnv) > 10:
+            os.environ["PINECONE_API_KEY"] = PineconeKey
+            pc = Pinecone(api_key=PineconeKey)
         #     pinecone.init(
         #         api_key=PineconeKey,  # find at app.pinecone.io
         #         environment=PineconeEnv  # next to api key in console
@@ -285,21 +295,6 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     try:
         logging.info("Execute step 2")
         if (overrideChain == "stuff"):
-            if promptTemplate == '':
-                template = """
-                    Given the following extracted parts of a long document and a question, create a final answer. 
-                    If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
-                    If the answer is not contained within the text below, say \"I don't know\".
-
-                    {summaries}
-                    Question: {question}
-                """
-            else:
-                template = promptTemplate
-
-            qaPrompt = PromptTemplate(template=template, input_variables=["summaries", "question"])
-            qaChain = load_qa_with_sources_chain(llmChat, chain_type=overrideChain, prompt=qaPrompt)
-
             followupTemplate = """
              Generate three very brief questions that the user would likely ask next.
             Use double angle brackets to reference the questions, e.g. <What is Azure?>.
@@ -316,37 +311,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
 
             """
             followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
-            followupChain = load_qa_chain(llmChat, chain_type='stuff', prompt=followupPrompt)
         elif (overrideChain == "map_rerank"):
-            outputParser = RegexParser(
-                regex=r"(.*?)\nScore: (.*)",
-                output_keys=["answer", "score"],
-            )
-
-            promptTemplate = """
-            
-            Use the following pieces of context to answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
-            In addition to giving an answer, also return a score of how fully it answered the user's question. This should be in the following format:
-
-            Question: [question here]
-            [answer here]
-            Score: [score between 0 and 100]
-
-            Begin!
-
-            Context:
-            ---------
-            {summaries}
-            ---------
-            Question: {question}
-
-            """
-            qaPrompt = PromptTemplate(template=promptTemplate,input_variables=["summaries", "question"],
-                                        output_parser=outputParser)
-            qaChain = load_qa_with_sources_chain(llmChat, chain_type=overrideChain,
-                                        prompt=qaPrompt)
-
             followupTemplate = """
             Generate three very brief questions that the user would likely ask next.
             Use double angle brackets to reference the questions, e.g. <What is Azure?>.
@@ -363,42 +328,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
 
             """
             followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
-            followupChain = load_qa_chain(llmChat, chain_type='stuff', prompt=followupPrompt)
         elif (overrideChain == "map_reduce"):
-
-            if promptTemplate == '':
-                # qaTemplate = """Use the following portion of a long document to see if any of the text is relevant to answer the question.
-                # Return any relevant text.
-                # {context}
-                # Question: {question}
-                # Relevant text, if any :"""
-
-                # qaPrompt = PromptTemplate(
-                #     template=qaTemplate, input_variables=["context", "question"]
-                # )
-
-                combinePromptTemplate = """
-                    Given the following extracted parts of a long document and a question, create a final answer. 
-                    If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
-                    If the answer is not contained within the text below, say \"I don't know\".
-
-                    QUESTION: {question}
-                    =========
-                    {summaries}
-                    =========
-                    """
-                qaPrompt = combinePromptTemplate
-            else:
-                combinePromptTemplate = promptTemplate
-                qaPrompt = promptTemplate
-
-            combinePrompt = PromptTemplate(
-                    template=combinePromptTemplate, input_variables=["summaries", "question"]
-                )
-
-            
-            qaChain = load_qa_with_sources_chain(llmChat, chain_type=overrideChain, combine_prompt=combinePrompt)
-            
             followupTemplate = """
             Generate three very brief questions that the user would likely ask next.
             Use double angle brackets to reference the questions, e.g. <What is Azure?>.
@@ -415,41 +345,7 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
 
             """
             followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
-            followupChain = load_qa_chain(llmChat, chain_type='stuff', prompt=followupPrompt)
         elif (overrideChain == "refine"):
-            refineTemplate = (
-                "The original question is as follows: {question}\n"
-                "We have provided an existing answer, including sources: {existing_answer}\n"
-                "We have the opportunity to refine the existing answer"
-                "(only if needed) with some more context below.\n"
-                "------------\n"
-                "{context_str}\n"
-                "------------\n"
-                "Given the new context, refine the original answer to better "
-                "If you do update it, please update the sources as well. "
-                "If the context isn't useful, return the original answer."
-            )
-            refinePrompt = PromptTemplate(
-                input_variables=["question", "existing_answer", "context_str"],
-                template=refineTemplate,
-            )
-
-            qaTemplate = """
-                Given the following extracted parts of a long document and a question, create a final answer. 
-                If you don't know the answer, just say that you don't know. Don't try to make up an answer. 
-                If the answer is not contained within the text below, say \"I don't know\".
-
-                QUESTION: {question}
-                =========
-                {context_str}
-                =========
-                """
-            qaPrompt = PromptTemplate(
-                input_variables=["context_str", "question"], template=qaTemplate
-            )
-            qaChain = load_qa_with_sources_chain(llmChat, chain_type=overrideChain, question_prompt=qaPrompt, refine_prompt=refinePrompt)
-
-            
             followupTemplate = """
             Generate three very brief questions that the user would likely ask next.
             Use double angle brackets to reference the questions, e.g. <What is Azure?>.
@@ -466,71 +362,54 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
 
             """
             followupPrompt = PromptTemplate(template=followupTemplate, input_variables=["context"])
-            followupChain = load_qa_chain(llmChat, chain_type='stuff', prompt=followupPrompt)
-
-        # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query    
-        # combinePromptTemplate = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
-        #     If you don't know the answer, just say that you don't know. Don't try to make up an answer.
-        #     ALWAYS return a "SOURCES" section as part in your answer.
-
-        #     QUESTION: {question}
-        #     =========
-        #     {summaries}
-        #     =========
-
-        #     After finding the answer, generate three very brief next questions that the user would likely ask next.
-        #     Use angle brackets to reference the next questions, e.g. <Is there a more details on that?>.
-        #     Try not to repeat questions that have already been asked.
-        #     next questions should come after 'SOURCES' section
-        #     ALWAYS return a "NEXT QUESTIONS" part in your answer.
-        #     """
-        
-        # combinePrompt = PromptTemplate(
-        #     template=combinePromptTemplate, input_variables=["summaries", "question"]
-        # )
-
         logging.info("Final Prompt created")
         if indexType == 'pinecone':
-            vectorDb = Pinecone.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
-            docRetriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": topK})
-            logging.info("Pinecone Setup done for indexName : " + indexNs)
+            rawDocs=[]
+            vectorDb = PineconeVectorStore.from_existing_index(index_name=VsIndexName, embedding=embeddings, namespace=indexNs)
+            retriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": topK})
+            logging.info("Pinecone Setup done")
+            retrievedDocs = retriever.get_relevant_documents(q)
+            for doc in retrievedDocs:
+                rawDocs.append(doc.page_content)
+            
+            if promptTemplate == '':
+                prompt = hub.pull("rlm/rag-prompt")
+            else:
+                prompt = PromptTemplate(template=promptTemplate, input_variables=["context", "question"])
+        
+            if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
+                thoughtPrompt = prompt.format(question=q, context=rawDocs)
+            elif overrideChain == "refine":
+                thoughtPrompt = prompt.format(question=q, context_str=rawDocs)
+
             with get_openai_callback() as cb:
-                chain = RetrievalQAWithSourcesChain(combine_documents_chain=qaChain, retriever=docRetriever, 
-                                                return_source_documents=True)
-                historyText = getChatHistory(history, includeLastTurn=False)
-                # historyTextList = getMessagesFromHistory(systemTemplate,
-                #                 gptModel,
-                #                 history,
-                #                 lastQuestion,
-                #                 [],
-                #                 tokenLimit - len(lastQuestion))
-                # historyText = ' '.join(historyTextList)
-                answer = chain({"question": q, "summaries": historyText}, return_only_outputs=True)
-                docs = answer['source_documents']
-                rawDocs = []
-                for doc in docs:
-                    rawDocs.append(doc.page_content)
-                if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
-                    thoughtPrompt = qaPrompt.format(question=q, summaries=rawDocs)
-                elif overrideChain == "refine":
-                    thoughtPrompt = qaPrompt.format(question=q, context_str=rawDocs)
+                ragChain = (
+                    {"context": retriever | formatDocs, "question": RunnablePassthrough()}
+                    | prompt
+                    | llmChat
+                    | StrOutputParser()
+                )
+                try:
+                    modifiedAnswer = ragChain.invoke(q)
+                    modifiedAnswer = modifiedAnswer.replace("Answer: ", '')
+                except Exception as e:
+                    logging.info("Error in RAG Chain: " + str(e))
+                    pass
 
-                fullAnswer = answer['answer'].replace('ANSWER:', '').replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
-                modifiedAnswer = fullAnswer
-
-                # Followup questions
-                # followupChain = RetrievalQA(combine_documents_chain=followupChain, retriever=docRetriever)
-                # followupAnswer = followupChain({"query": q}, return_only_outputs=True)
-                # nextQuestions = followupAnswer['result'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
-                llmChain = LLMChain(prompt=followupPrompt, llm=llmChat)
-                nextQuestions = llmChain.predict(context=rawDocs)
-                sources = ''                
+                ragChainFollowup = (
+                        {"context": RunnablePassthrough() }
+                        | followupPrompt
+                        | llmChat
+                        | StrOutputParser()
+                    )
+                nextQuestions = ragChainFollowup.invoke({"context": ''.join(rawDocs)})
+                logging.info("Next Questions: " + nextQuestions)
+                sources = '' 
                 if (modifiedAnswer.find("I don't know") >= 0):
                     sources = ''
                     nextQuestions = ''
-                else:
-                    sources = sources + "\n" + docs[0].metadata['source']
-
+                # else:
+                #     sources = sources + "\n" + docs[0].metadata['source']
 
                 response = {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
                         "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
@@ -544,38 +423,65 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 return response
         elif indexType == "redis":
             try:
-                returnField = ["metadata", "content", "vector_score"]
-                vectorField = "content_vector"
-                results = performRedisSearch(q, indexNs, topK, returnField, vectorField, embeddingModelType)
-                docs = [
-                        Document(page_content=result.content, metadata=json.loads(result.metadata))
-                        for result in results.docs
-                ]
-                rawDocs = []
-                for doc in docs:
+                if promptTemplate == '':
+                        prompt = hub.pull("rlm/rag-prompt")
+                else:
+                    prompt = PromptTemplate(template=promptTemplate, input_variables=["context", "question"])
+
+                indexSchema = {
+                    "text": [{"name": "source"}, {"name": "content"}],
+                    "vector": [{"name": "content_vector", "dims": 768, "algorithm": "FLAT", "distance_metric": "COSINE"}],
+                }
+
+                redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
+
+                rds = Redis.from_existing_index(
+                    embeddings,
+                    index_name=indexNs,
+                    redis_url=redisUrl,
+                    schema=indexSchema
+                )
+                retriever = rds.as_retriever(search_type="similarity", search_kwargs={"k": topK})
+                retrievedDocs = retriever.get_relevant_documents(q)
+                rawDocs=[]
+                for doc in retrievedDocs:
                     rawDocs.append(doc.page_content)
 
                 if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
-                    thoughtPrompt = qaPrompt.format(question=q, summaries=rawDocs)
+                    thoughtPrompt = prompt.format(question=q, context=rawDocs)
                 elif overrideChain == "refine":
-                    thoughtPrompt = qaPrompt.format(question=q, context_str=rawDocs)
+                    thoughtPrompt = prompt.format(question=q, context_str=rawDocs)
 
                 with get_openai_callback() as cb:
-                    answer = qaChain({"input_documents": docs, "question": q}, return_only_outputs=True)
-                    fullAnswer = answer['output_text'].replace('ANSWER:', '').replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
-                    modifiedAnswer = fullAnswer
+                    ragChain = (
+                        {"context": retriever | formatDocs, "question": RunnablePassthrough()}
+                        | prompt
+                        | llmChat
+                        | StrOutputParser()
+                    )
+                    try:
+                        modifiedAnswer = ragChain.invoke(q)
+                        modifiedAnswer = modifiedAnswer.replace("Answer: ", '')
+                        logging.info("Modified Answer: " + modifiedAnswer)
+                    except Exception as e:
+                        logging.info("Error in RAG Chain: " + str(e))
+                        pass
 
-                    # Followup questions
-                    # followupAnswer = followupChain({"input_documents": docs, "question": q}, return_only_outputs=True)
-                    # nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
-                    llmChain = LLMChain(prompt=followupPrompt, llm=llmChat)
-                    nextQuestions = llmChain.predict(context=rawDocs)
-                    sources = ''                
+                    ragChainFollowup = (
+                        {"context": RunnablePassthrough() }
+                        | followupPrompt
+                        | llmChat
+                        | StrOutputParser()
+                    )
+                    nextQuestions = ragChainFollowup.invoke({"context": ''.join(rawDocs)})
+                    logging.info("Next Questions: " + nextQuestions)
+                    sources = '' 
+
                     if (modifiedAnswer.find("I don't know") >= 0):
                         sources = ''
                         nextQuestions = ''
-                    else:
-                        sources = sources + "\n" + docs[0].metadata['source']
+                    # else:
+                    #     sources = sources + "\n" + docs[0].metadata['source']
 
                     response = {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
                         "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
@@ -591,76 +497,59 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 return {"data_points": "", "answer": "Working on fixing Redis Implementation - Error : " + str(e), "thoughts": "",
                         "sources": '', "nextQuestions": '', "error": str(e)}
         elif indexType == "cogsearch" or indexType == "cogsearchvs":
-            # r = performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
-            # if r == None:
-            #         docs = [Document(page_content="No results found")]
-            # else :
-            #     docs = [
-            #         Document(page_content=doc['content'], metadata={"id": doc['id'], "source": doc['sourcefile']})
-            #         for doc in r
-            #         ]
-
-            fields=[
-                    SimpleField(name="id", type=SearchFieldDataType.String, key=True),
-                    SearchableField(name="content", type=SearchFieldDataType.String,
-                                    searchable=True, retrievable=True, analyzer_name="en.microsoft"),
-                    SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                                searchable=True, vector_search_dimensions=1536, vector_search_configuration="vectorConfig"),
-                    SimpleField(name="sourcefile", type="Edm.String", filterable=True),
-            ]
+            
+            rawDocs=[]
             csVectorStore: AzureSearch = AzureSearch(
                 azure_search_endpoint=f"https://{SearchService}.search.windows.net",
                 azure_search_key=SearchKey,
                 index_name=indexNs,
-                fields=fields,
                 embedding_function=embeddings.embed_query,
                 semantic_configuration_name="semanticConfig",
             )
-
-            # Perform a similarity search
-            if (searchType == 'similarity'):
-                docs = csVectorStore.similarity_search(
-                    query=q,
-                    k=topK,
-                    search_type="similarity",
-                )
-            elif (searchType == 'hybrid'):
-                docs = csVectorStore.similarity_search(
-                    query=q,
-                    k=topK,
-                    search_type="similarity",
-                )
-            elif (searchType == 'hybridrerank'):
-                docs = csVectorStore.semantic_hybrid_search(
-                    query=q,
-                    k=topK
-                )
-            
-            rawDocs = []
-            for doc in docs:
+            retriever = csVectorStore.as_retriever(search_type=searchType, search_kwargs={"k": 3})
+            retrievedDocs = retriever.get_relevant_documents(q)
+            for doc in retrievedDocs:
                 rawDocs.append(doc.page_content)
+            
+            if promptTemplate == '':
+                prompt = hub.pull("rlm/rag-prompt")
+            else:
+                prompt = PromptTemplate(template=promptTemplate, input_variables=["context", "question"])
+
 
             if overrideChain == "stuff" or overrideChain == "map_rerank" or overrideChain == "map_reduce":
-                thoughtPrompt = qaPrompt.format(question=q, summaries=rawDocs)
+                thoughtPrompt = prompt.format(question=q, context=rawDocs)
             elif overrideChain == "refine":
-                thoughtPrompt = qaPrompt.format(question=q, context_str=rawDocs)
+                thoughtPrompt = prompt.format(question=q, context_str=rawDocs)
             
             with get_openai_callback() as cb:
-                answer = qaChain({"input_documents": docs, "question": q}, return_only_outputs=True)
-                fullAnswer = answer['output_text'].replace('ANSWER:', '').replace("Source:", 'SOURCES:').replace("Sources:", 'SOURCES:').replace("NEXT QUESTIONS:", 'Next Questions:')
-                modifiedAnswer = fullAnswer
+                ragChain = (
+                    {"context": retriever | formatDocs, "question": RunnablePassthrough()}
+                    | prompt
+                    | llmChat
+                    | StrOutputParser()
+                )
+                try:
+                    modifiedAnswer = ragChain.invoke(q)
+                    modifiedAnswer = modifiedAnswer.replace("Answer: ", '')
+                except Exception as e:
+                    logging.info("Error in RAG Chain: " + str(e))
+                    pass
 
-                # Followup questions
-                # followupAnswer = followupChain({"input_documents": docs, "question": q}, return_only_outputs=True)
-                # nextQuestions = followupAnswer['output_text'].replace("Answer: ", '').replace("Sources:", 'SOURCES:').replace("Next Questions:", 'NEXT QUESTIONS:').replace('NEXT QUESTIONS:', '').replace('NEXT QUESTIONS', '')
-                llm_chain = LLMChain(prompt=followupPrompt, llm=llmChat)
-                nextQuestions = llm_chain.predict(context=rawDocs)
+                ragChainFollowup = (
+                        {"context": RunnablePassthrough() }
+                        | followupPrompt
+                        | llmChat
+                        | StrOutputParser()
+                    )
+                nextQuestions = ragChainFollowup.invoke({"context": ''.join(rawDocs)})
+                logging.info("Next Questions: " + nextQuestions)
                 sources = ''                
                 if (modifiedAnswer.find("I don't know") >= 0):
                     sources = ''
                     nextQuestions = ''
-                else:
-                    sources = sources + "\n" + docs[0].metadata['source']
+                # else:
+                #     sources = sources + "\n" + docs[0].metadata['source']
 
                 response = {"data_points": rawDocs, "answer": modifiedAnswer.replace("Answer: ", ''), 
                     "thoughts": f"<br><br>Prompt:<br>" + thoughtPrompt.replace('\n', '<br>'), 
@@ -672,21 +561,6 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                     logging.info("Error inserting message: " + str(e))
 
                 return response
-        elif indexType == "csv":
-                downloadPath = getLocalBlob(OpenAiDocConnStr, OpenAiDocContainer, '', indexNs)
-                agent = create_csv_agent(llmChat, downloadPath, verbose=True)
-                with get_openai_callback() as cb:
-                    answer = agent.run(q)
-                    sources = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, os.path.basename(downloadPath))
-                    response = {"data_points": '', "answer": answer, 
-                                "thoughts": '',
-                                    "sources": sources, "nextQuestions": '', "error": ""}
-                    try:
-                        insertMessage(sessionId, "Message", "Assistant", totalTokens, cb.total_tokens, response, cosmosContainer)
-                    except Exception as e:
-                        logging.info("Error inserting message: " + str(e))
-                        
-                    return response
         elif indexType == 'milvus':
             answer = "{'answer': 'TBD', 'sources': ''}"
             return answer

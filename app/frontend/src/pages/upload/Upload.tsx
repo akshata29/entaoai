@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { DefaultButton, Spinner, PrimaryButton } from "@fluentui/react";
 import {
     Card,
@@ -9,10 +9,9 @@ import { IStyleSet, ILabelStyles, IPivotItemProps, Pivot, PivotItem } from '@flu
 import { makeStyles } from "@fluentui/react-components";
 
 import { BarcodeScanner24Filled } from "@fluentui/react-icons";
-import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
+import { Dropdown, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import { Label } from '@fluentui/react/lib/Label';
 import { Stack, IStackStyles, IStackTokens, IStackItemStyles } from '@fluentui/react/lib/Stack';
-import { DefaultPalette } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { processDoc, uploadFile, uploadBinaryFile, refreshIndex, verifyPassword } from "../../api";
 
@@ -212,11 +211,6 @@ const Upload = () => {
       { key: 'adlsfile', text: 'Azure Blob File' },
     ]
 
-
-    const labelStyles: Partial<IStyleSet<ILabelStyles>> = {
-      root: { marginTop: 10 },
-    };
-    
     const stackStyles: IStackStyles = {
       root: {
         height: 250,
@@ -230,8 +224,6 @@ const Upload = () => {
         justifyContent: 'left',
       },
     };
-
-    const bStyles = buttonStyles();
 
     // Tokens definition
     const outerStackTokens: IStackTokens = { childrenGap: 5 };
@@ -272,15 +264,6 @@ const Upload = () => {
         key: 'cogsearchvs',
         text: 'Cognitive Search Vector Store'
       }
-      // {
-      //   key: 'chroma',
-      //   text: 'Chroma'
-      // }
-      // ,
-      // {
-      //   key: 'weaviate',
-      //   text: 'Weaviate'
-      // }
     ]
 
     const { getRootProps, getInputProps } = useDropzone({
@@ -288,9 +271,12 @@ const Upload = () => {
         maxSize: 500000000,
         accept: {
           'application/pdf': ['.pdf'],
-          'application/word': ['.doc', '.docx'],
           'application/csv': ['.csv'],
           'text/plain': ['.txt'],
+          'application/excel': ['.xlsx', '.xls'],
+          'application/vnd.ms-excel': ['.xls', '.xlsx'],
+          'application/vnd.ms-word': ['.doc', '.docx'],
+          'application/vnd.ms-powerpoint': ['.ppt', '.pptx'],
           'application/zip': ['.zip'],
         },
         onDrop: acceptedFiles => {
@@ -387,7 +373,6 @@ const Upload = () => {
           setIndexName('')
       }
     };
-
 
     const handleRemoveFile = (file: File ) => {
         const uploadedFiles = files
@@ -824,12 +809,14 @@ const Upload = () => {
     };
 
     useEffect(() => {
-      setSelectedItem(options[0])
+      //setSelectedItem(options[0])
+      setSelectedItem(options.find((item) => item.key == "cogsearchvs"))
       setConnectorOptions(connectors)
       setSelectedConnector(connectors[0])
       refreshBlob(options[0].key as string)
       setSelectedEmbeddingItem(embeddingOptions[0])
-      setSelectedTextSplitterItem(textSplitterOptions[0])
+      //setSelectedTextSplitterItem(textSplitterOptions[0])
+      setSelectedTextSplitterItem(textSplitterOptions.find((item) => item.key == "formrecognizer"))
       setSelectedChunkOverlapItem(chunkOverlapOptions[0])
       setSelectedChunkSizeItem(chunkSizeOptions[2])
       setSelectedPromptTypeItem(promptTypeOptions[0])

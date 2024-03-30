@@ -5,20 +5,25 @@ import logging, json, os
 from openai import OpenAI, AzureOpenAI, AsyncAzureOpenAI
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
-from azure.search.documents.models import Vector  
 from azure.search.documents.models import QueryType
 from tenacity import retry, wait_random_exponential, stop_after_attempt  
 import numpy as np
 from redis.commands.search.query import Query
 from typing import Mapping
-from redis import Redis
+from langchain_community.vectorstores.redis import Redis
 import pinecone
 from functools import reduce
+from azure.search.documents.models import VectorizedQuery
+from pinecone import Pinecone
+from langchain_pinecone import PineconeVectorStore
+from langchain.vectorstores.azuresearch import AzureSearch
+from langchain_openai import OpenAIEmbeddings
+from langchain_openai import AzureOpenAIEmbeddings
 
 class ChatGptStream:
 
     def __init__(self, OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiChat, OpenAiChat16k, OpenAiApiKey, OpenAiEmbedding, 
-                 SearchService, SearchKey, RedisAddress, RedisPort, RedisPassword, PineconeKey, PineconeEnv, PineconeIndex):
+                 SearchService, SearchKey, RedisAddress, RedisPort, RedisPassword, PineconeKey, PineconeEnv, VsIndexName):
         self.OpenAiEndPoint = OpenAiEndPoint
         self.OpenAiKey = OpenAiKey
         self.OpenAiVersion = OpenAiVersion
@@ -33,7 +38,7 @@ class ChatGptStream:
         self.RedisPassword = RedisPassword
         self.PineconeKey = PineconeKey
         self.PineconeEnv = PineconeEnv
-        self.PineconeIndex = PineconeIndex
+        self.VsIndexName = VsIndexName
 
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -55,7 +60,7 @@ class ChatGptStream:
         elif embeddingModelType == "openai":
             try:
 
-                client = OpenAI(api_key=OpenAiApiKey)
+                client = OpenAI(api_key=self.OpenAiApiKey)
                 response = client.embeddings.create(
                     input=text, engine="text-embedding-ada-002", api_key = self.OpenAiApiKey)
                 embeddings = response.data[0].embedding
@@ -64,48 +69,38 @@ class ChatGptStream:
             
         return embeddings
     
-    def performCogSearch(self, indexType, embeddingModelType, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
+    def performCogSearch(self, indexType, embeddingModelType, question, indexName, k, embedField="content_vector", returnFields=["id", "content", "metadata"] ):
         searchClient = SearchClient(endpoint=f"https://{self.SearchService}.search.windows.net",
             index_name=indexName,
             credential=AzureKeyCredential(self.SearchKey))
         try:
             if indexType == "cogsearchvs":
-                # r = searchClient.search(  
-                #     search_text="",  
-                #     vectors=[Vector(value=self.generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector")],  
-                #     select=returnFields,
-                #     semantic_configuration_name="semanticConfig"
-                # )
                 r = searchClient.search(  
                     search_text=question,  
-                    vectors=[Vector(value=self.generateEmbeddings(embeddingModelType, question), k=k, fields="contentVector")],  
+                    vector_queries=[VectorizedQuery(vector=self.generateEmbeddings(embeddingModelType, question), k_nearest_neighbors=k, fields=embedField)],  
                     select=returnFields,
-                    query_type="semantic", 
-                    query_language="en-us", 
-                    semantic_configuration_name='semanticConfig', 
+                    query_type=QueryType.SEMANTIC, 
+                    semantic_configuration_name='mySemanticConfig', 
                     query_caption="extractive", 
                     query_answer="extractive",
                     include_total_count=True,
                     top=k
                 )
             elif indexType == "cogsearch":
-                #r = searchClient.search(question, filter=None, top=k)
                 try:
                     r = searchClient.search(question, 
                                         filter=None,
                                         query_type=QueryType.SEMANTIC, 
-                                        query_language="en-us", 
                                         query_speller="lexicon", 
-                                        semantic_configuration_name="semanticConfig", 
+                                        semantic_configuration_name="mySemanticConfig", 
                                         top=k, 
                                         query_caption="extractive|highlight-false")
                 except Exception as e:
                     r = searchClient.search(question, 
                                     filter=None,
                                     query_type=QueryType.SEMANTIC, 
-                                    query_language="en-us", 
+                                    semantic_configuration_name="mySemanticConfig", 
                                     query_speller="lexicon", 
-                                    semantic_configuration_name="default", 
                                     top=k, 
                                     query_caption="extractive|highlight-false")
             return r       
@@ -190,10 +185,12 @@ class ChatGptStream:
         return messages
     
     def performPineconeSearch(self, question, indexName, k, embeddingModelType):
-        pinecone.init(
-                api_key=self.PineconeKey,  # find at app.pinecone.io
-                environment=self.PineconeEnv  # next to api key in console
-            )
+        # pinecone.init(
+        #         api_key=self.PineconeKey,  # find at app.pinecone.io
+        #         environment=self.PineconeEnv  # next to api key in console
+        #     )
+        os.environ["PINECONE_API_KEY"] = self.PineconeKey
+        pc = Pinecone(api_key=self.PineconeKey)
         index = pinecone.Index(self.PineconeIndex)
         results = index.query(
             namespace=indexName,
@@ -269,13 +266,6 @@ class ChatGptStream:
                     temperature=0.0,
                     max_tokens=32,
                     n=1)
-                # completion = openai.ChatCompletion.create(
-                #     deployment_id=self.OpenAiChat,
-                #     model=gptModel,
-                #     messages=messages, 
-                #     temperature=0.0, 
-                #     max_tokens=32, 
-                #     n=1)
                 
             elif deploymentType == "gpt3516k":
                 completion = client.chat.completions.create(
@@ -285,23 +275,22 @@ class ChatGptStream:
                     max_tokens=32,
                     n=1)
 
+            embeddings = AzureOpenAIEmbeddings(azure_endpoint=self.OpenAiEndPoint, 
+                                               azure_deployment=self.OpenAiEmbedding, 
+                                               api_key=self.OpenAiKey, openai_api_type="azure")
             logging.info("LLM Setup done")
         elif embeddingModelType == "openai":
-            # openai.api_type = "open_ai"
-            # openai.api_base = "https://api.openai.com/v1"
-            # openai.api_version = '2020-11-07' 
-            # openai.api_key = self.OpenAiApiKey
-            client = OpenAI(api_key=OpenAiApiKey)
+            client = OpenAI(api_key=self.OpenAiApiKey)
             completion = client.chat.completions.create(
                     model=gptModel, 
                     messages=messages,
                     temperature=0.0,
                     max_tokens=32,
                     n=1)
+            embeddings = OpenAIEmbeddings(openai_api_key=self.OpenAiApiKey)
 
         try:
             if len(history) > 1:
-                #q = completion.choices[0].text
                 q = completion.choices[0].message.content.strip(" \n")
             else:
                 q = lastQuestion
@@ -343,24 +332,66 @@ class ChatGptStream:
             uniqueSources = []
 
             if indexType == 'redis':
-                returnField = ["metadata", "content", "vector_score"]
-                vectorField = "content_vector"
-                r = self.performRedisSearch(q, indexNs, topK, returnField, vectorField, embeddingModelType)
-                results = [" : " + self.noNewLines(result.content) for result in r.docs]
-                sources = [result.metadata.source for result in r.docs]
+                # returnField = ["metadata", "content", "vector_score"]
+                # vectorField = "content_vector"
+                # r = self.performRedisSearch(q, indexNs, topK, returnField, vectorField, embeddingModelType)
+                # results = [" : " + self.noNewLines(result.content) for result in r.docs]
+                # sources = [result.metadata.source for result in r.docs]
+                # uniqueSources = list(set(sources))
+                redisUrl = "redis://default:" + self.RedisPassword + "@" + self.RedisAddress + ":" + self.RedisPort
+
+                indexSchema = {
+                    "text": [{"name": "source"}, {"name": "content"}],
+                    "vector": [{"name": "content_vector", "dims": 768, "algorithm": "FLAT", "distance_metric": "COSINE"}],
+                }
+
+                rds = Redis.from_existing_index(
+                    embeddings,
+                    index_name=indexNs,
+                    redis_url=redisUrl,
+                    schema=indexSchema
+                )
+                retriever = rds.as_retriever(search_type="similarity", search_kwargs={"k": topK})
+                retrievedDocs = retriever.get_relevant_documents(q)
+                sources = []
+                results = [self.noNewLines(doc.page_content) for doc in retrievedDocs]
                 uniqueSources = list(set(sources))
+
             elif indexType == 'pinecone':
-                r = self.performPineconeSearch(q, indexNs, topK, embeddingModelType)
-                #results = [result['metadata']['source'] + " : " + self.noNewLines(result['metadata']['text']) for result in r['matches']]
-                results = [self.noNewLines(result['metadata']['text']) for result in r['matches']]
-                sources = [result['metadata']['source'] for result in r['matches']]
+                # r = self.performPineconeSearch(q, indexNs, topK, embeddingModelType)
+                # results = [self.noNewLines(result['metadata']['text']) for result in r['matches']]
+                # sources = [result['metadata']['source'] for result in r['matches']]
+                sources = []
+                os.environ["PINECONE_API_KEY"] = self.PineconeKey
+                pc = Pinecone(api_key=self.PineconeKey, host=self.PineconeEnv)
+                print("Pinecone index name is " + self.VsIndexName)
+                vectorDb = PineconeVectorStore.from_existing_index(index_name=self.VsIndexName, 
+                                                                   embedding=embeddings, namespace=indexNs)
+                retriever = vectorDb.as_retriever(search_kwargs={"namespace": indexNs, "k": topK})
+                retrievedDocs = retriever.get_relevant_documents(q)
+                results = [self.noNewLines(doc.page_content) for doc in retrievedDocs]
                 uniqueSources = list(set(sources))
             elif indexType == "cogsearch" or indexType == "cogsearchvs":
-                r = self.performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
-                sr = self.performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
-                sources = [doc["sourcefile"] for doc in sr]
-                #results = [doc["sourcefile"] + " : " + self.noNewLines(doc["content"]) for doc in r]
-                results = [self.noNewLines(doc["content"]) for doc in r]
+                #r = self.performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
+                #sr = self.performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
+                #try:
+                #    sources = [doc["sourcefile"] for doc in sr]
+                #except Exception as e:
+                #    sources = []
+                #results = [self.noNewLines(doc["content"]) for doc in r]
+
+                sources = []
+                csVectorStore: AzureSearch = AzureSearch(
+                    azure_search_endpoint=f"https://{self.SearchService}.search.windows.net",
+                    azure_search_key=self.SearchKey,
+                    index_name=indexNs,
+                    embedding_function=embeddings.embed_query,
+                    semantic_configuration_name="semanticConfig",
+                )
+                retriever = csVectorStore.as_retriever(search_kwargs={"k": topK})
+                retrievedDocs = retriever.get_relevant_documents(q)
+                results = [self.noNewLines(doc.page_content) for doc in retrievedDocs]
+
                 uniqueSources = list(set(sources))
 
             if len(uniqueSources) > 1:
@@ -371,10 +402,9 @@ class ChatGptStream:
                 finalSources = ""
 
             content = "\n".join(results)
-            systemTemplate = template.replace("Question: ", "").replace("QUESTION: ", "").format(summaries="", question=followupTemplate)
+            systemTemplate = template.replace("Question: ", "").replace("QUESTION: ", "").format(context="", question=followupTemplate)
 
             messages = self.getStreamMessageFromHistory(
-                #systemTemplate + "\n\nSources:\n" + content,
                 systemTemplate + "\n" + content,
                 gptModel,
                 history,
@@ -382,7 +412,6 @@ class ChatGptStream:
                 [],
                 tokenLimit
             )
-
             msgToDisplay  = '\n\n'.join([str(message) for message in messages])
 
             yield {"answer": "", "data_points": results, 
@@ -424,7 +453,7 @@ class ChatGptStream:
                         yield str(e)
 
             elif embeddingModelType == "openai":
-                client = OpenAI(api_key=OpenAiApiKey)
+                client = OpenAI(api_key=self.OpenAiApiKey)
                 completion =  client.chat.completions.create(
                         model=gptModel, 
                         messages=messages,
