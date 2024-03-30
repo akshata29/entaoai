@@ -405,7 +405,7 @@
           ],
           "sku": {
               "name": "Standard",
-              "capacity": "parameters('deploymentCapacity')"
+              "capacity": "[parameters('deploymentCapacity')]"
           },
           "properties": {
               "model": {
@@ -427,7 +427,7 @@
           ],
           "sku": {
               "name": "Standard",
-              "capacity": "parameters('deploymentCapacity')"
+              "capacity": "[parameters('deploymentCapacity')]"
           },
           "properties": {
               "model": {
@@ -448,7 +448,7 @@
           ],
           "sku": {
               "name": "Standard",
-              "capacity": "parameters('deploymentCapacity')"
+              "capacity": "[parameters('deploymentCapacity')]"
           },
           "properties": {
               "model": {
