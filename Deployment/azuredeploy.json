@@ -47,6 +47,10 @@
           "minLength": 1,
           "defaultValue": "chat16k"
       },
+      "deploymentCapacity": {
+        "type": "int",
+        "defaultValue": 20
+      },
       "openAiApiVersion": {
           "type": "string",
           "minLength": 1,
@@ -77,17 +81,17 @@
   "variables": {
       "bingSvcName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'bing')]",
       "frSvcName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'fr')]",
-      "speechSvcName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'speech')]",
+      "speechSvcName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'spch')]",
       "aoaiSvcName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'aoai')]",
       "appInsightName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'aisg')]",
       "searchSvcName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'azs')]",
-      "funcStorageName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'funcsa')]",
+      "funcStorageName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'fsa')]",
       "storageName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'stor')]",
       "aspName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'asp')]",
       "backendName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'app')]",
       "funcAppName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'func')]",
       "funcAppId": "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]",
-      "cosmosDbName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'cosmos')]",
+      "cosmosDbName": "[concat(parameters('prefix'), '-', uniquestring(resourceGroup().id), 'cacc')]",
       "cosmosDb": "aoai",
       "cosmosContainer": "chatgpt"
   },
@@ -401,7 +405,7 @@
           ],
           "sku": {
               "name": "Standard",
-              "capacity": 50
+              "capacity": "parameters('deploymentCapacity')"
           },
           "properties": {
               "model": {
@@ -423,7 +427,7 @@
           ],
           "sku": {
               "name": "Standard",
-              "capacity": 50
+              "capacity": "parameters('deploymentCapacity')"
           },
           "properties": {
               "model": {
@@ -444,7 +448,7 @@
           ],
           "sku": {
               "name": "Standard",
-              "capacity": 50
+              "capacity": "parameters('deploymentCapacity')"
           },
           "properties": {
               "model": {
