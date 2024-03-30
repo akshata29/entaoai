@@ -47,7 +47,7 @@ Verify http://localhost:5000 to confirm the App is running locally.
 
 
 1. Semi-Automated Installation
-   1. Click [![Deployment to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fakshata29%2Fchatpdf%2Fmain%2FDeployment%2Fazuredeploy.json) to deploy following services
+   1. Click [![Deployment to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fakshata29%2Fentaoai%2Fmain%2FDeployment%2Fazuredeploy.json) to deploy following services
       1. Azure App Service Plan (Linux - B1 Tier)
       2. Cognitive Search Service (Standard Tier)
       3. Azure App Service (To Deploy backend service)

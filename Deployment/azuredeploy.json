@@ -11,15 +11,15 @@
           "metadata": {
               "description": "Specifies the Azure location where the app configuration store should be created."
           },
-          "defaultValue": "eastus",
+          "defaultValue": "East US",
           "allowedValues": [
-              "eastus",
-              "uksouth",
-              "francecentral"
+              "East US",
+              "UK South",
+              "France Central"
           ]
       },
       "embeddingModelName": {
-          "type": "String",
+          "type": "string",
           "minLength": 1,
           "defaultValue": "embedding"
       },
@@ -28,32 +28,32 @@
           "defaultValue": 1536
       },
       "embeddingModelVersion": {
-          "type": "String",
+          "type": "string",
           "minLength": 1,
           "defaultValue": "2"
       },
       "gptModelName": {
-          "type": "String",
+          "type": "string",
           "minLength": 1,
           "defaultValue": "chat"
       },
       "gptModelVersion": {
-          "type": "String",
+          "type": "string",
           "minLength": 1,
           "defaultValue": "0613"
       },
       "gpt16kModelName": {
-          "type": "String",
+          "type": "string",
           "minLength": 1,
           "defaultValue": "chat16k"
       },
       "openAiApiVersion": {
-          "type": "String",
+          "type": "string",
           "minLength": 1,
           "defaultValue": "2023-07-01-preview"
       },
       "searchServiceSku": {
-          "type": "String",
+          "type": "string",
           "minLength": 1,
           "defaultValue": "basic",
           "allowedValues": [
@@ -64,12 +64,12 @@
           ]
       },
       "adminPassword": {
-          "type": "String",
+          "type": "string",
           "minLength": 1,
           "defaultValue": "P2ssw0rd1$"
       },
       "uploadPassword": {
-          "type": "String",
+          "type": "string",
           "minLength": 1,
           "defaultValue": "P2ssw0rd1$"
       }
