@@ -423,7 +423,7 @@
           "name": "[concat(variables('aoaiSvcName'), '/', parameters('gpt16kModelName'))]",
           "dependsOn": [
               "[resourceId('Microsoft.CognitiveServices/accounts', variables('aoaiSvcName'))]",
-              "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('aoaiSvcName'), parameters('embeddingModelName'))]"
+              "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('aoaiSvcName'), parameters('gptModelName'))]"
           ],
           "sku": {
               "name": "Standard",
