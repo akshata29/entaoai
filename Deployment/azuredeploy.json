@@ -508,7 +508,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
         "httpsOnly": true,
         "siteConfig": {
-          "linuxFxVersion": "DOCKER|ghcr.io/akshata29/entaoai-app:latest",
+          "linuxFxVersion": "DOCKER|ghcr.io/akshata29/entaoai-app",
           "alwaysOn": true,
           "appSettings": [
             {
@@ -664,7 +664,7 @@
         "enabled": true,
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
         "siteConfig": {
-          "linuxFxVersion": "DOCKER|ghcr.io/akshata29/entaoai-python:latest",
+          "linuxFxVersion": "DOCKER|ghcr.io/akshata29/entaoai-python",
           "alwaysOn": true,
           "appSettings": [
             {

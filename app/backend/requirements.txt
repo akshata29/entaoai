@@ -20,3 +20,10 @@ azure-storage-blob==12.19.1
 tiktoken==0.6.0
 openai==1.12.0
 tenacity==8.2.2
+langchain==0.1.13
+langchain-core==0.1.34
+langchain-experimental==0.0.55
+langchain-community==0.0.29
+langchain-openai==0.1.1
+langchainhub==0.1.15
+langchain-pinecone==0.0.3
