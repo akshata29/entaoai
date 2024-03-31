@@ -7,3 +7,6 @@ docker push ghcr.io/akshata29/entaoai-python:latest
 
 -- Docker Run
 docker run --env-file .dockerenv -p 7072:80 --name entaoai-python -it ghcr.io/akshata29/entaoai-python:latest
+
+-- Deploy
+az functionapp config container set --image ghcr.io/akshata29/entaoai-python:latest --name <Name> --resource-group <RG>

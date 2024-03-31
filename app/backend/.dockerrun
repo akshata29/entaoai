@@ -11,3 +11,6 @@ docker push ghcr.io/akshata29/entaoai-app:latest
 
 -- Docker Run
 docker run --env-file .dockerenv -p 5002:5002 --name entaoai-app -it ghcr.io/akshata29/entaoai-app:latest
+
+-- Deploy
+az webapp config container set --docker-custom-image-name ghcr.io/akshata29/entaoai-app:latest --name <Name> --resource-group <RG>

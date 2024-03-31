@@ -506,8 +506,9 @@
         "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
-          //"DOCKER_CUSTOM_IMAGE_NAME": "DOCKER|ghcr.io/akshata29/entaoai-app:latest",
-          "linuxFxVersion": "python|3.11",
+          "DOCKER_REGISTRY_SERVER_URL": "ghcr.io",
+          "DOCKER_CUSTOM_IMAGE_NAME": "DOCKER|akshata29/entaoai-app:latest",
+          //"linuxFxVersion": "python|3.11",
           "appSettings": [
             {
               "name": "ENABLE_ORYX_BUILD",
@@ -671,17 +672,10 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
         "siteConfig": {
           "alwaysOn": true,
-          //"DOCKER_CUSTOM_IMAGE_NAME": "DOCKER|ghcr.io/akshata29/entaoai-python:latest",
-          "linuxFxVersion": "python|3.11",
+          "DOCKER_REGISTRY_SERVER_URL": "ghcr.io",
+          "DOCKER_CUSTOM_IMAGE_NAME": "DOCKER|akshata29/entaoai-python:latest",
+          //"linuxFxVersion": "python|3.11",
           "appSettings": [
-            {
-              "name": "ENABLE_ORYX_BUILD",
-              "value": "True"
-            },
-            {
-              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-              "value": "True"
-            },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
