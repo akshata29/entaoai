@@ -55,7 +55,7 @@
     "searchServiceSku": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "basic",
+      "defaultValue": "standard",
       "allowedValues": ["basic", "standard", "standard2", "standard3"]
     },
     "adminPassword": {
@@ -364,7 +364,7 @@
       "name": "[variables('aspName')]",
       "location": "[parameters('location')]",
       "sku": {
-        "name": "EP1"
+        "name": "B3"
       },
       "kind": "linux",
       "properties": {
@@ -493,6 +493,7 @@
       "apiVersion": "2022-09-01",
       "name": "[variables('backendName')]",
       "location": "[parameters('location')]",
+      "kind": "app,linux,container",
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
         "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
@@ -504,8 +505,18 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
         "httpsOnly": true,
         "siteConfig": {
-          "linuxFxVersion": "DOCKER|ghcr.io/akshata29/entaoai-app",
+          "alwaysOn": true,
+          //"DOCKER_CUSTOM_IMAGE_NAME": "DOCKER|ghcr.io/akshata29/entaoai-app:latest",
+          "linuxFxVersion": "python|3.11",
           "appSettings": [
+            {
+              "name": "ENABLE_ORYX_BUILD",
+              "value": "True"
+            },
+            {
+              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+              "value": "True"
+            },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
@@ -659,8 +670,18 @@
         "enabled": true,
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
         "siteConfig": {
-          "linuxFxVersion": "DOCKER|ghcr.io/akshata29/entaoai-python",
+          "alwaysOn": true,
+          //"DOCKER_CUSTOM_IMAGE_NAME": "DOCKER|ghcr.io/akshata29/entaoai-python:latest",
+          "linuxFxVersion": "python|3.11",
           "appSettings": [
+            {
+              "name": "ENABLE_ORYX_BUILD",
+              "value": "True"
+            },
+            {
+              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+              "value": "True"
+            },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"

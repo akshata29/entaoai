@@ -2,7 +2,7 @@ name: Docker App
 
 env:
   #AZURE_WEBAPP_NAME: dataaipdfchat  # set this to the name of your Azure Web App
-  PYTHON_VERSION: '3.9'              # set this to the Python version to use
+  PYTHON_VERSION: '3.11'              # set this to the Python version to use
   NODE_VERSION: '16.x'                      # set this to the node version to use (e.g. '8.x', '10.x', '12.x')
   AZURE_NODEJS_PACKAGE_PATH: 'app/frontend'       # set this to the path to your function app project, defaults to the repository root
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'app/backend'
@@ -68,4 +68,4 @@ jobs:
           context: ./app/backend
           file: ./app/backend/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/chataskapp:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/entaoai-app:latest

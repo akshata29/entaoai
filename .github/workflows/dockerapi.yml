@@ -28,4 +28,4 @@ jobs:
           context: ./api/Python
           file: ./api/Python/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/chataskapi:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/entaoai-python:latest
