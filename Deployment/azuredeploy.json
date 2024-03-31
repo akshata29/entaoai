@@ -364,11 +364,7 @@
       "name": "[variables('aspName')]",
       "location": "[parameters('location')]",
       "sku": {
-        "name": "B1",
-        "tier": "Basic",
-        "size": "B1",
-        "family": "B",
-        "capacity": 1
+        "name": "EP1"
       },
       "kind": "linux",
       "properties": {
@@ -509,7 +505,6 @@
         "httpsOnly": true,
         "siteConfig": {
           "linuxFxVersion": "DOCKER|ghcr.io/akshata29/entaoai-app",
-          "alwaysOn": true,
           "appSettings": [
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
@@ -665,7 +660,6 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
         "siteConfig": {
           "linuxFxVersion": "DOCKER|ghcr.io/akshata29/entaoai-python",
-          "alwaysOn": true,
           "appSettings": [
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
