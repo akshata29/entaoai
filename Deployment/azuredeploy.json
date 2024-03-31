@@ -498,26 +498,30 @@
         "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
         "[resourceId('Microsoft.Web/sites', variables('funcAppName'))]"
       ],
-      "identity": {
-        "type": "SystemAssigned"
-      },
       "properties": {
+        "enabled": true,
+        "hostNameSslStates": [
+          {
+            "name": "[concat(variables('backendName'), '.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "[concat(variables('backendName'), '.scm.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "hostType": "Repository"
+          }
+        ],
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
+        "reserved": true,
         "httpsOnly": true,
         "siteConfig": {
+          "linuxFxVersion": "DOCKER|ghcr.io/akshata29/entaoai-app:latest",
+          "linuxFxVersion": "python|3.9",
           "alwaysOn": true,
-          "DOCKER_REGISTRY_SERVER_URL": "ghcr.io",
-          "DOCKER_CUSTOM_IMAGE_NAME": "DOCKER|akshata29/entaoai-app:latest",
-          //"linuxFxVersion": "python|3.11",
+          "functionAppScaleLimit": 0,
+          "minimumElasticInstanceCount": 0,
           "appSettings": [
-            {
-              "name": "ENABLE_ORYX_BUILD",
-              "value": "True"
-            },
-            {
-              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-              "value": "True"
-            },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightName')), '2020-02-02').InstrumentationKey]"
@@ -652,7 +656,7 @@
     },
     {
       "type": "Microsoft.Web/sites",
-      "apiVersion": "2022-09-01",
+      "apiVersion": "2023-01-01",
       "name": "[variables('funcAppName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
@@ -663,18 +667,28 @@
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('funcStorageName'))]"
       ],
-      "kind": "functionapp",
-      "identity": {
-        "type": "SystemAssigned"
-      },
+      "kind": "functionapp,linux,container",
       "properties": {
-        "enabled": true,
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('aspName'))]",
+        "enabled": true,
+        "hostNameSslStates": [
+            {
+                "name": "[concat(variables('funcAppName'), '.azurewebsites.net')]",
+                "sslState": "Disabled",
+                "hostType": "Standard"
+            },
+            {
+                "name": "[concat(variables('funcAppName'), '.scm.azurewebsites.net')]",
+                "sslState": "Disabled",
+                "hostType": "Repository"
+            }
+        ],
+        "reserved": true,
         "siteConfig": {
+          "linuxFxVersion": "DOCKER|ghcr.io/akshata29/entaoai-python:latest",
           "alwaysOn": true,
-          "DOCKER_REGISTRY_SERVER_URL": "ghcr.io",
-          "DOCKER_CUSTOM_IMAGE_NAME": "DOCKER|akshata29/entaoai-python:latest",
-          //"linuxFxVersion": "python|3.11",
+          "functionAppScaleLimit": 0,
+          "minimumElasticInstanceCount": 0,
           "appSettings": [
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
