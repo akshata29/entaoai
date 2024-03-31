@@ -10,4 +10,4 @@ echo <PAT_TOKEN> | docker login ghcr.io -u akshata29 --password-stdin
 docker push ghcr.io/akshata29/entaoai-app:latest
 
 -- Docker Run
-docker run --env-file .dockerenv --name entaoai-app -it ghcr.io/akshata29/entaoai-app:latest
+docker run --env-file .dockerenv -p 5002:5002 --name entaoai-app -it ghcr.io/akshata29/entaoai-app:latest
