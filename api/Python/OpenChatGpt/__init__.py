@@ -16,6 +16,7 @@ import math
 import inspect
 import requests
 from openai import OpenAI, AzureOpenAI
+from azure.identity import ClientSecretCredential, DefaultAzureCredential
 
 def getCurrentTime(location):
     try:
@@ -200,8 +201,7 @@ def runFunctionConversation(messages, functions, availableFunctions, embeddingMo
             api_version = OpenAiVersion,
             azure_endpoint = OpenAiEndPoint
             )
-        if deploymentType == 'gpt35':
-            response = client.chat.completions.create(
+        response = client.chat.completions.create(
                 model=OpenAiChat, 
                 messages=messages,
                 tools=functions,
@@ -212,20 +212,6 @@ def runFunctionConversation(messages, functions, availableFunctions, embeddingMo
                 frequency_penalty=0,
                 presence_penalty=0,
                 stop=None)
-                        
-        elif deploymentType == "gpt3516k":
-            response = client.chat.completions.create(
-                model=OpenAiChat16k, 
-                messages=messages,
-                tools=functions,
-                tool_choice="auto",
-                temperature=0.7,
-                max_tokens=700,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
-                stop=None)
-
     elif embeddingModelType == "openai":
         client = OpenAI(api_key=OpenAiApiKey)
         response = client.chat.completions.create(
@@ -288,8 +274,7 @@ def runFunctionConversation(messages, functions, availableFunctions, embeddingMo
                     api_version = OpenAiVersion,
                     azure_endpoint = OpenAiEndPoint
                     )
-            if deploymentType == 'gpt35':
-                finalResp = client.chat.completions.create(
+            finalResp = client.chat.completions.create(
                         model=OpenAiChat, 
                         messages=messages,
                         temperature=0.7,
@@ -298,17 +283,6 @@ def runFunctionConversation(messages, functions, availableFunctions, embeddingMo
                         frequency_penalty=0,
                         presence_penalty=0,
                         stop=None)
-                
-            elif deploymentType == "gpt3516k":
-                finalResp = client.chat.completions.create(
-                    model=OpenAiChat16k, 
-                    messages=messages,
-                    temperature=0.7,
-                    max_tokens=1000,
-                    top_p=0.95,
-                    frequency_penalty=0,
-                    presence_penalty=0,
-                    stop=None)
         elif embeddingModelType == "openai":
             client = OpenAI(api_key=OpenAiApiKey)
             finalResp = client.chat.completions.create(
@@ -445,22 +419,13 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
             gptModel = "gpt-3.5-turbo-16k"
 
     if (embeddingModelType == 'azureopenai'):
-        if deploymentType == 'gpt35':
-            llmChat = AzureChatOpenAI(
+        llmChat = AzureChatOpenAI(
                         azure_endpoint=OpenAiEndPoint,
                         api_version=OpenAiVersion,
                         azure_deployment=OpenAiChat,
                         temperature=temperature,
                         api_key=OpenAiKey,
-                        max_tokens=tokenLength)            
-        elif deploymentType == "gpt3516k":
-            llmChat = AzureChatOpenAI(
-                        azure_endpoint=OpenAiEndPoint,
-                        api_version=OpenAiVersion,
-                        azure_deployment=OpenAiChat16k,
-                        temperature=temperature,
-                        api_key=OpenAiKey,
-                        max_tokens=tokenLength)            
+                        max_tokens=tokenLength)       
         logging.info("LLM Setup done")
     elif embeddingModelType == "openai":
         llmChat = ChatOpenAI(temperature=temperature,
@@ -469,7 +434,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                 max_tokens=tokenLength)
         
     try:
-        cosmosClient = CosmosClient(url=CosmosEndpoint, credential=CosmosKey)
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        cosmosClient = CosmosClient(url=CosmosEndpoint, credential=credentials)
         cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDatabase)
         cosmosKey = PartitionKey(path="/sessionId")
         cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
@@ -647,16 +613,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
                     api_version = OpenAiVersion,
                     azure_endpoint = OpenAiEndPoint
                     )
-        if deploymentType == 'gpt35':
-            completion = client.chat.completions.create(
+        completion = client.chat.completions.create(
                 model=OpenAiChat, 
-                messages=messages,
-                temperature=float(temperature), 
-                max_tokens=tokenLength,
-                top_p=float(1.0))
-        elif deploymentType == "gpt3516k":
-            completion = client.chat.completions.create(
-                model=OpenAiChat16k, 
                 messages=messages,
                 temperature=float(temperature), 
                 max_tokens=tokenLength,

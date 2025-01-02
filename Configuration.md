@@ -21,7 +21,6 @@
 |OpenAiDocStorKey||Document Storage Key
 |OpenAiDocContainer|chatpdf|Document storage container name
 |SearchService||Azure Cognitive Search service name
-|SearchKey||Azure Cognitive Search service Admin Key
 |SecDocContainer|secdoc|Document Storage container to <br>store SEC documents
 |SynapseName||Name of the SQL for SQL NLP (Azure SQL, Synapse)
 |SynapsePool||Database or SQL Pool Name
@@ -37,7 +36,6 @@
 | Key | Default Value | Detail |
 | --- | --- | ------------- |
 AGENTQA_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/AgentQa?code=<yourcode>)
-BLOB_CONNECTION_STRING||Blob Connection string for the storage account
 BLOB_CONTAINER_NAME||Blob container name where all PDF are uploaded
 CHAT_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/ChatGpt?code=<yourcode>)
 DOCGENERATOR_URL||Azure Function URL with host/default key <br> (https://<yourfunction>.azurewebsites.net/api/DocGenerator?code=<yourcode>)

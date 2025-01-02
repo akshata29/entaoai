@@ -104,7 +104,7 @@ class CognitiveSearchVsRetriever(BaseRetriever):
             filter="documentId eq '" + self.documentId + "' and splitMethod eq '" + self.splitMethod + "' and model eq '" + self.model + "' and chunkSize eq '" 
                 + self.chunkSize + "' and overlap eq '" + self.overlap + "'",
             select=self.returnFields,
-            semantic_configuration_name="semanticConfig",
+            semantic_configuration_name="mySemanticConfig",
             include_total_count=True
         )
         return response

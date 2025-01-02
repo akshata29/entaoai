@@ -14,6 +14,7 @@ from azure.cosmos import CosmosClient, PartitionKey
 from Utilities.fmp import *
 from distutils.util import strtobool
 from Utilities.ChatGptStream import *
+from azure.identity import ClientSecretCredential, DefaultAzureCredential
 
 load_dotenv()
 app = Flask(__name__)
@@ -96,20 +97,10 @@ def chatStream():
         OpenAiChat = os.environ['OpenAiChat']
         OpenAiEndPoint = os.environ['OpenAiEndPoint']
 
-        if "OpenAiChat16k" in os.environ: 
-            OpenAiChat16k = os.getenv('OpenAiChat16k')
-        else:
-            OpenAiChat16k = "chat16k"
-
         if "OpenAiApiKey" in os.environ: 
             OpenAiApiKey = os.getenv('OpenAiApiKey')
         else:
             OpenAiApiKey = ""
-
-        if "SEARCHKEY" in os.environ: 
-            SearchKey = os.environ['SEARCHKEY']
-        else:
-            SearchKey = ""
 
         if "SEARCHSERVICE" in os.environ: 
             SearchService = os.environ['SEARCHSERVICE']
@@ -151,12 +142,27 @@ def chatStream():
         else:
             VsIndexName = ""
 
+        if "TenantId" in os.environ: 
+            TenantId = os.environ['TenantId']
+        else:
+            TenantId = ""
+
+        if "ClientId" in os.environ: 
+            ClientId = os.environ['ClientId']
+        else:
+            ClientId = ""
+
+        if "ClientSecret" in os.environ: 
+            ClientSecret = os.environ['ClientSecret']
+        else:
+            ClientSecret = ""
+
         # data = postBody
         # params = {'indexType': indexType, "indexNs": indexNs }
         # resp = requests.post(url, params=params, data=json.dumps(data), headers=headers)
-        chatStream = ChatGptStream(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiChat, OpenAiChat16k, OpenAiApiKey, OpenAiEmbedding,
-                                    SearchService, SearchKey, RedisAddress, RedisPort, RedisPassword,
-                                    PineconeKey, PineconeEnv, VsIndexName)
+        chatStream = ChatGptStream(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiChat, OpenAiApiKey, OpenAiEmbedding,
+                                    SearchService, RedisAddress, RedisPort, RedisPassword,
+                                    PineconeKey, PineconeEnv, VsIndexName, TenantId, ClientId, ClientSecret)
         r = chatStream.run(indexType=indexType, indexNs=indexNs, postBody=postBody)
         return Response(formatNdJson(r), mimetype='text/event-stream')
     except Exception as e:
@@ -194,11 +200,11 @@ def getAllSessions():
     
     try:
         CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
-        CosmosKey = os.environ.get("COSMOSKEY")
         CosmosDb = os.environ.get("COSMOSDATABASE")
         CosmosContainer = os.environ.get("COSMOSCONTAINER")
 
-        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=credentials)
         cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
         cosmosKey = PartitionKey(path="/sessionId")
         cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
@@ -224,11 +230,11 @@ def getAllIndexSessions():
     
     try:
         CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
-        CosmosKey = os.environ.get("COSMOSKEY")
         CosmosDb = os.environ.get("COSMOSDATABASE")
         CosmosContainer = os.environ.get("COSMOSCONTAINER")
 
-        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=credentials)
         cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
         cosmosKey = PartitionKey(path="/sessionId")
         cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
@@ -254,11 +260,11 @@ def getIndexSession():
     
     try:
         CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
-        CosmosKey = os.environ.get("COSMOSKEY")
         CosmosDb = os.environ.get("COSMOSDATABASE")
         CosmosContainer = os.environ.get("COSMOSCONTAINER")
 
-        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=credentials)
         cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
         cosmosKey = PartitionKey(path="/sessionId")
         cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
@@ -285,11 +291,11 @@ def deleteIndexSession():
     
     try:
         CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
-        CosmosKey = os.environ.get("COSMOSKEY")
         CosmosDb = os.environ.get("COSMOSDATABASE")
         CosmosContainer = os.environ.get("COSMOSCONTAINER")
 
-        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=credentials)
         cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
         cosmosKey = PartitionKey(path="/sessionId")
         cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
@@ -325,11 +331,11 @@ def renameIndexSession():
     
     try:
         CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
-        CosmosKey = os.environ.get("COSMOSKEY")
         CosmosDb = os.environ.get("COSMOSDATABASE")
         CosmosContainer = os.environ.get("COSMOSCONTAINER")
 
-        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=credentials)
         cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
         cosmosKey = PartitionKey(path="/sessionId")
         cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
@@ -354,11 +360,11 @@ def getIndexSessionDetail():
     
     try:
         CosmosEndPoint = os.environ.get("COSMOSENDPOINT")
-        CosmosKey = os.environ.get("COSMOSKEY")
         CosmosDb = os.environ.get("COSMOSDATABASE")
         CosmosContainer = os.environ.get("COSMOSCONTAINER")
 
-        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=CosmosKey)
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        cosmosClient = CosmosClient(url=CosmosEndPoint, credential=credentials)
         cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDb)
         cosmosKey = PartitionKey(path="/sessionId")
         cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
@@ -429,12 +435,13 @@ def verifyPassword():
 @app.route("/refreshIndex", methods=["GET"])
 def refreshIndex():
    
-    try:
-        url = os.environ.get("BLOB_CONNECTION_STRING")
-        containerName = os.environ.get("BLOB_CONTAINER_NAME")
-        blobClient = BlobServiceClient.from_connection_string(url)
-        containerClient = blobClient.get_container_client(container=containerName)
-        blobList = containerClient.list_blobs(include=['tags', 'metadata'])
+    try:       
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        blobService = BlobServiceClient(
+                "https://{}.blob.core.windows.net".format(os.environ.get("BLOB_ACCOUNT_NAME")), credential=credentials)
+        containerClient = blobService.get_container_client(os.environ.get("BLOB_CONTAINER_NAME"))
+
+        blobList = containerClient.list_blobs(include=['metadata'])
         blobJson = []
         for blob in blobList:
             #print(blob)
@@ -486,10 +493,11 @@ def getDocumentList():
    
     try:
         SearchService = os.environ.get("SEARCHSERVICE")
-        SearchKey = os.environ.get("SEARCHKEY")
-        searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
-        index_name="evaluatordocument",
-        credential=AzureKeyCredential(SearchKey))
+        authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"), authority=authority)
+        searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            index_name="evaluatordocument",
+            credential=credentials)
         try:
             r = searchClient.search(  
                 search_text="",
@@ -519,10 +527,11 @@ def refreshQuestions():
    
     kbIndexName = os.environ.get("KBINDEXNAME")
     SearchService = os.environ.get("SEARCHSERVICE")
-    SearchKey = os.environ.get("SEARCHKEY")
-    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+    authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+    credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"), authority=authority)
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
         index_name=kbIndexName,
-        credential=AzureKeyCredential(SearchKey))
+        credential=credentials)
     
     indexType=request.json["indexType"]
     indexName=request.json["indexName"]
@@ -554,10 +563,11 @@ def refreshIndexQuestions():
    
     kbIndexName = os.environ.get("KBINDEXNAME")
     SearchService = os.environ.get("SEARCHSERVICE")
-    SearchKey = os.environ.get("SEARCHKEY")
-    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+    authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+    credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"), authority=authority)
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
         index_name=kbIndexName,
-        credential=AzureKeyCredential(SearchKey))
+        credential=credentials)
     
     indexType=request.json["indexType"]
 
@@ -592,11 +602,11 @@ def kbQuestionManagement():
    
     kbIndexName = os.environ.get("KBINDEXNAME")
     SearchService = os.environ.get("SEARCHSERVICE")
-    SearchKey = os.environ.get("SEARCHKEY")
-    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
+    authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+    credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"), authority=authority)
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
         index_name=kbIndexName,
-        credential=AzureKeyCredential(SearchKey))
-    
+        credential=credentials)
     documentsToDelete=request.json["documentsToDelete"]
 
     try:
@@ -644,13 +654,11 @@ def uploadFile():
         contentType=request.json["contentType"]
         if contentType == "text/plain":
             fileContent = request.json["fileContent"]
-        url = os.environ.get("BLOB_CONNECTION_STRING")
-        containerName = os.environ.get("BLOB_CONTAINER_NAME")
-        blobClient = BlobServiceClient.from_connection_string(url)
-        blobContainer = blobClient.get_blob_client(container=containerName, blob=fileName)
-        #blob_client.upload_blob(bytes_data,overwrite=True, content_settings=ContentSettings(content_type=content_type))
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        blobService = BlobServiceClient(
+                "https://{}.blob.core.windows.net".format(os.environ.get("BLOB_ACCOUNT_NAME")), credential=credentials)
+        blobContainer = blobService.get_blob_client(os.environ.get("BLOB_CONTAINER_NAME"), blob=fileName)
         blobContainer.upload_blob(fileContent, overwrite=True, content_settings=ContentSettings(content_type=contentType))
-        #jsonDict = json.dumps(blobJson)
         return jsonify({"Status" : "Success"})
     except Exception as e:
         logging.exception("Exception in /uploadFile")
@@ -666,13 +674,12 @@ def uploadBinaryFile():
         file = request.files['file']
         fileName = file.filename
         blobName = os.path.basename(fileName)
-
-        url = os.environ.get("BLOB_CONNECTION_STRING")
-        containerName = os.environ.get("BLOB_CONTAINER_NAME")
-        blobServiceClient = BlobServiceClient.from_connection_string(url)
-        containerClient = blobServiceClient.get_container_client(containerName)
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        blobService = BlobServiceClient(
+                "https://{}.blob.core.windows.net".format(os.environ.get("BLOB_ACCOUNT_NAME")), credential=credentials)
+        containerClient = blobService.get_container_client(os.environ.get("BLOB_CONTAINER_NAME"))
         blobClient = containerClient.get_blob_client(blobName)
-        #blob_client.upload_blob(bytes_data,overwrite=True, content_settings=ContentSettings(content_type=content_type))
+
         blobClient.upload_blob(file.read(), overwrite=True)
         blobClient.set_blob_metadata(metadata={"embedded": "false", 
                                         "indexName": "",

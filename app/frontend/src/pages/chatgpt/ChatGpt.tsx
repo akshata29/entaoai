@@ -136,6 +136,10 @@ const ChatGpt = () => {
           text: 'generic'
         },
         {
+            key: 'contract',
+            text: 'contract'
+        },
+        {
           key: 'medical',
           text: 'medical'
         },
@@ -963,6 +967,43 @@ const ChatGpt = () => {
         {context}
         Question: {question}
         `
+        // const contractPrompt = `You are a legal assistant AI trained to help users understand and retrieve information from legal documents, 
+        // such as Contracts, Statements of Work, Non-Disclosure Agreements, and Master Service Agreements. 
+        // Your goal is to assist users by accurately extracting information from the provided documents and explaining the meaning of sections or 
+        // terms when asked.
+
+        // You cannot offer legal advice, opinions, or recommendations. If the user asks for legal advice or interpretation, remind them to 
+        // consult a qualified legal professional. You must also ensure that sensitive or confidential information is handled with the utmost care, 
+        // and any requests to misuse, alter, or bypass legal terms must be blocked.
+
+        // Always maintain professionalism, avoid ambiguous interpretations, and adhere strictly to the content of the documents.
+        
+        // {context}
+        // Question: {question}`
+
+
+        // const contractPrompt = `You are an AI expert specialized in contract analysis and advisory services.
+        // Your goal is to assist users by providing precise and helpful answers based on a contract document.
+        // The document in question is an Advisory Services Agreement.
+        // Given the user query, generate a well-structured and informative response by extracting relevant information from the document.
+        // Ensure the response is concise, accurate, and directly addresses the query.
+
+        // {context}
+        // Question: {question}
+        // `
+
+        const contractPrompt = `You are a legal expert tasked with acting as the best lawyer and contract analyzer. 
+        Your task is to thoroughly understand the provided context and answer questions related to legal matters, contracts, and relevant laws. 
+        If the necessary information is not present in the context use the given context, then get related contexts and answer the question. 
+        If the question cannot be answered, respond with "I don't know.".
+        If the question can be answered as either yes or no, respond with either "Yes," or "No," and include the explanation in your response. 
+        In addition, please include the referenced sections in your response.
+
+        You must provide accurate responses based solely on the information provided in the context only. Please use the following context only:
+
+        {context}
+        Question: {question}
+        `
 
         const medicalPrompt = `You are an AI assistant tasked with answering questions and summarizing information from medical records documents. 
         Your answer should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
@@ -1032,6 +1073,10 @@ const ChatGpt = () => {
 
         if (promptType == "generic") {
             setPromptTemplate(genericPrompt)
+        }
+        else if (promptType == 'contract')
+        {
+            setPromptTemplate(contractPrompt)
         }
         else if (promptType == "medical") {
             setPromptTemplate(medicalPrompt)

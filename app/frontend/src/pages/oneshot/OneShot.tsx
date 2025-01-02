@@ -471,6 +471,19 @@ const OneShot = () => {
         Question: {question}
         `
 
+        const contractPrompt = `You are a legal expert tasked with acting as the best lawyer and contract analyzer. 
+        Your task is to thoroughly understand the provided context and answer questions related to legal matters, contracts, and relevant laws. 
+        If the necessary information is not present in the context use the given context, then get related contexts and answer the question. 
+        If the question cannot be answered, respond with "I don't know.".
+        If the question can be answered as either yes or no, respond with either "Yes," or "No," and include the explanation in your response. 
+        In addition, please include the referenced sections in your response.
+
+        You must provide accurate responses based solely on the information provided in the context only. Please use the following context only:
+
+        {context}
+        Question: {question}
+        `
+
         const medicalPrompt = `You are an AI assistant tasked with answering questions and summarizing information from medical records documents. 
         Your answer should accurately capture the key information in the document while avoiding the omission of any domain-specific words. 
         Please generate a concise and comprehensive information that includes details such as patient information, medical history, 
@@ -539,6 +552,10 @@ const OneShot = () => {
 
         if (promptType == "generic") {
             setPromptTemplate(genericPrompt)
+        }
+        else if (promptType == 'contract')
+        {
+            setPromptTemplate(contractPrompt)
         }
         else if (promptType == "medical") {
             setPromptTemplate(medicalPrompt)

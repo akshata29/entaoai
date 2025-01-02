@@ -16,29 +16,32 @@ from functools import reduce
 from azure.search.documents.models import VectorizedQuery
 from pinecone import Pinecone
 from langchain_pinecone import PineconeVectorStore
-from langchain.vectorstores.azuresearch import AzureSearch
+from langchain_community.vectorstores import AzureSearch
 from langchain_openai import OpenAIEmbeddings
 from langchain_openai import AzureOpenAIEmbeddings
+from azure.identity import ClientSecretCredential, AzureAuthorityHosts
 
 class ChatGptStream:
 
-    def __init__(self, OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiChat, OpenAiChat16k, OpenAiApiKey, OpenAiEmbedding, 
-                 SearchService, SearchKey, RedisAddress, RedisPort, RedisPassword, PineconeKey, PineconeEnv, VsIndexName):
+    def __init__(self, OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiChat, OpenAiApiKey, OpenAiEmbedding, 
+                 SearchService, RedisAddress, RedisPort, RedisPassword, PineconeKey, PineconeEnv, VsIndexName,
+                 TenantId, ClientId, ClientSecret):
         self.OpenAiEndPoint = OpenAiEndPoint
         self.OpenAiKey = OpenAiKey
         self.OpenAiVersion = OpenAiVersion
         self.OpenAiChat = OpenAiChat
-        self.OpenAiChat16k = OpenAiChat16k
         self.OpenAiApiKey = OpenAiApiKey
         self.OpenAiEmbedding = OpenAiEmbedding
         self.SearchService = SearchService
-        self.SearchKey = SearchKey
         self.RedisAddress = RedisAddress
         self.RedisPort = RedisPort
         self.RedisPassword = RedisPassword
         self.PineconeKey = PineconeKey
         self.PineconeEnv = PineconeEnv
         self.VsIndexName = VsIndexName
+        self.TenantId = TenantId
+        self.ClientId = ClientId
+        self.ClientSecret = ClientSecret
 
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -70,9 +73,13 @@ class ChatGptStream:
         return embeddings
     
     def performCogSearch(self, indexType, embeddingModelType, question, indexName, k, embedField="content_vector", returnFields=["id", "content", "metadata"] ):
+        audience = "https://search.windows.net"
+        authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+        credentials = ClientSecretCredential(self.TenantId, self.ClientId, self.ClientSecret, authority=authority)
         searchClient = SearchClient(endpoint=f"https://{self.SearchService}.search.windows.net",
             index_name=indexName,
-            credential=AzureKeyCredential(self.SearchKey))
+            credential=credentials)
+            #audience=audience)
         try:
             if indexType == "cogsearchvs":
                 r = searchClient.search(  
@@ -259,22 +266,12 @@ class ChatGptStream:
                 azure_endpoint = self.OpenAiEndPoint
                 )
 
-            if deploymentType == 'gpt35':
-                completion = client.chat.completions.create(
+            completion = client.chat.completions.create(
                     model=self.OpenAiChat, 
                     messages=messages,
                     temperature=0.0,
                     max_tokens=32,
                     n=1)
-                
-            elif deploymentType == "gpt3516k":
-                completion = client.chat.completions.create(
-                    model=self.OpenAiChat16k, 
-                    messages=messages,
-                    temperature=0.0,
-                    max_tokens=32,
-                    n=1)
-
             embeddings = AzureOpenAIEmbeddings(azure_endpoint=self.OpenAiEndPoint, 
                                                azure_deployment=self.OpenAiEmbedding, 
                                                api_key=self.OpenAiKey, openai_api_type="azure")
@@ -372,23 +369,27 @@ class ChatGptStream:
                 results = [self.noNewLines(doc.page_content) for doc in retrievedDocs]
                 uniqueSources = list(set(sources))
             elif indexType == "cogsearch" or indexType == "cogsearchvs":
-                #r = self.performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
-                #sr = self.performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
-                #try:
+                # r = self.performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
+                # sr = self.performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
+                # sources = []
+                # try:
                 #    sources = [doc["sourcefile"] for doc in sr]
-                #except Exception as e:
+                # except Exception as e:
                 #    sources = []
-                #results = [self.noNewLines(doc["content"]) for doc in r]
+                # results = [self.noNewLines(doc["content"]) for doc in r]
 
+                os.environ["AZURE_CLIENT_ID"] = os.environ.get("CLIENTID")
+                os.environ["AZURE_CLIENT_SECRET"] = os.environ.get("CLIENTSECRET")
+                os.environ["AZURE_TENANT_ID"] = os.environ.get("TENANTID")
                 sources = []
                 csVectorStore: AzureSearch = AzureSearch(
                     azure_search_endpoint=f"https://{self.SearchService}.search.windows.net",
-                    azure_search_key=self.SearchKey,
+                    azure_search_key=None,
                     index_name=indexNs,
                     embedding_function=embeddings.embed_query,
-                    semantic_configuration_name="semanticConfig",
+                    semantic_configuration_name="mySemanticConfig",
                 )
-                retriever = csVectorStore.as_retriever(search_kwargs={"k": topK})
+                retriever = csVectorStore.as_retriever(k=topK)
                 retrievedDocs = retriever.get_relevant_documents(q)
                 results = [self.noNewLines(doc.page_content) for doc in retrievedDocs]
 
@@ -424,34 +425,23 @@ class ChatGptStream:
                     api_version = self.OpenAiVersion,
                     azure_endpoint = self.OpenAiEndPoint
                     )
-
-                if deploymentType == 'gpt35':
-                    yield from client.chat.completions.create(
+                try:
+                    completion = client.chat.completions.create(
                         model=self.OpenAiChat, 
                         messages=messages,
                         temperature=temperature,
                         max_tokens=1024,
                         n=1,
                         stream=True)
-                elif deploymentType == "gpt3516k":
-                    try:
-                        completion = client.chat.completions.create(
-                            model=self.OpenAiChat16k, 
-                            messages=messages,
-                            temperature=temperature,
-                            max_tokens=1024,
-                            n=1,
-                            stream=True)
-                        for event in completion:
-                            if len(event.choices) > 0:
-                                delta = event.choices[0].delta
-                                if delta.content:
-                                    yield {"answer": delta.content, "data_points": results, 
-                                    "thoughts": f"Searched for:<br>{lastQuestion}<br><br>Conversations:<br>" + msgToDisplay.replace('\n', '<br>'),
-                                    "sources": finalSources, "nextQuestions": '', "error": ""}
-                    except Exception as e:
-                        yield str(e)
-
+                    for event in completion:
+                        if len(event.choices) > 0:
+                            delta = event.choices[0].delta
+                            if delta.content:
+                                yield {"answer": delta.content, "data_points": results, 
+                                "thoughts": f"Searched for:<br>{lastQuestion}<br><br>Conversations:<br>" + msgToDisplay.replace('\n', '<br>'),
+                                "sources": finalSources, "nextQuestions": '', "error": ""}
+                except Exception as e:
+                    yield str(e)
             elif embeddingModelType == "openai":
                 client = OpenAI(api_key=self.OpenAiApiKey)
                 completion =  client.chat.completions.create(

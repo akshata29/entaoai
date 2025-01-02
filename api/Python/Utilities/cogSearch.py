@@ -25,10 +25,13 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt
 import openai
 from openai import OpenAI, AzureOpenAI
 from azure.search.documents.models import VectorizedQuery
+from azure.identity import ClientSecretCredential, AzureAuthorityHosts
 
 def deleteSearchIndex(indexName):
+    authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+    credentials = ClientSecretCredential(TenantId, ClientId, ClientSecret, authority=authority)
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
-            credential=AzureKeyCredential(SearchKey))
+            credential=credentials)
     if indexName in indexClient.list_index_names():
         logging.info(f"Deleting {indexName} search index")
         indexClient.delete_index(indexName)
@@ -36,8 +39,10 @@ def deleteSearchIndex(indexName):
         logging.info(f"Search index {indexName} does not exist")
         
 def createSearchIndex(indexType, indexName):
+    authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+    credentials = ClientSecretCredential(TenantId, ClientId, ClientSecret, authority=authority)
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
-            credential=AzureKeyCredential(SearchKey))
+            credential=credentials)
     if indexName not in indexClient.list_index_names():
         if indexType == "cogsearchvs":
             index = SearchIndex(
@@ -46,34 +51,39 @@ def createSearchIndex(indexType, indexName):
                             SimpleField(name="id", type=SearchFieldDataType.String, key=True),
                             SearchableField(name="content", type=SearchFieldDataType.String,
                                             searchable=True, retrievable=True, analyzer_name="en.microsoft"),
-                            SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), 
-                                vector_search_dimensions=1536, vector_search_profile_name="vectorConfig"),  
-                            SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
+                            SearchField(name="content_vector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), 
+                                vector_search_dimensions=1536, vector_search_profile_name="myHnswProfile"),  
+                            SearchableField(name="metadata", type=SearchFieldDataType.String, searchable=True, retrievable=True),
                 ],
                 vector_search = VectorSearch(
                     algorithms=[
                         HnswAlgorithmConfiguration(
-                            name="hnswConfig",
+                            name="default",
                             parameters=HnswParameters(  
                                 m=4,  
                                 ef_construction=400,  
                                 ef_search=500,  
                                 metric=VectorSearchAlgorithmMetric.COSINE,  
                             ),
-                        )
+                        ),
+                        ExhaustiveKnnAlgorithmConfiguration(
+                            name="default_exhaustive_knn",
+                            kind=VectorSearchAlgorithmKind.EXHAUSTIVE_KNN,
+                            parameters=ExhaustiveKnnParameters(
+                                metric=VectorSearchAlgorithmMetric.COSINE
+                            ),
+                        ),
                     ],  
                     profiles=[  
                         VectorSearchProfile(  
-                            name="vectorConfig",  
-                            algorithm_configuration_name="hnswConfig",  
+                            name="myHnswProfile",  
+                            algorithm_configuration_name="default",  
                         ),
                     ],
                 ),
                 semantic_search = SemanticSearch(configurations=[SemanticConfiguration(
-                    name="semanticConfig",
+                    name="mySemanticConfig",
                     prioritized_fields=SemanticPrioritizedFields(
-                        title_field=SemanticField(field_name="content"),
-                        keywords_fields=[SemanticField(field_name="sourcefile")],
                         content_fields=[SemanticField(field_name="content")]
                     )
                 )])
@@ -88,7 +98,7 @@ def createSearchIndex(indexType, indexName):
                             SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True),
                 ],
                 semantic_search = SemanticSearch(configurations=[SemanticConfiguration(
-                    name="semanticConfig",
+                    name="mySemanticConfig",
                     prioritized_fields=SemanticPrioritizedFields(
                         title_field=SemanticField(field_name="content"),
                         keywords_fields=[SemanticField(field_name="sourcefile")],
@@ -130,10 +140,11 @@ def indexSections(indexType, embeddingModelType, fileName, indexName, docs):
     logging.info("Total docs: " + str(len(docs)))
     sections = createSections(indexType, embeddingModelType, fileName, docs)
     logging.info(f"Indexing sections from '{fileName}' into search index '{indexName}'")
+    authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+    credentials = ClientSecretCredential(TenantId, ClientId, ClientSecret, authority=authority)
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
-                                    index_name=indexName,
-                                    credential=AzureKeyCredential(SearchKey))
-    
+            index_name=indexName,
+            credential=credentials)
     # batch = []
     # for s in sections:
     #     batch.append(s)
@@ -156,19 +167,20 @@ def indexSections(indexType, embeddingModelType, fileName, indexName, docs):
         succeeded = sum([1 for r in results if r.succeeded])
         logging.info(f"\tIndexed {len(results)} sections, {succeeded} succeeded")
 
-def performCogSearch(indexType, embeddingModelType, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
-    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
-        index_name=indexName,
-        credential=AzureKeyCredential(SearchKey))
+def performCogSearch(indexType, embeddingModelType, question, indexName, k, returnFields=["id", "content", "metadata"] ):
+    authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+    credentials = ClientSecretCredential(TenantId, ClientId, ClientSecret, authority=authority)
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            index_name=indexName,
+            credential=credentials)
     try:
         if indexType == "cogsearchvs":
             r = searchClient.search(  
                 search_text=question,
-                vector_queries=[VectorizedQuery(vector=generateEmbeddings(embeddingModelType, question), k_nearest_neighbors=k, fields="contentVector")],  
+                vector_queries=[VectorizedQuery(vector=generateEmbeddings(embeddingModelType, question), k_nearest_neighbors=k, fields="content_vector")],  
                 select=returnFields,
                 query_type="semantic", 
-                query_language="en-us", 
-                semantic_configuration_name='semanticConfig', 
+                semantic_configuration_name='mySemanticConfig', 
                 query_caption="extractive", 
                 query_answer="extractive",
                 include_total_count=True,
@@ -180,16 +192,14 @@ def performCogSearch(indexType, embeddingModelType, question, indexName, k, retu
                 r = searchClient.search(question, 
                                     filter=None,
                                     query_type=QueryType.SEMANTIC, 
-                                    query_language="en-us", 
                                     query_speller="lexicon", 
-                                    semantic_configuration_name="semanticConfig", 
+                                    semantic_configuration_name="mySemanticConfig", 
                                     top=k, 
                                     query_caption="extractive|highlight-false")
             except Exception as e:
                  r = searchClient.search(question, 
                                 filter=None,
                                 query_type=QueryType.SEMANTIC, 
-                                query_language="en-us", 
                                 query_speller="lexicon", 
                                 semantic_configuration_name="default", 
                                 top=k, 
@@ -200,10 +210,12 @@ def performCogSearch(indexType, embeddingModelType, question, indexName, k, retu
 
     return None
 
-def performSummaryQaCogSearch(indexType, embeddingModelType, question, indexName, k, returnFields=["id", "content", "sourcefile"] ):
-    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
-        index_name=indexName,
-        credential=AzureKeyCredential(SearchKey))
+def performSummaryQaCogSearch(indexType, embeddingModelType, question, indexName, k, returnFields=["id", "content", "metadata"] ):
+    authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+    credentials = ClientSecretCredential(TenantId, ClientId, ClientSecret, authority=authority)
+    searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
+            index_name=indexName,
+            credential=credentials)
     try:
         if indexType == "cogsearch" or indexType == "cogsearchvs":
             #r = searchClient.search(question, filter=None, top=k)
@@ -211,16 +223,14 @@ def performSummaryQaCogSearch(indexType, embeddingModelType, question, indexName
                 r = searchClient.search(question, 
                                     filter=None,
                                     query_type=QueryType.SEMANTIC, 
-                                    query_language="en-us", 
                                     query_speller="lexicon", 
-                                    semantic_configuration_name="semanticConfig", 
+                                    semantic_configuration_name="mySemanticConfig", 
                                     top=k, 
                                     query_caption="extractive|highlight-false")
             except Exception as e:
                  r = searchClient.search(question, 
                                 filter=None,
                                 query_type=QueryType.SEMANTIC, 
-                                query_language="en-us", 
                                 query_speller="lexicon", 
                                 semantic_configuration_name="default", 
                                 top=k, 
@@ -260,9 +270,10 @@ def generateKbEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey,
         
     return embeddings
 
-def createKbSearchIndex(SearchService, SearchKey, indexName):
+def createKbSearchIndex(SearchService, indexName):
+    credentials = ClientSecretCredential(TenantId, ClientId, ClientSecret)
     indexClient = SearchIndexClient(endpoint=f"https://{SearchService}.search.windows.net/",
-            credential=AzureKeyCredential(SearchKey))
+            credential=credentials)
     if indexName not in indexClient.list_index_names():
         index = SearchIndex(
             name=indexName,
@@ -272,25 +283,31 @@ def createKbSearchIndex(SearchService, SearchKey, indexName):
                                         searchable=True, retrievable=True, analyzer_name="en.microsoft"),
                         SearchableField(name="indexType", type=SearchFieldDataType.String, searchable=True, retrievable=True, filterable=True, facetable=False),
                         SearchableField(name="indexName", type=SearchFieldDataType.String, searchable=True, retrievable=True, filterable=True, facetable=False),
-                        SearchField(name="vectorQuestion", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), 
-                                vector_search_dimensions=1536, vector_search_profile_name="vectorConfig"),  
+                        SearchField(name="vectorQuestion", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                                    searchable=True, vector_search_dimensions=1536, vector_search_profile_name="vectorConfig"),
                         SimpleField(name="answer", type=SearchFieldDataType.String),
             ],
             vector_search = VectorSearch(
-                algorithms=[
-                    HnswAlgorithmConfiguration(
-                        name="vectorConfig",
-                        parameters=HnswParameters(  
-                            m=4,  
-                            ef_construction=400,  
-                            ef_search=500,  
-                            metric=VectorSearchAlgorithmMetric.COSINE,  
+                    algorithms=[
+                        HnswAlgorithmConfiguration(
+                            name="hnswConfig",
+                            parameters=HnswParameters(  
+                                m=4,  
+                                ef_construction=400,  
+                                ef_search=500,  
+                                metric=VectorSearchAlgorithmMetric.COSINE,  
+                            ),
+                        )
+                    ],  
+                    profiles=[  
+                        VectorSearchProfile(  
+                            name="vectorConfig",  
+                            algorithm_configuration_name="hnswConfig",  
                         ),
-                    )
-                ]
+                    ],
             ),
             semantic_config = SemanticConfiguration(
-                name="semanticConfig",
+                name="mySemanticConfig",
                 prioritized_fields=SemanticPrioritizedFields(
                     title_field=SemanticField(field_name="question"),
                     content_fields=[SemanticField(field_name="question")]
@@ -306,20 +323,21 @@ def createKbSearchIndex(SearchService, SearchKey, indexName):
     else:
         print(f"Search index {indexName} already exists")
 
-def performKbCogVectorSearch(embedValue, embedField, SearchService, SearchKey, indexType, indexName, kbIndexName, k, returnFields=["id", "content", "sourcefile"] ):
+def performKbCogVectorSearch(embedValue, embedField, SearchService, indexType, indexName, kbIndexName, k, returnFields=["id", "content", "metadata"] ):
+    credentials = ClientSecretCredential(TenantId, ClientId, ClientSecret)
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net",
         index_name=kbIndexName,
-        credential=AzureKeyCredential(SearchKey))
+        credential=credentials)
     
     try:
         logging.info("Create Index for KB : " + str(kbIndexName))
-        createKbSearchIndex(SearchService, SearchKey, kbIndexName)
+        createKbSearchIndex(SearchService, kbIndexName)
         r = searchClient.search(  
             search_text="",
             filter="indexType eq '" + indexType + "' and indexName eq '" + indexName + "'",
             vector_queries=[VectorizedQuery(vector=embedValue, k_nearest_neighbors=k, fields=embedField)],  
             select=returnFields,
-            semantic_configuration_name="semanticConfig",
+            semantic_configuration_name="mySemanticConfig",
             include_total_count=True
         )
         return r
@@ -328,11 +346,14 @@ def performKbCogVectorSearch(embedValue, embedField, SearchService, SearchKey, i
 
     return None
 
-def indexDocs(SearchService, SearchKey, indexName, docs):
+def indexDocs(SearchService, indexName, docs):
     print("Total docs: " + str(len(docs)))
+    authority = AzureAuthorityHosts.AZURE_PUBLIC_CLOUD
+    credentials = ClientSecretCredential(TenantId, ClientId, ClientSecret, authority=authority)
     searchClient = SearchClient(endpoint=f"https://{SearchService}.search.windows.net/",
-                                    index_name=indexName,
-                                    credential=AzureKeyCredential(SearchKey))
+            index_name=indexName,
+            credential=credentials)
+
     i = 0
     batch = []
     for s in docs:

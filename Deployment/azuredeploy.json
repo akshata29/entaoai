@@ -571,10 +571,6 @@
               "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('speechSvcName')), '2022-12-01').key1]"
             },
             {
-              "name": "SEARCHKEY",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
-            },
-            {
               "name": "SEARCHSERVICE",
               "value": "[variables('searchSvcName')]"
             },
@@ -587,10 +583,6 @@
               "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
             },
             {
-              "name": "COSMOSKEY",
-              "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
-            },
-            {
               "name": "COSMOSDATABASE",
               "value": "[variables('cosmosDb')]"
             },
@@ -601,10 +593,6 @@
             {
               "name": "OpenAiChat",
               "value": "[parameters('gptModelName')]"
-            },
-            {
-              "name": "OpenAiChat16k",
-              "value": "[parameters('gpt16kModelName')]"
             },
             {
               "name": "OpenAiEmbedding",
@@ -739,10 +727,6 @@
               "value": "[parameters('gptModelName')]"
             },
             {
-              "name": "OpenAiChat16k",
-              "value": "[parameters('gpt16kModelName')]"
-            },
-            {
               "name": "OpenAiDocContainer",
               "value": "chatpdf"
             },
@@ -807,10 +791,6 @@
               "value": "6379"
             },
             {
-              "name": "SearchKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
-            },
-            {
               "name": "SearchService",
               "value": "[variables('searchSvcName')]"
             },
@@ -825,10 +805,6 @@
             {
               "name": "CosmosEndpoint",
               "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
-            },
-            {
-              "name": "CosmosKey",
-              "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
             },
             {
               "name": "CosmosDatabase",

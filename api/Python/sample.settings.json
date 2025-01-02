@@ -17,7 +17,6 @@
       "MaxTokens": 500, 
       "Temperature": 0.3,
       "CosmosEndpoint":"https://<>.documents.azure.com:443/",
-      "CosmosKey":"",
       "CosmosDatabase":"aoai",
       "CosmosContainer":"chatgpt",
       "WeatherEndPoint": "https://yahoo-weather5.p.rapidapi.com/weather",
@@ -26,7 +25,6 @@
       "StockHost": "alpha-vantage.p.rapidapi.com",
       "RapidApiKey": "",
       "OpenAiChat": "", // GPT 3.5 deployment name
-      "OpenAiChat16k": "chat16k",
       "PineconeKey": "", // Pinecone key
       "PineconeEnv": "", // Pinecone Env
       "VsIndexName": "", // Index name
@@ -35,13 +33,16 @@
       "RedisPort": "6379",
       "OpenAiDocStorName": "", // Storage name
       "OpenAiDocStorKey": "", // Storage doc
-      "OpenAiDocStorConnString": "", // Storage connection string
       "OpenAiDocContainer": "", // Storage Container
       "KbIndexName" : "aoaikb",
       "SearchService":"", // Search Service 
-      "SearchKey":"", // Search Key
       "BingUrl": "https://api.bing.microsoft.com/v7.0/search",
-      "BingKey": ""
+      "BingKey": "",
+      "CLIENTID": "",
+      "TENANTID": "",
+      "CLIENTSECRET": "",
+      "BLOB_ACCOUNT_NAME": "",
+      "MI_CLIENTID": ""
     },
     "Host": {
       "LocalHttpPort": 7071,

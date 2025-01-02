@@ -212,7 +212,6 @@ module function 'core/host/function.bicep' = {
       OpenAiDocStorKey:storage.outputs.key
       OpenAiDocContainer:containerName
       SearchService:searchService.outputs.name
-      SearchKey:searchService.outputs.key
     }
   }
 }
@@ -241,7 +240,6 @@ module backend 'core/host/appservice.bicep' = {
       CHAT_URL: '${function.outputs.uri}/ChatGpt?code=${function.outputs.key}'
       DOCGENERATOR_URL: '${function.outputs.uri}/DocGenerator?code=${function.outputs.key}'
       BLOB_CONTAINER_NAME: containerName
-      BLOB_CONNECTION_STRING: storage.outputs.connectionString
     }
   }
 }

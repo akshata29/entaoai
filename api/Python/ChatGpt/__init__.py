@@ -26,7 +26,7 @@ from langchain.chains import RetrievalQA
 from typing import Any, Sequence
 from Utilities.modelHelper import numTokenFromMessages, getTokenLimit
 from Utilities.messageBuilder import MessageBuilder
-from langchain.vectorstores.azuresearch import AzureSearch
+from langchain_community.vectorstores import AzureSearch
 from azure.search.documents.indexes.models import (
     SearchableField,
     SearchField,
@@ -39,6 +39,10 @@ from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema import StrOutputParser
 from langchain_pinecone import PineconeVectorStore
 from langchain_community.vectorstores.redis import Redis
+from azure.identity import ClientSecretCredential, get_bearer_token_provider, ManagedIdentityCredential
+
+def noNewLines(self, s: str) -> str:
+        return s.replace('\n', ' ').replace('\r', ' ')
 
 def formatDocs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
@@ -155,7 +159,8 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
 
     logging.info("Search for Top " + str(topK))
     try:
-        cosmosClient = CosmosClient(url=CosmosEndpoint, credential=CosmosKey)
+        credentials = ClientSecretCredential(os.environ.get("TENANTID"), os.environ.get("CLIENTID"), os.environ.get("CLIENTSECRET"))
+        cosmosClient = CosmosClient(url=CosmosEndpoint, credential=credentials)
         cosmosDb = cosmosClient.create_database_if_not_exists(id=CosmosDatabase)
         cosmosKey = PartitionKey(path="/sessionId")
         cosmosContainer = cosmosDb.create_container_if_not_exists(id=CosmosContainer, partition_key=cosmosKey, offer_throughput=400)
@@ -208,51 +213,26 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
     
     if (embeddingModelType == 'azureopenai'):
 
+        llmChat = AzureChatOpenAI(
+                                azure_endpoint=OpenAiEndPoint,
+                                api_version=OpenAiVersion,
+                                azure_deployment=OpenAiChat,
+                                temperature=temperature,
+                                api_key=OpenAiKey,
+                                max_tokens=tokenLength)
+                    
+        client = AzureOpenAI(
+                api_key = OpenAiKey,  
+                api_version = OpenAiVersion,
+                azure_endpoint = OpenAiEndPoint
+                )
+        completion = client.chat.completions.create(
+            model=OpenAiChat, 
+            messages=messages,
+            temperature=0.0,
+            max_tokens=32,
+            n=1)
         embeddings = AzureOpenAIEmbeddings(azure_endpoint=OpenAiEndPoint, azure_deployment=OpenAiEmbedding, api_key=OpenAiKey, openai_api_type="azure")
-        if deploymentType == 'gpt35':
-            llmChat = AzureChatOpenAI(
-                        azure_endpoint=OpenAiEndPoint,
-                        api_version=OpenAiVersion,
-                        azure_deployment=OpenAiChat,
-                        temperature=temperature,
-                        api_key=OpenAiKey,
-                        max_tokens=tokenLength)
-            
-            client = AzureOpenAI(
-                    api_key = OpenAiKey,  
-                    api_version = OpenAiVersion,
-                    azure_endpoint = OpenAiEndPoint
-                    )
-            completion = client.chat.completions.create(
-                model=OpenAiChat, 
-                messages=messages,
-                temperature=0.0,
-                max_tokens=32,
-                n=1)
-                        
-        elif deploymentType == "gpt3516k":
-            llmChat = AzureChatOpenAI(
-                        azure_endpoint=OpenAiEndPoint,
-                        api_version=OpenAiVersion,
-                        azure_deployment=OpenAiChat16k,
-                        temperature=temperature,
-                        api_key=OpenAiKey,
-                        max_tokens=tokenLength)
-            
-            client = AzureOpenAI(
-                    api_key = OpenAiKey,  
-                    api_version = OpenAiVersion,
-                    azure_endpoint = OpenAiEndPoint
-                    )
-            completion = client.chat.completions.create(
-                model=OpenAiChat16k, 
-                messages=messages,
-                temperature=0.0,
-                max_tokens=32,
-                n=1)
-            
-        logging.info("LLM Setup done")
-
     elif embeddingModelType == "openai":
         llmChat = ChatOpenAI(temperature=0.3,
                 api_key=OpenAiApiKey,
@@ -499,14 +479,27 @@ def GetRrrAnswer(history, approach, overrides, indexNs, indexType):
         elif indexType == "cogsearch" or indexType == "cogsearchvs":
             
             rawDocs=[]
+
+            # r = performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
+            # sr = performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
+            # sources = []
+            # rawDocs = [noNewLines(doc["content"]) for doc in r]
+
+            # azCredentials = ClientSecretCredential(TenantId, ClientId, ClientSecret)
+            # tokenProvider = get_bearer_token_provider(azCredentials, "https://search.azure.com/.default")
+
+            os.environ["AZURE_CLIENT_ID"] = os.environ.get("CLIENTID")
+            os.environ["AZURE_CLIENT_SECRET"] = os.environ.get("CLIENTSECRET")
+            os.environ["AZURE_TENANT_ID"] = os.environ.get("TENANTID")
+
             csVectorStore: AzureSearch = AzureSearch(
                 azure_search_endpoint=f"https://{SearchService}.search.windows.net",
-                azure_search_key=SearchKey,
+                azure_search_key=None,
                 index_name=indexNs,
                 embedding_function=embeddings.embed_query,
-                semantic_configuration_name="semanticConfig",
+                semantic_configuration_name="mySemanticConfig",
             )
-            retriever = csVectorStore.as_retriever(search_type=searchType, search_kwargs={"k": 3})
+            retriever = csVectorStore.as_retriever(search_type=searchType, k=topK)
             retrievedDocs = retriever.get_relevant_documents(q)
             for doc in retrievedDocs:
                 rawDocs.append(doc.page_content)

@@ -8,7 +8,7 @@ from pinecone import Pinecone
 from langchain_community.document_loaders.pdf import PDFMinerLoader
 from langchain_community.vectorstores.redis import Redis
 #from langchain.vectorstores import Weaviate
-from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs, getSasToken, getFullPath
+from Utilities.azureBlob import upsertMetadata, getBlob, getAllBlobs, getFullPath, deleteBlob
 from Utilities.cogSearch import createSearchIndex, createSections, indexSections, deleteSearchIndex
 from azure.storage.blob import BlobClient
 from Utilities.envVars import *
@@ -82,13 +82,12 @@ def IndexManagement(indexType, indexName, blobName, indexNs, operation, record):
                 Redis.drop_index(index_name=indexNs, delete_documents=True, redis_url=redisUrl)
             elif indexType == "cogsearch" or indexType == "cogsearchvs":
                 deleteSearchIndex(indexNs)
-            blobList = getAllBlobs(OpenAiDocConnStr, OpenAiDocContainer)
+            blobList = getAllBlobs(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer)
             for blob in blobList:
                 try:
                     if (blob.metadata['indexName'] == indexName):
                         logging.info("Deleting blob " + blob.name)
-                        blobClient = BlobClient.from_connection_string(conn_str=OpenAiDocConnStr, container_name=OpenAiDocContainer, blob_name=blob.name)
-                        blobClient.delete_blob()
+                        deleteBlob(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, blob.name)
                 except:
                     continue
             return "Success"

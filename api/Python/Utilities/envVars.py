@@ -8,14 +8,33 @@ try:
     OpenAiEndPoint = os.environ['OpenAiEndPoint']
     OpenAiDocStorName = os.environ['OpenAiDocStorName']
     OpenAiDocStorKey = os.environ['OpenAiDocStorKey']
-    OpenAiDocConnStr = f"DefaultEndpointsProtocol=https;AccountName={OpenAiDocStorName};AccountKey={OpenAiDocStorKey};EndpointSuffix=core.windows.net"
     OpenAiDocContainer = os.environ['OpenAiDocContainer']
 
-    if "OpenAiChat16k" in os.environ: 
-        OpenAiChat16k = os.getenv('OpenAiChat16k')
+    if "TenantId" in os.environ: 
+        TenantId = os.environ['TenantId']
     else:
-        OpenAiChat16k = "chat16k"
+        TenantId = ""
 
+    if "ClientId" in os.environ: 
+        ClientId = os.environ['ClientId']
+    else:
+        ClientId = ""
+
+    if "MI_CLIENTID" in os.environ: 
+        ManagedIdentityClientId = os.environ['MI_CLIENTID']
+    else:
+        ManagedIdentityClientId = ""
+
+    if "ClientSecret" in os.environ: 
+        ClientSecret = os.environ['ClientSecret']
+    else:
+        ClientSecret = ""
+
+    if "BLOB_ACCOUNT_NAME" in os.environ: 
+        BlobAccountName = os.environ['BLOB_ACCOUNT_NAME']
+    else:
+        BlobAccountName = ""
+        
     if "KbIndexName" in os.environ: 
         KbIndexName = os.environ['KbIndexName']
     else:
@@ -51,11 +70,6 @@ try:
     else:
         RedisPort = ""
 
-    if "SearchKey" in os.environ: 
-        SearchKey = os.environ['SearchKey']
-    else:
-        SearchKey = ""
-
     if "SearchService" in os.environ: 
         SearchService = os.environ['SearchService']
     else:
@@ -75,11 +89,6 @@ try:
         CosmosEndpoint = os.environ['CosmosEndpoint']
     else:
         CosmosEndpoint = ""
-
-    if "CosmosKey" in os.environ: 
-        CosmosKey = os.environ['CosmosKey']
-    else:
-        CosmosKey = ""
     
     if "CosmosDatabase" in os.environ: 
         CosmosDatabase = os.environ['CosmosDatabase']

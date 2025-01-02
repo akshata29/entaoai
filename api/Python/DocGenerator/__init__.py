@@ -41,8 +41,10 @@ from langchain_openai import AzureOpenAIEmbeddings
 import requests
 from io import BytesIO
 from unstructured.chunking.title import chunk_by_title
-from langchain.vectorstores.azuresearch import AzureSearch
+from langchain_community.vectorstores import AzureSearch
 from unstructured.cleaners.core import clean_extra_whitespace, group_broken_paragraphs
+from azure.storage.blob import BlobServiceClient, ContentSettings
+from azure.identity import ClientSecretCredential, DefaultAzureCredential
 
 try:
     redisUrl = "redis://default:" + RedisPassword + "@" + RedisAddress + ":" + RedisPort
@@ -55,7 +57,7 @@ def PartitionFile(fileExtension: str, fileName: str):
         elements: A list of available models
     """  
     # Send a GET request to the URL to download the file
-    readByte  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+    readByte  = getBlob(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
     readBytes = BytesIO(readByte)
     metadata = [] 
     elements = None
@@ -146,19 +148,10 @@ def GetAllFiles(filesToProcess):
 def summarizeGenerateQa(docs, embeddingModelType, deploymentType):
     logging.info("Summarization started")
     if (embeddingModelType == 'azureopenai'):
-        if deploymentType == 'gpt35':
-            llm = AzureChatOpenAI(
+        llm = AzureChatOpenAI(
                         azure_endpoint=OpenAiEndPoint,
                         api_version=OpenAiVersion,
                         azure_deployment=OpenAiChat,
-                        temperature=0.3,
-                        api_key=OpenAiKey,
-                        max_tokens=500)
-        elif deploymentType == "gpt3516k":
-            llm = AzureChatOpenAI(
-                        azure_endpoint=OpenAiEndPoint,
-                        api_version=OpenAiVersion,
-                        azure_deployment=OpenAiChat16k,
                         temperature=0.3,
                         api_key=OpenAiKey,
                         max_tokens=500)
@@ -204,10 +197,10 @@ def summarizeGenerateQa(docs, embeddingModelType, deploymentType):
     #qa = qa.decode('utf8')
     return qa, summary
 
-def blobLoad(blobConnectionString, blobContainer, blobName):
+def blobLoad(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blobName):
     logging.info("Blob Load started")
     try:
-        readBytes  = getBlob(blobConnectionString, blobContainer, blobName)
+        readBytes  = getBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blobName)
         downloadPath = os.path.join(tempfile.gettempdir(), blobName)
         os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
         try:
@@ -225,7 +218,7 @@ def blobLoad(blobConnectionString, blobContainer, blobName):
         #loader = UnstructuredFileLoader(downloadPath)
         rawDocs = loader.load()
 
-        fullPath = getFullPath(blobConnectionString, blobContainer, blobName)
+        fullPath = getFullPath(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blobName)
         for doc in rawDocs:
             doc.metadata['source'] = fullPath
         return rawDocs
@@ -265,9 +258,12 @@ def storeIndex(indexType, docs, fileName, nameSpace, embeddingModelType):
         elif indexType == "redis":
             Redis.from_documents(docs, embeddings, redis_url=redisUrl, index_name=nameSpace)
         elif indexType == "cogsearch" or indexType == "cogsearchvs":
+            os.environ["AZURE_CLIENT_ID"] = os.environ.get("CLIENTID")
+            os.environ["AZURE_CLIENT_SECRET"] = os.environ.get("CLIENTSECRET")
+            os.environ["AZURE_TENANT_ID"] = os.environ.get("TENANTID")
             vectorStore: AzureSearch = AzureSearch(
                 azure_search_endpoint=f"https://{SearchService}.search.windows.net/",
-                azure_search_key=SearchKey,
+                azure_search_key=None,
                 index_name=nameSpace,
                 semantic_configuration_name="mySemanticConfig",
                 embedding_function=embeddings.embed_query,
@@ -286,7 +282,7 @@ def storeIndex(indexType, docs, fileName, nameSpace, embeddingModelType):
         logging.error("Exception during storeIndex" + str(e))
         pass
 
-def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionString,
+def Embed(indexType, loadType, multiple, indexName,  value,  
                                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
                                 s3SecretKey, s3Prefix, existingIndex, existingIndexNs,
                                 embeddingModelType, textSplitterType, chunkSize, chunkOverlap, promptType, deploymentType):
@@ -318,7 +314,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     # Check the file extension
                     if fileName.endswith('.txt'):
                         logging.info("Embedding text file")
-                        readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                        readBytes  = getBlob(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
                         fileContent = readBytes.decode('utf-8')
                         downloadPath = os.path.join(tempfile.gettempdir(), fileName)
                         os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
@@ -346,7 +342,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                             textSplitter = NLTKTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                             docs = textSplitter.split_documents(rawDocs)
                         elif textSplitterType == "formrecognizer":
-                            fullPath = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                            fullPath = getFullPath(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
                             docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey, chunkSize)
                         logging.info("Docs " + str(len(docs)))
                         storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
@@ -359,20 +355,20 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                         try:
                             if (fileName.endswith('.pdf')):
                                 if textSplitterType == "recursive":
-                                    rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                                    rawDocs = blobLoad(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
                                     textSplitter = RecursiveCharacterTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                                     docs = textSplitter.split_documents(rawDocs)
                                 elif textSplitterType == "tiktoken":
-                                    rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                                    rawDocs = blobLoad(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
                                     textSplitter = TokenTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                                     docs = textSplitter.split_documents(rawDocs)
                                 elif textSplitterType == "nltk":
-                                    rawDocs = blobLoad(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                                    rawDocs = blobLoad(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
                                     textSplitter = NLTKTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                                     docs = textSplitter.split_documents(rawDocs)
                                 elif textSplitterType == "formrecognizer":
-                                    readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                                    fullPath = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                                    readBytes  = getBlob(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
+                                    fullPath = getFullPath(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
                                     #docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey, chunkSize)
                                     ## Modify above to instead use the Analyze layout 
                                     downloadPath = os.path.join(tempfile.gettempdir(), fileName)
@@ -395,7 +391,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                                     #             mode="page",
                                     #         )
                                     # docs = loader.load()
-                                    loader = loader = AzureAIDocumentIntelligenceLoader(
+                                    loader = AzureAIDocumentIntelligenceLoader(
                                                 api_endpoint=FormRecognizerEndPoint,
                                                 api_key=FormRecognizerKey,
                                                 file_path=downloadPath,
@@ -416,8 +412,8 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                                 logging.info("Docs " + str(len(docs)))
                                 storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
                             else:
-                                readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                                fullPath = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                                readBytes  = getBlob(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
+                                fullPath = getFullPath(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
                                 downloadPath = os.path.join(tempfile.gettempdir(), fileName)
                                 os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
                                 try:
@@ -450,7 +446,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                                 storeIndex(indexType, docs, fileName, indexGuId, embeddingModelType)
                         except Exception as e:
                             logging.info(e)
-                            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType,
+                            upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType,
                                                                                             "textSplitterType": textSplitterType, 
                                     "chunkSize": chunkSize, "chunkOverlap": chunkOverlap, "promptType": promptType, "singleFile": singleFile})
                             errorMessage = str(e)
@@ -458,7 +454,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                         fileName.endswith('.ppt') or fileName.endswith('.xls') or \
                         fileName.endswith('.htm') or fileName.endswith('.xml') or fileName.endswith('.eml') or \
                         fileName.endswith('.msg') or fileName.endswith('.json'):
-                        readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                        readBytes  = getBlob(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
                         downloadPath = os.path.join(tempfile.gettempdir(), fileName)
                         os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
                         try:
@@ -518,7 +514,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                             logging.info("Not supported")
                         except Exception as e:
                             logging.info(e)
-                            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType,
+                            upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType,
                                                                                             "textSplitterType": textSplitterType, 
                                     "chunkSize": chunkSize, "chunkOverlap": chunkOverlap, "promptType": promptType, "singleFile": singleFile})
                             errorMessage = str(e)
@@ -534,10 +530,10 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                                     "promptType": promptType,
                                     "singleFile": singleFile}
                         logging.info(str(metadata))
-                        upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                        upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName, metadata)
                         try:
                             metadata = {'summary': summary.replace("-", "_"), 'qa': qa.replace("-", "_")}
-                            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                            upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName, metadata)
                         except:
                             pass
                     elif fileName.endswith('.csv'):
@@ -546,13 +542,13 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                                     'summary': 'No Summary', 'qa': 'No QA',
                                     "textSplitterType": textSplitterType, 
                                     "chunkSize": chunkSize, "chunkOverlap": chunkOverlap, "promptType": promptType, "singleFile": singleFile}
-                        upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                        upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName, metadata)
                     logging.info("Sleeping")
                     time.sleep(5)
                 return "Success"
             except Exception as e:
                 logging.error("Error in processing file : " + str(e))
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType,
+                upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType,
                                                                             "textSplitterType": textSplitterType, 
                                                                             "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                                                             "promptType": promptType, "singleFile": singleFile})
@@ -569,7 +565,7 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     fileName = file['filename']
                     if fileName.endswith('.zip'):
                         # Download Zip File
-                        readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
+                        readBytes  = getBlob(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName)
                         downloadPath = os.path.join(tempfile.gettempdir(), fileName)
                         os.makedirs(os.path.dirname(tempfile.gettempdir()), exist_ok=True)
                         try:
@@ -609,10 +605,6 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                                 logging.info("Skipping file " + file + " as it is not a valid markdown file" + str(e))
                                 continue
 
-                        #fullPath = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                        # for doc in rawDocs:
-                        #     doc.metadata['source'] = fullPath
-
                         logging.info("Perform Summarization and QA")
                         qa, summary = summarizeGenerateQa(rawDocs, embeddingModelType, deploymentType)
                         logging.info("Upsert metadata")
@@ -623,15 +615,15 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                                     "promptType": promptType,
                                     "singleFile": singleFile}
                         logging.info(str(metadata))
-                        upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                        upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName, metadata)
                         try:
                             metadata = {'summary': summary.replace("-", "_"), 'qa': qa.replace("-", "_")}
-                            upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, metadata)
+                            upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName, metadata)
                         except:
                             pass
             except Exception as e:
                 logging.error("Error in processing file : " + str(e))
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType,
+                upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, fileName, {'embedded': 'false', 'indexType': indexType,
                                                                             "textSplitterType": textSplitterType, 
                                                                             "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                                                             "promptType": promptType, "singleFile": singleFile})
@@ -659,25 +651,21 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                         rawDocs = loader.load()
                         textSplitter = NLTKTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                         docs = textSplitter.split_documents(rawDocs)
-                    # elif textSplitterType == "formrecognizer":
-                    #     readBytes  = getBlob(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                    #     fullPath = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, fileName)
-                    #     docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey, chunkSize)
                     allDocs = allDocs + docs
                     storeIndex(indexType, docs, indexName + ".txt", indexGuId, embeddingModelType)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(allDocs, embeddingModelType, deploymentType)
                 logging.info("Upsert metadata")
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 
+                upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 
                                                                                           'indexType': indexType, "indexName": indexName,
                                                                                           "textSplitterType": textSplitterType, 
                                                                                           "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                                                                           "promptType": promptType, "singleFile": singleFile})
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
+                upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
                 return "Success"
             except Exception as e:
                 logging.error("Error in processing Webpages : " + str(e))
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType,
+                upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType,
                                                                                           "textSplitterType": textSplitterType, 
                                                                                           "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                                                                           "promptType": promptType, "singleFile": singleFile})
@@ -686,29 +674,29 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
         elif (loadType == "adlscontainer"):
             try:
                 logging.info("Embedding Azure Blob Container")
-                container = ContainerClient.from_connection_string(
-                    conn_str=blobConnectionString, container_name=blobContainer
-                )
+                credentials = ClientSecretCredential(TenantId, ClientId, ClientSecret)
+                blobService = BlobServiceClient("https://{}.blob.core.windows.net".format(BlobAccountName, credential=credentials))
+                containerClient = blobService.get_container_client(blobContainer)
                 frDocs = []
-                blobList = container.list_blobs(name_starts_with=blobPrefix)
+                blobList = containerClient.list_blobs(name_starts_with=blobPrefix)
                 for blob in blobList:
                     logging.info("Process Blob : " + blob.name)
                     if textSplitterType == "recursive":
-                        blobDocs = blobLoad(blobConnectionString, blobContainer, blob.name)
-                        copyBlob(blobConnectionString, blobContainer,  blob.name, OpenAiDocConnStr, OpenAiDocContainer)
+                        blobDocs = blobLoad(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blob.name)
+                        copyBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer,  blob.name, OpenAiDocContainer)
                         textSplitter = RecursiveCharacterTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     elif textSplitterType == "tiktoken":
-                        blobDocs = blobLoad(blobConnectionString, blobContainer, blob.name)
-                        copyBlob(blobConnectionString, blobContainer,  blob.name, OpenAiDocConnStr, OpenAiDocContainer)
+                        blobDocs = blobLoad(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blob.name)
+                        copyBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer,  blob.name, OpenAiDocContainer)
                         textSplitter = TokenTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     elif textSplitterType == "nltk":
-                        blobDocs = blobLoad(blobConnectionString, blobContainer, blob.name)
-                        copyBlob(blobConnectionString, blobContainer,  blob.name, OpenAiDocConnStr, OpenAiDocContainer)
+                        blobDocs = blobLoad(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blob.name)
+                        copyBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer,  blob.name, OpenAiDocContainer)
                         textSplitter = NLTKTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     elif textSplitterType == "formrecognizer":
-                        readBytes  = getBlob(blobConnectionString, blobContainer, blob.name)
-                        copyBlob(blobConnectionString, blobContainer,  blob.name, OpenAiDocConnStr, OpenAiDocContainer)
-                        fullPath = getFullPath(blobConnectionString, blobContainer, blob.name)
+                        readBytes  = getBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blob.name)
+                        copyBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer,  blob.name, OpenAiDocContainer)
+                        fullPath = getFullPath(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blob.name)
                         docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey, chunkSize)
                         frDocs.extend(docs)
                     docs = []
@@ -721,16 +709,15 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     logging.info("Perform Summarization and QA")
                     qa, summary = summarizeGenerateQa(docs, embeddingModelType, deploymentType)
                     logging.info("Upsert metadata")
-                    upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, blob.name, {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, 
+                    upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, blob.name, {'embedded': 'true', 'namespace': indexGuId, 'indexType': indexType, 
                                                                                      "indexName": indexName,
                                                                                      "textSplitterType": textSplitterType, 
                                                                                      "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                                                                      "promptType": promptType, "singleFile": singleFile})
-                    upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, blob.name, {'summary': summary, 'qa': qa})
+                    upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, blob.name, {'summary': summary, 'qa': qa})
                 return "Success"
             except Exception as e:
                 logging.error("Error in processing ADLS Container : "  + str(e))
-                #upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
                 errorMessage = str(e)
                 return errorMessage
         elif (loadType == "adlsfile"):
@@ -738,39 +725,38 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 logging.info("Embedding Azure Blob File")
                 docs = []
                 if textSplitterType == "recursive":
-                    rawDocs = blobLoad(blobConnectionString, blobContainer, blobName)
-                    copyBlob(blobConnectionString, blobContainer, blobName, OpenAiDocConnStr, OpenAiDocContainer)
+                    rawDocs = blobLoad(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blobName)
+                    copyBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blobName, OpenAiDocContainer)
                     textSplitter = RecursiveCharacterTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     docs = textSplitter.split_documents(rawDocs)
                 elif textSplitterType == "tiktoken":
-                    rawDocs = blobLoad(blobConnectionString, blobContainer, blobName)
-                    copyBlob(blobConnectionString, blobContainer,  blobName, OpenAiDocConnStr, OpenAiDocContainer)
+                    rawDocs = blobLoad(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blobName)
+                    copyBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer,  blobName, OpenAiDocContainer)
                     textSplitter = TokenTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     docs = textSplitter.split_documents(rawDocs)
                 elif textSplitterType == "nltk":
-                    rawDocs = blobLoad(blobConnectionString, blobContainer, blobName)
-                    copyBlob(blobConnectionString, blobContainer, blobName, OpenAiDocConnStr, OpenAiDocContainer)
+                    rawDocs = blobLoad(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blobName)
+                    copyBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blobName, OpenAiDocContainer)
                     textSplitter = NLTKTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     docs = textSplitter.split_documents(rawDocs)
                 elif textSplitterType == "formrecognizer":
-                    readBytes  = getBlob(blobConnectionString, blobContainer,blobName)
-                    copyBlob(blobConnectionString, blobContainer,  blobName, OpenAiDocConnStr, OpenAiDocContainer)
-                    fullPath = getFullPath(blobConnectionString, blobContainer, blobName)
+                    readBytes  = getBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer,blobName)
+                    copyBlob(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer,  blobName, OpenAiDocContainer)
+                    fullPath = getFullPath(TenantId, ClientId, ClientSecret, BlobAccountName, blobContainer, blobName)
                     docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey, chunkSize)
                 storeIndex(indexType, docs, blobName, indexGuId, embeddingModelType)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(docs, embeddingModelType, deploymentType)
                 logging.info("Upsert metadata")
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, blobName, {'embedded': 'true', 'namespace': indexGuId, 
+                upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, blobName, {'embedded': 'true', 'namespace': indexGuId, 
                                                                                 'indexType': indexType, "indexName": indexName,
                                                                                 "textSplitterType": textSplitterType, 
                                                                                 "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                                                                 "promptType": promptType, "singleFile": singleFile})
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, blobName, {'summary': summary, 'qa': qa})
+                upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, blobName, {'summary': summary, 'qa': qa})
                 return "Success"
             except Exception as e:
                 logging.error("Error in processing ADLS File : "  + str(e))
-                #upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
                 errorMessage = str(e)
                 return errorMessage
         elif (loadType == "s3Container"):
@@ -787,19 +773,19 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     logging.info("Process Blob : " + blob.key)
                     if textSplitterType == "recursive":
                         blobDocs, downloadPath = s3Load(s3Bucket, blob.key, s3Client)
-                        copyS3Blob(downloadPath, blob.key, OpenAiDocConnStr, OpenAiDocContainer)
+                        copyS3Blob(TenantId, ClientId, ClientSecret, BlobAccountName, downloadPath, blob.key, OpenAiDocContainer)
                         textSplitter = RecursiveCharacterTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     elif textSplitterType == "tiktoken":
                         blobDocs, downloadPath = s3Load(s3Bucket, blob.key, s3Client)
-                        copyS3Blob(downloadPath, blob.key, OpenAiDocConnStr, OpenAiDocContainer)
+                        copyS3Blob(TenantId, ClientId, ClientSecret, BlobAccountName, downloadPath, blob.key, OpenAiDocContainer)
                         textSplitter = TokenTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     elif textSplitterType == "nltk":
                         blobDocs, downloadPath = s3Load(s3Bucket, blob.key, s3Client)
-                        copyS3Blob(downloadPath, blob.key, OpenAiDocConnStr, OpenAiDocContainer)
+                        copyS3Blob(TenantId, ClientId, ClientSecret, BlobAccountName, downloadPath, blob.key, OpenAiDocContainer)
                         textSplitter = NLTKTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     elif textSplitterType == "formrecognizer":
                         rawDocs, downloadPath = s3Load(s3Bucket, blob.key, s3Client)
-                        copyS3Blob(downloadPath, blob.key, OpenAiDocConnStr, OpenAiDocContainer)
+                        copyS3Blob(TenantId, ClientId, ClientSecret, BlobAccountName, downloadPath, blob.key, OpenAiDocContainer)
                         with open(downloadPath, "wb") as file:
                             readBytes = file.read()
                         docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey, chunkSize)
@@ -813,16 +799,15 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                     logging.info("Perform Summarization and QA")
                     qa, summary = summarizeGenerateQa(docs, embeddingModelType, deploymentType)
                     logging.info("Upsert metadata")
-                    upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, blob.key, {'embedded': 'true', 'namespace': indexGuId, 
+                    upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, blob.key, {'embedded': 'true', 'namespace': indexGuId, 
                                                                                     'indexType': indexType, "indexName": indexName,
                                                                                     "textSplitterType": textSplitterType, 
                                                                                     "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                                                                     "promptType": promptType, "singleFile": singleFile})
-                    upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, blob.key, {'summary': summary, 'qa': qa})
+                    upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, blob.key, {'summary': summary, 'qa': qa})
                 return "Success"            
             except Exception as e:
                 logging.error("Error in processing S3 Container : "  + str(e))
-                #upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType})
                 errorMessage = str(e)
                 return errorMessage
         elif (loadType == "s3file"):
@@ -832,40 +817,40 @@ def Embed(indexType, loadType, multiple, indexName,  value,  blobConnectionStrin
                 docs = []
                 if textSplitterType == "recursive":
                     rawDocs, downloadPath = s3Load(s3Bucket, s3Key, s3Client)
-                    copyS3Blob(downloadPath, s3Key, OpenAiDocConnStr, OpenAiDocContainer)
+                    copyS3Blob(TenantId, ClientId, ClientSecret, BlobAccountName, downloadPath, s3Key, OpenAiDocContainer)
                     textSplitter = RecursiveCharacterTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     docs = textSplitter.split_documents(rawDocs)
                 elif textSplitterType == "tiktoken":
                     rawDocs, downloadPath = s3Load(s3Bucket, s3Key, s3Client)
-                    copyS3Blob(downloadPath, s3Key, OpenAiDocConnStr, OpenAiDocContainer)
+                    copyS3Blob(TenantId, ClientId, ClientSecret, BlobAccountName, downloadPath, s3Key, OpenAiDocContainer)
                     textSplitter = TokenTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     docs = textSplitter.split_documents(rawDocs)
                 elif textSplitterType == "nltk":
                     rawDocs, downloadPath = s3Load(s3Bucket, s3Key, s3Client)
-                    copyS3Blob(downloadPath, s3Key, OpenAiDocConnStr, OpenAiDocContainer)
+                    copyS3Blob(TenantId, ClientId, ClientSecret, BlobAccountName, downloadPath, s3Key, OpenAiDocContainer)
                     textSplitter = NLTKTextSplitter(chunk_size=int(chunkSize), chunk_overlap=int(chunkOverlap))
                     docs = textSplitter.split_documents(rawDocs)
                 elif textSplitterType == "formrecognizer":
                     rawDocs, downloadPath = s3Load(s3Bucket, s3Key, s3Client)
-                    copyS3Blob(downloadPath, s3Key, OpenAiDocConnStr, OpenAiDocContainer)
+                    copyS3Blob(TenantId, ClientId, ClientSecret, BlobAccountName, downloadPath, s3Key, OpenAiDocContainer)
                     with open(downloadPath, "wb") as file:
                         readBytes = file.read()
-                    fullPath = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, s3Key)
+                    fullPath = getFullPath(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, s3Key)
                     docs = analyze_layout(readBytes, fullPath, FormRecognizerEndPoint, FormRecognizerKey, chunkSize)
                 storeIndex(indexType, docs, blobName, indexGuId, embeddingModelType)
                 logging.info("Perform Summarization and QA")
                 qa, summary = summarizeGenerateQa(docs, embeddingModelType, deploymentType)
                 logging.info("Upsert metadata")
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 
+                upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, indexName + ".txt", {'embedded': 'true', 'namespace': indexGuId, 
                                                                                           'indexType': indexType, "indexName": indexName,
                                                                                           "textSplitterType": textSplitterType, 
                                                                                           "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                                                                           "promptType": promptType, "singleFile": singleFile})
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
+                upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, indexName + ".txt", {'summary': summary, 'qa': qa})
                 return "Success"
             except Exception as e:
                 logging.error("Error in processing S3 File : "  + str(e))
-                upsertMetadata(OpenAiDocConnStr, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType,
+                upsertMetadata(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, indexName + ".txt", {'embedded': 'false', 'indexType': indexType,
                                                                                           "textSplitterType": textSplitterType, 
                                                                                           "chunkSize": chunkSize, "chunkOverlap": chunkOverlap,
                                                                                           "promptType": promptType, "singleFile": singleFile})
@@ -913,7 +898,6 @@ def TransformValue(indexType, loadType,  multiple, indexName, existingIndex, exi
     try:
         # Getting the items from the values/data/text
         value = data['text']
-        blobConnectionString = data['blobConnectionString']
         blobContainer = data['blobContainer']
         blobPrefix = data['blobPrefix']
         blobName = data['blobName']
@@ -923,7 +907,7 @@ def TransformValue(indexType, loadType,  multiple, indexName, existingIndex, exi
         s3SecretKey = data['s3SecretKey']
         s3Prefix = data['s3Prefix']
 
-        summaryResponse = Embed(indexType, loadType,  multiple, indexName, value, blobConnectionString,
+        summaryResponse = Embed(indexType, loadType,  multiple, indexName, value,
                                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
                                 s3SecretKey, s3Prefix, existingIndex, existingIndexNs, embeddingModelType,
                                 textSplitter, chunkSize, chunkOverlap, promptType, deploymentType)

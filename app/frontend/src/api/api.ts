@@ -432,7 +432,7 @@ export async function uploadBinaryFile(formData:any, indexName:string) : Promise
   return "Success";
 }
 export async function processDoc(indexType: string, loadType : string, multiple: string, indexName : string, files: any,
-  blobConnectionString : string, blobContainer : string, blobPrefix : string, blobName : string,
+  blobContainer : string, blobPrefix : string, blobName : string,
   s3Bucket : string, s3Key : string, s3AccessKey : string, s3SecretKey : string, s3Prefix : string,
   existingIndex : string, existingIndexNs: string, embeddingModelType: string,
   textSplitter:string, chunkSize:any, chunkOverlap:any, promptType:string, deploymentType:string) : Promise<string> {
@@ -460,7 +460,6 @@ export async function processDoc(indexType: string, loadType : string, multiple:
             recordId: 0,
             data: {
               text: files,
-              blobConnectionString: blobConnectionString,
               blobContainer : blobContainer,
               blobPrefix : blobPrefix,
               blobName : blobName,

@@ -729,10 +729,6 @@
               "value": "[concat('https://', variables('funcAppName'), '.azurewebsites.net/api/Summarizer?code=', listkeys(concat(resourceId('Microsoft.Web/sites', variables('funcAppName')), '/host/default'), '2018-11-01').functionKeys.default)]"
             },
             {
-              "name": "SEARCHKEY",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
-            },
-            {
               "name": "SEARCHSERVICE",
               "value": "[variables('searchSvcName')]"
             },
@@ -745,10 +741,6 @@
               "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
             },
             {
-              "name": "COSMOSKEY",
-              "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
-            },
-            {
               "name": "COSMOSDATABASE",
               "value": "[variables('cosmosDb')]"
             },
@@ -759,10 +751,6 @@
             {
               "name": "OpenAiChat",
               "value": "chat"
-            },
-            {
-              "name": "OpenAiChat16k",
-              "value": "chat16k"
             },
             {
               "name": "OpenAiEmbedding",
@@ -1012,10 +1000,6 @@
               "value": "1"
             },
             {
-              "name": "SearchKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('searchSvcName')), '2015-08-19').primaryKey]"
-            },
-            {
               "name": "SearchService",
               "value": "[variables('searchSvcName')]"
             },
@@ -1050,10 +1034,6 @@
             {
               "name": "CosmosEndpoint",
               "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').documentEndpoint]"
-            },
-            {
-              "name": "CosmosKey",
-              "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbName')), '2022-08-15').primaryMasterKey]"
             },
             {
               "name": "CosmosDatabase",

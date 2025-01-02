@@ -25,7 +25,7 @@ from langchain_openai import AzureChatOpenAI
 from langchain_openai import ChatOpenAI
 import uuid
 #from Utilities.azureSearch import AzureSearch
-from langchain.vectorstores.azuresearch import AzureSearch
+from langchain_community.vectorstores import AzureSearch
 from langchain.chains import LLMChain
 from langchain import hub
 from langchain.schema.runnable import RunnablePassthrough
@@ -33,6 +33,9 @@ from langchain.schema import StrOutputParser
 from operator import itemgetter
 from langchain.schema.runnable import RunnableMap
 from azure.search.documents.indexes.models import SearchField, SimpleField, SearchableField, SearchFieldDataType
+
+def noNewLines(self, s: str) -> str:
+        return s.replace('\n', ' ').replace('\r', ' ')
 
 def formatDocs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
@@ -59,7 +62,6 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
         logging.info("PromptTemplate: " + str(promptTemplate))
         logging.info("DeploymentType: " + str(deploymentType))
         logging.info("OpenAiChat: " + str(OpenAiChat))
-        logging.info("OpenAiChat16k: " + str(OpenAiChat16k))
         logging.info("OpenAiEmbedding: " + str(OpenAiEmbedding))
         logging.info("SearchType: " + str(searchType))
         
@@ -67,26 +69,14 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
         thoughtPrompt = ''
 
         if (embeddingModelType == 'azureopenai'):
-
-            if deploymentType == 'gpt35':
-                llm = AzureChatOpenAI(
+            llm = AzureChatOpenAI(
                         azure_endpoint=OpenAiEndPoint,
                         api_version=OpenAiVersion,
                         azure_deployment=OpenAiChat,
                         temperature=temperature,
                         api_key=OpenAiKey,
                         openai_api_type="azure",
-                        max_tokens=tokenLength)
-            elif deploymentType == "gpt3516k":
-                llm = AzureChatOpenAI(
-                        azure_endpoint=OpenAiEndPoint,
-                        api_version=OpenAiVersion,
-                        azure_deployment=OpenAiChat16k,
-                        temperature=temperature,
-                        api_key=OpenAiKey,
-                        openai_api_type="azure",
-                        max_tokens=tokenLength)
-                
+                        max_tokens=tokenLength)                
             embeddings = AzureOpenAIEmbeddings(azure_endpoint=OpenAiEndPoint, azure_deployment=OpenAiEmbedding, api_key=OpenAiKey, openai_api_type="azure")
             logging.info("LLM Setup done")
         elif embeddingModelType == "openai":
@@ -177,7 +167,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 vectorQuestion = generateKbEmbeddings(OpenAiEndPoint, OpenAiKey, OpenAiVersion, OpenAiApiKey, OpenAiEmbedding, embeddingModelType, question)
 
                 # Let's perform the search on the KB first before asking the question to the model
-                kbSearch = performKbCogVectorSearch(vectorQuestion, 'vectorQuestion', SearchService, SearchKey, indexType, indexNs, KbIndexName, 1, ["id", "question", "indexType", "indexName", "answer"])
+                kbSearch = performKbCogVectorSearch(vectorQuestion, 'vectorQuestion', SearchService, indexType, indexNs, KbIndexName, 1, ["id", "question", "indexType", "indexName", "answer"])
 
                 logging.info("KB Search Count: " + str(kbSearch.get_count()))
 
@@ -258,7 +248,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                             "answer": json.dumps(outputFinalAnswer),
                         })
                     
-                    indexDocs(SearchService, SearchKey, KbIndexName, kbData)
+                    indexDocs(SearchService, KbIndexName, kbData)
                 except Exception as e:
                     logging.error("Error in KB Indexing: " + str(e))
                     pass
@@ -284,7 +274,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                         redis_url=redisUrl,
                         schema=indexSchema
                     )
-                    retriever = rds.as_retriever(search_type="similarity", search_kwargs={"k": topK})
+                    retriever = rds.as_retriever(search_type="similarity", k=topK)
                     retrievedDocs = retriever.get_relevant_documents(question)
                     rawDocs=[]
                     for doc in retrievedDocs:
@@ -340,7 +330,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                             "answer": json.dumps(outputFinalAnswer),
                         })
 
-                        indexDocs(SearchService, SearchKey, KbIndexName, kbData)
+                        indexDocs(SearchService, KbIndexName, kbData)
                     except Exception as e:
                         logging.info("Error in KB Indexing: " + str(e))
                         pass
@@ -361,11 +351,11 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                     # ]
                     # csVectorStore: AzureSearch = AzureSearch(
                     #     azure_search_endpoint=f"https://{SearchService}.search.windows.net",
-                    #     azure_search_key=SearchKey,
+                    #     azure_search_key=None,
                     #     index_name=indexNs,
                     #     fields=fields,
                     #     embedding_function=embeddings.embed_query,
-                    #     semantic_configuration_name="semanticConfig",
+                    #     semantic_configuration_name="mySemanticConfig",
                     # )
 
                     # # Perform a similarity search
@@ -397,14 +387,23 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                     # modifiedAnswer = answer
 
                     rawDocs=[]
+                    # r = performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
+                    # sr = performCogSearch(indexType, embeddingModelType, q, indexNs, topK)
+                    # sources = []
+                    # rawDocs = [noNewLines(doc["content"]) for doc in r]
+
+                    os.environ["AZURE_CLIENT_ID"] = os.environ.get("CLIENTID")
+                    os.environ["AZURE_CLIENT_SECRET"] = os.environ.get("CLIENTSECRET")
+                    os.environ["AZURE_TENANT_ID"] = os.environ.get("TENANTID")
+
                     csVectorStore: AzureSearch = AzureSearch(
                         azure_search_endpoint=f"https://{SearchService}.search.windows.net",
-                        azure_search_key=SearchKey,
+                        azure_search_key=None,
                         index_name=indexNs,
                         embedding_function=embeddings.embed_query,
-                        semantic_configuration_name="semanticConfig",
+                        semantic_configuration_name="mySemanticConfig",
                     )
-                    retriever = csVectorStore.as_retriever(search_type=searchType, search_kwargs={"k": 3})
+                    retriever = csVectorStore.as_retriever(search_type=searchType, k=topK)
                     retrievedDocs = retriever.get_relevant_documents(question)
                     for doc in retrievedDocs:
                         rawDocs.append(doc.page_content)
@@ -481,7 +480,7 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                             "answer": json.dumps(outputFinalAnswer),
                         })
 
-                        indexDocs(SearchService, SearchKey, KbIndexName, kbData)
+                        indexDocs(SearchService, KbIndexName, kbData)
                     except Exception as e:
                         logging.info("Error in KB Indexing: " + str(e))
                         pass
@@ -490,10 +489,10 @@ def QaAnswer(chainType, question, indexType, value, indexNs, approach, overrides
                 except Exception as e:
                     return {"data_points": "", "answer": "Working on fixing Cognitive Search Implementation - Error : " + str(e), "thoughts": "", "sources": "", "nextQuestions": "", "error":  str(e)}
             elif indexType == "csv":
-                downloadPath = getLocalBlob(OpenAiDocConnStr, OpenAiDocContainer, '', indexNs)
+                downloadPath = getLocalBlob(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, '', indexNs)
                 agent = create_csv_agent(llm, downloadPath, verbose=True)
                 answer = agent.run(question)
-                sources = getFullPath(OpenAiDocConnStr, OpenAiDocContainer, os.path.basename(downloadPath))
+                sources = getFullPath(TenantId, ClientId, ClientSecret, BlobAccountName, OpenAiDocContainer, os.path.basename(downloadPath))
                 return {"data_points": '', "answer": answer, 
                             "thoughts": '',
                                 "sources": sources, "nextQuestions": '', "error": ""}

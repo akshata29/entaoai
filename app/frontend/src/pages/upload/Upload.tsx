@@ -58,7 +58,6 @@ const Upload = () => {
 
     const [selectedConnector, setSelectedConnector] = useState<IDropdownOption>();
     const [connectorOptions, setConnectorOptions] = useState<any>([])
-    const [blobConnectionString, setBlobConnectionString] = useState('');
     const [blobContainer, setBlobContainer] = useState('');
     const [blobPrefix, setBlobPrefix] = useState('');
     const [blobName, setBlobName] = useState('');
@@ -81,13 +80,13 @@ const Upload = () => {
     const dropdownShortStyles: Partial<IDropdownStyles> = { dropdown: { width: 150 } };
 
     const deploymentTypeOptions = [
+      // {
+      //   key: 'gpt35',
+      //   text: 'GPT 3.5 Turbo'
+      // },
       {
-        key: 'gpt35',
-        text: 'GPT 3.5 Turbo'
-      },
-      {
-        key: 'gpt3516k',
-        text: 'GPT 3.5 Turbo - 16k'
+        key: 'gpt4o',
+        text: 'GPT 4 Omni'
       }
     ]
 
@@ -176,6 +175,10 @@ const Upload = () => {
       {
         key: 'generic',
         text: 'generic'
+      },
+      {
+        key: 'contract',
+        text: 'contract'
       },
       {
         key: 'medical',
@@ -449,7 +452,7 @@ const Upload = () => {
 
           await processDoc(String(selectedItem?.key), isMarkDown ? "md" : "files", (files.length > 1 ? "true" : "false"), 
           existingIndex ? existingIndexName : indexName, files,
-          blobConnectionString, blobContainer, blobPrefix, blobName,
+          blobContainer, blobPrefix, blobName,
           s3Bucket, s3Key, s3AccessKey, s3SecretKey, s3Prefix,
           existingIndex ? "true" : "false", existingIndex ? indexNs : '',
           String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key),
@@ -528,7 +531,7 @@ const Upload = () => {
             .then(async () => {
               setUploadText("File uploaded successfully.  Now indexing the document.")
               await processDoc(String(selectedItem?.key), "webpages", "false", existingIndex ? existingIndexName : indexName, 
-              processPage, blobConnectionString,
+              processPage,
               blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
               s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '',
               String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key),
@@ -586,10 +589,6 @@ const Upload = () => {
         setMissingIndexName(true)
         return
       }
-      if (blobConnectionString == '' && (selectedConnector?.key == 'adlsfile' || selectedConnector?.key == 'adlscontainer')) {
-        setMissingIndexName(true)
-        return
-      }
       if (blobContainer == '' && (selectedConnector?.key == 'adlsfile' || selectedConnector?.key == 'adlscontainer')) {
         setMissingIndexName(true)
         return
@@ -634,7 +633,7 @@ const Upload = () => {
                 setUploadText("File uploaded successfully.  Now indexing the document.")
                 setUploadText('Processing data from your connector...')
                 await processDoc(String(selectedItem?.key), String(selectedConnector?.key), "false", existingIndex ? existingIndexName : indexName,
-                '', blobConnectionString,
+                '',
                 blobContainer, blobPrefix, blobName, s3Bucket, s3Key, s3AccessKey,
                 s3SecretKey, s3Prefix, existingIndex ? "true" : "false", existingIndex ? indexNs : '',
                 String(selectedEmbeddingItem?.key), String(selectedTextSplitterItem?.key),
@@ -650,7 +649,6 @@ const Upload = () => {
                   setLoading(false)
                   setMissingIndexName(false)
                   setIndexName('')
-                  setBlobConnectionString('')
                   setBlobContainer('')
                   setBlobPrefix('')
                   setBlobName('')
@@ -665,7 +663,6 @@ const Upload = () => {
                   setLoading(false)
                   setMissingIndexName(false)
                   setIndexName('')
-                  setBlobConnectionString('')
                   setBlobContainer('')
                   setBlobPrefix('')
                   setBlobName('')
@@ -687,7 +684,6 @@ const Upload = () => {
           setLoading(false)
           setMissingIndexName(false)
           setIndexName('')
-          setBlobConnectionString('')
           setBlobContainer('')
           setBlobPrefix('')
           setBlobName('')
@@ -735,9 +731,9 @@ const Upload = () => {
 
     const onChunkSizeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
       setSelectedChunkSizeItem(item);
-      if (Number(item?.key) > 4000) {
-        setSelectedDeploymentType(deploymentTypeOptions[1])
-      }
+      // if (Number(item?.key) > 4000) {
+      //   setSelectedDeploymentType(deploymentTypeOptions[1])
+      // }
     };
 
     const onPromptTypeChange = (event?: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
@@ -762,10 +758,6 @@ const Upload = () => {
       setSelectedConnector(item);
     };
 
-    const onBlobConnectionString = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-      setBlobConnectionString(newValue || "");
-    };
-    
     const onBlobContainer = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setBlobContainer(newValue || "");
     };
@@ -1031,11 +1023,11 @@ const Upload = () => {
                     <Stack.Item grow>
                     {(selectedConnector?.key === 'adlscontainer' || selectedConnector?.key === 'adlsfile') && (
                         <div>
-                          <TextField onChange={onBlobConnectionString} 
+                          {/* <TextField onChange={onBlobConnectionString} 
                             styles={{root: {width: '700px'}}}
                             errorMessage={!missingIndexName ? '' : "Connection String is required"}
                             value = {blobConnectionString}
-                            label="Connection String" />
+                            label="Connection String" /> */}
                           <div>
                             <TextField onChange={onBlobContainer} 
                               styles={{root: {width: '200px'}}}
