@@ -15,7 +15,7 @@ const Layout = () => {
             <header className={styles.header} role={"banner"}>
                 <div className={styles.headerContainer}>
                     <Link to="https://dataaipdfchat.azurewebsites.net/" target={"_blank"} className={styles.headerTitleContainer}>
-                        <h3 className={styles.headerTitle}>Chat and Ask</h3>
+                        <h3 className={styles.headerTitle}>AEC CoPilot</h3>
                     </Link>
                     <nav>
                         <ul className={styles.headerNavList}>
@@ -56,7 +56,7 @@ const Layout = () => {
                             </li> */}
                         </ul>
                     </nav>
-                    <h4 className={styles.headerRightText}>Azure OpenAI</h4>
+                    <h4 className={styles.headerRightText}>Azure OpenAI for AEC Industry</h4>
                 </div>
             </header>
             <Outlet />
